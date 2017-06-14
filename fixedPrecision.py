@@ -7,7 +7,8 @@ Created on Mon May 22 11:44:30 2017
 """
 import math
 
-def to_precision(x,p):
+
+def to_precision(x, p):
     """
     returns a string representation of x formatted with a precision of p
 
@@ -31,14 +32,14 @@ def to_precision(x,p):
     n = math.floor(x/tens)
 
     if n < math.pow(10, p - 1):
-        e = e -1
+        e = e - 1
         tens = math.pow(10, e - p+1)
         n = math.floor(x / tens)
 
-    if abs((n + 1.) * tens - x) <= abs(n * tens -x):
+    if abs((n + 1.) * tens - x) <= abs(n * tens - x):
         n = n + 1
 
-    if n >= math.pow(10,p):
+    if n >= math.pow(10, p):
         n = n / 10.
         e = e + 1
 
@@ -53,11 +54,11 @@ def to_precision(x,p):
         if e > 0:
             out.append("+")
         out.append(str(e))
-    elif e == (p -1):
+    elif e == (p - 1):
         out.append(m)
     elif e >= 0:
         out.append(m[:e+1])
-        if e+1 < len(m):
+        if (e + 1) < len(m):
             out.append(".")
             out.extend(m[e+1:])
     else:

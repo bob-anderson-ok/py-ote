@@ -12,10 +12,11 @@
 
 from math import log, exp, sqrt, pi
 import numpy as np
-#from numpy.core.multiarray import ndarray
+# from numpy.core.multiarray import ndarray
 
 __all__ = ['likelihood', 'loglikelihood', 'conditional_likelihood',
            'cum_loglikelihood', 'cum_corr_loglikelihood', 'aicc']
+
 
 def aicc(logLikelihood, n, k):
     """
@@ -24,7 +25,7 @@ def aicc(logLikelihood, n, k):
     k = number of degrees of freedom
     """
     assert(n > k + 2)
-    return -2 * logLikelihood + 2 * k * n / ( n - k - 1)
+    return -2 * logLikelihood + 2 * k * n / (n - k - 1)
 
 
 def likelihood(y, m, sigma):
@@ -63,18 +64,20 @@ def loglikelihood(y, m, sigma):
     t3 = -(y - m) ** 2 / (2 * sigma ** 2)
     return t1 + t2 + t3
 
+
 def logLikelihoodLine(y,  sigmaB=None, left=None, right=None):
-    """ log likelihood of a straight line throught the readings"""
+    """ log likelihood of a straight line through the readings"""
     
     B = np.mean(y[left:right+1])
     n = right - left + 1
     
-    ans  = -n * np.log(np.sqrt(2*pi))
-    ans -=  n * np.log(sigmaB)
+    ans = -n * np.log(np.sqrt(2*pi))
+    ans -= n * np.log(sigmaB)
     ans -= np.sum((y[left:right+1] - B) ** 2 / sigmaB ** 2) / 2.0
     
     return ans
-    
+
+
 def cum_loglikelihood(y, m, sigma, left, right):
     """ numpy accelerated sum of loglikelihoods
 

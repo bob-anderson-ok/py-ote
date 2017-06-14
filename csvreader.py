@@ -8,6 +8,7 @@ Created on Tue May 23 07:24:21 2017
 
 import os
 
+
 def readLightCurve(filepath):
     """
     Reads the intensities and timestamps from Limovie,
@@ -17,16 +18,18 @@ def readLightCurve(filepath):
         
         readOk, errMsg, frame, time, value, secondary, headers = readAs(filepath)
         if readOk:
-            return (frame, time, value, secondary, headers)
+            return frame, time, value, secondary, headers
         else:
             raise Exception(errMsg)
             
     else:
         raise Exception('File could not be opened')
 
+
 def fileCanBeOpened(file):
     return os.path.exists(file) and os.path.isfile(file)
                    
+
 def getFileKind(file):
     fileobject = open(file)
     with fileobject:
@@ -58,6 +61,7 @@ def tangraParser(line, frame, time, value, secondary):
     if len(part) >= 6:
         secondary.append(str(float(part[4]) - float(part[5])))
     
+
 def limovieParser(line, frame, time, value, secondary):
     """
     Limovie sample line ---
@@ -65,11 +69,12 @@ def limovieParser(line, frame, time, value, secondary):
     """
     part = line.split(',')
     frame.append(part[0])
-    time.append('[' + part[3] + ':' + part[4] + ':'   + part[5] + ']')
+    time.append('[' + part[3] + ':' + part[4] + ':' + part[5] + ']')
     value.append(part[10])
     if part[11]:
         secondary.append(part[11])
     
+
 def roteParser(line, frame, time, value, secondary):
     """
     R-OTE sample line ---
@@ -83,18 +88,20 @@ def roteParser(line, frame, time, value, secondary):
         if part[3]:
             secondary.append(part[3])
 
+
 def rawParser(line, frame, time, value, secondary):
     value.append(line)
     
+
 def readAs(file):
     
     kind = getFileKind(file)
     
     fileobject = open(file)
-    headers   = []
-    time      = []
-    frame     = []
-    value     = []
+    headers = []
+    time = []
+    frame = []
+    value = []
     secondary = []
     
     if kind == 'Tangra':

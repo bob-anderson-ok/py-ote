@@ -10,7 +10,8 @@ import numpy as np
 from likelihood_calculations import cum_loglikelihood, aicc, logLikelihoodLine
 from math import exp
 
-def model(*, B=None, A=None, 
+
+def model(*, B=None, A=None,
           edgeTuple=None, 
           sigmaB=None, sigmaA=None, numPts=None):
     
@@ -26,8 +27,8 @@ def model(*, B=None, A=None,
         return m, sigma
     
     if D is not None and R is not None:
-        assert(D >= 1 and R > D)
-        assert(D < numPts and R < numPts )
+        assert((D >= 1) and (R > D))
+        assert((D < numPts) and (R < numPts))
         assert(R > D)
         
         m[:D] = B
@@ -41,7 +42,7 @@ def model(*, B=None, A=None,
         return m, sigma
     
     if D is not None and R is None:
-        assert(D >= 1 and D < numPts)
+        assert((D >= 1) and (D < numPts))
         
         m[:D] = B
         m[D:] = A
@@ -52,7 +53,7 @@ def model(*, B=None, A=None,
         return m, sigma
     
     if R is not None and D is None:
-        assert(R >=1 and R < numPts)
+        assert((R >= 1) and (R < numPts))
         
         m[:R] = A
         m[R:] = B
@@ -64,7 +65,8 @@ def model(*, B=None, A=None,
             
     raise Exception("Unexpected condition.")
     
-def candidatesFromEventSize(*, eventType='DandR', 
+
+def candidatesFromEventSize(*, eventType='DandR',
                             left=None, right=None, 
                             minSize=None, maxSize=None):
     """
@@ -80,21 +82,22 @@ def candidatesFromEventSize(*, eventType='DandR',
     
     if eventType == 'Donly':
         for D in range(right-maxSize+1, right-minSize+2):
-            yield (D,None)
+            yield (D, None)
     
     elif eventType == 'Ronly':
         for R in range(left+minSize, left+maxSize+1):
-            yield (None,R)
+            yield (None, R)
     
     elif eventType == 'DandR':
         for size in range(minSize, maxSize+1):
             for pos in range(left+1, right+1-size):
-                yield (pos,pos+size)
+                yield (pos, pos+size)
         
     else:
         raise Exception("Unrecognized event type")
         
-def candidatesFromDandRlimits(*, eventType='DandR', 
+
+def candidatesFromDandRlimits(*, eventType='DandR',
                               dLimits=None, rLimits=None):
     """
     This is implemented as a generator because if large limits are given, it is
@@ -105,11 +108,11 @@ def candidatesFromDandRlimits(*, eventType='DandR',
     
     if eventType == 'Donly':
         for D in range(dLimits[0], dLimits[1] + 1):
-            yield (D,None)
+            yield (D, None)
     
     elif eventType == 'Ronly':
         for R in range(rLimits[0], rLimits[1] + 1):
-            yield (None,R)
+            yield (None, R)
     
     elif eventType == 'DandR':
         for D in range(dLimits[0], dLimits[1] + 1):
@@ -119,8 +122,9 @@ def candidatesFromDandRlimits(*, eventType='DandR',
     else:
         raise Exception("Unrecognized edvent type")
         
+
 def calcNumCandidatesFromDandRlimits(*, eventType='DandR', dLimits=None,
-                              rLimits=None):
+                                     rLimits=None):
     
     # The D and R limits are assumed valid as input and are non-overlapping
     
@@ -131,8 +135,9 @@ def calcNumCandidatesFromDandRlimits(*, eventType='DandR', dLimits=None,
     elif eventType == 'DandR':
         return (dLimits[1] - dLimits[0] + 1) * (rLimits[1] - rLimits[0] + 1)
     else:
-       raise Exception("Unrecognized event type") 
+        raise Exception("Unrecognized event type")
  
+
 def calcNumCandidatesFromEventSize(*, eventType='DandR',
                                    left=None, right=None,
                                    minSize=None, maxSize=None):
@@ -154,13 +159,14 @@ def calcNumCandidatesFromEventSize(*, eventType='DandR',
     else:
         raise Exception("Unrecognized edge specifier")
     
+
 def calcBandA(*, yValues=None, left=None, right=None, cand=None):
     
     assert(right > left)
     
-    D, R = cand # Extract D and R from the tuple
+    D, R = cand  # Extract D and R from the tuple
         
-    if R == None:
+    if R is None:
         assert(D > left)
         # This is a 'Donly' candidate
         # Note that the yValue at D is not included in the B calculation
@@ -172,10 +178,11 @@ def calcBandA(*, yValues=None, left=None, right=None, cand=None):
             A = yValues[D]
         else:
             A = np.mean(yValues[D+1:right+1])
-        if A > B: A = B - 1
+        if A > B:
+            A = B - 1
         return B, A
     
-    elif D == None:
+    elif D is None:
         assert(R <= right)
         # This is an 'Ronly' candidate
         # We have to deal with a R at the right edge.  There is no value to
@@ -185,105 +192,118 @@ def calcBandA(*, yValues=None, left=None, right=None, cand=None):
             B = yValues[R]
         else:
             B = np.mean(yValues[R+1:right+1])
-        A = np.mean(yValues[left:R]) # smallest R is left + 1
-        if A > B: A = B - 1
+        A = np.mean(yValues[left:R])  # smallest R is left + 1
+        if A > B:
+            A = B - 1
         return B, A
     
     else:
-        assert(D > left and R <= right and R > D)
+        assert((D > left) and (R <= right) and (R > D))
         # We have a 'DandR' candidate
-        leftBvals = yValues[left:D] # Smallest D will 1
+        leftBvals = yValues[left:D]  # Smallest D will 1
         if R == right:
             rightBvals = yValues[right]
         else:
             rightBvals = yValues[R+1:right+1]
         B = (np.sum(leftBvals) + np.sum(rightBvals)) / (leftBvals.size + rightBvals.size)
         
-        if R - D == 1: # Event size of 1 has no valid A --- we choose the value at D
+        if R - D == 1:  # Event size of 1 has no valid A --- we choose the value at D
             A = yValues[D]
         else:    
             A = np.mean(yValues[D+1:R])
-        if A > B: A = B - 1
+        if A > B:
+            A = B - 1
         return B, A
+
 
 def scoreCandidate(yValues, left, right, cand, sigmaB, sigmaA):
     B, A = calcBandA(yValues=yValues, left=left, right=right, cand=cand)
     m, sigma = model(B=B, A=A, edgeTuple=cand, 
                      sigmaB=sigmaB, sigmaA=sigmaA, numPts=yValues.size)
-    return (cum_loglikelihood(yValues, m, sigma, left, right), B, A)
+    return cum_loglikelihood(yValues, m, sigma, left, right), B, A
+
 
 def scoreSubFrame(yValues, left, right, cand, sigmaB, sigmaA):
     B, A = calcBandA(yValues=yValues, left=left, right=right, cand=cand)
     m, sigma = model(B=B, A=A, edgeTuple=cand, 
                      sigmaB=sigmaB, sigmaA=sigmaA, numPts=yValues.size)
     D, R = cand
-    if yValues[D] < B and yValues[D] > A:
+    if (yValues[D] < B) and (yValues[D] > A):
         m[D] = yValues[D]
-    if yValues[R] < B and yValues[R] > A:
+    if (yValues[R] < B) and (yValues[R] > A):
         m[R] = yValues[R]
-    return (cum_loglikelihood(yValues, m, sigma, left, right), B, A)
+    return cum_loglikelihood(yValues, m, sigma, left, right), B, A
 
-def getAssociationForEntry(*, yValues=None, entry=None, 
+
+def getAssociationForEntry(*, yValues=None, entry=None,
                            B=None, A=None,
                            sigmaB=None, sigmaA=None):
     eVal = yValues[entry]
-    if eVal > A + 3 * sigmaA and eVal < B - 3 * sigmaB:
+    if (eVal > (A + 3 * sigmaA)) and (eVal < (B - 3 * sigmaB)):
         return 'subFrameValue'
     elif abs(eVal - B) < abs(eVal-A):
         return 'B'
     else:
         return 'A'
     
-def candidateCounter(*, eventType='DandR', 
+
+def candidateCounter(*, eventType='DandR',
                      dLimits=None, rLimits=None, 
                      left=None, right=None,
                      numPts=None, minSize=None, maxSize=None):
 
     def minMaxOk():
-        if numPts  == None: return False
-        if minSize == None: return False
-        if maxSize == None: return False
-        if minSize < 1: return False
-        if maxSize > numPts - 2: return False
-        if maxSize < minSize: return False
+        if numPts is None:
+            return False
+        if minSize is None:
+            return False
+        if maxSize is None:
+            return False
+        if minSize < 1:
+            return False
+        if maxSize > (numPts - 2):
+            return False
+        if maxSize < minSize:
+            return False
         return True
     
     # D and R limits trumps event size as candidate generator/counter
     if eventType == 'Donly':
         if dLimits:
             return ('usedLimits', calcNumCandidatesFromDandRlimits(eventType=eventType, 
-                            dLimits=dLimits, rLimits=rLimits))
+                    dLimits=dLimits, rLimits=rLimits))
         else:
             if minMaxOk():
                 return ('usedSize', calcNumCandidatesFromEventSize(eventType=eventType, 
-                            left=left, right=right, minSize=minSize, maxSize=maxSize))
+                        left=left, right=right, minSize=minSize, maxSize=maxSize))
             else:
-                return ('error', -1)
+                return 'error', -1
             
     elif eventType == 'Ronly':
         if rLimits:
             return ('usedLimits', calcNumCandidatesFromDandRlimits(eventType=eventType, 
-                            dLimits=dLimits, rLimits=rLimits))
+                    dLimits=dLimits, rLimits=rLimits))
         else:
             if minMaxOk():
                 return ('usedSize', calcNumCandidatesFromEventSize(eventType=eventType, 
-                            left=left, right=right, minSize=minSize, maxSize=maxSize))
+                        left=left, right=right, minSize=minSize, maxSize=maxSize))
             else:
-                return ('error', -1)
+                return 'error', -1
         
     elif eventType == 'DandR':
         if rLimits and dLimits:
             return ('usedLimits', calcNumCandidatesFromDandRlimits(eventType=eventType,
-                            dLimits=dLimits, rLimits=rLimits))
+                    dLimits=dLimits, rLimits=rLimits))
         else:
             if minMaxOk():
                 return ('usedSize', calcNumCandidatesFromEventSize(eventType=eventType, 
-                            left=left, right=right, minSize=minSize, maxSize=maxSize))
+                        left=left, right=right, minSize=minSize, maxSize=maxSize))
             else:
-                return ('error', -1)
+                return 'error', -1
             
     else:
         raise Exception("Unrecognized event type")  
+
 
 def subFrameAdjusted(*, eventType=None, cand=None, B=None, A=None,
                      sigmaA=None, sigmaB=None,
@@ -295,7 +315,7 @@ def subFrameAdjusted(*, eventType=None, cand=None, B=None, A=None,
 
     def adjusted(transitionPoint):
         value = yValues[transitionPoint]
-        if value > A + sigFactor * sigmaA and value < B - sigFactor * sigmaB:
+        if (value > (A + sigFactor * sigmaA)) and (value < (B - sigFactor * sigmaB)):
             if transitionPoint == R:
                 adj = (B - value) / (B - A)
             else:
@@ -318,7 +338,8 @@ def subFrameAdjusted(*, eventType=None, cand=None, B=None, A=None,
     else:
         raise Exception('Unrecognized event type')
         
-def solver(*, eventType=None, yValues=None, 
+
+def solver(*, eventType=None, yValues=None,
            left=None, right=None,
            sigmaB=None, sigmaA=None, 
            dLimits=None, rLimits=None,
@@ -334,7 +355,7 @@ def solver(*, eventType=None, yValues=None,
                                            minSize=minSize, maxSize=maxSize)
     
     if mode == 'error':
-        return (bestCand, bestB, bestA)
+        return bestCand, bestB, bestA
     
     if mode == 'usedLimits':
         candGen = candidatesFromDandRlimits(eventType=eventType, dLimits=dLimits,
@@ -364,8 +385,8 @@ def solver(*, eventType=None, yValues=None,
         k = 3
         
     lineScore = logLikelihoodLine(yValues, sigmaB=sigmaB, left=left, right=right)
-    aiccSol  = aicc(bestScore,right-left+1,k)
-    aiccLine = aicc(lineScore,right-left+1,1)
+    aiccSol = aicc(bestScore, right-left+1, k)
+    aiccLine = aicc(lineScore, right-left+1, 1)
     if aiccSol < aiccLine:
         pLine = exp(-(aiccLine - aiccSol)/2)
     else:
@@ -374,7 +395,5 @@ def solver(*, eventType=None, yValues=None,
         yield 'no event present', counter/numCandidates
 
     yield subFrameAdjusted(eventType=eventType, cand=bestCand, 
-                            B=bestB, A=bestA, sigmaB=sigmaB, sigmaA=sigmaA,
-                            yValues=yValues, left=left, right=right)
-        
-        
+                           B=bestB, A=bestA, sigmaB=sigmaB, sigmaA=sigmaA,
+                           yValues=yValues, left=left, right=right)

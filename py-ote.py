@@ -254,8 +254,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         selIndices = [key for key, _ in self.selectedPoints.items()]
         selIndices.sort()
         
-        leftEdge = min(selIndices)
-        rightEdge = max(selIndices)
+        leftEdge = int(min(selIndices))
+        rightEdge = int(max(selIndices))
         
         if leftEdge < self.left or rightEdge > self.right:
             self.showInfo('The D region must be positioned within the trimmed data!')
@@ -303,8 +303,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         selIndices = [key for key, _ in self.selectedPoints.items()]
         selIndices.sort()
         
-        leftEdge = min(selIndices)
-        rightEdge = max(selIndices)
+        leftEdge = int(min(selIndices))
+        rightEdge = int(max(selIndices))
         
         if leftEdge < self.left or rightEdge > self.right:
             self.showInfo('The R region must be positioned within the trimmed data!')
@@ -385,7 +385,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             # self.smoothSecondary = scipy.signal.savgol_filter(filteredY, 25, 3)
             self.reDrawMainPlot()            
         except Exception as e:
-            self.showMsg(e)
+            self.showMsg(str(e))
                
         self.smoothSecondaryButton.setEnabled(False)
         self.normalizeButton.setEnabled(True)
@@ -421,16 +421,16 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             
         selPts = [key for key in self.selectedPoints.keys()]
         self.removePointSelections()
-        left   = min(selPts)
-        right  = max(selPts)
+        left = min(selPts)
+        right = max(selPts)
 
         # Time to do the work
         p0 = left
         span = right - left + 1  # Number of points in integration block
         newFrame = []
-        newTime  = []
-        newVal   = []
-        newRef   = []
+        newTime = []
+        newVal = []
+        newRef = []
         
         p = p0 - span  # Start working toward the left
         while p > 0:
@@ -442,7 +442,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             newTime.insert(0, self.yTimes[p])
             p = p - span
             
-        p = p0 # Start working toward the right
+        p = p0  # Start working toward the right
         while p < self.dataLen - span:
             avg = np.mean(self.yValues[p:(p+span)])
             newVal.append(avg)
@@ -540,12 +540,13 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                            symbolBrush=(255, 255, 0), symbolSize=10)
         
     def showMsg(self, msg, color=None, bold=False, blankLine=True):
-        """ show debug message """
+        """ show standard output message """
+        htmlmsg = msg
         if color:
-            htmlmsg = '<font color=' + color + '>' + msg + '</font>'
+            htmlmsg = '<font color=' + color + '>' + htmlmsg + '</font>'
         if bold:
-            htmlmsg = '<b>' + msg + '</b>'
-        htmlmsg = msg + '<br>'
+            htmlmsg = '<b>' + htmlmsg + '</b>'
+        htmlmsg = htmlmsg + '<br>'
         self.textOut.moveCursor(QtGui.QTextCursor.End)
         self.textOut.insertHtml(htmlmsg)
         if blankLine:
@@ -564,15 +565,15 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         intD = int(D)  # So that we can do lookup in the data table
 
         noiseAsymmetry = self.snrA / self.snrB
-        if noiseAsymmetry > 0.7 and noiseAsymmetry < 1.3:
+        if (noiseAsymmetry > 0.7) and (noiseAsymmetry < 1.3):
             plusD = (self.deltaDhi95 - self.deltaDlo95) / 2
             minusD = plusD
         else:
-            plusD  = -self.deltaDlo95  # Deliberate 'inversion'
-            minusD =  self.deltaDhi95  # Deliberate 'inversion'
+            plusD = -self.deltaDlo95   # Deliberate 'inversion'
+            minusD = self.deltaDhi95   # Deliberate 'inversion'
          
         # Save these for the 'envelope' plotter
-        self.plusD  = plusD
+        self.plusD = plusD
         self.minusD = minusD
 
         entryNum = intD
@@ -592,15 +593,15 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         _, R = self.solution
         # if R: R = R - self.Roffset
         noiseAsymmetry = self.snrA / self.snrB
-        if noiseAsymmetry > 0.7 and noiseAsymmetry < 1.3:
+        if (noiseAsymmetry > 0.7) and (noiseAsymmetry < 1.3):
             plusR = (self.deltaRhi95 - self.deltaRlo95) / 2
             minusR = plusR
         else:
-            plusR  = -self.deltaRlo95 # Deliberate 'inversion'
-            minusR =  self.deltaRhi95 # Deliberate 'inversion'
+            plusR = -self.deltaRlo95  # Deliberate 'inversion'
+            minusR = self.deltaRhi95  # Deliberate 'inversion'
         
         # Save these for the 'envelope' plotter
-        self.plusR  = plusR
+        self.plusR = plusR
         self.minusR = minusR
 
         intR = int(R)
@@ -723,29 +724,28 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         
         global durDist 
         durDist = createDurDistribution(dist)
-        ydur,xdur = np.histogram(durDist, bins=1000)
+        ydur, xdur = np.histogram(durDist, bins=1000)
         self.loDurbar95, _, self.hiDurbar95, self.deltaDurlo95, self.deltaDurhi95 = ciBars(dist=durDist, ci=0.95)
         self.loDurbar68, _, self.hiDurbar68, self.deltaDurlo68, self.deltaDurhi68 = ciBars(dist=durDist, ci=0.6827)
 
-        
         pg.setConfigOptions(antialias=True)
-        pen = pg.mkPen((0,0,0), width=2)
+        pen = pg.mkPen((0, 0, 0), width=2)
         
-        self.errBarWin = pg.GraphicsWindow(title=
-                    'Solution distributions with confidence intervals of 0.6827 and 0.95 marked')
+        self.errBarWin = pg.GraphicsWindow(
+            title='Solution distributions with confidence intervals of 0.6827 and 0.95 marked')
         self.errBarWin.resize(1200, 600)
         layout = QtGui.QGridLayout()
         self.errBarWin.setLayout(layout)
         
         pw = PlotWidget(viewBox=CustomViewBox(border=(0, 0, 0)),
                         enableMenu=False, title='Distribution of edge (D) errors due to noise',
-                        labels={'bottom':'Readings'})
+                        labels={'bottom': 'Readings'})
         self.dBarPlotItem = pw.getPlotItem()
         pw.hideButtons()
         
-        pw2 = PlotWidget(viewBox=CustomViewBox(border=(0,0,0)), 
-                        enableMenu=False, title='Distribution of duration (R - D) errors due to noise',
-                        labels={'bottom':'Readings'})
+        pw2 = PlotWidget(viewBox=CustomViewBox(border=(0, 0, 0)),
+                         enableMenu=False, title='Distribution of duration (R - D) errors due to noise',
+                         labels={'bottom': 'Readings'})
         self.durBarPlotItem = pw2.getPlotItem()
         pw2.hideButtons()
         
@@ -780,12 +780,12 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         
         yp = max(y) * 0.25
         x1 = self.loDbar95-D
-        pw.plot(x=[x1,x1],y=[0,yp],pen=pen)
+        pw.plot(x=[x1, x1], y=[0, yp], pen=pen)
         x2 = self.hiDbar95-D
-        pw.plot(x=[x2,x2],y=[0,yp],pen=pen)
+        pw.plot(x=[x2, x2], y=[0, yp], pen=pen)
         
-        self.showMsg('loDbar   @ .95 ci: %8.4f' % (x1), blankLine=False)
-        self.showMsg('hiDbar   @ .95 ci: %8.4f' % (x2), blankLine=True)
+        self.showMsg('loDbar   @ .95 ci: %8.4f' % x1, blankLine=False)
+        self.showMsg('hiDbar   @ .95 ci: %8.4f' % x2, blankLine=True)
         
         legend95 = '[%0.2f,%0.2f] @ 0.95' % (x1, x2)
         pw.plot(name=legend95)
@@ -879,8 +879,10 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 if self.maxEvent > self.right - self.left - 1:
                     self.showInfo('maxEvent is too large for selected points')
                     return
-        if minText == '': minText = '<blank>'
-        if maxText == '': maxText = '<blank>'
+        if minText == '':
+            minText = '<blank>'
+        if maxText == '':
+            maxText = '<blank>'
         self.showMsg('minEvent: ' + minText + '  maxEvent: ' + maxText)
         
         candFrom, numCandidates = candidateCounter(eventType=self.eventType, 
@@ -976,7 +978,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         for i in range(self.dataLen):
             newitem = QtGui.QTableWidgetItem(str(i))
             self.table.setItem(i, 0, newitem)
-            neatStr = fp.to_precision(self.yValues[i],6)
+            neatStr = fp.to_precision(self.yValues[i], 6)
             newitem = QtGui.QTableWidgetItem(str(neatStr))
             self.table.setItem(i, 3, newitem)
             newitem = QtGui.QTableWidgetItem(str(self.yTimes[i]))
@@ -990,7 +992,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         
         self.initializeVariablesThatDontDependOnAfile()
         
-        global timestamps # debug
+        global timestamps  # debug
         self.disableAllButtons()
         self.mainPlot.clear()
         self.textOut.clear()
@@ -998,9 +1000,9 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         
         # Open a file select dialog
         self.filename, _ = QFileDialog.getOpenFileName(
-                self,                           # parent
-                "Select light curve csv file",  # title for dialog
-                self.settings.value('lightcurvedir', ""), # starting directory
+                self,                                      # parent
+                "Select light curve csv file",             # title for dialog
+                self.settings.value('lightcurvedir', ""),  # starting directory
                 "Csv files (*.csv)")
         if self.filename:
             dirpath, _ = os.path.split(self.filename)
@@ -1051,8 +1053,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 self.yFrameCopy = frame[:]
                 
                 # Automatically select all points
-                self.yStatus = [1 for _i in range(self.dataLen)] # 1 means included
-                self.left  = 0
+                self.yStatus = [1 for _i in range(self.dataLen)]  # 1 means included
+                self.left = 0
                 self.right = self.dataLen - 1
                 
                 self.reDrawMainPlot()
@@ -1065,8 +1067,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 self.startOver.setEnabled(True)
                 self.fillTableViewOfData()
                 self.timeDelta, self.outliers, self.errRate = getTimeStepAndOutliers(self.yTimes)
-                self.showMsg('timeDelta: ' + fp.to_precision(self.timeDelta,6) + ' seconds', blankLine=False) 
-                self.showMsg('timestamp error rate: ' + fp.to_precision(100 * self.errRate,2) + '%')
+                self.showMsg('timeDelta: ' + fp.to_precision(self.timeDelta, 6) + ' seconds', blankLine=False)
+                self.showMsg('timestamp error rate: ' + fp.to_precision(100 * self.errRate, 2) + '%')
 
                 self.illustrateTimestampOutliers()
             except Exception as e:
@@ -1085,8 +1087,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             if coef < acfCoefThreshold:
                 break
             posCoefs.append(coef)
-            
-        i = 0
+
         for i in range(len(posCoefs)-1):
             outStr = outStr + fp.to_precision(posCoefs[i], 3) + ', '
         outStr = outStr + fp.to_precision(posCoefs[-1], 3)
@@ -1099,8 +1100,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             self.showInfo('Exactly two points must be selected for this operation')
             return
         selPts = self.selectedPoints.keys()
-        left = min(selPts)
-        right = max(selPts)
+        left = int(min(selPts))
+        right = int(max(selPts))
         if (right - left) < 9:
             self.showInfo('At least 10 points must be included.')
             return
@@ -1121,7 +1122,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.removePointSelections()
         _, self.numNApts, self.sigmaA = getCorCoefs(self.eventXvals, self.eventYvals)
         self.showMsg('Event noise analysis done using ' + str(self.numNApts) + 
-                     ' points ---  sigmaA: ' + fp.to_precision(self.sigmaA,4))
+                     ' points ---  sigmaA: ' + fp.to_precision(self.sigmaA, 4))
         
         self.reDrawMainPlot()
         
@@ -1131,8 +1132,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             self.showInfo('Exactly two points must be selected for this operation')
             return
         selPts = self.selectedPoints.keys()
-        left = min(selPts)
-        right = max(selPts)
+        left = int(min(selPts))
+        right = int(max(selPts))
         if (right - left) < 14:
             self.showInfo('At least 15 points must be included.')
             return
@@ -1174,7 +1175,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         
         self.prettyPrintCorCoefs()
         
-        if self.sigmaA == None:
+        if self.sigmaA is None:
             self.sigmaA = self.sigmaB
             
         self.reDrawMainPlot()
@@ -1282,7 +1283,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             raise Exception('Unrecognized event type')
             
     def drawEnvelope(self):
-        def plot(x,y):
+        def plot(x, y):
             self.mainPlot.plot(x, y, pen=pg.mkPen((150, 100, 100), width=2), symbol=None)
         
         if self.solution is None:
@@ -1298,12 +1299,12 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 nApts = 1
             
             D = self.solution[0] - self.Doffset
-            Dright  = D + self.plusD
-            Dleft   = D - self.minusD
-            Bup     = self.B + 2 * self.sigmaB / np.sqrt(nBpts)
-            Bdown   = self.B - 2 * self.sigmaB / np.sqrt(nBpts)
-            Aup     = self.A + 2 * self.sigmaA / np.sqrt(nApts)
-            Adown   = self.A - 2 * self.sigmaA / np.sqrt(nApts)
+            Dright = D + self.plusD
+            Dleft = D - self.minusD
+            Bup = self.B + 2 * self.sigmaB / np.sqrt(nBpts)
+            Bdown = self.B - 2 * self.sigmaB / np.sqrt(nBpts)
+            Aup = self.A + 2 * self.sigmaA / np.sqrt(nApts)
+            Adown = self.A - 2 * self.sigmaA / np.sqrt(nApts)
             
             plot([self.left, Dright], [Bup, Bup])
             plot([Dright, Dright], [Bup, Aup])
@@ -1324,12 +1325,12 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 nApts = 1
             
             R = self.solution[1] - self.Roffset
-            Rright  = R + self.plusR
-            Rleft   = R - self.minusR
-            Bup     = self.B + 2 * self.sigmaB / np.sqrt(nBpts)
-            Bdown   = self.B - 2 * self.sigmaB / np.sqrt(nBpts)
-            Aup     = self.A + 2 * self.sigmaA / np.sqrt(nApts)
-            Adown   = self.A - 2 * self.sigmaA / np.sqrt(nApts)
+            Rright = R + self.plusR
+            Rleft = R - self.minusR
+            Bup = self.B + 2 * self.sigmaB / np.sqrt(nBpts)
+            Bdown = self.B - 2 * self.sigmaB / np.sqrt(nBpts)
+            Aup = self.A + 2 * self.sigmaA / np.sqrt(nApts)
+            Adown = self.A - 2 * self.sigmaA / np.sqrt(nApts)
             
             plot([self.left, Rleft], [Aup, Aup])
             plot([Rleft, Rleft], [Aup, Bup])
@@ -1352,14 +1353,14 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             R = self.solution[1] - self.Roffset
             D = self.solution[0] - self.Doffset
             
-            Rright  = R + self.plusR
-            Rleft   = R - self.minusR
-            Dright  = D + self.plusD
-            Dleft   = D - self.minusD
-            Bup     = self.B + 2 * self.sigmaB / np.sqrt(nBpts)
-            Bdown   = self.B - 2 * self.sigmaB / np.sqrt(nBpts)
-            Aup     = self.A + 2 * self.sigmaA / np.sqrt(nApts)
-            Adown   = self.A - 2 * self.sigmaA / np.sqrt(nApts)
+            Rright = R + self.plusR
+            Rleft = R - self.minusR
+            Dright = D + self.plusD
+            Dleft = D - self.minusD
+            Bup = self.B + 2 * self.sigmaB / np.sqrt(nBpts)
+            Bdown = self.B - 2 * self.sigmaB / np.sqrt(nBpts)
+            Aup = self.A + 2 * self.sigmaA / np.sqrt(nApts)
+            Adown = self.A - 2 * self.sigmaA / np.sqrt(nApts)
             
             plot([self.left, Dright], [Bup, Bup])
             plot([Dright, Dright], [Bup, Aup])
@@ -1389,7 +1390,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         x = [i for i in range(self.dataLen) if self.yStatus[i] == INCLUDED]
         y = [self.yValues[i] for i in range(self.dataLen) if self.yStatus[i] == INCLUDED]
         self.mainPlot.plot(x, y, pen=None, symbol='o', 
-                           symbolBrush=(0,0,255), symbolSize=6)
+                           symbolBrush=(0, 0, 255), symbolSize=6)
         
         x = [i for i in range(self.dataLen) if self.yStatus[i] == BASELINE]
         y = [self.yValues[i] for i in range(self.dataLen) if self.yStatus[i] == BASELINE]
@@ -1411,13 +1412,13 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                                symbolBrush=(0, 255, 0), symbolSize=6)
             if len(self.smoothSecondary) > 0:
                 self.mainPlot.plot(x, self.smoothSecondary, 
-                                   pen=pg.mkPen((100, 100, 100), width=4),symbol=None)
+                                   pen=pg.mkPen((100, 100, 100), width=4), symbol=None)
                  
         self.illustrateTimestampOutliers()
         
-        if self.dRegion != None:
+        if self.dRegion is not None:
             self.mainPlot.addItem(self.dRegion)
-        if self.rRegion != None:
+        if self.rRegion is not None:
             self.mainPlot.addItem(self.rRegion)            
         
     def showSelectedPoints(self, header):
@@ -1458,6 +1459,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.doBlockIntegration.setEnabled(False)
         self.mainPlot.autoRange()        
 
+
 def main():
     import traceback
     QtGui.QApplication.setStyle('fusion')
@@ -1465,6 +1467,7 @@ def main():
     
     # Save the current/proper sys.excepthook object
     sys._excepthook = sys.excepthook
+
     def exception_hook(exctype, value, tb):
         print('')
         print('=' * 30)
@@ -1476,7 +1479,7 @@ def main():
         # Call the usual exception processor
         sys._excepthook(exctype, value, tb)
         # Exit if you prefer...
-        #sys.exit(1)
+        # sys.exit(1)
         
     sys.excepthook = exception_hook
     
