@@ -29,6 +29,7 @@
 #       In c:\Users\Bob\Anaconda3\Lib\site-packages\cx_Freeze\hooks.py
 #           changed scipy.lib to scipy._lib (note underscore)
 
+# Just added to test commit error thingy
 import sys
 from cx_Freeze import Executable
 from cx_Freeze import setup as cx_setup
