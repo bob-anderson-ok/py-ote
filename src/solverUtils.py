@@ -6,9 +6,11 @@ Created on Mon May 29 07:00:33 2017
 @author: Bob Anderson
 """
 
-import numpy as np
-from likelihood_calculations import cum_loglikelihood, aicc, logLikelihoodLine
 from math import exp
+
+import numpy as np
+
+from src.likelihood_calculations import cum_loglikelihood, aicc, logLikelihoodLine
 
 
 def model(*, B=None, A=None,

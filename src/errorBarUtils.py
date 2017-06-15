@@ -6,11 +6,12 @@ Created on Sat Jun  3 09:37:59 2017
 @author: bob
 """
 import numpy as np
-import autocorrtools
-from solverUtils import model
+import pyximport
 from scipy.signal import savgol_filter as savgol
 
-import pyximport
+from src import autocorrtools
+from src.solverUtils import model
+
 pyximport.install()
 
 from c_functions import find_Dedge_logl  # Finds D using a subframe model

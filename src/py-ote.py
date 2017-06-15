@@ -6,35 +6,36 @@ Created on Sat May 20 15:32:13 2017
 @author: Bob Anderson
 """
 
-import scipy.signal
-from PyQt5 import QtGui
-from PyQt5 import QtCore
-from PyQt5.QtWidgets import QFileDialog, QMessageBox
-from PyQt5.QtCore import QSettings, QPoint, QSize
-from pyqtgraph import PlotWidget
-import sys
+import datetime
 import os
-from csvreader import readLightCurve
-from timestampUtils import getTimeStepAndOutliers
-from timestampUtils import convertTimeStringToTime
-from timestampUtils import convertTimeToTimeString
-from noiseUtils import getCorCoefs
-from errorBarUtils import edgeDistributionGenerator
+import sys
+
+import fixedPrecision as fp
+import gui
+import numpy as np
+import pyqtgraph as pg
+import pyqtgraph.exporters
+import scipy.signal
+from PyQt5 import QtCore
+from PyQt5 import QtGui
+from PyQt5.QtCore import QSettings, QPoint, QSize
+from PyQt5.QtWidgets import QFileDialog, QMessageBox
+from errorBarUtils import ciBars
 # from errorBarUtils import smoothedSolutionDistribution
 from errorBarUtils import createDurDistribution
-from errorBarUtils import ciBars
+from errorBarUtils import edgeDistributionGenerator
+from noiseUtils import getCorCoefs
+from pyqtgraph import PlotWidget
 from solverUtils import candidateCounter, solver
-import datetime
+from timestampUtils import convertTimeStringToTime
+from timestampUtils import convertTimeToTimeString
+from timestampUtils import getTimeStepAndOutliers
+
+from src.csvreader import readLightCurve
 
 # The following module was created by typing
 #    !pyuic5 simple-plot.ui -o gui.py
 # in the IPython console
-
-import gui
-import numpy as np
-import pyqtgraph as pg
-import fixedPrecision as fp
-import pyqtgraph.exporters
 
 # Status of points and associated dot colors ---
 SELECTED = 3  # big red
