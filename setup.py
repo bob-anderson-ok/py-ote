@@ -40,7 +40,7 @@ def read(*parts):
 
 extensions = [
     Extension(name='pyoteapp.c_functions',  # using dots! to get .so in correct directory
-              sources=['src/pyoteapp/c_functions.pyx'])
+              sources=['pyoteapp/c_functions.pyx'])
     ]
 
 
@@ -52,7 +52,7 @@ if __name__ == "__main__":
         description='pyote is a simplified subset of R-OTE',
         license='License :: OSI Approved :: MIT License',
         url=r'https://github.com/bob-anderson-ok/py-ote',
-        version='1.6quit.dev0',
+        version='1.7.dev0',
         author='Bob Anderson',
         author_email='bob.anderson.ok@gmail.com',
         maintainer='Bob Anderson',
