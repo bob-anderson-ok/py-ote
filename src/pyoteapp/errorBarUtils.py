@@ -14,7 +14,7 @@ from src.pyoteapp import autocorrtools
 
 pyximport.install()
 
-from c_functions import find_Dedge_logl  # Finds D using a subframe model
+from src.pyoteapp.c_functions import find_Dedge_logl  # Finds D using a subframe model
 
 
 def edgeDistributionGenerator(*, ntrials=10000, numPts=None, D=None, acfcoeffs=None,
