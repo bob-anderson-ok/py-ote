@@ -9,7 +9,7 @@ from Cython.Distutils import build_ext
 ###################################################################
 
 NAME = "pyote"
-PACKAGES = find_packages(where="src")
+PACKAGES = find_packages(where="pyoteapp")
 KEYWORDS = ["desktop app", "asteroid occultation timing extraction"]
 CLASSIFIERS = [
     "Development Status :: 4 - Beta",
@@ -52,7 +52,7 @@ if __name__ == "__main__":
         description='pyote is a simplified subset of R-OTE',
         license='License :: OSI Approved :: MIT License',
         url=r'https://github.com/bob-anderson-ok/py-ote',
-        version='1.6.dev0',
+        version='1.6quit.dev0',
         author='Bob Anderson',
         author_email='bob.anderson.ok@gmail.com',
         maintainer='Bob Anderson',
@@ -60,7 +60,7 @@ if __name__ == "__main__":
         keywords=KEYWORDS,
         long_description=read("README.rst"),
         packages=PACKAGES,
-        package_dir={"": "src"},
+        package_dir={"": "pyoteapp"},
         zip_safe=False,
         classifiers=CLASSIFIERS,
         install_requires=INSTALL_REQUIRES,
