@@ -8,9 +8,9 @@ Created on Sat Jun  3 09:37:59 2017
 import numpy as np
 import pyximport
 from scipy.signal import savgol_filter as savgol
+from src.pyoteapp.solverUtils import model
 
-from src import autocorrtools
-from src.solverUtils import model
+from src.pyoteapp import autocorrtools
 
 pyximport.install()
 
