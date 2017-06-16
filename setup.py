@@ -67,7 +67,7 @@ extensions = [
 
 if __name__ == "__main__":
     setup(
-        name=NAME,
+        name='pyote',
         ext_modules=cythonize(extensions),
         cmdclass={'build_ext': build_ext},
         description='py-ote is a simplified subset of R-OTE',
