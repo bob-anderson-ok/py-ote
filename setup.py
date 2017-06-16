@@ -4,12 +4,18 @@ import re
 
 from setuptools import setup, find_packages
 
+from setuptools.dist import Distribution
+
+class BinaryDistribution(Distribution):
+    def is_pure(self):
+        return False
+
 
 ###################################################################
 
 NAME = "py-ote"
 PACKAGES = find_packages(where="src")
-META_PATH = os.path.join("__init__.py")
+META_PATH = os.path.join("src", "__init__.py")
 KEYWORDS = ["desktop app", "asteroid occultation timing extraction"]
 CLASSIFIERS = [
     "Development Status :: 4 - Beta",
@@ -27,6 +33,11 @@ INSTALL_REQUIRES = []
 
 HERE = os.path.abspath(os.path.dirname(__file__))
 
+# print('HERE: ' + HERE)
+# print('META_PATH: ' + META_PATH)
+# print('num pakages: ' + str(len(PACKAGES)))
+# for pkg in PACKAGES:
+#     print(pkg)
 
 def read(*parts):
     """
@@ -38,7 +49,6 @@ def read(*parts):
 
 
 META_FILE = read(META_PATH)
-
 
 def find_meta(meta):
     """
@@ -65,10 +75,11 @@ if __name__ == "__main__":
         maintainer=find_meta("author"),
         maintainer_email=find_meta("email"),
         keywords=KEYWORDS,
-        long_description=read("README.md"),
+        long_description=read("README.rst"),
         packages=PACKAGES,
         package_dir={"": "src"},
         zip_safe=True,
         classifiers=CLASSIFIERS,
         install_requires=INSTALL_REQUIRES,
+        distclass=BinaryDistribution
     )
