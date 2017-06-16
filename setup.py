@@ -9,7 +9,11 @@ from Cython.Distutils import build_ext
 ###################################################################
 
 NAME = "pyote"
-PACKAGES = find_packages(where="pyoteapp")
+PACKAGES = find_packages(where="src")
+
+for pkg in PACKAGES:
+    print('package found: ' + str(pkg))
+
 KEYWORDS = ["desktop app", "asteroid occultation timing extraction"]
 CLASSIFIERS = [
     "Development Status :: 4 - Beta",
@@ -39,8 +43,8 @@ def read(*parts):
 
 
 extensions = [
-    Extension(name='pyoteapp.c_functions',  # using dots! to get .so in correct directory
-              sources=['pyoteapp/c_functions.pyx'])
+    Extension(name='src.pyoteapp.c_functions',  # using dots! to get .so in correct directory
+              sources=['src/pyoteapp/c_functions.pyx'])
     ]
 
 
@@ -60,7 +64,7 @@ if __name__ == "__main__":
         keywords=KEYWORDS,
         long_description=read("README.rst"),
         packages=PACKAGES,
-        package_dir={"": "pyoteapp"},
+        package_dir={"": "src"},
         zip_safe=False,
         classifiers=CLASSIFIERS,
         install_requires=INSTALL_REQUIRES,
