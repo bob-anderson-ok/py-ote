@@ -10,7 +10,7 @@ from math import exp
 
 import numpy as np
 
-from src.likelihood_calculations import cum_loglikelihood, aicc, logLikelihoodLine
+from src.pyoteapp.likelihood_calculations import cum_loglikelihood, aicc, logLikelihoodLine
 
 
 def model(*, B=None, A=None,

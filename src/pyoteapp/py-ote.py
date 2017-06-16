@@ -10,8 +10,6 @@ import datetime
 import os
 import sys
 
-import fixedPrecision as fp
-import gui
 import numpy as np
 import pyqtgraph as pg
 import pyqtgraph.exporters
@@ -20,18 +18,19 @@ from PyQt5 import QtCore
 from PyQt5 import QtGui
 from PyQt5.QtCore import QSettings, QPoint, QSize
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
-from errorBarUtils import ciBars
-# from errorBarUtils import smoothedSolutionDistribution
-from errorBarUtils import createDurDistribution
-from errorBarUtils import edgeDistributionGenerator
-from noiseUtils import getCorCoefs
 from pyqtgraph import PlotWidget
-from solverUtils import candidateCounter, solver
-from timestampUtils import convertTimeStringToTime
-from timestampUtils import convertTimeToTimeString
-from timestampUtils import getTimeStepAndOutliers
+from src.pyoteapp.errorBarUtils import ciBars
+from src.pyoteapp.errorBarUtils import createDurDistribution
+from src.pyoteapp.errorBarUtils import edgeDistributionGenerator
+from src.pyoteapp.noiseUtils import getCorCoefs
+from src.pyoteapp.solverUtils import candidateCounter, solver
+from src.pyoteapp.timestampUtils import convertTimeStringToTime
+from src.pyoteapp.timestampUtils import convertTimeToTimeString
+from src.pyoteapp.timestampUtils import getTimeStepAndOutliers
 
-from src.csvreader import readLightCurve
+from src.pyoteapp import fixedPrecision as fp
+from src.pyoteapp import gui
+from src.pyoteapp.csvreader import readLightCurve
 
 # The following module was created by typing
 #    !pyuic5 simple-plot.ui -o gui.py
