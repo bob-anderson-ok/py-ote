@@ -1,6 +1,5 @@
 import codecs
 import os
-import re
 
 from setuptools import setup, find_packages, Extension
 from Cython.Build import cythonize
@@ -11,7 +10,6 @@ from Cython.Distutils import build_ext
 
 NAME = "pyote"
 PACKAGES = find_packages(where="src")
-#META_PATH = os.path.join("src", "bob__init__.py")
 KEYWORDS = ["desktop app", "asteroid occultation timing extraction"]
 CLASSIFIERS = [
     "Development Status :: 4 - Beta",
@@ -30,11 +28,6 @@ INSTALL_REQUIRES = ['pyqtgraph']
 
 HERE = os.path.abspath(os.path.dirname(__file__))
 
-# print('HERE: ' + HERE)
-# print('META_PATH: ' + META_PATH)
-# print('num pakages: ' + str(len(PACKAGES)))
-# for pkg in PACKAGES:
-#     print(pkg)
 
 def read(*parts):
     """
@@ -44,20 +37,6 @@ def read(*parts):
     with codecs.open(os.path.join(HERE, *parts), "rb", "utf-8") as f:
         return f.read()
 
-# META_FILE = read(META_PATH)
-
-
-# def find_meta(meta):
-#     """
-#     Extract __*meta*__ from META_FILE.
-#     """
-#     meta_match = re.search(
-#         r"^__{meta}__ = ['\"]([^'\"]*)['\"]".format(meta=meta),
-#         META_FILE, re.M
-#     )
-#     if meta_match:
-#         return meta_match.group(1)
-#     raise RuntimeError("Unable to find __{meta}__ string.".format(meta=meta))
 
 extensions = [
     Extension(name='pyoteapp.c_functions',  # using dots! to get .so in correct directory
@@ -73,7 +52,7 @@ if __name__ == "__main__":
         description='pyote is a simplified subset of R-OTE',
         license='License :: OSI Approved :: MIT License',
         url=r'https://github.com/bob-anderson-ok/py-ote',
-        version='1.5.dev0',
+        version='1.6.dev0',
         author='Bob Anderson',
         author_email='bob.anderson.ok@gmail.com',
         maintainer='Bob Anderson',
