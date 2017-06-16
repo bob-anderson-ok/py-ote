@@ -47,17 +47,17 @@ def read(*parts):
 # META_FILE = read(META_PATH)
 
 
-def find_meta(meta):
-    """
-    Extract __*meta*__ from META_FILE.
-    """
-    meta_match = re.search(
-        r"^__{meta}__ = ['\"]([^'\"]*)['\"]".format(meta=meta),
-        META_FILE, re.M
-    )
-    if meta_match:
-        return meta_match.group(1)
-    raise RuntimeError("Unable to find __{meta}__ string.".format(meta=meta))
+# def find_meta(meta):
+#     """
+#     Extract __*meta*__ from META_FILE.
+#     """
+#     meta_match = re.search(
+#         r"^__{meta}__ = ['\"]([^'\"]*)['\"]".format(meta=meta),
+#         META_FILE, re.M
+#     )
+#     if meta_match:
+#         return meta_match.group(1)
+#     raise RuntimeError("Unable to find __{meta}__ string.".format(meta=meta))
 
 extensions = [
     Extension(name='pyoteapp.c_functions',  # using dots! to get .so in correct directory
@@ -73,7 +73,7 @@ if __name__ == "__main__":
         description='py-ote is a simplified subset of R-OTE',
         license='License :: OSI Approved :: MIT License',
         url=r'https://github.com/bob-anderson-ok/py-ote',
-        version='1.2.dev0',
+        version='1.3.dev0',
         author='Bob Anderson',
         author_email='bob.anderson.ok@gmail.com',
         maintainer='Bob Anderson',
