@@ -2,11 +2,11 @@
 #
 # Run the build process by running the command
 #
-#   python setup-py-ote.py build_ext --inplace
+#   python setup-pyote.py build_ext --inplace
 #
 # followed by:
 #
-#   python setup-py-ote.py build
+#   python setup-pyote.py build
 #
 # If everything works well you should find a subdirectory in the build
 # subdirectory that contains the files needed to run the application
@@ -69,7 +69,7 @@ options = {
 }
 
 executables = [
-    Executable('py-ote.py', base=base)
+    Executable('pyote.py', base=base)
 ]
 
 cx_setup(name='SimpleOTE',

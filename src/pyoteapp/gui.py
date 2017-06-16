@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'simple-plot.ui'
+# Form implementation generated from reading ui file 'simple_plot.ui'
 #
 # Created by: PyQt5 UI code generator 5.6
 #
