@@ -1072,7 +1072,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             
             curDateTime = datetime.datetime.today().ctime()
             self.showMsg('')
-            self.showMsg('#' * 20 + ' Session started: ' + curDateTime + '  ' + '#' * 20)
+            self.showMsg('#' * 20 + ' PYOTE ' + version.version() + '  session started: ' + curDateTime + '  ' + '#' * 20)
         
             # Make the directory 'sticky'
             self.settings.setValue('lightcurvedir', dirpath)
