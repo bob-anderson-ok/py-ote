@@ -12,25 +12,26 @@ import sys
 
 import numpy as np
 import pyqtgraph as pg
-import pyqtgraph.exporters
+import pyqtgraph.exporters as pex
 import scipy.signal
 from PyQt5 import QtCore
 from PyQt5 import QtGui
 from PyQt5.QtCore import QSettings, QPoint, QSize
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
+from pyqtgraph import PlotWidget
+
+import version
 from pyoteapp import fixedPrecision as fp
 from pyoteapp import gui
 from pyoteapp.csvreader import readLightCurve
 from pyoteapp.errorBarUtils import ciBars
 from pyoteapp.errorBarUtils import createDurDistribution
 from pyoteapp.errorBarUtils import edgeDistributionGenerator
+from pyoteapp.noiseUtils import getCorCoefs
 from pyoteapp.solverUtils import candidateCounter, solver
 from pyoteapp.timestampUtils import convertTimeStringToTime
 from pyoteapp.timestampUtils import convertTimeToTimeString
 from pyoteapp.timestampUtils import getTimeStepAndOutliers
-from pyqtgraph import PlotWidget
-
-from pyoteapp.noiseUtils import getCorCoefs
 
 # The following module was created by typing
 #    !pyuic5 simple-plot.ui -o gui.py
@@ -44,13 +45,35 @@ EXCLUDED = 0  # no dot
 
 acfCoefThreshold = 0.05  # To match what is being done in R-OTE 4.5.4+
 
+# There is a bug in pyqtgraph ImageExpoter, probably caused by new versions of PyQt5 returning
+# float values for image rectangles.  Those floats were being given to numpy to create a matrix,
+# and that was raising an exception.  Below is my 'cure', effected by overriding the internal
+# methods of ImageExporter the manipulate width and height
+
+class FixedImageExporter(pex.ImageExporter):
+    def __init__(self, item):
+        pex.ImageExporter.__init__(self, item)
+
+    def makeWidthHeightInts(self):
+        self.params['height'] = int(self.params['height'] + 1)  # The +1 is needed
+        self.params['width'] = int(self.params['width'] + 1)
+
+    def widthChanged(self):
+        sr = self.getSourceRect()
+        ar = float(sr.height()) / sr.width()
+        self.params.param('height').setValue(int(self.params['width'] * ar))
+
+    def heightChanged(self):
+        sr = self.getSourceRect()
+        ar = float(sr.width()) / sr.height()
+        self.params.param('width').setValue(int(self.params['height'] * ar))
 
 class CustomViewBox(pg.ViewBox):
     def __init__(self, *args, **kwds):
         pg.ViewBox.__init__(self, *args, **kwds)
         self.setMouseMode(self.RectMode)
         
-    # reimplement right-click to zoom out
+    # re-implement right-click to zoom out
     def mouseClickEvent(self, ev):
         if ev.button() == QtCore.Qt.RightButton:
             self.autoRange()
@@ -65,13 +88,15 @@ class CustomViewBox(pg.ViewBox):
 class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
     def __init__(self):
         super(SimplePlot, self).__init__()
-        
+
         # Change pyqtgraph plots to be black on white
         pg.setConfigOption('background', (255, 255, 255))  # Do before any widgets drawn
         pg.setConfigOption('foreground', 'k')  # Do before any widgets drawn
         
         self.setupUi(self)
-        
+
+        self.setWindowTitle('PYOTE  Version: ' + version.version())
+
         # Button: Read light curve
         self.readData.clicked.connect(self.readDataFromFile)
         
@@ -168,10 +193,12 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         
         if self.graphicFile:
             self.graphicFile, _ = os.path.splitext(self.graphicFile)
-            exporter = pyqtgraph.exporters.ImageExporter(self.dBarPlotItem)
+            exporter = FixedImageExporter(self.dBarPlotItem)
+            exporter.makeWidthHeightInts()
             exporter.export(self.graphicFile + '.D.png')
             
-            exporter = pyqtgraph.exporters.ImageExporter(self.durBarPlotItem)
+            exporter = FixedImageExporter(self.durBarPlotItem)
+            exporter.makeWidthHeightInts()
             exporter.export(self.graphicFile + '.R-D.png')
             
             self.showInfo('Wrote to: ' + self.graphicFile)
@@ -182,9 +209,13 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 "Select filename for main plot",           # title for dialog
                 self.settings.value('lightcurvedir', ""),  # starting directory
                 "png files (*.png)")
-        
+
+        # self.showInfo('User selected: ' + self.graphicFile)
+
         if self.graphicFile:
-            exporter = pyqtgraph.exporters.ImageExporter(self.mainPlot.getPlotItem())
+            # exporter = pyqtgraph.exporters.ImageExporter(self.mainPlot.getPlotItem())
+            exporter = FixedImageExporter(self.mainPlot.getPlotItem())
+            exporter.makeWidthHeightInts()
             exporter.export(self.graphicFile)
             self.showInfo('Wrote to: ' + self.graphicFile)
         

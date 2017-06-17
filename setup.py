@@ -1,14 +1,15 @@
 import codecs
 import os
 
-from setuptools import setup, find_packages, Extension
 from Cython.Build import cythonize
 from Cython.Distutils import build_ext
+from setuptools import setup, find_packages, Extension
 
+from src.pyoteapp import version  # Edit this file to change version number
 
 ###################################################################
 
-VERSION = '1.9.dev0'
+VERSION = version.version()
 
 NAME = "pyote"
 PACKAGES = find_packages(where="src")
