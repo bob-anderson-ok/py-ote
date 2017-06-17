@@ -9,7 +9,7 @@ from Cython.Distutils import build_ext
 ###################################################################
 
 NAME = "pyote"
-PACKAGES = find_packages(where="pyote-repo")
+PACKAGES = find_packages(where="src")
 
 for pkg in PACKAGES:
     print('package found: ' + str(pkg))
@@ -43,7 +43,7 @@ def read(*parts):
 
 
 extensions = [
-    Extension(name='src.pyoteapp.c_functions',  # using dots! to get .so in correct directory
+    Extension(name='pyoteapp.c_functions',  # using dots! to get .so in correct directory
               sources=['src/pyoteapp/c_functions.pyx'])
     ]
 
@@ -56,7 +56,7 @@ if __name__ == "__main__":
         description='pyote is a simplified subset of R-OTE',
         license='License :: OSI Approved :: MIT License',
         url=r'https://github.com/bob-anderson-ok/py-ote',
-        version='1.8.dev0',
+        version='1.9.dev0',
         author='Bob Anderson',
         author_email='bob.anderson.ok@gmail.com',
         maintainer='Bob Anderson',
