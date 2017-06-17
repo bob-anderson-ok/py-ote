@@ -747,23 +747,30 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         
         y, x = np.histogram(dist, bins=1000)
         self.loDbar95, _, self.hiDbar95, self.deltaDlo95, self.deltaDhi95 = ciBars(dist=dist, ci=0.95)
+        self.loDbar99, _, self.hiDbar99, self.deltaDlo99, self.deltaDhi99 = ciBars(dist=dist, ci=0.9973)
         self.loDbar68, _, self.hiDbar68, self.deltaDlo68, self.deltaDhi68 = ciBars(dist=dist, ci=0.6827)
+
         self.deltaRlo95 = - self.deltaDhi95
         self.deltaRhi95 = - self.deltaDlo95
+
+        self.deltaRlo99 = - self.deltaDhi99
+        self.deltaRhi99 = - self.deltaDlo99
+
         self.deltaRlo68 = - self.deltaDhi68
         self.deltaRhi68 = - self.deltaDlo68
         
-        global durDist 
+        # global durDist
         durDist = createDurDistribution(dist)
         ydur, xdur = np.histogram(durDist, bins=1000)
         self.loDurbar95, _, self.hiDurbar95, self.deltaDurlo95, self.deltaDurhi95 = ciBars(dist=durDist, ci=0.95)
+        self.loDurbar99, _, self.hiDurbar99, self.deltaDurlo99, self.deltaDurhi99 = ciBars(dist=durDist, ci=0.9973)
         self.loDurbar68, _, self.hiDurbar68, self.deltaDurlo68, self.deltaDurhi68 = ciBars(dist=durDist, ci=0.6827)
 
         pg.setConfigOptions(antialias=True)
         pen = pg.mkPen((0, 0, 0), width=2)
         
         self.errBarWin = pg.GraphicsWindow(
-            title='Solution distributions with confidence intervals of 0.6827 and 0.95 marked')
+            title='Solution distributions with confidence intervals marked')
         self.errBarWin.resize(1200, 600)
         layout = QtGui.QGridLayout()
         self.errBarWin.setLayout(layout)
@@ -816,10 +823,22 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         pw.plot(x=[x2, x2], y=[0, yp], pen=pen)
         
         self.showMsg('loDbar   @ .95 ci: %8.4f' % x1, blankLine=False)
-        self.showMsg('hiDbar   @ .95 ci: %8.4f' % x2, blankLine=True)
+        self.showMsg('hiDbar   @ .95 ci: %8.4f' % x2, blankLine=False)
         
         legend95 = '[%0.2f,%0.2f] @ 0.95' % (x1, x2)
         pw.plot(name=legend95)
+
+        yp = max(y) * 0.15
+        x1 = self.loDbar99 - D
+        pw.plot(x=[x1, x1], y=[0, yp], pen=pen)
+        x2 = self.hiDbar99 - D
+        pw.plot(x=[x2, x2], y=[0, yp], pen=pen)
+
+        self.showMsg('loDbar   @ .9973 ci: %8.4f' % x1, blankLine=False)
+        self.showMsg('hiDbar   @ .9973 ci: %8.4f' % x2, blankLine=True)
+
+        legend99 = '[%0.2f,%0.2f] @ 0.9973' % (x1, x2)
+        pw.plot(name=legend99)
         
         pw.hideAxis('left')
         
@@ -847,10 +866,22 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         pw2.plot(x=[x2, x2], y=[0, yp], pen=pen)
         
         self.showMsg('loDurBar @ .95 ci: %8.4f' % x1, blankLine=False)
-        self.showMsg('hiDurBar @ .95 ci: %8.4f' % x2, blankLine=True)
+        self.showMsg('hiDurBar @ .95 ci: %8.4f' % x2, blankLine=False)
         
         legend95 = '[%0.2f,%0.2f] @ 0.95' % (x1, x2)
         pw2.plot(name=legend95)
+
+        yp = max(ydur) * 0.15
+        x1 = self.loDurbar99
+        pw2.plot(x=[x1, x1], y=[0, yp], pen=pen)
+        x2 = self.hiDurbar99
+        pw2.plot(x=[x2, x2], y=[0, yp], pen=pen)
+
+        self.showMsg('loDurBar @ .9973 ci: %8.4f' % x1, blankLine=False)
+        self.showMsg('hiDurBar @ .9973 ci: %8.4f' % x2, blankLine=True)
+
+        legend99 = '[%0.2f,%0.2f] @ 0.9973' % (x1, x2)
+        pw2.plot(name=legend99)
         
         pw2.hideAxis('left')
         
