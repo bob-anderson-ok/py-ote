@@ -9,7 +9,7 @@ from Cython.Distutils import build_ext
 ###################################################################
 
 NAME = "pyote"
-PACKAGES = find_packages(where="src")
+PACKAGES = find_packages(where="pyote-repo")
 
 for pkg in PACKAGES:
     print('package found: ' + str(pkg))

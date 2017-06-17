@@ -18,19 +18,19 @@ from PyQt5 import QtCore
 from PyQt5 import QtGui
 from PyQt5.QtCore import QSettings, QPoint, QSize
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
-from src.pyoteapp import fixedPrecision as fp
-from src.pyoteapp import gui
-from src.pyoteapp.csvreader import readLightCurve
-from src.pyoteapp.errorBarUtils import ciBars
-from src.pyoteapp.errorBarUtils import createDurDistribution
-from src.pyoteapp.errorBarUtils import edgeDistributionGenerator
-from src.pyoteapp.solverUtils import candidateCounter, solver
-from src.pyoteapp.timestampUtils import convertTimeStringToTime
-from src.pyoteapp.timestampUtils import convertTimeToTimeString
-from src.pyoteapp.timestampUtils import getTimeStepAndOutliers
+from pyoteapp import fixedPrecision as fp
+from pyoteapp import gui
+from pyoteapp.csvreader import readLightCurve
+from pyoteapp.errorBarUtils import ciBars
+from pyoteapp.errorBarUtils import createDurDistribution
+from pyoteapp.errorBarUtils import edgeDistributionGenerator
+from pyoteapp.solverUtils import candidateCounter, solver
+from pyoteapp.timestampUtils import convertTimeStringToTime
+from pyoteapp.timestampUtils import convertTimeToTimeString
+from pyoteapp.timestampUtils import getTimeStepAndOutliers
 from pyqtgraph import PlotWidget
 
-from src.pyoteapp.noiseUtils import getCorCoefs
+from pyoteapp.noiseUtils import getCorCoefs
 
 # The following module was created by typing
 #    !pyuic5 simple-plot.ui -o gui.py

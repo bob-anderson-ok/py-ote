@@ -7,14 +7,14 @@ Created on Sat Jun  3 09:37:59 2017
 """
 import numpy as np
 import pyximport
-from src.pyoteapp.solverUtils import model
+from pyoteapp.solverUtils import model
 from scipy.signal import savgol_filter as savgol
 
-from src.pyoteapp import autocorrtools
+from pyoteapp import autocorrtools
 
 pyximport.install()
 
-from src.pyoteapp.c_functions import find_Dedge_logl  # Finds D using a subframe model
+from pyoteapp.c_functions import find_Dedge_logl  # Finds D using a subframe model
 
 
 def edgeDistributionGenerator(*, ntrials=10000, numPts=None, D=None, acfcoeffs=None,
