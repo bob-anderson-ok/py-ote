@@ -426,7 +426,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.mainPlot.autoRange()
         
     def showInfo(self, stuffToSay):
-        QMessageBox.information(self, 'This will not be seen', stuffToSay)
+        QMessageBox.information(self, 'General information', stuffToSay)
 
     def showQuery(self, question, title=''):
         msgBox = QMessageBox(self)
