@@ -20,7 +20,7 @@ from PyQt5.QtCore import QSettings, QPoint, QSize
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
 from pyqtgraph import PlotWidget
 
-import version
+from pyoteapp import version
 from pyoteapp import fixedPrecision as fp
 from pyoteapp import gui
 from pyoteapp.csvreader import readLightCurve
