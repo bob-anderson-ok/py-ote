@@ -230,10 +230,12 @@ def scoreSubFrame(yValues, left, right, cand, sigmaB, sigmaA):
     m, sigma = model(B=B, A=A, edgeTuple=cand, 
                      sigmaB=sigmaB, sigmaA=sigmaA, numPts=yValues.size)
     D, R = cand
-    if (yValues[D] < B) and (yValues[D] > A):
-        m[D] = yValues[D]
-    if (yValues[R] < B) and (yValues[R] > A):
-        m[R] = yValues[R]
+    if D is not None:
+        if (yValues[D] < B) and (yValues[D] > A):
+            m[D] = yValues[D]
+    if R is not None:
+        if (yValues[R] < B) and (yValues[R] > A):
+            m[R] = yValues[R]
     return cum_loglikelihood(yValues, m, sigma, left, right), B, A
 
 

@@ -923,7 +923,6 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             self.cancelRequested = False
             for item in solverGen:
                 if item[0] == 'fractionDone':
-                    # self.showMsg('  %2.0f%% done' % (item[1] * 100))
                     # Here we should update progress bar and check for cancellation
                     self.progressBar.setValue(item[1] * 100)
                     QtGui.QApplication.processEvents()
