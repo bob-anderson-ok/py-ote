@@ -24,6 +24,7 @@ CLASSIFIERS = [
     "Natural Language :: English",
     "License :: OSI Approved :: MIT License",
     "Operating System :: MacOS :: MacOS X",
+    "Operating System :: Microsoft :: Windows",
     "Programming Language :: Python :: 3.6",
     "Programming Language :: Cython",
     "Programming Language :: Python :: Implementation :: CPython",
