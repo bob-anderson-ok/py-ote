@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # pyote documentation build configuration file, created by
-# sphinx-quickstart on Sun Jun 18 14:21:27 2017.
+# sphinx-quickstart on Sun Jun 18 20:44:08 2017.
 #
 # This file is execfile()d with the current directory set to its
 # containing dir.
@@ -33,7 +33,8 @@
 # ones.
 extensions = ['sphinx.ext.autodoc',
     'sphinx.ext.intersphinx',
-    'sphinx.ext.mathjax']
+    'sphinx.ext.mathjax',
+    'sphinx.ext.githubpages']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -85,7 +86,7 @@ todo_include_todos = False
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'classic'  # Looks like Python documentation pages
+html_theme = 'classic'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
