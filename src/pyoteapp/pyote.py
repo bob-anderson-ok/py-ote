@@ -198,7 +198,6 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         if self.dBarPlotItem is None:
             self.showInfo('No error bar plots available yet')
             return
-        # self.showInfo('Export bar plots requested')
         self.graphicFile, _ = QFileDialog.getSaveFileName(
                 self,                                      # parent
                 "Select filename for error bar plots",     # title for dialog
@@ -220,14 +219,11 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
     def exportGraphic(self):
         self.graphicFile, _ = QFileDialog.getSaveFileName(
                 self,                                      # parent
-                "Select filename for main plot",           # title for dialog
+                "Select filename for light curve plot",    # title for dialog
                 self.settings.value('lightcurvedir', ""),  # starting directory
                 "png files (*.png)")
 
-        # self.showInfo('User selected: ' + self.graphicFile)
-
         if self.graphicFile:
-            # exporter = pyqtgraph.exporters.ImageExporter(self.mainPlot.getPlotItem())
             exporter = FixedImageExporter(self.mainPlot.getPlotItem())
             exporter.makeWidthHeightInts()
             exporter.export(self.graphicFile)
@@ -1095,6 +1091,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 self.settings.value('lightcurvedir', ""),  # starting directory
                 "Csv files (*.csv)")
         if self.filename:
+            self.setWindowTitle('PYOTE Version: ' + version.version() + '  File in process: ' + self.filename)
             dirpath, _ = os.path.split(self.filename)
             self.logFile, _ = os.path.splitext(self.filename)
             self.logFile = self.logFile + '.log'

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'simple_plot_ver2.ui'
+# Form implementation generated from reading ui file 'simple_plot.ui'
 #
 # Created by: PyQt5 UI code generator 5.6
 #
@@ -270,7 +270,7 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "PY-OTE"))
-        self.readData.setToolTip(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:18pt;\">Reads Limovie, R-OTE, and Tangra (AOTA format) files.</span></p><p><br/></p><p><span style=\" font-size:18pt;\">Assumed is: object1 is occulted star; object2 (optional) is a reference star to be used for normalizing occulted star.</span></p></body></html>"))
+        self.readData.setToolTip(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:18pt;\">PYOTE reads Limovie, R-OTE, and Tangra (AOTA format) files.</span></p><p><span style=\" font-size:18pt;\">Assumed is: object1 is occulted star; object2 (optional) is a reference star to be used for normalizing the occulted star light curve.</span></p><p><span style=\" font-size:18pt; font-weight:600; text-decoration: underline; color:#0000ff;\">Mouse button functions within the light curve plot:</span></p><p><span style=\" font-size:18pt; font-weight:600; color:#ff0000;\">Left click</span><span style=\" font-size:18pt;\">: selects/deselects points on the primary light curve.</span></p><p><span style=\" font-size:18pt; font-weight:600; color:#ff0000;\">Left click and drag</span><span style=\" font-size:18pt;\">: rectangular zoom --- useful for point selection</span></p><p><span style=\" font-size:18pt; font-weight:600; color:#ff0000;\">Right click</span><span style=\" font-size:18pt;\">: undo zoom</span></p></body></html>"))
         self.readData.setText(_translate("MainWindow", "Read light curve"))
         self.showSecondaryCheckBox.setText(_translate("MainWindow", "Show secondary star"))
         self.doBlockIntegration.setToolTip(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:18pt;\">First, find  a clearly identifiable integration group.</span></p><p><br/></p><p><span style=\" font-size:18pt;\">Then click on the first and last point of that integration group.</span></p></body></html>"))
@@ -279,7 +279,7 @@ class Ui_MainWindow(object):
         self.setDataLimits.setText(_translate("MainWindow", "Set data limits (trim left/right)"))
         self.smoothSecondaryButton.setToolTip(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:18pt;\">Smooth the secondary (reference) star light curve using a Savitsky-Golay filter with a default window of 101 points (the edit box to the right allows for this value to be changed) and a degree 3 interpolating polynomial, applied twice.</span></p><p><br/></p><p><span style=\" font-size:18pt;\">The secondary star does not have to be visible for this smoothing to take place.</span></p><p><br/></p><p><span style=\" font-size:18pt;\">Smoothing of the secondary curve is a prerequisite to normalizing the occulted star light curve.</span></p></body></html>"))
         self.smoothSecondaryButton.setText(_translate("MainWindow", "Smooth secondary"))
-        self.numSmoothPointsEdit.setToolTip(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:18pt;\">Number of points to use in Savitsky-Golay filter.  This should be an odd number in the range of 3 to number of data points in the secondary curve.</span></p></body></html>"))
+        self.numSmoothPointsEdit.setToolTip(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:18pt;\">Number of points to use in Savitsky-Golay filter. This should be an odd number in the range of 5 up to the number of data points in the secondary curve.</span></p><p><span style=\" font-size:18pt;\">If an even number is specified, the window size will be one less than that number.</span></p></body></html>"))
         self.numSmoothPointsEdit.setText(_translate("MainWindow", "101"))
         self.normalizeButton.setText(_translate("MainWindow", "Normalize around selected point"))
         self.doNoiseAnalysis.setToolTip(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:18pt;\">Use the selected baseline points to calculate noise correlation coefficients and sigmaB</span></p><p><span style=\" font-size:18pt;\">If there has already been such a calculation, new results from clicking this button will be averaged with the previously determined coefficients, weighted by the number of points involved.</span></p></body></html>"))
@@ -300,8 +300,11 @@ class Ui_MainWindow(object):
         self.locateEvent.setText(_translate("MainWindow", "Locate D and R"))
         self.cancelButton.setText(_translate("MainWindow", "Cancel operation"))
         self.calcErrBars.setText(_translate("MainWindow", "Calculate D and R  error bars"))
+        self.writeBarPlots.setToolTip(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:18pt;\">Click here to open dialog for you to specify name and location for the storage of the graphics of the error bar plot.  Two plots will be recorded: the D error bar and the Dur error bar.</span></p><p><br/></p><p><span style=\" font-size:18pt;\">Storage location will default to the directory containing the csv file for the light curve.  Best practice normally would be to leave it there.</span></p><p><br/></p><p><span style=\" font-size:18pt;\">Normal best practice is to click on the csv file to name the graphic images.  The .csv extension will be removed and replaced by .png automatically with an extra identifier to show D versus Dur distribution plot.</span></p></body></html>"))
         self.writeBarPlots.setText(_translate("MainWindow", "Write error bar plot to file"))
+        self.writePlot.setToolTip(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:18pt;\">Click here to open dialog for you to specify name and location for the storage of the graphic of the light curve plot.</span></p><p><br/></p><p><span style=\" font-size:18pt;\">Storage location will default to the directory containing the csv file for the light curve.  Best practice normally would be to leave it there.</span></p><p><br/></p><p><span style=\" font-size:18pt;\">Normal best practice is to click on the csv file to name the graphic image.  The .csv extension will be removed and replaced by .png automatically.</span></p></body></html>"))
         self.writePlot.setText(_translate("MainWindow", "Write main plot to file"))
+        self.startOver.setToolTip(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:18pt;\">Clicking here erases all intermediate results and returns the program to the state it had immediately after the initial </span><span style=\" font-size:18pt; font-weight:600; font-style:italic;\">Read light curve</span><span style=\" font-size:18pt;\"> click/selection.</span></p></body></html>"))
         self.startOver.setText(_translate("MainWindow", "Start over"))
 
 from pyqtgraph import PlotWidget
