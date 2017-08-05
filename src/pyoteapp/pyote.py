@@ -149,15 +149,23 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.table.verticalHeader().sectionClicked.connect(self.rowClick)
         
         # Experimental --- try to re-instantiate mainPlot Note: examine gui.py
-        # to get this right after a relayout !!!!
+        # to get this right after a re-layout !!!!
+
         oldMainPlot = self.mainPlot
-        self.mainPlot = PlotWidget(self.layoutWidget, 
+        self.mainPlot = PlotWidget(self.widget,
                                    viewBox=CustomViewBox(border=(255, 255, 255)),
                                    enableMenu=False)
         self.mainPlot.setObjectName("mainPlot")
-        self.horizontalLayout_5.addWidget(self.mainPlot)
+        self.horizontalLayout_6.addWidget(self.mainPlot,stretch=1)
+
         oldMainPlot.setParent(None)
-        
+
+        self.mainPlot.scene().sigMouseMoved.connect(self.reportMouseMoved)
+        self.verticalCursor = pg.InfiniteLine(angle=90, movable=False, pen=(0, 0, 0))
+        self.mainPlot.addItem(self.verticalCursor, ignoreBounds=True)
+
+
+
         # Set up handler for clicks on data plot
         self.mainPlot.scene().sigMouseClicked.connect(self.processClick)
         self.mainPlotViewBox = self.mainPlot.getViewBox()
@@ -179,6 +187,12 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.outliers = []
         self.logFile = ''
         self.initializeVariablesThatDontDependOnAfile()
+
+    def reportMouseMoved(self, pos):
+        # self.showMsg(str(pos.x()))
+        mousePoint = self.mainPlotViewBox.mapSceneToView(pos)
+        # self.showMsg(str(mousePoint.x()))
+        self.verticalCursor.setPos(round(mousePoint.x()))
 
     def exportBarPlots(self):
         if self.dBarPlotItem is None:
@@ -400,25 +414,40 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             self.showInfo('The smoothing algorithm requires a minimum selection of 5 points')
             return
         
-        self.showMsg('Smoothing of secondary star light curve performed')
         y = [self.yRefStar[i] for i in range(self.left, self.right+1)]
-           
+
+        userSpecedWindow = 101
+
+        numPts = self.numSmoothPointsEdit.text().strip()
+        if numPts:
+            if not numPts.isnumeric():
+                self.showInfo('Invalid entry for smoothing window size - defaulting to 101')
+            else:
+                userSpecedWindow = int(numPts)
+                if userSpecedWindow < 5:
+                    self.showInfo('smoothing window must be size 5 or greater - defaulting to 101')
+                    userSpecedWindow = 101
+
         try:
-            if len(y) > 100:
-                window = 101
+            if len(y) > userSpecedWindow:
+                window = userSpecedWindow
             else:
                 window = len(y)
-                if window % 2 == 0:
-                    window -= 1
+
+            # Enforce the odd window size required by savgol_filter()
+            if window % 2 == 0:
+                window -= 1
+
             filteredY = scipy.signal.savgol_filter(np.array(y), window, 3)
-            # filteredY = scipy.signal.savgol_filter(np.array(y), 25, 3)
             self.smoothSecondary = scipy.signal.savgol_filter(filteredY, window, 3)
-            # self.smoothSecondary = scipy.signal.savgol_filter(filteredY, 25, 3)
-            self.reDrawMainPlot()            
+            self.reDrawMainPlot()
         except Exception as e:
             self.showMsg(str(e))
-               
+
+        self.showMsg('Smoothing of secondary star light curve performed with window size: %i' % window)
+
         self.smoothSecondaryButton.setEnabled(False)
+        self.numSmoothPointsEdit.setEnabled(False)
         self.normalizeButton.setEnabled(True)
         
     def toggleDisplayOfSecondaryStar(self):
@@ -1108,6 +1137,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 
                 if self.yRefStar.size > 0:
                     self.smoothSecondaryButton.setEnabled(True)
+                    self.numSmoothPointsEdit.setEnabled(True)
                     
                 self.dataLen = len(self.yValues)
                 self.yFrame = frame[:]
@@ -1256,6 +1286,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.showSecondaryCheckBox.setEnabled(False)
         self.normalizeButton.setEnabled(False)
         self.smoothSecondaryButton.setEnabled(False)
+        self.numSmoothPointsEdit.setEnabled(False)
         self.setDataLimits.setEnabled(False)      
         self.doBlockIntegration.setEnabled(False)    
         self.doNoiseAnalysis.setEnabled(False)
@@ -1264,6 +1295,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.startOver.setEnabled(False)
         self.markDzone.setEnabled(False)
         self.markRzone.setEnabled(False)
+        self.numSmoothPointsEdit.setEnabled(False)
         self.minEventEdit.setEnabled(False)
         self.maxEventEdit.setEnabled(False)
         self.writeBarPlots.setEnabled(False)
@@ -1289,6 +1321,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         if len(self.yRefStar) > 0:
             self.showSecondaryCheckBox.setEnabled(True)
             self.smoothSecondaryButton.setEnabled(True)
+            self.numSmoothPointsEdit.setEnabled(True)
         
         # Enable the initial set of buttons (allowed operations)
         self.startOver.setEnabled(True)
@@ -1438,6 +1471,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
     
     def reDrawMainPlot(self):
         self.mainPlot.clear()
+        self.mainPlot.addItem(self.verticalCursor)
         self.mainPlot.plot(self.yValues)
         
         if self.solution:
@@ -1507,6 +1541,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         
         if len(self.yRefStar) > 0:
             self.smoothSecondaryButton.setEnabled(True)
+            self.numSmoothPointsEdit.setEnabled(True)
         
         for i in range(0, self.left):
             self.yStatus[i] = EXCLUDED
