@@ -198,36 +198,49 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         if self.dBarPlotItem is None:
             self.showInfo('No error bar plots available yet')
             return
+
+        myOptions = QFileDialog.Options()
+        myOptions |= QFileDialog.DontConfirmOverwrite
+        myOptions |= QFileDialog.DontUseNativeDialog
+
         self.graphicFile, _ = QFileDialog.getSaveFileName(
                 self,                                      # parent
                 "Select filename for error bar plots",     # title for dialog
                 self.settings.value('lightcurvedir', ""),  # starting directory
-                "png files (*.png)")
+                "csv files (*.csv)", options=myOptions)
         
         if self.graphicFile:
             self.graphicFile, _ = os.path.splitext(self.graphicFile)
             exporter = FixedImageExporter(self.dBarPlotItem)
             exporter.makeWidthHeightInts()
-            exporter.export(self.graphicFile + '.D.png')
+            targetFileD = self.graphicFile + '.D.png'
+            exporter.export(targetFileD)
             
             exporter = FixedImageExporter(self.durBarPlotItem)
             exporter.makeWidthHeightInts()
-            exporter.export(self.graphicFile + '.R-D.png')
+            targetFileDur = self.graphicFile + '.R-D.png'
+            exporter.export(targetFileDur)
             
-            self.showInfo('Wrote to: ' + self.graphicFile)
+            self.showInfo('Wrote to: \r\r' + targetFileD + ' \r\r' + targetFileDur)
         
     def exportGraphic(self):
+
+        myOptions = QFileDialog.Options()
+        myOptions |= QFileDialog.DontConfirmOverwrite
+        myOptions |= QFileDialog.DontUseNativeDialog
         self.graphicFile, _ = QFileDialog.getSaveFileName(
                 self,                                      # parent
                 "Select filename for light curve plot",    # title for dialog
                 self.settings.value('lightcurvedir', ""),  # starting directory
-                "png files (*.png)")
+                "csv files (*.csv)", options=myOptions)
 
         if self.graphicFile:
+            self.graphicFile, _ = os.path.splitext(self.graphicFile)
             exporter = FixedImageExporter(self.mainPlot.getPlotItem())
             exporter.makeWidthHeightInts()
-            exporter.export(self.graphicFile)
-            self.showInfo('Wrote to: ' + self.graphicFile)
+            targetFile = self.graphicFile + '.png'
+            exporter.export(targetFile)
+            self.showInfo('Wrote to: \r\r' + targetFile)
         
     def initializeVariablesThatDontDependOnAfile(self):
         
@@ -681,10 +694,12 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         D, R = self.solution
         # if D: D = D - self.Doffset
         # if R: R = R - self.Roffset
-        
+
+        self.calcNumBandApoints()
+
         self.showMsg('In the following report, 0.95 confidence interval error bars are used.')
-        self.showMsg('B: %0.2f  {+/- %0.2f}' % (self.B, 2 * self.sigmaB))
-        self.showMsg('A: %0.2f  {+/- %0.2f}' % (self.A, 2 * self.sigmaA))
+        self.showMsg('B: %0.2f  {+/- %0.2f}' % ( self.B, 2 * self.sigmaB / np.sqrt(self.nBpts) ))
+        self.showMsg('A: %0.2f  {+/- %0.2f}' % ( self.A, 2 * self.sigmaA / np.sqrt(self.nApts) ))
         if self.A > 0:
             self.showMsg('nominal magDrop: %0.2f' % ((np.log10(self.B) - np.log10(self.A)) * 2.5))
         else:
@@ -1372,30 +1387,43 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             plot([R, self.right], [B, B])
         else:
             raise Exception('Unrecognized event type')
-            
+
+    def calcNumBandApoints(self):
+        if self.eventType == 'Donly':
+            self.nBpts = self.solution[0] - self.left
+            self.nApts = self.right - self.solution[0] - 1
+
+        if self.eventType == 'Ronly':
+            self.nBpts = self.right - self.solution[1]
+            self.nApts = self.solution[1] - self.left
+
+        if self.eventType == 'DandR':
+            self.nBpts = self.right - self.solution[1] + self.solution[0] - self.left
+            self.nApts = self.solution[1] - self.left + self.right - self.solution[0] - 1
+
+        if self.nBpts < 1:
+            self.nBpts = 1
+
+        if self.nApts < 1:
+                self.nApts = 1
+
     def drawEnvelope(self):
         def plot(x, y):
             self.mainPlot.plot(x, y, pen=pg.mkPen((150, 100, 100), width=2), symbol=None)
         
         if self.solution is None:
             return
-        
+
+        self.calcNumBandApoints()
+
         if self.eventType == 'Donly':
-            nBpts = self.solution[0] - self.left
-            if nBpts < 1:
-                nBpts = 1
-            
-            nApts = self.right - self.solution[0] - 1
-            if nApts < 1:
-                nApts = 1
-            
             D = self.solution[0] - self.Doffset
             Dright = D + self.plusD
             Dleft = D - self.minusD
-            Bup = self.B + 2 * self.sigmaB / np.sqrt(nBpts)
-            Bdown = self.B - 2 * self.sigmaB / np.sqrt(nBpts)
-            Aup = self.A + 2 * self.sigmaA / np.sqrt(nApts)
-            Adown = self.A - 2 * self.sigmaA / np.sqrt(nApts)
+            Bup = self.B + 2 * self.sigmaB / np.sqrt(self.nBpts)
+            Bdown = self.B - 2 * self.sigmaB / np.sqrt(self.nBpts)
+            Aup = self.A + 2 * self.sigmaA / np.sqrt(self.nApts)
+            Adown = self.A - 2 * self.sigmaA / np.sqrt(self.nApts)
             
             plot([self.left, Dright], [Bup, Bup])
             plot([Dright, Dright], [Bup, Aup])
@@ -1407,21 +1435,13 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             return
             
         if self.eventType == 'Ronly':
-            nBpts = self.right - self.solution[1]
-            if nBpts < 1:
-                nBpts = 1
-            
-            nApts = self.solution[1] - self.left
-            if nApts < 1:
-                nApts = 1
-            
             R = self.solution[1] - self.Roffset
             Rright = R + self.plusR
             Rleft = R - self.minusR
-            Bup = self.B + 2 * self.sigmaB / np.sqrt(nBpts)
-            Bdown = self.B - 2 * self.sigmaB / np.sqrt(nBpts)
-            Aup = self.A + 2 * self.sigmaA / np.sqrt(nApts)
-            Adown = self.A - 2 * self.sigmaA / np.sqrt(nApts)
+            Bup = self.B + 2 * self.sigmaB / np.sqrt(self.nBpts)
+            Bdown = self.B - 2 * self.sigmaB / np.sqrt(self.nBpts)
+            Aup = self.A + 2 * self.sigmaA / np.sqrt(self.nApts)
+            Adown = self.A - 2 * self.sigmaA / np.sqrt(self.nApts)
             
             plot([self.left, Rleft], [Aup, Aup])
             plot([Rleft, Rleft], [Aup, Bup])
@@ -1433,14 +1453,6 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             return
         
         if self.eventType == 'DandR':
-            nBpts = self.right - self.solution[1] + self.solution[0] - self.left
-            if nBpts < 1:
-                nBpts = 1
-            
-            nApts = self.solution[1] - self.left + self.right - self.solution[0] - 1
-            if nApts < 1:
-                nApts = 1
-            
             R = self.solution[1] - self.Roffset
             D = self.solution[0] - self.Doffset
             
@@ -1448,10 +1460,10 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             Rleft = R - self.minusR
             Dright = D + self.plusD
             Dleft = D - self.minusD
-            Bup = self.B + 2 * self.sigmaB / np.sqrt(nBpts)
-            Bdown = self.B - 2 * self.sigmaB / np.sqrt(nBpts)
-            Aup = self.A + 2 * self.sigmaA / np.sqrt(nApts)
-            Adown = self.A - 2 * self.sigmaA / np.sqrt(nApts)
+            Bup = self.B + 2 * self.sigmaB / np.sqrt(self.nBpts)
+            Bdown = self.B - 2 * self.sigmaB / np.sqrt(self.nBpts)
+            Aup = self.A + 2 * self.sigmaA / np.sqrt(self.nApts)
+            Adown = self.A - 2 * self.sigmaA / np.sqrt(self.nApts)
             
             plot([self.left, Dright], [Bup, Bup])
             plot([Dright, Dright], [Bup, Aup])
