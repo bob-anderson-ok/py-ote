@@ -23,7 +23,7 @@
       <property name="handleWidth">
        <number>12</number>
       </property>
-      <widget class="QWidget" name="">
+      <widget class="QWidget" name="layoutWidget">
        <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="0,1">
         <item>
          <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0">
@@ -80,7 +80,7 @@
              </sizepolicy>
             </property>
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;First, find  a clearly identifiable integration group.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Then click on the first and last point of that integration group.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; font-size:18pt; color:#222222;&quot;&gt;For light curves from integrated videos:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; font-size:18pt; color:#222222;&quot;&gt;Zoom into a small portion of the light curve and locate a clearly identifiable group of data points that belong to an integration block, click on the first and last point of that data point group, then press this button to integrate all such groups in the light curve into a single data points.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
              <string>Do block integration</string>
@@ -202,7 +202,7 @@
              </sizepolicy>
             </property>
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Use the selected baseline points to calculate noise correlation coefficients and sigmaB&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;If there has already been such a calculation, new results from clicking this button will be averaged with the previously determined coefficients, weighted by the number of points involved.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; font-size:18pt; color:#222222;&quot;&gt;Select any two points in the primary (dark blue) light curve on one side of the ‘event’ (that is, select 'baseline' points). Then, click this button to analyze the noise in that portion light curve.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; font-size:18pt; color:#222222;&quot;&gt;Optional: Repeat this operation to include baseline noise on the other side of the event.  Results will be weight-averaged by the number of points selected on each side of the event.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
              <string>Analyze baseline noise</string>
@@ -221,7 +221,7 @@
              </sizepolicy>
             </property>
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;The selected points are used to estimate sigmaA (event noise sigma).&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;It is optional to do this --- if not done, sigmaA will default to sigmaB (baseline noise sigma)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; font-size:18pt; color:#222222;&quot;&gt;Select any two points in the primary (dark blue) light curve in the bottom of the ‘event’. Then click this button to analyze the noise in this portion of the light curve.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; font-size:18pt; color:#222222;&quot;&gt;Note: This step is &lt;/span&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; font-size:18pt; color:#ff0000;&quot;&gt;optional&lt;/span&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; font-size:18pt; color:#222222;&quot;&gt;.  If this step is not taken, then the 'event noise' will be set equal to baseline noise. A small difference in event D and R times and error bars may result.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
              <string>Analyze event noise</string>
@@ -258,7 +258,7 @@
                </sizepolicy>
               </property>
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Use the two selected points as the min and max D positions to use during the 'event' search.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;If no points are selected, the D region is removed.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; font-size:18pt; color:#222222;&quot;&gt;Select two points in the primary (dark blue) light curve, one on each side of where the star ‘disappears’, then click this button to create a D search area.&lt;/span&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; font-size:18pt; color:#222222;&quot;&gt;If no points are selected, a search for a D transition will not be performed --- this becomes an 'R only' event.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>Mark D region</string>
@@ -277,7 +277,7 @@
                </sizepolicy>
               </property>
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Use the two selected points as the min and max R positions to use during the 'event' search.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;If no points are selected, the R region is removed.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; font-size:18pt; color:#222222;&quot;&gt;Select two points in the primary (dark blue) light curve, one on each side of where the star ‘reappears’, then click this button to create an R search area.&lt;/span&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; font-size:18pt; color:#222222;&quot;&gt;If no points are selected, a search for an R transition will not be performed --- this becomes a 'D only' event.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>Mark R region</string>
@@ -527,10 +527,10 @@
              <bool>false</bool>
             </property>
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Click here to open dialog for you to specify name and location for the storage of the graphics of the error bar plot.  Two plots will be recorded: the D error bar and the Dur error bar.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Storage location will default to the directory containing the csv file for the light curve.  Best practice normally would be to leave it there.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Normal best practice is to click on the csv file to name the graphic images.  The .csv extension will be removed and replaced by .png automatically with an extra identifier to show D versus Dur distribution plot.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Note: At the conclusion of error bar calculations, PYOTE automatically writes the error bar plots to appropriately named png files using the name and directory of the just-processed csv file. &lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;If you want/need to record other versions of those plots, click here to open a dialog that will let you specify a different name and/or location for the storage of the new graphics.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
-             <string>Write error bar plot to file</string>
+             <string>(optional) Write error bar plot to file</string>
             </property>
            </widget>
           </item>
@@ -540,10 +540,10 @@
              <bool>false</bool>
             </property>
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Click here to open dialog for you to specify name and location for the storage of the graphic of the light curve plot.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Storage location will default to the directory containing the csv file for the light curve.  Best practice normally would be to leave it there.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Normal best practice is to click on the csv file to name the graphic image.  The .csv extension will be removed and replaced by .png automatically.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Note: At the conclusion of error bar calculations, PYOTE automatically writes the main plot to a png file using the name and directory of the just-processed csv file. &lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;If you want/need to record other versions of that plot, click here to open a dialog that will let you specify a different name and/or location for the storage of the new graphics.&lt;/span&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
-             <string>Write main plot to file</string>
+             <string>(optional) Write main plot to file</string>
             </property>
            </widget>
           </item>
@@ -600,6 +600,9 @@
           <height>0</height>
          </size>
         </property>
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Clicking on a data row in this panel will cause the corresponding point to be highlighted in the light curve plot. The highlighted point is shown as a largish yellow dot with a red rim --- it may be hard to see/find, but look for it.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;The reverse is true as well. Clicking on a point in the primary (dark blue) light curve will cause the data row for that point to be selected/positioned.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
         <property name="rowCount">
          <number>11</number>
         </property>
@@ -623,6 +626,9 @@
         <column/>
        </widget>
        <widget class="QTextEdit" name="textOut">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;This panel contains a running log of all actions/results. Each line is automatically appended to a file of the same name and directory location as the csv file being processed but, with the &lt;/span&gt;&lt;span style=&quot; font-size:18pt; color:#ff0000;&quot;&gt;.csv&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt; extension changed to &lt;/span&gt;&lt;span style=&quot; font-size:18pt; color:#ff0000;&quot;&gt;.log&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;The file format is 'rich text'.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
         <property name="verticalScrollBarPolicy">
          <enum>Qt::ScrollBarAlwaysOn</enum>
         </property>

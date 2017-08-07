@@ -152,7 +152,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         # to get this right after a re-layout !!!!
 
         oldMainPlot = self.mainPlot
-        self.mainPlot = PlotWidget(self.widget,
+        self.mainPlot = PlotWidget(self.layoutWidget,
                                    viewBox=CustomViewBox(border=(255, 255, 255)),
                                    enableMenu=False)
         self.mainPlot.setObjectName("mainPlot")
@@ -193,6 +193,24 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         mousePoint = self.mainPlotViewBox.mapSceneToView(pos)
         # self.showMsg(str(mousePoint.x()))
         self.verticalCursor.setPos(round(mousePoint.x()))
+
+    def writeDefaultGraphicsPlots(self):
+        self.graphicFile, _ = os.path.splitext(self.filename)
+
+        exporter = FixedImageExporter(self.dBarPlotItem)
+        exporter.makeWidthHeightInts()
+        targetFileD = self.graphicFile + '.D.png'
+        exporter.export(targetFileD)
+
+        exporter = FixedImageExporter(self.durBarPlotItem)
+        exporter.makeWidthHeightInts()
+        targetFileDur = self.graphicFile + '.R-D.png'
+        exporter.export(targetFileDur)
+
+        exporter = FixedImageExporter(self.mainPlot.getPlotItem())
+        exporter.makeWidthHeightInts()
+        targetFile = self.graphicFile + '.png'
+        exporter.export(targetFile)
 
     def exportBarPlots(self):
         if self.dBarPlotItem is None:
@@ -689,11 +707,10 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         return adjTime
         
     def finalReport(self):
-        # self.showMsg('! ! The final report goes here ! !')
+        self.writeDefaultGraphicsPlots()
+
         # Grab the D and R values found and apply our timing convention
         D, R = self.solution
-        # if D: D = D - self.Doffset
-        # if R: R = R - self.Roffset
 
         self.calcNumBandApoints()
 
