@@ -23,6 +23,8 @@ from pyqtgraph import PlotWidget
 from pyoteapp import version
 from pyoteapp import fixedPrecision as fp
 from pyoteapp import gui
+from pyoteapp.checkForNewerVersion import getMostRecentVersionOfPyote
+from pyoteapp.checkForNewerVersion import upgradePyote
 from pyoteapp.csvreader import readLightCurve
 from pyoteapp.errorBarUtils import ciBars
 from pyoteapp.errorBarUtils import createDurDistribution
@@ -108,10 +110,14 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         
         # Button: Smooth secondary
         self.smoothSecondaryButton.clicked.connect(self.smoothRefStar)
-        
+
+        # QLineEdit: window size for secondary smoothing
+        self.numSmoothPointsEdit.editingFinished.connect(self.smoothRefStar)
+
         # Button: Normalize around selected point
         self.normalizeButton.clicked.connect(self.normalize)
-        
+
+
         # Button: Do block integration
         self.doBlockIntegration.clicked.connect(self.doIntegration)
         
@@ -187,6 +193,41 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.outliers = []
         self.logFile = ''
         self.initializeVariablesThatDontDependOnAfile()
+
+        self.checkForNewVersion()
+
+    def installLatestVersion(self):
+        pipResult = upgradePyote()
+        for line in pipResult:
+            self.showMsg(line, blankLine=False)
+
+        self.showMsg('', blankLine=False)
+        self.showMsg('The new version is installed but not yet running.', color='red', bold=True)
+        self.showMsg('Close and reopen pyote to start the new version running.', color='red', bold=True)
+
+    def checkForNewVersion(self):
+        gotVersion, latestVersion = getMostRecentVersionOfPyote()
+        if gotVersion:
+            if latestVersion == version.version():
+                self.showMsg('You are running the most recent version of pyote', color='red', bold=True)
+            else:
+                self.showMsg('Version ' + latestVersion + ' is available', color='red', bold=True)
+                if self.queryWhetherNewVersionShouldBeInstalled() == QMessageBox.Yes:
+                    self.showMsg('You have opted to install latest version of PYOTE')
+                    self.installLatestVersion()
+                else:
+                    self.showMsg('You have declined the opportunity to install latest PYOTE')
+        else:
+            self.showMsg(latestVersion, color='red', bold=True)
+
+    def queryWhetherNewVersionShouldBeInstalled(self):
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Question)
+        msg.setText('A newer version of PYOTE is available. Do you wish to install it?')
+        msg.setWindowTitle('Get latest version of PYOTE query')
+        msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        retval = msg.exec_()
+        return retval
 
     def reportMouseMoved(self, pos):
         # self.showMsg(str(pos.x()))
@@ -565,7 +606,18 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.doBlockIntegration.setEnabled(False)
         self.reDrawMainPlot()
         self.mainPlot.autoRange()
-        
+
+    def togglePointSelected(self, index):
+        if self.yStatus[index] != 3:
+            # Save current status for possible undo (a later click)
+            self.selectedPoints[index] = self.yStatus[index]
+            self.yStatus[index] = 3  # Set color to 'selected'
+        else:
+            # Restore previous status (when originally clicked)
+            self.yStatus[index] = self.selectedPoints[index]
+            del (self.selectedPoints[index])
+        self.reDrawMainPlot()  # Redraw plot to show selection change
+
     def processClick(self, event):
         # This try/except handles case where user clicks in plot area before a
         # plot has been drawn.
@@ -574,15 +626,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             index = round(mousePoint.x())
             if index in range(self.dataLen):                
                 if event.button() == 1:  # left button clicked?
-                    if self.yStatus[index] != 3:
-                        # Save current status for possible undo (a later click)
-                        self.selectedPoints[index] = self.yStatus[index]
-                        self.yStatus[index] = 3  # Set color to 'selected'
-                    else:
-                        # Restore previous status (when originally clicked)
-                        self.yStatus[index] = self.selectedPoints[index]
-                        del(self.selectedPoints[index])
-                self.reDrawMainPlot()  # Redraw plot to show selection change
+                    self.togglePointSelected(index)
+                # self.reDrawMainPlot()  # Redraw plot to show selection change
                 # Move the table view of data so that clicked point data is visible
                 self.table.setCurrentCell(index, 0)
             else:
@@ -617,7 +662,9 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         
     def cellClick(self, row, column):
         entry = self.table.item(row, 0)
-        self.highlightReading(int(entry.text()))
+        # self.highlightReading(int(entry.text()))
+        self.togglePointSelected(int(entry.text()))
+
         
     def highlightReading(self, rdgNum):
         x = [rdgNum]
@@ -646,18 +693,18 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 fileObject.write('\n')
             fileObject.close()
 
-    def Dreport(self):
+    def Dreport(self, deltaDhi, deltaDlo):
         D, _ = self.solution
 
         intD = int(D)  # So that we can do lookup in the data table
 
         noiseAsymmetry = self.snrA / self.snrB
         if (noiseAsymmetry > 0.7) and (noiseAsymmetry < 1.3):
-            plusD = (self.deltaDhi95 - self.deltaDlo95) / 2
+            plusD = (deltaDhi - deltaDlo) / 2
             minusD = plusD
         else:
-            plusD = -self.deltaDlo95   # Deliberate 'inversion'
-            minusD = self.deltaDhi95   # Deliberate 'inversion'
+            plusD = -deltaDlo   # Deliberate 'inversion'
+            minusD = deltaDhi   # Deliberate 'inversion'
          
         # Save these for the 'envelope' plotter
         self.plusD = plusD
@@ -676,16 +723,16 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                      )
         return adjTime
         
-    def Rreport(self):
+    def Rreport(self, deltaRhi, deltaRlo):
         _, R = self.solution
         # if R: R = R - self.Roffset
         noiseAsymmetry = self.snrA / self.snrB
         if (noiseAsymmetry > 0.7) and (noiseAsymmetry < 1.3):
-            plusR = (self.deltaRhi95 - self.deltaRlo95) / 2
+            plusR = (deltaRhi - deltaRlo) / 2
             minusR = plusR
         else:
-            plusR = -self.deltaRlo95  # Deliberate 'inversion'
-            minusR = self.deltaRhi95  # Deliberate 'inversion'
+            plusR = -deltaRlo  # Deliberate 'inversion'
+            minusR = deltaRhi  # Deliberate 'inversion'
         
         # Save these for the 'envelope' plotter
         self.plusR = plusR
@@ -705,46 +752,86 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                      (ts, plusR * self.timeDelta, minusR * self.timeDelta)
                      )
         return adjTime
-        
+
+    def confidenceIntervalReport(self, numSigmas, deltaDurhi, deltaDurlo, deltaDhi, deltaDlo,
+                                 deltaRhi, deltaRlo):
+
+        D, R = self.solution
+
+        self.showMsg('B: %0.2f  {+/- %0.2f}' % (self.B, numSigmas * self.sigmaB / np.sqrt(self.nBpts)))
+        self.showMsg('A: %0.2f  {+/- %0.2f}' % (self.A, numSigmas * self.sigmaA / np.sqrt(self.nApts)))
+
+        if self.A > 0:
+            self.showMsg('nominal magDrop: %0.2f' % ((np.log10(self.B) - np.log10(self.A)) * 2.5))
+        else:
+            self.showMsg('magDrop calculation not possible because A is negative')
+        self.showMsg('snr: %0.2f' % self.snrB)
+
+        if self.eventType == 'Donly':
+            self.Dreport(deltaDhi, deltaDlo)
+        elif self.eventType == 'Ronly':
+            self.Rreport(deltaRhi, deltaRlo)
+        elif self.eventType == 'DandR':
+            Dtime = self.Dreport(deltaDhi, deltaDlo)
+            Rtime = self.Rreport(deltaDhi, deltaDlo)
+            plusDur = ((deltaDurhi - deltaDurlo) / 2)
+            minusDur = plusDur
+            self.showMsg('Duration (R - D): %.4f {+%.4f,-%.4f} readings' %
+                         (R - D, plusDur, minusDur))
+            plusDur = ((deltaDurhi - deltaDurlo) / 2) * self.timeDelta
+            minusDur = plusDur
+            self.showMsg('Duration (R - D): %.4f {+%.4f,-%.4f} seconds' %
+                         (Rtime - Dtime, plusDur, minusDur))
+
     def finalReport(self):
         self.writeDefaultGraphicsPlots()
 
         # Grab the D and R values found and apply our timing convention
         D, R = self.solution
 
+        if self.eventType == 'DandR':
+            self.showMsg('Timestamp validity check ...')
+            self.reportTimeValidity(D, R)
+
         self.calcNumBandApoints()
 
-        self.showMsg('In the following report, 0.95 confidence interval error bars are used.')
-        self.showMsg('B: %0.2f  {+/- %0.2f}' % ( self.B, 2 * self.sigmaB / np.sqrt(self.nBpts) ))
-        self.showMsg('A: %0.2f  {+/- %0.2f}' % ( self.A, 2 * self.sigmaA / np.sqrt(self.nApts) ))
-        if self.A > 0:
-            self.showMsg('nominal magDrop: %0.2f' % ((np.log10(self.B) - np.log10(self.A)) * 2.5))
-        else:
-            self.showMsg('magDrop calculation not possible because A is negative')
-        self.showMsg('snr: %0.2f' % self.snrB)
-        
-        if self.eventType == 'Donly':
-            self.Dreport()
-            return
+        self.showMsg('================= 0.68 confidence interval report =================')
 
-        if self.eventType == 'Ronly':
-            self.Rreport()
-            return
-        
-        if self.eventType == 'DandR':
-            Dtime = self.Dreport()
-            Rtime = self.Rreport()
-            self.reportTimeValidity(D, R)
-            plusDur = ((self.deltaDurhi95 - self.deltaDurlo95) / 2)
-            minusDur = plusDur
-            self.showMsg('Duration (R - D): %.4f {+%.4f,-%.4f} readings' % 
-                         (R - D, plusDur, minusDur))
-            plusDur = ((self.deltaDurhi95 - self.deltaDurlo95) / 2) * self.timeDelta
-            minusDur = plusDur
-            self.showMsg('Duration (R - D): %.4f {+%.4f,-%.4f} seconds' % 
-                         (Rtime - Dtime, plusDur, minusDur))
-            return
-        
+        self.confidenceIntervalReport(1, self.deltaDurhi68, self.deltaDurlo68,
+                                      self.deltaDhi68, self.deltaDlo68,
+                                      self.deltaRhi68, self.deltaRlo68)
+
+        self.showMsg('=============== end 0.68 confidence interval report ===============')
+
+        self.showMsg('================= 0.95 confidence interval report =================')
+
+        self.confidenceIntervalReport(2, self.deltaDurhi95, self.deltaDurlo95,
+                                      self.deltaDhi95, self.deltaDlo95,
+                                      self.deltaRhi95, self.deltaRlo95)
+
+        envelopePlusR = self.plusR
+        envelopePlusD = self.plusD
+        envelopeMinusR = self.minusR
+        envelopeMinusD = self.minusD
+
+        self.showMsg('=============== end 0.95 confidence interval report ===============')
+
+        self.showMsg('================= 0.9973 confidence interval report ===============')
+
+        self.confidenceIntervalReport(3, self.deltaDurhi99, self.deltaDurlo99,
+                                      self.deltaDhi99, self.deltaDlo99,
+                                      self.deltaRhi99, self.deltaRlo99)
+
+        self.showMsg('=============== end 0.9973 confidence interval report =============')
+
+        # Set the values to be used for the envelope plot (saved during 0.95 ci calculations)
+        self.plusR = envelopePlusR
+        self.plusD = envelopePlusD
+        self.minusR = envelopeMinusR
+        self.minusD = envelopeMinusD
+
+        self.showMsg("Solution 'envelope' in the main plot drawn using 0.95 confidence interval error bars")
+
     def reportTimeValidity(self, D, R):
         intD = int(D)
         intR = int(R)
@@ -869,7 +956,9 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         pw.addLegend()
         legend68 = '[%0.2f,%0.2f] @ 0.6827' % (x1, x2)
         pw.plot(name=legend68)
-        
+
+        self.showMsg("Error bar report based on 100,000 simulations (units are 'readings')...")
+
         self.showMsg('loDbar   @ .68 ci: %8.4f' % x1, blankLine=False)
         self.showMsg('hiDbar   @ .68 ci: %8.4f' % x2, blankLine=False)
         
@@ -1081,7 +1170,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 ans = '(None,%.2f) B: %.2f  A: %.2f' % (R, self.B, self.A)
             else:
                 raise Exception('Undefined event type')
-            self.showMsg('Raw solution (debug output): ' + ans)
+            # self.showMsg('Raw solution (debug output): ' + ans)
         elif runSolver:
             self.showMsg('Event could not be found')
             
