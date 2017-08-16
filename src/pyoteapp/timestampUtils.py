@@ -67,3 +67,6 @@ def getTimeStepAndOutliers(timestamps, tolerance=0.1):
     improvedTimeStep = improveTimeStep(outlierIndices, deltaTime)
     
     return improvedTimeStep, outlierIndices, timestampErrorRate
+
+def manualTimeStampEntry(time):
+    return time

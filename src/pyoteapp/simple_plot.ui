@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1398</width>
-    <height>990</height>
+    <width>1394</width>
+    <height>973</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,16 +20,10 @@
       <property name="orientation">
        <enum>Qt::Vertical</enum>
       </property>
-      <property name="handleWidth">
-       <number>12</number>
-      </property>
-      <widget class="QWidget" name="layoutWidget">
-       <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="0,1">
+      <widget class="QWidget" name="">
+       <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="0,1">
         <item>
-         <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0">
-          <property name="sizeConstraint">
-           <enum>QLayout::SetMaximumSize</enum>
-          </property>
+         <layout class="QVBoxLayout" name="verticalLayout">
           <item>
            <widget class="QPushButton" name="readData">
             <property name="sizePolicy">
@@ -39,7 +33,7 @@
              </sizepolicy>
             </property>
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;PYOTE reads Limovie, R-OTE, and Tangra (AOTA format) files.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Assumed is: object1 is occulted star; object2 (optional) is a reference star to be used for normalizing the occulted star light curve.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;Mouse button functions within the light curve plot:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; color:#ff0000;&quot;&gt;Left click&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;: selects/deselects points on the primary (dark blue) light curve that intersect with the vertical cursor.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; color:#ff0000;&quot;&gt;Left click and drag&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;: rectangular zoom --- useful for point selection (but point selection can also be accomplished through clicks in the tabular data display at the lower left)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; color:#ff0000;&quot;&gt;Right click&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;: undo zoom&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;PYOTE reads Limovie, R-OTE, and Tangra files.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Assumed is: object1 is occulted star; object2 (optional) is a reference star to be used for normalizing the occulted star light curve.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;Mouse button functions within the light curve plot:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; color:#ff0000;&quot;&gt;Left click&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;: selects/deselects points on the primary (dark blue) light curve that intersect with the vertical cursor.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; color:#ff0000;&quot;&gt;Left click and drag&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;: rectangular zoom --- useful for point selection (but point selection can also be accomplished through clicks in the tabular data display at the lower left)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; color:#ff0000;&quot;&gt;Right click&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;: undo zoom&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="toolTipDuration">
              <number>-1</number>
@@ -50,26 +44,55 @@
            </widget>
           </item>
           <item>
-           <widget class="QCheckBox" name="showSecondaryCheckBox">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>307</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>Show secondary star</string>
-            </property>
-           </widget>
+           <layout class="QHBoxLayout" name="horizontalLayout_6">
+            <item>
+             <widget class="QCheckBox" name="showSecondaryCheckBox">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>307</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;The display of the secondary star can be turned off. This is useful if the secondary star trace overlaps the main star. The secondary star data remains available for smoothing and normalization, even if it is not beilg displayed.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>Show secondary star</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSpinBox" name="secondarySelector">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;If there are multiple reference stars in the file, this spinner will activate to allow the choice of which one to display/use.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="minimum">
+               <number>1</number>
+              </property>
+              <property name="maximum">
+               <number>4</number>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
           <item>
            <widget class="QPushButton" name="doBlockIntegration">
@@ -518,7 +541,7 @@
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>286</width>
+              <width>293</width>
               <height>13</height>
              </size>
             </property>
@@ -632,9 +655,6 @@
         <column/>
        </widget>
        <widget class="QTextEdit" name="textOut">
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;This panel contains a running log of all actions/results. Each line is automatically appended to a file of the same name and directory location as the csv file being processed but, with the &lt;/span&gt;&lt;span style=&quot; font-size:18pt; color:#ff0000;&quot;&gt;.csv&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt; extension changed to &lt;/span&gt;&lt;span style=&quot; font-size:18pt; color:#ff0000;&quot;&gt;.log&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;The file format is 'rich text'.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
         <property name="verticalScrollBarPolicy">
          <enum>Qt::ScrollBarAlwaysOn</enum>
         </property>

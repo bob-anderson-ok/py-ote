@@ -34,6 +34,7 @@ from pyoteapp.solverUtils import candidateCounter, solver
 from pyoteapp.timestampUtils import convertTimeStringToTime
 from pyoteapp.timestampUtils import convertTimeToTimeString
 from pyoteapp.timestampUtils import getTimeStepAndOutliers
+from pyoteapp.timestampUtils import manualTimeStampEntry
 
 # The following module was created by typing
 #    !pyuic5 simple-plot.ui -o gui.py
@@ -104,7 +105,10 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         
         # CheckBox: Show secondary star
         self.showSecondaryCheckBox.clicked.connect(self.toggleDisplayOfSecondaryStar)
-        
+
+        # QSpinBox
+        self.secondarySelector.valueChanged.connect(self.changeSecondary)
+
         # Button: Trim/Select data points
         self.setDataLimits.clicked.connect(self.doTrim)
         
@@ -154,15 +158,16 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.table.cellClicked.connect(self.cellClick)
         self.table.verticalHeader().sectionClicked.connect(self.rowClick)
         
-        # Experimental --- try to re-instantiate mainPlot Note: examine gui.py
-        # to get this right after a re-layout !!!!
+        # Re-instantiate mainPlot             Note: examine gui.py
+        # to get this right after a re-layout !!!!  self.widget changes sometimes
+        # as does horizontalLayout_7
 
         oldMainPlot = self.mainPlot
-        self.mainPlot = PlotWidget(self.layoutWidget,
+        self.mainPlot = PlotWidget(self.widget,
                                    viewBox=CustomViewBox(border=(255, 255, 255)),
                                    enableMenu=False)
         self.mainPlot.setObjectName("mainPlot")
-        self.horizontalLayout_6.addWidget(self.mainPlot,stretch=1)
+        self.horizontalLayout_7.addWidget(self.mainPlot,stretch=1)
 
         oldMainPlot.setParent(None)
 
@@ -195,6 +200,33 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.initializeVariablesThatDontDependOnAfile()
 
         self.checkForNewVersion()
+
+    def timestampListIsEmpty(self, alist):
+        ans = True
+        for item in alist:
+            if item == '' or item == '[::]' or item == '[NA]':  # Limovie = '[::]'   Tangra = ''  R-OTE = [NA]
+                pass
+            else:
+                ans = False
+                break
+        return ans
+
+    def changeSecondary(self):
+        selText = self.secondarySelector.text()
+        self.showMsg('Secondary reference ' + selText + ' selected.')
+        refNum = int(selText)
+        if refNum == 1:
+            refStar = [float(item) for item in self.secondary]
+        if refNum == 2:
+            refStar = [float(item) for item in self.ref2]
+        if refNum == 3:
+            refStar = [float(item) for item in self.ref3]
+
+        self.smoothSecondary = []
+        self.yRefStar = np.array(refStar)
+        self.yRefStarCopy = np.array(refStar)
+        self.reDrawMainPlot()
+        self.mainPlot.autoRange()
 
     def installLatestVersion(self):
         pipResult = upgradePyote()
@@ -474,6 +506,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         
         self.removePointSelections()
         self.normalizeButton.setEnabled(False)
+        self.smoothSecondaryButton.setEnabled(False)
+        self.numSmoothPointsEdit.setEnabled(False)
         self.setDataLimits.setEnabled(False)
         self.reDrawMainPlot()
         
@@ -514,8 +548,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
         self.showMsg('Smoothing of secondary star light curve performed with window size: %i' % window)
 
-        self.smoothSecondaryButton.setEnabled(False)
-        self.numSmoothPointsEdit.setEnabled(False)
+        # self.smoothSecondaryButton.setEnabled(False)
+        # self.numSmoothPointsEdit.setEnabled(False)
         self.normalizeButton.setEnabled(True)
         
     def toggleDisplayOfSecondaryStar(self):
@@ -1032,7 +1066,12 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         pw2.hideAxis('left')
         
         self.writeBarPlots.setEnabled(True)
-        self.finalReport()
+
+        if self.timestampListIsEmpty(self.yTimes):
+            self.showMsg('Cannot produce final report because timestamps are missing.', bold=True, color='red')
+        else:
+            self.finalReport()
+
         self.reDrawMainPlot()  # To add envelope to solution
         
     def findEvent(self):
@@ -1175,6 +1214,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             self.showMsg('Event could not be found')
             
         self.reDrawMainPlot()
+
         self.calcErrBars.setEnabled(True)
         
     def fillTableViewOfData(self):
@@ -1199,7 +1239,6 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         
         self.initializeVariablesThatDontDependOnAfile()
         
-        global timestamps  # debug
         self.disableAllButtons()
         self.mainPlot.clear()
         self.textOut.clear()
@@ -1227,19 +1266,36 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
             try:
                 self.outliers = []
-                frame, time, value, secondary, headers = readLightCurve(self.filename)
+                frame, time, value, self.secondary, self.ref2, self.ref3, headers = readLightCurve(self.filename)
                 values = [float(item) for item in value]
+
                 if frame == []:
                     # This is a raw data file, imported for test purposes
                     global raw
                     raw = values
                     self.showInfo('raw data file read')
                     return
-                refStar = [float(item) for item in secondary]
-                if secondary:
+
+                refStar = [float(item) for item in self.secondary]
+
+                self.secondarySelector.setValue(1)
+                if self.secondary:
                     self.showSecondaryCheckBox.setEnabled(True)
                     self.showSecondaryCheckBox.setChecked(True)
-                timestamps = time[:]  # debug
+                    if self.ref2 != []:
+                        self.secondarySelector.setEnabled(True)
+                        self.secondarySelector.setMaximum(2)
+                        if self.ref3 != []:
+                            self.secondarySelector.setMaximum(3)
+                    else:
+                        self.secondarySelector.setEnabled(False)
+                        self.secondarySelector.setMaximum(1)
+
+                # If no timestamps were found in the input file, prompt for manual entry
+                if self.timestampListIsEmpty(time):
+                    self.showMsg('Manual entry of timestamps requested --- none present in input file')
+                    time = manualTimeStampEntry(time)
+
                 self.showMsg('=' * 20 + ' file header lines ' + '=' * 20, bold=True, blankLine=False)
                 for item in headers:
                     self.showMsg(item, blankLine=False)
@@ -1402,6 +1458,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         
     def disableAllButtons(self):
         self.showSecondaryCheckBox.setEnabled(False)
+        self.secondarySelector.setEnabled(False)
         self.normalizeButton.setEnabled(False)
         self.smoothSecondaryButton.setEnabled(False)
         self.numSmoothPointsEdit.setEnabled(False)
@@ -1440,6 +1497,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             self.showSecondaryCheckBox.setEnabled(True)
             self.smoothSecondaryButton.setEnabled(True)
             self.numSmoothPointsEdit.setEnabled(True)
+            self.secondarySelector.setEnabled(True)
         
         # Enable the initial set of buttons (allowed operations)
         self.startOver.setEnabled(True)
@@ -1588,14 +1646,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.mainPlot.clear()
         self.mainPlot.addItem(self.verticalCursor)
         self.mainPlot.plot(self.yValues)
-        
-        if self.solution:
-            # self.showInfo('TBD --- solution plot')
-            self.drawSolution()
-            
-        if self.minusD is not None or self.minusR is not None:
-            # We have data for drawing an envelope
-            self.drawEnvelope()
+
+        self.illustrateTimestampOutliers()
             
         x = [i for i in range(self.dataLen) if self.yStatus[i] == INCLUDED]
         y = [self.yValues[i] for i in range(self.dataLen) if self.yStatus[i] == INCLUDED]
@@ -1624,12 +1676,19 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 self.mainPlot.plot(x, self.smoothSecondary, 
                                    pen=pg.mkPen((100, 100, 100), width=4), symbol=None)
                  
-        self.illustrateTimestampOutliers()
+        # self.illustrateTimestampOutliers()
         
         if self.dRegion is not None:
             self.mainPlot.addItem(self.dRegion)
         if self.rRegion is not None:
-            self.mainPlot.addItem(self.rRegion)            
+            self.mainPlot.addItem(self.rRegion)
+
+        if self.solution:
+            self.drawSolution()
+
+        if self.minusD is not None or self.minusR is not None:
+            # We have data for drawing an envelope
+            self.drawEnvelope()
         
     def showSelectedPoints(self, header):
         selPts = list(self.selectedPoints.keys())
