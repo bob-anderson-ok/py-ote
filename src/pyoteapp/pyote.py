@@ -17,12 +17,13 @@ import scipy.signal
 from PyQt5 import QtCore
 from PyQt5 import QtGui
 from PyQt5.QtCore import QSettings, QPoint, QSize
-from PyQt5.QtWidgets import QFileDialog, QMessageBox
+from PyQt5.QtWidgets import QFileDialog, QMessageBox, QDialog
 from pyqtgraph import PlotWidget
 
 from pyoteapp import version
 from pyoteapp import fixedPrecision as fp
 from pyoteapp import gui
+from pyoteapp import timestampDialog
 from pyoteapp.checkForNewerVersion import getMostRecentVersionOfPyote
 from pyoteapp.checkForNewerVersion import upgradePyote
 from pyoteapp.csvreader import readLightCurve
@@ -36,9 +37,13 @@ from pyoteapp.timestampUtils import convertTimeToTimeString
 from pyoteapp.timestampUtils import getTimeStepAndOutliers
 from pyoteapp.timestampUtils import manualTimeStampEntry
 
-# The following module was created by typing
+# The gui module was created by typing
 #    !pyuic5 simple-plot.ui -o gui.py
-# in the IPython console
+# in the IPython console while in pyoteapp directory
+
+# The timestampDialog module was created by typing
+#    !pyuic5 timestamp_dialog.ui -o timestampDialog.py
+# in the IPython console while in pyoteapp directory
 
 # Status of points and associated dot colors ---
 SELECTED = 3  # big red
@@ -87,6 +92,11 @@ class CustomViewBox(pg.ViewBox):
         else:
             pg.ViewBox.mouseDragEvent(self, ev)
 
+
+class TSdialog(QDialog, timestampDialog.Ui_manualTimestampDialog):
+    def __init__(self):
+        super(TSdialog, self).__init__()
+        self.setupUi(self)
 
 class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
     def __init__(self):
@@ -1293,8 +1303,18 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
                 # If no timestamps were found in the input file, prompt for manual entry
                 if self.timestampListIsEmpty(time):
-                    self.showMsg('Manual entry of timestamps requested --- none present in input file')
-                    time = manualTimeStampEntry(time)
+                    self.showMsg('Manual entry of timestamps requested as the file contained no timestamp entries', bold=True)
+                    self.showInfo('This file does not contain timestamp entries. The manual entry of either two timestamps' +
+                                  ' OR one timestamp and a frame delta time will need to be done.')
+                    errmsg = ''
+                    while errmsg != 'ok':
+                        errmsg, manualTime, dataEntered = manualTimeStampEntry(frame, TSdialog())
+                        if errmsg != 'ok':
+                            self.showInfo(errmsg)
+                        else:
+                            self.showMsg(dataEntered, bold=True)
+                            if manualTime != []: # Needed only during development
+                                time = manualTime[:]
 
                 self.showMsg('=' * 20 + ' file header lines ' + '=' * 20, bold=True, blankLine=False)
                 for item in headers:
@@ -1392,7 +1412,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.reDrawMainPlot()
         
     def processBaselineNoise(self):
-        
+
         if len(self.selectedPoints) != 2:
             self.showInfo('Exactly two points must be selected for this operation')
             return

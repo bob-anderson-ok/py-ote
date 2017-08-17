@@ -128,12 +128,6 @@ def readAs(file):
     if kind == 'Tangra':
         colHeaderKey = 'FrameNo'
         parser = tangraParser
-        # msg = QMessageBox()
-        # msg.setIcon(QMessageBox.Question)
-        # msg.setText('Do the objects in the Tangra file already have background subtraction applied?')
-        # msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-        # retval = msg.exec_()
-        # tangraNeedsBackgroundSubtraction = (retval == QMessageBox.No)
     elif kind == 'R-OTE':
         colHeaderKey = 'FrameNum'
         parser = roteParser
@@ -152,10 +146,10 @@ def readAs(file):
             if line:
                 if colHeaderKey in line:
                     if kind == 'Tangra':
-                        if line.find('Background'):
-                            tangraNeedsBackgroundSubtraction = True
-                        else:
+                        if line.find('SignalMinusBackground') > 0:
                             tangraNeedsBackgroundSubtraction = False
+                        else:
+                            tangraNeedsBackgroundSubtraction = True
                     while True:
                         line = fileobject.readline()
                         if line:
