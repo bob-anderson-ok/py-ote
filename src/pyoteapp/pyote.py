@@ -250,7 +250,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
     def checkForNewVersion(self):
         gotVersion, latestVersion = getMostRecentVersionOfPyote()
         if gotVersion:
-            if latestVersion == version.version():
+            if latestVersion < version.version():
                 self.showMsg('You are running the most recent version of pyote', color='red', bold=True)
             else:
                 self.showMsg('Version ' + latestVersion + ' is available', color='red', bold=True)
@@ -874,7 +874,90 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.minusR = envelopeMinusR
         self.minusD = envelopeMinusD
 
+        self.doDframeReport()
+        self.doRframeReport()
+        self.doDurFrameReport()
+
+        self.showMsg('=============== Summary report for Excel file =====================')
+
+        if self.A > 0:
+            self.showMsg('nominal magDrop: %0.2f' % ((np.log10(self.B) - np.log10(self.A)) * 2.5))
+        else:
+            self.showMsg('magDrop calculation not possible because A is negative')
+        self.showMsg('snr: %0.2f' % self.snrB)
+
+        self.doDtimeReport()
+        self.doRtimeReport()
+        self.doDurTimeReport()
+
+        self.showMsg('Enter confidence intervals in Excel spreadsheet without + or - sign (assumed to be +/-)')
+
+        self.showMsg('=========== end Summary report for Excel file =====================')
+
         self.showMsg("Solution 'envelope' in the main plot drawn using 0.95 confidence interval error bars")
+
+    def doDframeReport(self):
+        if self.eventType == 'DandR' or self.eventType == 'Donly':
+            self.showMsg('D frame report goes here')
+
+    def doRframeReport(self):
+        if self.eventType == 'DandR' or self.eventType == 'Ronly':
+            self.showMsg('R frame report goes here')
+
+    def doDurFrameReport(self):
+        if self.eventType == 'DandR':
+            self.showMsg('Duration frame report goes here')
+
+    def doDtimeReport(self):
+        if self.eventType == 'DandR' or self.eventType == 'Donly':
+            D, _ = self.solution
+            ts = self.yTimes[int(D)]
+            time = convertTimeStringToTime(ts)
+            adjTime = time + (D - int(D)) * self.timeDelta
+            self.Dtime = adjTime # This is needed for the duration report (assumed to follow!!!)
+            ts = convertTimeToTimeString(adjTime)
+            self.showMsg('D time: %s' % ts, blankLine=False )
+            errBar = max(abs(self.deltaDlo68), abs(self.deltaDhi68)) * self.timeDelta
+            self.showMsg('D: 0.6800 confidence intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar), blankLine=False)
+            errBar = max(abs(self.deltaDlo95), abs(self.deltaDhi95)) * self.timeDelta
+            self.showMsg('D: 0.9500 confidence intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar), blankLine=False)
+            errBar = max(abs(self.deltaDlo99), abs(self.deltaDhi99)) * self.timeDelta
+            self.showMsg('D: 0.9973 confidence intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar))
+
+
+    def doRtimeReport(self):
+        if self.eventType == 'DandR' or self.eventType == 'Ronly':
+            _, R = self.solution
+            ts = self.yTimes[int(R)]
+            time = convertTimeStringToTime(ts)
+            adjTime = time + (R - int(R)) * self.timeDelta
+            self.Rtime = adjTime # This is needed for the duration report (assumed to follow!!!)
+            ts = convertTimeToTimeString(adjTime)
+            self.showMsg('R time: %s' % ts, blankLine=False)
+            errBar = max(abs(self.deltaRlo68), abs(self.deltaRhi68)) * self.timeDelta
+            self.showMsg('R: 0.6800 confidence intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar), blankLine=False)
+            errBar = max(abs(self.deltaRlo95), abs(self.deltaRhi95)) * self.timeDelta
+            self.showMsg('R: 0.9500 confidence intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar), blankLine=False)
+            errBar = max(abs(self.deltaRlo99), abs(self.deltaRhi99)) * self.timeDelta
+            self.showMsg('R: 0.9973 confidence intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar))
+
+    def doDurTimeReport(self):
+        if self.eventType == 'DandR':
+            D, R = self.solution
+            # plusDur = ((deltaDurhi - deltaDurlo) / 2)
+            # minusDur = plusDur
+            # self.showMsg('Duration (R - D): %.4f {+%.4f,-%.4f} readings' %
+            #              (R - D, plusDur, minusDur))
+            # plusDur = ((deltaDurhi - deltaDurlo) / 2) * self.timeDelta
+            # minusDur = plusDur
+            self.showMsg('Duration (R - D): {0:0.4f} seconds'.format(self.Rtime - self.Dtime), blankLine=False)
+            errBar = ((self.deltaDurhi68 - self.deltaDurlo68) / 2) * self.timeDelta
+            self.showMsg('Duration: 0.6800 confidence intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar), blankLine=False)
+            errBar = ((self.deltaDurhi95 - self.deltaDurlo95) / 2) * self.timeDelta
+            self.showMsg('Duration: 0.9500 confidence intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar), blankLine=False)
+            errBar = ((self.deltaDurhi99 - self.deltaDurlo99) / 2) * self.timeDelta
+            self.showMsg('Duration: 0.9973 confidence intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar))
+
 
     def reportTimeValidity(self, D, R):
         intD = int(D)
