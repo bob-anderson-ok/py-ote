@@ -250,7 +250,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
     def checkForNewVersion(self):
         gotVersion, latestVersion = getMostRecentVersionOfPyote()
         if gotVersion:
-            if latestVersion < version.version():
+            if latestVersion <= version.version():
                 self.showMsg('You are running the most recent version of pyote', color='red', bold=True)
             else:
                 self.showMsg('Version ' + latestVersion + ' is available', color='red', bold=True)
@@ -642,7 +642,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                      ' with block size of ' + str(selPts[1]-selPts[0]+1))
         
         self.timeDelta, self.outliers, self.errRate = getTimeStepAndOutliers(self.yTimes)
-        self.showMsg('timeDelta: ' + fp.to_precision(self.timeDelta, 6) + ' seconds', blankLine=False)
+        self.showMsg('timeDelta: ' + fp.to_precision(self.timeDelta, 6) + ' seconds per reading', blankLine=False)
         self.showMsg('timestamp error rate: ' + fp.to_precision(100 * self.errRate, 2) + '%')
 
         self.illustrateTimestampOutliers()
@@ -898,15 +898,44 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
     def doDframeReport(self):
         if self.eventType == 'DandR' or self.eventType == 'Donly':
-            self.showMsg('D frame report goes here')
+            D, _ = self.solution
+            entryNum = int(D)
+            frameNum = float(self.yFrame[entryNum])
+            Dframe = D + frameNum - entryNum
+            self.showMsg('D frame number: {0:0.2f}'.format(Dframe), blankLine=False)
+            errBar = max(abs(self.deltaDlo68), abs(self.deltaDhi68))
+            self.showMsg('D: 0.6800 confidence intervals:  {{+/- {0:0.2f}}} (readings)'.format(errBar), blankLine=False)
+            errBar = max(abs(self.deltaDlo95), abs(self.deltaDhi95))
+            self.showMsg('D: 0.9500 confidence intervals:  {{+/- {0:0.2f}}} (readings)'.format(errBar), blankLine=False)
+            errBar = max(abs(self.deltaDlo99), abs(self.deltaDhi99))
+            self.showMsg('D: 0.9973 confidence intervals:  {{+/- {0:0.2f}}} (readings)'.format(errBar))
 
     def doRframeReport(self):
         if self.eventType == 'DandR' or self.eventType == 'Ronly':
-            self.showMsg('R frame report goes here')
+            _, R = self.solution
+            entryNum = int(R)
+            frameNum = float(self.yFrame[entryNum])
+            Rframe = R + frameNum - entryNum
+            self.showMsg('R frame number: {0:0.2f}'.format(Rframe), blankLine=False)
+            errBar = max(abs(self.deltaRlo68), abs(self.deltaRhi68))
+            self.showMsg('R: 0.6800 confidence intervals:  {{+/- {0:0.2f}}} (readings)'.format(errBar), blankLine=False)
+            errBar = max(abs(self.deltaRlo95), abs(self.deltaRhi95))
+            self.showMsg('R: 0.9500 confidence intervals:  {{+/- {0:0.2f}}} (readings)'.format(errBar), blankLine=False)
+            errBar = max(abs(self.deltaRlo99), abs(self.deltaRhi99))
+            self.showMsg('R: 0.9973 confidence intervals:  {{+/- {0:0.2f}}} (readings)'.format(errBar))
 
     def doDurFrameReport(self):
         if self.eventType == 'DandR':
-            self.showMsg('Duration frame report goes here')
+            D, R = self.solution
+            self.showMsg('Duration (R - D): {0:0.4f} readings'.format(R - D), blankLine=False)
+            errBar = ((self.deltaDurhi68 - self.deltaDurlo68) / 2)
+            self.showMsg('Duration: 0.6800 confidence intervals:  {{+/- {0:0.4f}}} (readings)'.format(errBar),
+                         blankLine=False)
+            errBar = ((self.deltaDurhi95 - self.deltaDurlo95) / 2)
+            self.showMsg('Duration: 0.9500 confidence intervals:  {{+/- {0:0.4f}}} (readings)'.format(errBar),
+                         blankLine=False)
+            errBar = ((self.deltaDurhi99 - self.deltaDurlo99) / 2)
+            self.showMsg('Duration: 0.9973 confidence intervals:  {{+/- {0:0.4f}}} (readings)'.format(errBar))
 
     def doDtimeReport(self):
         if self.eventType == 'DandR' or self.eventType == 'Donly':
@@ -944,12 +973,6 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
     def doDurTimeReport(self):
         if self.eventType == 'DandR':
             D, R = self.solution
-            # plusDur = ((deltaDurhi - deltaDurlo) / 2)
-            # minusDur = plusDur
-            # self.showMsg('Duration (R - D): %.4f {+%.4f,-%.4f} readings' %
-            #              (R - D, plusDur, minusDur))
-            # plusDur = ((deltaDurhi - deltaDurlo) / 2) * self.timeDelta
-            # minusDur = plusDur
             self.showMsg('Duration (R - D): {0:0.4f} seconds'.format(self.Rtime - self.Dtime), blankLine=False)
             errBar = ((self.deltaDurhi68 - self.deltaDurlo68) / 2) * self.timeDelta
             self.showMsg('Duration: 0.6800 confidence intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar), blankLine=False)
@@ -1435,7 +1458,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 self.startOver.setEnabled(True)
                 self.fillTableViewOfData()
                 self.timeDelta, self.outliers, self.errRate = getTimeStepAndOutliers(self.yTimes)
-                self.showMsg('timeDelta: ' + fp.to_precision(self.timeDelta, 6) + ' seconds', blankLine=False)
+                self.showMsg('timeDelta: ' + fp.to_precision(self.timeDelta, 6) + ' seconds per reading', blankLine=False)
                 self.showMsg('timestamp error rate: ' + fp.to_precision(100 * self.errRate, 2) + '%')
 
                 self.illustrateTimestampOutliers()
