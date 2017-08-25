@@ -21,7 +21,7 @@
        <enum>Qt::Vertical</enum>
       </property>
       <widget class="QWidget" name="">
-       <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="0,1">
+       <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="0,0">
         <item>
          <layout class="QVBoxLayout" name="verticalLayout">
           <item>
@@ -33,7 +33,7 @@
              </sizepolicy>
             </property>
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;PYOTE reads Limovie, R-OTE, and Tangra files.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Assumed is: object1 is occulted star; object2 (optional) is a reference star to be used for normalizing the occulted star light curve.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;Mouse button functions within the light curve plot:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; color:#ff0000;&quot;&gt;Left click&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;: selects/deselects points on the primary (dark blue) light curve that intersect with the vertical cursor.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; color:#ff0000;&quot;&gt;Left click and drag&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;: rectangular zoom --- useful for point selection (but point selection can also be accomplished through clicks in the tabular data display at the lower left)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; color:#ff0000;&quot;&gt;Right click&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;: undo zoom&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt;&quot;&gt;PYOTE reads Limovie, R-OTE, and Tangra files including any secondary reference stars that may be present.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt;&quot;&gt;Assumed is: object1 is occulted star; other (optional) objects are reference stars to be used for normalizing the occulted star light curve.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;Mouse button functions within the light curve plot:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt; font-weight:600; color:#ff0000;&quot;&gt;Left click&lt;/span&gt;&lt;span style=&quot; font-size:14pt;&quot;&gt;: selects/deselects points on the primary (dark blue) light curve that intersect with the vertical hairline (the mouse cursor is disabled).&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt; font-weight:600; color:#ff0000;&quot;&gt;Left click and drag&lt;/span&gt;&lt;span style=&quot; font-size:14pt;&quot;&gt;: rectangular zoom is available to more clearly see points for selection (but point selection can also be accomplished through clicks in the tabular data display at the lower left)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt; font-weight:600;&quot;&gt;Note! The shift key will toggle the mouse cursor on/off in the light curve plot.&lt;/span&gt;&lt;span style=&quot; font-size:14pt;&quot;&gt; This enables the starting corner for the zoom can be seen. (But points cannot be selected/deselected while the mouse cursor is visible. A right click will always 'blank' the mouse cursor.) &lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt; font-weight:600; color:#ff0000;&quot;&gt;Right click&lt;/span&gt;&lt;span style=&quot; font-size:14pt;&quot;&gt;: undo zoom&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt; color:#996633;&quot;&gt;Timestamp errors are shown with vertical red hairlines when a file is first read. These will disappear after the first point is selected so that the working view is as clear as possible. The red hairlines will re-appear permanently after the error bars have been calculated and the final report written to the log.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="toolTipDuration">
              <number>-1</number>
@@ -159,7 +159,7 @@
                <bool>false</bool>
               </property>
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Smooth the secondary (reference) star light curve using a Savitsky-Golay filter with a default window of 101 points (the edit box to the right allows for this value to be changed) and a degree 3 interpolating polynomial, applied twice.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;The secondary star does not have to be visible for this smoothing to take place.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Smoothing of the secondary curve is a prerequisite to normalizing the occulted star light curve.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Smooth the secondary (reference) star light curve using a Savitsky-Golay filter with a default window of 101 points (the edit box to the right allows for this value to be changed) and a degree 3 interpolating polynomial, applied twice.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;The secondary star does not have to be visible for this smoothing to take place.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Smoothing of the secondary curve is a prerequisite to normalizing the occulted star light curve.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>Smooth secondary</string>
@@ -601,6 +601,9 @@
             <width>1051</width>
             <height>0</height>
            </size>
+          </property>
+          <property name="cursor" stdset="0">
+           <cursorShape>IBeamCursor</cursorShape>
           </property>
          </widget>
         </item>

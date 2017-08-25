@@ -17,6 +17,7 @@ import scipy.signal
 from PyQt5 import QtCore
 from PyQt5 import QtGui
 from PyQt5.QtCore import QSettings, QPoint, QSize
+from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QFileDialog, QMessageBox, QDialog
 from pyqtgraph import PlotWidget
 
@@ -36,6 +37,8 @@ from pyoteapp.timestampUtils import convertTimeStringToTime
 from pyoteapp.timestampUtils import convertTimeToTimeString
 from pyoteapp.timestampUtils import getTimeStepAndOutliers
 from pyoteapp.timestampUtils import manualTimeStampEntry
+
+cursorAlert = pyqtSignal()
 
 # The gui module was created by typing
 #    !pyuic5 simple-plot.ui -o gui.py
@@ -76,6 +79,19 @@ class FixedImageExporter(pex.ImageExporter):
         ar = float(sr.width()) / sr.height()
         self.params.param('width').setValue(int(self.params['height'] * ar))
 
+class Signal:
+    def __init__(self):
+        self.__subscribers = []
+
+    def emit(self, *args, **kwargs):
+        for subs in self.__subscribers:
+            subs(*args, **kwargs)
+
+    def connect(self, func):
+        self.__subscribers.append(func)
+
+mouseSignal = Signal()
+
 class CustomViewBox(pg.ViewBox):
     def __init__(self, *args, **kwds):
         pg.ViewBox.__init__(self, *args, **kwds)
@@ -85,12 +101,14 @@ class CustomViewBox(pg.ViewBox):
     def mouseClickEvent(self, ev):
         if ev.button() == QtCore.Qt.RightButton:
             self.autoRange()
-            
+            mouseSignal.emit()
+
     def mouseDragEvent(self, ev):
         if ev.button() == QtCore.Qt.RightButton:
             ev.ignore()
         else:
             pg.ViewBox.mouseDragEvent(self, ev)
+            mouseSignal.emit()
 
 
 class TSdialog(QDialog, timestampDialog.Ui_manualTimestampDialog):
@@ -184,8 +202,9 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.mainPlot.scene().sigMouseMoved.connect(self.reportMouseMoved)
         self.verticalCursor = pg.InfiniteLine(angle=90, movable=False, pen=(0, 0, 0))
         self.mainPlot.addItem(self.verticalCursor, ignoreBounds=True)
-
-
+        self.blankCursor = True
+        self.mainPlot.viewport().setProperty("cursor", QtGui.QCursor(QtCore.Qt.BlankCursor))
+        mouseSignal.connect(self.mouseEvent)
 
         # Set up handler for clicks on data plot
         self.mainPlot.scene().sigMouseClicked.connect(self.processClick)
@@ -194,7 +213,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.mainPlotViewBox.rbScaleBox.setBrush(pg.mkBrush(None))
         self.mainPlot.hideButtons()
         self.mainPlot.showGrid(y=True, alpha=1.0)
-        
+
         self.initializeTableView()  # Mostly just establishes column headers
         
         # Open (or create) file for holding 'sticky' stuff
@@ -211,10 +230,27 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
         self.checkForNewVersion()
 
+    def mouseEvent(self):
+        if not self.blankCursor:
+            # self.showMsg('Mouse event')
+            self.blankCursor = True
+            self.mainPlot.viewport().setProperty("cursor", QtGui.QCursor(QtCore.Qt.BlankCursor))
+
+    def keyPressEvent(self,ev):
+        if ev.key() == QtCore.Qt.Key_Shift:
+            # self.showMsg('Shift key pressed')
+            if self.blankCursor:
+                self.mainPlot.viewport().setProperty("cursor", QtGui.QCursor(QtCore.Qt.ArrowCursor))
+                self.blankCursor = False
+            else:
+                self.blankCursor = True
+                self.mainPlot.viewport().setProperty("cursor", QtGui.QCursor(QtCore.Qt.BlankCursor))
+
     def timestampListIsEmpty(self, alist):
         ans = True
         for item in alist:
-            if item == '' or item == '[::]' or item == '[NA]':  # Limovie = '[::]'   Tangra = ''  R-OTE = [NA]
+            # Limovie = '[::]'   Tangra = ''  R-OTE = '[NA]' or 'NA'
+            if item == '' or item == '[::]' or item == '[NA]' or item == 'NA':
                 pass
             else:
                 ans = False
@@ -348,6 +384,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.selectedPoints = {}  # Clear/declare 'selected points' dictionary
         self.baselineXvals = []
         self.baselineYvals = []
+        self.blockSize = 1  # Contains the number of points used in block integration
 
         self.smoothSecondary = []
         self.corCoefs = []
@@ -599,6 +636,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         # Time to do the work
         p0 = left
         span = right - left + 1  # Number of points in integration block
+        self.blockSize = span
         newFrame = []
         newTime = []
         newVal = []
@@ -639,10 +677,10 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         
         selPts.sort()
         self.showMsg('Block integration started at entry ' + str(selPts[0]) +
-                     ' with block size of ' + str(selPts[1]-selPts[0]+1))
+                     ' with block size of ' + str(selPts[1]-selPts[0]+1) + ' readings')
         
         self.timeDelta, self.outliers, self.errRate = getTimeStepAndOutliers(self.yTimes)
-        self.showMsg('timeDelta: ' + fp.to_precision(self.timeDelta, 6) + ' seconds per reading', blankLine=False)
+        self.showMsg('timeDelta: ' + fp.to_precision(self.timeDelta, 6) + ' seconds per block', blankLine=False)
         self.showMsg('timestamp error rate: ' + fp.to_precision(100 * self.errRate, 2) + '%')
 
         self.illustrateTimestampOutliers()
@@ -663,21 +701,22 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.reDrawMainPlot()  # Redraw plot to show selection change
 
     def processClick(self, event):
-        # This try/except handles case where user clicks in plot area before a
-        # plot has been drawn.
-        try:
-            mousePoint = self.mainPlotViewBox.mapSceneToView(event.scenePos())
-            index = round(mousePoint.x())
-            if index in range(self.dataLen):                
-                if event.button() == 1:  # left button clicked?
-                    self.togglePointSelected(index)
-                # self.reDrawMainPlot()  # Redraw plot to show selection change
-                # Move the table view of data so that clicked point data is visible
-                self.table.setCurrentCell(index, 0)
-            else:
-                pass  # Out of bounds clicks simply ignored
-        except:
-            pass
+        # Don't allow mouse clicks to select points unless the cursor is blank
+        if self.blankCursor:
+            # This try/except handles case where user clicks in plot area before a
+            # plot has been drawn.
+            try:
+                mousePoint = self.mainPlotViewBox.mapSceneToView(event.scenePos())
+                index = round(mousePoint.x())
+                if index in range(self.dataLen):
+                    if event.button() == 1:  # left button clicked?
+                        self.togglePointSelected(index)
+                    # Move the table view of data so that clicked point data is visible
+                    self.table.setCurrentCell(index, 0)
+                else:
+                    pass  # Out of bounds clicks simply ignored
+            except:
+                pass
         
     def initializeTableView(self):
         self.table.clear()
@@ -756,8 +795,9 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
         entryNum = intD
         frameNum = float(self.yFrame[intD])
-        Dframe = D + frameNum - entryNum
-        self.showMsg('D: %.2f {+%.2f,-%.2f} (frame number)' % (Dframe, plusD, minusD))
+        # Dframe = D + frameNum - entryNum
+        Dframe = (D - intD) * self.blockSize + intD + frameNum - entryNum
+        self.showMsg('D: %.2f {+%.2f,-%.2f} (frame number)' % (Dframe, plusD * self.blockSize, minusD * self.blockSize))
         ts = self.yTimes[int(D)]
         time = convertTimeStringToTime(ts)
         adjTime = time + (D - int(D)) * self.timeDelta
@@ -785,8 +825,9 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         intR = int(R)
         entryNum = intR
         frameNum = float(self.yFrame[intR])
-        Rframe = R + frameNum - entryNum
-        self.showMsg('R: %.2f {+%.2f,-%.2f} (frame number)' % (Rframe, plusR, minusR))
+        # Rframe = R + frameNum - entryNum
+        Rframe = (R - intR) * self.blockSize + intR + frameNum - entryNum
+        self.showMsg('R: %.2f {+%.2f,-%.2f} (frame number)' % (Rframe, plusR * self.blockSize, minusR * self.blockSize))
 
         ts = self.yTimes[int(R)]
         time = convertTimeStringToTime(ts)
@@ -821,7 +862,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             plusDur = ((deltaDurhi - deltaDurlo) / 2)
             minusDur = plusDur
             self.showMsg('Duration (R - D): %.4f {+%.4f,-%.4f} readings' %
-                         (R - D, plusDur, minusDur))
+                         ((R - D) * self.blockSize, plusDur * self.blockSize, minusDur * self.blockSize))
             plusDur = ((deltaDurhi - deltaDurlo) / 2) * self.timeDelta
             minusDur = plusDur
             self.showMsg('Duration (R - D): %.4f {+%.4f,-%.4f} seconds' %
@@ -901,13 +942,14 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             D, _ = self.solution
             entryNum = int(D)
             frameNum = float(self.yFrame[entryNum])
-            Dframe = D + frameNum - entryNum
+            # Dframe = D + frameNum - entryNum
+            Dframe = (D - int(D)) * self.blockSize + int(D) + frameNum - entryNum
             self.showMsg('D frame number: {0:0.2f}'.format(Dframe), blankLine=False)
-            errBar = max(abs(self.deltaDlo68), abs(self.deltaDhi68))
+            errBar = max(abs(self.deltaDlo68), abs(self.deltaDhi68)) * self.blockSize
             self.showMsg('D: 0.6800 confidence intervals:  {{+/- {0:0.2f}}} (readings)'.format(errBar), blankLine=False)
-            errBar = max(abs(self.deltaDlo95), abs(self.deltaDhi95))
+            errBar = max(abs(self.deltaDlo95), abs(self.deltaDhi95)) * self.blockSize
             self.showMsg('D: 0.9500 confidence intervals:  {{+/- {0:0.2f}}} (readings)'.format(errBar), blankLine=False)
-            errBar = max(abs(self.deltaDlo99), abs(self.deltaDhi99))
+            errBar = max(abs(self.deltaDlo99), abs(self.deltaDhi99)) * self.blockSize
             self.showMsg('D: 0.9973 confidence intervals:  {{+/- {0:0.2f}}} (readings)'.format(errBar))
 
     def doRframeReport(self):
@@ -915,26 +957,27 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             _, R = self.solution
             entryNum = int(R)
             frameNum = float(self.yFrame[entryNum])
-            Rframe = R + frameNum - entryNum
+            # Rframe = R + frameNum - entryNum
+            Rframe = (R - int(R)) * self.blockSize + int(R) + frameNum - entryNum
             self.showMsg('R frame number: {0:0.2f}'.format(Rframe), blankLine=False)
-            errBar = max(abs(self.deltaRlo68), abs(self.deltaRhi68))
+            errBar = max(abs(self.deltaRlo68), abs(self.deltaRhi68)) * self.blockSize
             self.showMsg('R: 0.6800 confidence intervals:  {{+/- {0:0.2f}}} (readings)'.format(errBar), blankLine=False)
-            errBar = max(abs(self.deltaRlo95), abs(self.deltaRhi95))
+            errBar = max(abs(self.deltaRlo95), abs(self.deltaRhi95)) * self.blockSize
             self.showMsg('R: 0.9500 confidence intervals:  {{+/- {0:0.2f}}} (readings)'.format(errBar), blankLine=False)
-            errBar = max(abs(self.deltaRlo99), abs(self.deltaRhi99))
+            errBar = max(abs(self.deltaRlo99), abs(self.deltaRhi99)) * self.blockSize
             self.showMsg('R: 0.9973 confidence intervals:  {{+/- {0:0.2f}}} (readings)'.format(errBar))
 
     def doDurFrameReport(self):
         if self.eventType == 'DandR':
             D, R = self.solution
-            self.showMsg('Duration (R - D): {0:0.4f} readings'.format(R - D), blankLine=False)
-            errBar = ((self.deltaDurhi68 - self.deltaDurlo68) / 2)
+            self.showMsg('Duration (R - D): {0:0.4f} readings'.format((R - D) * self.blockSize), blankLine=False)
+            errBar = ((self.deltaDurhi68 - self.deltaDurlo68) / 2) * self.blockSize
             self.showMsg('Duration: 0.6800 confidence intervals:  {{+/- {0:0.4f}}} (readings)'.format(errBar),
                          blankLine=False)
-            errBar = ((self.deltaDurhi95 - self.deltaDurlo95) / 2)
+            errBar = ((self.deltaDurhi95 - self.deltaDurlo95) / 2) * self.blockSize
             self.showMsg('Duration: 0.9500 confidence intervals:  {{+/- {0:0.4f}}} (readings)'.format(errBar),
                          blankLine=False)
-            errBar = ((self.deltaDurhi99 - self.deltaDurlo99) / 2)
+            errBar = ((self.deltaDurhi99 - self.deltaDurlo99) / 2) * self.blockSize
             self.showMsg('Duration: 0.9973 confidence intervals:  {{+/- {0:0.4f}}} (readings)'.format(errBar))
 
     def doDtimeReport(self):
@@ -994,7 +1037,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             self.showMsg('D and R enclose a transition through midnight')
             
         numEnclosedReadings = int(round((rTime - dTime) / self.timeDelta))
-        self.showMsg('From timestamps at D and R, calculated %d readings.  From reading numbers, calculated %d readings.' % 
+        self.showMsg('From timestamps at D and R, calculated %d reading blocks.  From reading blocks, calculated %d blocks.' %
                      (numEnclosedReadings, intR - intD))
         if numEnclosedReadings == intR - intD:
             self.showMsg('Timestamps appear valid @ D and R')
@@ -1044,6 +1087,26 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.loDbar99, _, self.hiDbar99, self.deltaDlo99, self.deltaDhi99 = ciBars(dist=dist, ci=0.9973)
         self.loDbar68, _, self.hiDbar68, self.deltaDlo68, self.deltaDhi68 = ciBars(dist=dist, ci=0.6827)
 
+        # Correct for block integration (turn values back into readings)
+
+        # self.loDbar68 *= self.blockSize
+        # self.loDbar95 *= self.blockSize
+        # self.loDbar99 *= self.blockSize
+        #
+        # self.hiDbar68 *= self.blockSize
+        # self.hiDbar95 *= self.blockSize
+        # self.hiDbar99 *= self.blockSize
+        #
+        # self.deltaDlo68 *= self.blockSize
+        # self.deltaDlo95 *= self.blockSize
+        # self.deltaDlo99 *= self.blockSize
+        #
+        # self.deltaDhi68 *= self.blockSize
+        # self.deltaDhi95 *= self.blockSize
+        # self.deltaDhi99 *= self.blockSize
+
+        # End block integration corrections
+
         self.deltaRlo95 = - self.deltaDhi95
         self.deltaRhi95 = - self.deltaDlo95
 
@@ -1071,13 +1134,13 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         
         pw = PlotWidget(viewBox=CustomViewBox(border=(0, 0, 0)),
                         enableMenu=False, title='Distribution of edge (D) errors due to noise',
-                        labels={'bottom': 'Readings'})
+                        labels={'bottom': 'Reading blocks'})
         self.dBarPlotItem = pw.getPlotItem()
         pw.hideButtons()
         
         pw2 = PlotWidget(viewBox=CustomViewBox(border=(0, 0, 0)),
                          enableMenu=False, title='Distribution of duration (R - D) errors due to noise',
-                         labels={'bottom': 'Readings'})
+                         labels={'bottom': 'Reading blocks'})
         self.durBarPlotItem = pw2.getPlotItem()
         pw2.hideButtons()
         
@@ -1107,10 +1170,10 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         legend68 = '[%0.2f,%0.2f] @ 0.6827' % (x1, x2)
         pw.plot(name=legend68)
 
-        self.showMsg("Error bar report based on 100,000 simulations (units are 'readings')...")
+        self.showMsg("Error bar report based on 100,000 simulations (units are readings)...")
 
-        self.showMsg('loDbar   @ .68 ci: %8.4f' % x1, blankLine=False)
-        self.showMsg('hiDbar   @ .68 ci: %8.4f' % x2, blankLine=False)
+        self.showMsg('loDbar   @ .68 ci: %8.4f' % (x1 * self.blockSize), blankLine=False)
+        self.showMsg('hiDbar   @ .68 ci: %8.4f' % (x2 * self.blockSize), blankLine=False)
         
         yp = max(y) * 0.25
         x1 = self.loDbar95-D
@@ -1118,8 +1181,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         x2 = self.hiDbar95-D
         pw.plot(x=[x2, x2], y=[0, yp], pen=pen)
         
-        self.showMsg('loDbar   @ .95 ci: %8.4f' % x1, blankLine=False)
-        self.showMsg('hiDbar   @ .95 ci: %8.4f' % x2, blankLine=False)
+        self.showMsg('loDbar   @ .95 ci: %8.4f' % (x1 * self.blockSize), blankLine=False)
+        self.showMsg('hiDbar   @ .95 ci: %8.4f' % (x2 * self.blockSize), blankLine=False)
         
         legend95 = '[%0.2f,%0.2f] @ 0.95' % (x1, x2)
         pw.plot(name=legend95)
@@ -1130,8 +1193,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         x2 = self.hiDbar99 - D
         pw.plot(x=[x2, x2], y=[0, yp], pen=pen)
 
-        self.showMsg('loDbar   @ .9973 ci: %8.4f' % x1, blankLine=False)
-        self.showMsg('hiDbar   @ .9973 ci: %8.4f' % x2, blankLine=True)
+        self.showMsg('loDbar   @ .9973 ci: %8.4f' % (x1 * self.blockSize), blankLine=False)
+        self.showMsg('hiDbar   @ .9973 ci: %8.4f' % (x2 * self.blockSize), blankLine=True)
 
         legend99 = '[%0.2f,%0.2f] @ 0.9973' % (x1, x2)
         pw.plot(name=legend99)
@@ -1152,8 +1215,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         legend68 = '[%0.2f,%0.2f] @ 0.6827' % (x1, x2)
         pw2.plot(name=legend68)
         
-        self.showMsg('loDurBar @ .68 ci: %8.4f' % x1, blankLine=False)
-        self.showMsg('hiDurBar @ .68 ci: %8.4f' % x2, blankLine=False)
+        self.showMsg('loDurBar @ .68 ci: %8.4f' % (x1 * self.blockSize), blankLine=False)
+        self.showMsg('hiDurBar @ .68 ci: %8.4f' % (x2 * self.blockSize), blankLine=False)
         
         yp = max(ydur) * 0.25
         x1 = self.loDurbar95
@@ -1161,8 +1224,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         x2 = self.hiDurbar95
         pw2.plot(x=[x2, x2], y=[0, yp], pen=pen)
         
-        self.showMsg('loDurBar @ .95 ci: %8.4f' % x1, blankLine=False)
-        self.showMsg('hiDurBar @ .95 ci: %8.4f' % x2, blankLine=False)
+        self.showMsg('loDurBar @ .95 ci: %8.4f' % (x1 * self.blockSize), blankLine=False)
+        self.showMsg('hiDurBar @ .95 ci: %8.4f' % (x2 * self.blockSize), blankLine=False)
         
         legend95 = '[%0.2f,%0.2f] @ 0.95' % (x1, x2)
         pw2.plot(name=legend95)
@@ -1173,8 +1236,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         x2 = self.hiDurbar99
         pw2.plot(x=[x2, x2], y=[0, yp], pen=pen)
 
-        self.showMsg('loDurBar @ .9973 ci: %8.4f' % x1, blankLine=False)
-        self.showMsg('hiDurBar @ .9973 ci: %8.4f' % x2, blankLine=True)
+        self.showMsg('loDurBar @ .9973 ci: %8.4f' % (x1 * self.blockSize), blankLine=False)
+        self.showMsg('hiDurBar @ .9973 ci: %8.4f' % (x2 * self.blockSize), blankLine=True)
 
         legend99 = '[%0.2f,%0.2f] @ 0.9973' % (x1, x2)
         pw2.plot(name=legend99)
@@ -1447,9 +1510,12 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 self.yStatus = [1 for _i in range(self.dataLen)]  # 1 means included
                 self.left = 0
                 self.right = self.dataLen - 1
-                
-                self.reDrawMainPlot()
+
+                self.timeDelta, self.outliers, self.errRate = getTimeStepAndOutliers(self.yTimes)
+
+                # self.reDrawMainPlot()
                 self.mainPlot.autoRange()
+
                 self.setDataLimits.setEnabled(True)
                 self.writePlot.setEnabled(True)
                 self.doNoiseAnalysis.setEnabled(True)
@@ -1461,7 +1527,9 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 self.showMsg('timeDelta: ' + fp.to_precision(self.timeDelta, 6) + ' seconds per reading', blankLine=False)
                 self.showMsg('timestamp error rate: ' + fp.to_precision(100 * self.errRate, 2) + '%')
 
-                self.illustrateTimestampOutliers()
+                # self.illustrateTimestampOutliers()
+                self.reDrawMainPlot(showTimestampErrors=True)
+                self.mainPlot.autoRange()
             except Exception as e:
                 self.showMsg(str(e))
     
@@ -1644,9 +1712,9 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.minEventEdit.clear()
         self.maxEventEdit.clear()
         
-        self.reDrawMainPlot()
+        self.reDrawMainPlot(showTimestampErrors=True)
         self.mainPlot.autoRange()
-        self.illustrateTimestampOutliers()
+        # self.illustrateTimestampOutliers()
         self.showMsg('*' * 20 + ' starting over ' + '*' * 20, color='blue')
     
     def drawSolution(self):
@@ -1768,12 +1836,15 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             plot([Rright, self.right], [Bdown, Bdown])
             return
     
-    def reDrawMainPlot(self):
+    def reDrawMainPlot(self,showTimestampErrors=False):
         self.mainPlot.clear()
+        if showTimestampErrors:
+            self.illustrateTimestampOutliers()
+        if self.minusD is not None or self.minusR is not None:
+            self.illustrateTimestampOutliers()
         self.mainPlot.addItem(self.verticalCursor)
-        self.mainPlot.plot(self.yValues)
 
-        self.illustrateTimestampOutliers()
+        self.mainPlot.plot(self.yValues)
             
         x = [i for i in range(self.dataLen) if self.yStatus[i] == INCLUDED]
         y = [self.yValues[i] for i in range(self.dataLen) if self.yStatus[i] == INCLUDED]
