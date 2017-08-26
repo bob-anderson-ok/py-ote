@@ -11,7 +11,28 @@ from math import exp
 import numpy as np
 
 from pyoteapp.likelihood_calculations import cum_loglikelihood, aicc, logLikelihoodLine
+from pyoteapp.likelihood_calculations import loglikelihood
 
+def aicModelValue(*, obsValue=None, B=None, A=None, sigmaB=None, sigmaA=None):
+    assert(B >= A and sigmaA > 0.0 and sigmaB > 0.0)
+    # This function determines if an observation point should categorized as a baseline (B)
+    # point, an event (A) point, or a valid intermediate point using the Akaike Information Criterion
+    # An intermediate point reflects a more complex model (higher dimension model)
+    if obsValue >= B: return B # Categorize as baseline point
+    if obsValue <= A: return A # Categorize as event point
+    if B == A: return B
+
+    sigmaM = sigmaA + (sigmaB - sigmaA) * ((obsValue - A) / (B - A))
+    loglB = loglikelihood(obsValue, B, sigmaB)
+    loglM = loglikelihood(B, B, sigmaM) - 1.0  # The -1 is the aic model complexity 'penalty'
+    loglA = loglikelihood(obsValue, A, sigmaA)
+
+    if loglM  > loglA and loglM > loglB:
+        return obsValue # Categorize as valid intermediate value
+    elif loglB > loglA:
+        return B # Categorize as baseline point
+    else:
+        return A # Categorize as event point
 
 def model(*, B=None, A=None,
           edgeTuple=None, 
@@ -29,7 +50,7 @@ def model(*, B=None, A=None,
         return m, sigma
     
     if D is not None and R is not None:
-        assert((D >= 1) and (R > D))
+        assert((D >= 0) and (R > D))
         assert((D < numPts) and (R < numPts))
         assert(R > D)
         
@@ -44,7 +65,7 @@ def model(*, B=None, A=None,
         return m, sigma
     
     if D is not None and R is None:
-        assert((D >= 1) and (D < numPts))
+        assert((D >= 0) and (D < numPts))
         
         m[:D] = B
         m[D:] = A
@@ -169,7 +190,7 @@ def calcBandA(*, yValues=None, left=None, right=None, cand=None):
     D, R = cand  # Extract D and R from the tuple
         
     if R is None:
-        assert(D > left)
+        assert(D >= left)
         # This is a 'Donly' candidate
         # Note that the yValue at D is not included in the B calculation
         B = np.mean(yValues[left:D])
@@ -180,8 +201,8 @@ def calcBandA(*, yValues=None, left=None, right=None, cand=None):
             A = yValues[D]
         else:
             A = np.mean(yValues[D+1:right+1])
-        if A > B:
-            A = B - 1
+        if A >= B:
+            A = B * 0.999
         return B, A
     
     elif D is None:
@@ -195,12 +216,12 @@ def calcBandA(*, yValues=None, left=None, right=None, cand=None):
         else:
             B = np.mean(yValues[R+1:right+1])
         A = np.mean(yValues[left:R])  # smallest R is left + 1
-        if A > B:
-            A = B - 1
+        if A >= B:
+            A = B * 0.999
         return B, A
     
     else:
-        assert((D > left) and (R <= right) and (R > D))
+        assert((D >= left) and (R <= right) and (R > D))
         # We have a 'DandR' candidate
         leftBvals = yValues[left:D]  # Smallest D will 1
         if R == right:
@@ -213,8 +234,8 @@ def calcBandA(*, yValues=None, left=None, right=None, cand=None):
             A = yValues[D]
         else:    
             A = np.mean(yValues[D+1:R])
-        if A > B:
-            A = B - 1
+        if A >= B:
+            A = B * 0.999
         return B, A
 
 
@@ -239,16 +260,16 @@ def scoreSubFrame(yValues, left, right, cand, sigmaB, sigmaA):
     return cum_loglikelihood(yValues, m, sigma, left, right), B, A
 
 
-def getAssociationForEntry(*, yValues=None, entry=None,
-                           B=None, A=None,
-                           sigmaB=None, sigmaA=None):
-    eVal = yValues[entry]
-    if (eVal > (A + 3 * sigmaA)) and (eVal < (B - 3 * sigmaB)):
-        return 'subFrameValue'
-    elif abs(eVal - B) < abs(eVal-A):
-        return 'B'
-    else:
-        return 'A'
+# def getAssociationForEntry(*, yValues=None, entry=None,
+#                            B=None, A=None,
+#                            sigmaB=None, sigmaA=None):
+#     eVal = yValues[entry]
+#     if (eVal > (A + 3 * sigmaA)) and (eVal < (B - 3 * sigmaB)):
+#         return 'subFrameValue'
+#     elif abs(eVal - B) < abs(eVal-A):
+#         return 'B'
+#     else:
+#         return 'A'
     
 
 def candidateCounter(*, eventType='DandR',
@@ -309,7 +330,7 @@ def candidateCounter(*, eventType='DandR',
         raise Exception("Unrecognized event type")  
 
 
-def subFrameAdjusted(*, eventType=None, cand=None, B=None, A=None,
+def old_subFrameAdjusted(*, eventType=None, cand=None, B=None, A=None,
                      sigmaA=None, sigmaB=None,
                      yValues=None, left=None, right=None):
 
@@ -341,7 +362,72 @@ def subFrameAdjusted(*, eventType=None, cand=None, B=None, A=None,
                        
     else:
         raise Exception('Unrecognized event type')
-        
+
+
+def subFrameAdjusted(*, eventType=None, cand=None, B=None, A=None,
+                     sigmaA=None, sigmaB=None,
+                     yValues=None, left=None, right=None):
+
+    def adjustR():
+        value = yValues[R]
+        adj = (B - value) / (B - A)
+        return R + adj
+
+    def adjustD():
+        value = yValues[D]
+        adj = (value - A) / (B - A)
+        return D + adj
+
+    D, R = cand
+    adjD = D
+    adjR = R
+
+    if eventType == 'Donly':
+        if aicModelValue(obsValue=yValues[D], B=B, A=A, sigmaB=sigmaB, sigmaA=sigmaA) == yValues[D]:
+            # If point at D categorizes as M (valid mid-point), do sub-frame adjustment
+            adjD = adjustD()
+        elif aicModelValue(obsValue=yValues[D], B=B, A=A, sigmaB=sigmaB, sigmaA=sigmaA) == B:
+            # else if point at D categorizes as B, set D to D+1 and recalculate B and A
+            D = D + 1
+            adjD = D
+            B, A = calcBandA(yValues=yValues, left=left, right=right, cand=(D, R))
+        # else (point at D categorizes as A) --- nothing to do
+        return (adjD, adjR), B, A
+
+    elif eventType == 'Ronly':
+        if aicModelValue(obsValue=yValues[R], B=B, A=A, sigmaB=sigmaB, sigmaA=sigmaA) == yValues[R]:
+            # If point at R categorizes as M, do sub-frame adjustment
+            adjR = adjustR()
+        elif aicModelValue(obsValue=yValues[R], B=B, A=A, sigmaB=sigmaB, sigmaA=sigmaA) == A:
+            # else if point at R categorizes as A, set R to R + 1 and recalculate B and A
+            R = R + 1
+            adjR = R
+            B, A = calcBandA(yValues=yValues, left=left, right=right, cand=(D, R))
+        # else (point at R categorizes as B) --- nothing to do
+        return (adjD, adjR), B, A
+
+    elif eventType == 'DandR':
+        if aicModelValue(obsValue=yValues[D], B=B, A=A, sigmaB=sigmaB, sigmaA=sigmaA) == yValues[D]:
+            # The point at D categorizes as M, do sub-frame adjustment
+            adjD = adjustD()
+        elif aicModelValue(obsValue=yValues[D], B=B, A=A, sigmaB=sigmaB, sigmaA=sigmaA) == B:
+            # The point at D categorizes as B, set D to D+1 and recalculate B and A
+            D = D + 1
+            adjD = D
+            B, A = calcBandA(yValues=yValues, left=left, right=right, cand=(D, R))
+        if aicModelValue(obsValue=yValues[R], B=B, A=A, sigmaB=sigmaB, sigmaA=sigmaA) == yValues[R]:
+            # The point at R categorizes as M, do sub-frame adjustment
+            adjR = adjustR()
+        elif aicModelValue(obsValue=yValues[R], B=B, A=A, sigmaB=sigmaB, sigmaA=sigmaA) == A:
+            # The point at R categorizes as A, set R to R + 1 and recalculate B and A
+            R = R + 1
+            adjR = R
+            B, A = calcBandA(yValues=yValues, left=left, right=right, cand=(D, R))
+        return (adjD, adjR), B, A
+
+    else:
+        raise Exception('Unrecognized event type')
+
 
 def solver(*, eventType=None, yValues=None,
            left=None, right=None,

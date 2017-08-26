@@ -58,7 +58,9 @@ def loglikelihood(y, m, sigma):
 
     """
     # log(x) is natural log (base e)
-    t1 = -log(sqrt(2*pi))
+    # -log(sqrt(2*pi)) = -0.9189385332046727
+    # t1 = -log(sqrt(2*pi))
+    t1 = -0.9189385332046727
     t2 = -log(sigma)     
     t3 = -(y - m) ** 2 / (2 * sigma ** 2)
     return t1 + t2 + t3

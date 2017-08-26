@@ -347,7 +347,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 "csv files (*.csv)", options=myOptions)
         
         if self.graphicFile:
-            self.graphicFile, _ = os.path.splitext(self.graphicFile)
+            self.graphicFile = self.removeCsvExtension(self.graphicFile)
             exporter = FixedImageExporter(self.dBarPlotItem)
             exporter.makeWidthHeightInts()
             targetFileD = self.graphicFile + '.D.png'
@@ -359,7 +359,14 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             exporter.export(targetFileDur)
             
             self.showInfo('Wrote to: \r\r' + targetFileD + ' \r\r' + targetFileDur)
-        
+
+    def removeCsvExtension(self, path):
+        base, ext = os.path.splitext(path)
+        if ext == '.csv':
+            return base
+        else:
+            return path
+
     def exportGraphic(self):
 
         myOptions = QFileDialog.Options()
@@ -372,7 +379,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 "csv files (*.csv)", options=myOptions)
 
         if self.graphicFile:
-            self.graphicFile, _ = os.path.splitext(self.graphicFile)
+            self.graphicFile = self.removeCsvExtension(self.graphicFile)
             exporter = FixedImageExporter(self.mainPlot.getPlotItem())
             exporter.makeWidthHeightInts()
             targetFile = self.graphicFile + '.png'
@@ -710,6 +717,10 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 index = round(mousePoint.x())
                 if index in range(self.dataLen):
                     if event.button() == 1:  # left button clicked?
+                        if index < self.left:
+                            index = self.left
+                        if index > self.right:
+                            index = self.right
                         self.togglePointSelected(index)
                     # Move the table view of data so that clicked point data is visible
                     self.table.setCurrentCell(index, 0)
