@@ -70,6 +70,7 @@ if __name__ == "__main__":
         packages=PACKAGES,
         package_dir={"": "src"},
         zip_safe=False,
+        include_package_data=True,
         classifiers=CLASSIFIERS,
         install_requires=INSTALL_REQUIRES,
     )

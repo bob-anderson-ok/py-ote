@@ -128,11 +128,17 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
         self.setWindowTitle('PYOTE  Version: ' + version.version())
 
+        # Button: Info
+        self.infoButton.clicked.connect(self.openHelpFile)
+
         # Button: Read light curve
         self.readData.clicked.connect(self.readDataFromFile)
         
         # CheckBox: Show secondary star
         self.showSecondaryCheckBox.clicked.connect(self.toggleDisplayOfSecondaryStar)
+
+        # Checkbox: Show timestamp errors
+        self.showTimestampErrors.clicked.connect(self.toggleDisplayOfTimestampErrors)
 
         # QSpinBox
         self.secondarySelector.valueChanged.connect(self.changeSecondary)
@@ -195,7 +201,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                                    viewBox=CustomViewBox(border=(255, 255, 255)),
                                    enableMenu=False)
         self.mainPlot.setObjectName("mainPlot")
-        self.horizontalLayout_7.addWidget(self.mainPlot,stretch=1)
+        self.horizontalLayout_8.addWidget(self.mainPlot,stretch=1)
 
         oldMainPlot.setParent(None)
 
@@ -229,6 +235,16 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.initializeVariablesThatDontDependOnAfile()
 
         self.checkForNewVersion()
+
+    def openHelpFile(self):
+        helpFilePath = os.path.join(os.path.split(__file__)[0], 'pyote-info.pdf')
+
+        url = QtCore.QUrl.fromLocalFile(helpFilePath)
+        fileOpened = QtGui.QDesktopServices.openUrl(url)
+
+        if not fileOpened:
+            self.showMsg('Failed to open pyote-info.pdf', bold=True, color='red', blankLine=False)
+            self.showMsg('Location of pyote information file: ' + helpFilePath, bold=True, color='blue')
 
     def mouseEvent(self):
         if not self.blankCursor:
@@ -336,15 +352,20 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             self.showInfo('No error bar plots available yet')
             return
 
+        _, name = os.path.split(self.filename)
+        name = self.removeCsvExtension(name)
+
         myOptions = QFileDialog.Options()
         myOptions |= QFileDialog.DontConfirmOverwrite
         myOptions |= QFileDialog.DontUseNativeDialog
+        myOptions |= QFileDialog.ShowDirsOnly
 
         self.graphicFile, _ = QFileDialog.getSaveFileName(
                 self,                                      # parent
-                "Select filename for error bar plots",     # title for dialog
-                self.settings.value('lightcurvedir', ""),  # starting directory
-                "csv files (*.csv)", options=myOptions)
+                "Select directory/modify filename (png will be appended for you)",     # title for dialog
+                self.settings.value('lightcurvedir', "") + '/' + name,  # starting directory
+                # "csv files (*.csv)", options=myOptions)
+                "png files (*.png)", options = myOptions)
         
         if self.graphicFile:
             self.graphicFile = self.removeCsvExtension(self.graphicFile)
@@ -369,14 +390,19 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
     def exportGraphic(self):
 
+        _, name = os.path.split(self.filename)
+        name = self.removeCsvExtension(name)
+
         myOptions = QFileDialog.Options()
         myOptions |= QFileDialog.DontConfirmOverwrite
         myOptions |= QFileDialog.DontUseNativeDialog
+        myOptions |= QFileDialog.ShowDirsOnly
+
         self.graphicFile, _ = QFileDialog.getSaveFileName(
                 self,                                      # parent
-                "Select filename for light curve plot",    # title for dialog
-                self.settings.value('lightcurvedir', ""),  # starting directory
-                "csv files (*.csv)", options=myOptions)
+                "Select directory/modify filename (png will be appended for you)",    # title for dialog
+                self.settings.value('lightcurvedir', "") + '/' + name,  # starting directory
+                "png files (*.png)", options=myOptions)
 
         if self.graphicFile:
             self.graphicFile = self.removeCsvExtension(self.graphicFile)
@@ -480,8 +506,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             
         self.dRegion = pg.LinearRegionItem(
                 [leftEdge, rightEdge], movable=False, brush=(0, 200, 0, 50))
-        self.dRegion.setZValue(-10)
         self.mainPlot.addItem(self.dRegion)
+
         
         self.showMsg('D zone selected: ' + str(selIndices))
         self.removePointSelections()
@@ -529,7 +555,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             
         self.rRegion = pg.LinearRegionItem(
                 [leftEdge, rightEdge], movable=False, brush=(200, 0, 0, 50))
-        self.rRegion.setZValue(-10)
+        # self.rRegion.setZValue(-10)
         self.mainPlot.addItem(self.rRegion)
         
         self.showMsg('R zone selected: ' + str(selIndices))
@@ -605,7 +631,11 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         # self.smoothSecondaryButton.setEnabled(False)
         # self.numSmoothPointsEdit.setEnabled(False)
         self.normalizeButton.setEnabled(True)
-        
+
+    def toggleDisplayOfTimestampErrors(self):
+        self.reDrawMainPlot()
+        self.mainPlot.autoRange()
+
     def toggleDisplayOfSecondaryStar(self):
         self.reDrawMainPlot()
         self.mainPlot.autoRange()
@@ -1524,7 +1554,6 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
                 self.timeDelta, self.outliers, self.errRate = getTimeStepAndOutliers(self.yTimes)
 
-                # self.reDrawMainPlot()
                 self.mainPlot.autoRange()
 
                 self.setDataLimits.setEnabled(True)
@@ -1538,8 +1567,10 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 self.showMsg('timeDelta: ' + fp.to_precision(self.timeDelta, 6) + ' seconds per reading', blankLine=False)
                 self.showMsg('timestamp error rate: ' + fp.to_precision(100 * self.errRate, 2) + '%')
 
-                # self.illustrateTimestampOutliers()
-                self.reDrawMainPlot(showTimestampErrors=True)
+                if self.outliers:
+                    self.showTimestampErrors.setEnabled(True)
+                    self.showTimestampErrors.setChecked(True)
+                self.reDrawMainPlot()
                 self.mainPlot.autoRange()
             except Exception as e:
                 self.showMsg(str(e))
@@ -1723,9 +1754,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.minEventEdit.clear()
         self.maxEventEdit.clear()
         
-        self.reDrawMainPlot(showTimestampErrors=True)
+        self.reDrawMainPlot()
         self.mainPlot.autoRange()
-        # self.illustrateTimestampOutliers()
         self.showMsg('*' * 20 + ' starting over ' + '*' * 20, color='blue')
     
     def drawSolution(self):
@@ -1847,12 +1877,16 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             plot([Rright, self.right], [Bdown, Bdown])
             return
     
-    def reDrawMainPlot(self,showTimestampErrors=False):
+    def reDrawMainPlot(self):
         self.mainPlot.clear()
-        if showTimestampErrors:
+
+        if self.showTimestampErrors.checkState():
             self.illustrateTimestampOutliers()
-        if self.minusD is not None or self.minusR is not None:
-            self.illustrateTimestampOutliers()
+
+        # # Automatically show timestamp errors at final report
+        # if self.minusD is not None or self.minusR is not None:
+        #     self.illustrateTimestampOutliers()
+
         self.mainPlot.addItem(self.verticalCursor)
 
         self.mainPlot.plot(self.yValues)
@@ -1884,8 +1918,6 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 self.mainPlot.plot(x, self.smoothSecondary, 
                                    pen=pg.mkPen((100, 100, 100), width=4), symbol=None)
                  
-        # self.illustrateTimestampOutliers()
-        
         if self.dRegion is not None:
             self.mainPlot.addItem(self.dRegion)
         if self.rRegion is not None:

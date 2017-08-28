@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1394</width>
-    <height>973</height>
+    <width>1389</width>
+    <height>960</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -21,27 +21,41 @@
        <enum>Qt::Vertical</enum>
       </property>
       <widget class="QWidget" name="">
-       <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="0,0">
+       <layout class="QHBoxLayout" name="horizontalLayout_8" stretch="0,1">
         <item>
          <layout class="QVBoxLayout" name="verticalLayout">
           <item>
-           <widget class="QPushButton" name="readData">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Ignored" vsizetype="Maximum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt;&quot;&gt;PYOTE reads Limovie, R-OTE, and Tangra files including any secondary reference stars that may be present.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt;&quot;&gt;Assumed is: object1 is occulted star; other (optional) objects are reference stars to be used for normalizing the occulted star light curve.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;Mouse button functions within the light curve plot:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt; font-weight:600; color:#ff0000;&quot;&gt;Left click&lt;/span&gt;&lt;span style=&quot; font-size:14pt;&quot;&gt;: selects/deselects points on the primary (dark blue) light curve that intersect with the vertical hairline (the mouse cursor is disabled).&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt; font-weight:600; color:#ff0000;&quot;&gt;Left click and drag&lt;/span&gt;&lt;span style=&quot; font-size:14pt;&quot;&gt;: rectangular zoom is available to more clearly see points for selection (but point selection can also be accomplished through clicks in the tabular data display at the lower left)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt; font-weight:600;&quot;&gt;Note! The shift key will toggle the mouse cursor on/off in the light curve plot.&lt;/span&gt;&lt;span style=&quot; font-size:14pt;&quot;&gt; This enables the starting corner for the zoom to be seen. (But points cannot be selected/deselected while the mouse cursor is visible. A right click will always 'blank' the mouse cursor.) &lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt; font-weight:600; color:#ff0000;&quot;&gt;Right click&lt;/span&gt;&lt;span style=&quot; font-size:14pt;&quot;&gt;: undo zoom&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt; color:#996633;&quot;&gt;Timestamp errors are shown with vertical red hairlines when a file is first read. These will disappear after the first point is selected so that the working view is as clear as possible. The red hairlines will re-appear permanently after the error bars have been calculated and the final report written to the log.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="toolTipDuration">
-             <number>-1</number>
-            </property>
-            <property name="text">
-             <string>Read light curve</string>
-            </property>
-           </widget>
+           <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="0,1">
+            <item>
+             <widget class="QPushButton" name="infoButton">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Click this button to to open the &lt;/span&gt;&lt;span style=&quot; font-size:18pt; color:#ff0000;&quot;&gt;help.pdf&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt; file that is included in the installation.  The file will open in whatever PDF viewer you have assigned as the default viewer for pdf files.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>Info</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="readData">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Ignored" vsizetype="Maximum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt;&quot;&gt;PYOTE reads Limovie, R-OTE, and Tangra files including any secondary reference stars that may be present.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt;&quot;&gt;Assumed is: object1 is occulted star; other (optional) objects are reference stars to be used for normalizing the occulted star light curve.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;Mouse button functions within the light curve plot:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt; font-weight:600; color:#ff0000;&quot;&gt;Left click&lt;/span&gt;&lt;span style=&quot; font-size:14pt;&quot;&gt;: selects/deselects points on the primary (dark blue) light curve that intersect with the vertical hairline (the mouse cursor is disabled).&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt; font-weight:600; color:#ff0000;&quot;&gt;Left click and drag&lt;/span&gt;&lt;span style=&quot; font-size:14pt;&quot;&gt;: rectangular zoom is available to more clearly see points for selection (but point selection can also be accomplished through clicks in the tabular data display at the lower left)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt; font-weight:600;&quot;&gt;Note! The shift key will toggle the mouse cursor on/off in the light curve plot.&lt;/span&gt;&lt;span style=&quot; font-size:14pt;&quot;&gt; This enables the starting corner for the zoom to be seen. (But points cannot be selected/deselected while the mouse cursor is visible. A right click will always 'blank' the mouse cursor.) &lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt; font-weight:600; color:#ff0000;&quot;&gt;Right click&lt;/span&gt;&lt;span style=&quot; font-size:14pt;&quot;&gt;: undo zoom&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt; color:#996633;&quot;&gt;Timestamp errors are shown with vertical red hairlines when a file is first read. These will disappear after the first point is selected so that the working view is as clear as possible. The red hairlines will re-appear permanently after the error bars have been calculated and the final report written to the log.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="toolTipDuration">
+               <number>-1</number>
+              </property>
+              <property name="text">
+               <string>Read light curve</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_6">
@@ -95,6 +109,16 @@
            </layout>
           </item>
           <item>
+           <widget class="QCheckBox" name="showTimestampErrors">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>Show timestamp errors</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QPushButton" name="doBlockIntegration">
             <property name="enabled">
              <bool>false</bool>
@@ -134,22 +158,6 @@
              <string>Set data limits (trim left/right)</string>
             </property>
            </widget>
-          </item>
-          <item>
-           <spacer name="verticalSpacer_2">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeType">
-             <enum>QSizePolicy::Fixed</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
           </item>
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_5">
@@ -201,22 +209,6 @@
            </widget>
           </item>
           <item>
-           <spacer name="verticalSpacer_3">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeType">
-             <enum>QSizePolicy::Fixed</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
            <widget class="QPushButton" name="doNoiseAnalysis">
             <property name="enabled">
              <bool>false</bool>
@@ -253,22 +245,6 @@
              <string>Analyze event noise</string>
             </property>
            </widget>
-          </item>
-          <item>
-           <spacer name="verticalSpacer_4">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeType">
-             <enum>QSizePolicy::Fixed</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
           </item>
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -544,7 +520,7 @@
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>293</width>
+              <width>290</width>
               <height>13</height>
              </size>
             </property>
@@ -594,7 +570,7 @@
         <item>
          <widget class="PlotWidget" name="mainPlot">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
