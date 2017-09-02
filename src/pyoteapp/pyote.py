@@ -838,7 +838,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         frameNum = float(self.yFrame[intD])
         # Dframe = D + frameNum - entryNum
         Dframe = (D - intD) * self.blockSize + intD + frameNum - entryNum
-        self.showMsg('D: %.2f {+%.2f,-%.2f} (frame number)' % (Dframe, plusD * self.blockSize, minusD * self.blockSize))
+        self.showMsg('D: %.2f {+%.2f,-%.2f} (frame number)' % (Dframe, plusD * self.blockSize, minusD * self.blockSize),
+                     blankLine=False)
         ts = self.yTimes[int(D)]
         time = convertTimeStringToTime(ts)
         adjTime = time + (D - int(D)) * self.timeDelta
@@ -868,7 +869,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         frameNum = float(self.yFrame[intR])
         # Rframe = R + frameNum - entryNum
         Rframe = (R - intR) * self.blockSize + intR + frameNum - entryNum
-        self.showMsg('R: %.2f {+%.2f,-%.2f} (frame number)' % (Rframe, plusR * self.blockSize, minusR * self.blockSize))
+        self.showMsg('R: %.2f {+%.2f,-%.2f} (frame number)' % (Rframe, plusR * self.blockSize, minusR * self.blockSize),
+                     blankLine=False)
 
         ts = self.yTimes[int(R)]
         time = convertTimeStringToTime(ts)
@@ -903,7 +905,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             plusDur = ((deltaDurhi - deltaDurlo) / 2)
             minusDur = plusDur
             self.showMsg('Duration (R - D): %.4f {+%.4f,-%.4f} readings' %
-                         ((R - D) * self.blockSize, plusDur * self.blockSize, minusDur * self.blockSize))
+                         ((R - D) * self.blockSize, plusDur * self.blockSize, minusDur * self.blockSize),
+                         blankLine=False)
             plusDur = ((deltaDurhi - deltaDurlo) / 2) * self.timeDelta
             minusDur = plusDur
             self.showMsg('Duration (R - D): %.4f {+%.4f,-%.4f} seconds' %
@@ -1105,11 +1108,18 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             if entry < acfCoefThreshold:
                 break
             posCoefs.append(entry)
+
         distGen = edgeDistributionGenerator(
                 ntrials=100000, numPts=numPts, D=D, acfcoeffs=posCoefs,
                 B=self.B, A=self.A, sigmaB=self.sigmaB, sigmaA=self.sigmaA)
+
         for dist in distGen:
             if type(dist) == float:
+                if dist == -1.0:
+                    self.showInfo(
+                        'The Cholesky-Decomposition routine has failed.  This may be because the light curve ' +
+                        'required some level of block integration.  Please examine the light curve for that possibility.')
+                    return
                 self.progressBar.setValue(dist * 100)
                 QtGui.QApplication.processEvents()
                 if self.cancelRequested:
@@ -1127,26 +1137,6 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.loDbar95, _, self.hiDbar95, self.deltaDlo95, self.deltaDhi95 = ciBars(dist=dist, ci=0.95)
         self.loDbar99, _, self.hiDbar99, self.deltaDlo99, self.deltaDhi99 = ciBars(dist=dist, ci=0.9973)
         self.loDbar68, _, self.hiDbar68, self.deltaDlo68, self.deltaDhi68 = ciBars(dist=dist, ci=0.6827)
-
-        # Correct for block integration (turn values back into readings)
-
-        # self.loDbar68 *= self.blockSize
-        # self.loDbar95 *= self.blockSize
-        # self.loDbar99 *= self.blockSize
-        #
-        # self.hiDbar68 *= self.blockSize
-        # self.hiDbar95 *= self.blockSize
-        # self.hiDbar99 *= self.blockSize
-        #
-        # self.deltaDlo68 *= self.blockSize
-        # self.deltaDlo95 *= self.blockSize
-        # self.deltaDlo99 *= self.blockSize
-        #
-        # self.deltaDhi68 *= self.blockSize
-        # self.deltaDhi95 *= self.blockSize
-        # self.deltaDhi99 *= self.blockSize
-
-        # End block integration corrections
 
         self.deltaRlo95 = - self.deltaDhi95
         self.deltaRhi95 = - self.deltaDlo95
@@ -1675,6 +1665,24 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             self.numPtsInCorCoefs = totalPoints
         
         self.prettyPrintCorCoefs()
+
+        # Try to warn user about the possible need for block integration by testing the lag 1
+        # and lag 2 correlation coefficients.  The tests are just guesses on my part, so only
+        # warnings are given.  Later, the Cholesky-Decomposition may fail because block integration
+        # was really needed.  That is a fatal error but is trapped and the user alerted to the problem
+
+        if len(self.corCoefs) > 0:
+            if self.corCoefs[1] >= 0.7:
+                self.showInfo('The auto-correlation coefficient at lag 1 is suspiciously large. ' +
+                              'This may be because the light curve needs some degree of block integration. ' +
+                              'Failure to do a needed block integration allows point-to-point correlations caused by ' +
+                              'the camera integration to artificially induce non-physical correlated noise.')
+            elif len(self.corCoefs > 1):
+                if self.corCoefs[2] >= 0.3:
+                    self.showInfo('The auto-correlation coefficient at lag 2 is suspiciously large. ' +
+                                  'This may be because the light curve needs some degree of block integration. ' +
+                                  'Failure to do a needed block integration allows point-to-point correlations caused by ' +
+                                  'the camera integration to artificially induce non-physical correlated noise.')
         
         if self.sigmaA is None:
             self.sigmaA = self.sigmaB

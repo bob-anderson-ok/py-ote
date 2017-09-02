@@ -19,8 +19,10 @@ from pyoteapp.c_functions import find_Dedge_logl  # Finds D using a subframe mod
 
 def edgeDistributionGenerator(*, ntrials=10000, numPts=None, D=None, acfcoeffs=None,
                               B=None, A=None, sigmaB=None, sigmaA=None):
-    
-    my_noise_gen = autocorrtools.CorrelatedNoiseGenerator(acfcoeffs)
+    try:
+        my_noise_gen = autocorrtools.CorrelatedNoiseGenerator(acfcoeffs)
+    except np.linalg.LinAlgError:
+        yield -1.0
 
     y = np.ndarray(shape=(numPts,), dtype=np.double)
     mb = np.ndarray(shape=(numPts,), dtype=np.double)  # 'model' B value
