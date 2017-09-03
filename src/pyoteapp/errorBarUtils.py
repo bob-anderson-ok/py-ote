@@ -5,35 +5,35 @@ Created on Sat Jun  3 09:37:59 2017
 
 @author: bob
 """
+from typing import List
+from scipy.signal import savgol_filter as savgol
+from pyoteapp.solverUtils import model
+from pyoteapp import autocorrtools
 import numpy as np
 import pyximport
-from pyoteapp.solverUtils import model
-from scipy.signal import savgol_filter as savgol
-
-from pyoteapp import autocorrtools
-
 pyximport.install()
 
 from pyoteapp.c_functions import find_Dedge_logl  # Finds D using a subframe model
 
 
-def edgeDistributionGenerator(*, ntrials=10000, numPts=None, D=None, acfcoeffs=None,
-                              B=None, A=None, sigmaB=None, sigmaA=None):
+def edgeDistributionGenerator(*, ntrials: int = 10000, numPts: int = None, D: int = None, acfcoeffs: List[float] = None,
+                              B: float = None, A: float = None, sigmaB: float = None, sigmaA: float = None):
+    my_noise_gen = None
     try:
         my_noise_gen = autocorrtools.CorrelatedNoiseGenerator(acfcoeffs)
     except np.linalg.LinAlgError:
-        yield -1.0
+        yield -1.0  # This is a flag value that is only returned when a LinAlgError exception occurs
 
-    y = np.ndarray(shape=(numPts,), dtype=np.double)
+    # y = np.ndarray(shape=(numPts,), dtype=np.double)
     mb = np.ndarray(shape=(numPts,), dtype=np.double)  # 'model' B value
     ma = np.ndarray(shape=(numPts,), dtype=np.double)  # 'model' A value
     mm = np.ndarray(shape=(numPts,), dtype=np.double)  # 'model' intermediate value
-    
+
     edgePos = np.zeros(shape=ntrials, dtype=np.float)
-    
+
     m, sigma = model(B=B, A=A, edgeTuple=(D, None), sigmaB=sigmaB, sigmaA=sigmaA, numPts=numPts)
     # m[:D] == B  m[D:] == A  sigma[:D] == sigmaB  sigma[:D] == sigmaA
-    
+
     for i in range(ntrials):
         if i % 2000 == 0:
             yield i / ntrials
@@ -72,7 +72,6 @@ def ciBars(*, dist=None, ci=None):
     
     midBar = ecdfX[np.where(ecdfY >= 0.5)[0][0]]
     
-    # return (loBar - midBar, hiBar - midBar)
     return loBar, midBar, hiBar, loBar - midBar, hiBar - midBar
 
 
