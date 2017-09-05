@@ -82,12 +82,12 @@ def logLikelihoodLine(y,  sigmaB=None, left=None, right=None):
 def cum_loglikelihood(y, m, sigma, left, right):
     """ numpy accelerated sum of loglikelihoods
 
-    ARGS:
-        y (ndarray):     measured values
-        m (ndarray):     associated mean values (the 'model')
-        sigma (ndarray): associated stdev values
-        left             index of first y to include
-        right            index of last  y to include
+        Args:
+            y (ndarray):     measured values
+            m (ndarray):     associated mean values (the 'model')
+            sigma (ndarray): associated stdev values
+            left:            index of first y to include
+            right:           index of last  y to include
     """
 
     assert(len(y) == len(m) == len(sigma))

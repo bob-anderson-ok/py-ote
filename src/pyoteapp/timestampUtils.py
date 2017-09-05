@@ -9,11 +9,13 @@ Created on Thu May 25 12:26:10 2017
 import numpy as np
 from PyQt5.QtWidgets import QDialog
 
+
 def convertTimeStringToTime(timeStr):
     """
     We assume the timeStr has the format  [hh:mm:ss.ssss]
     Returns -1.0 if conversion fails, otherwise time as a float
     """
+    # noinspection PyBroadException
     try:
         if timeStr[0] != '[':
             return -1.0
@@ -68,6 +70,7 @@ def getTimeStepAndOutliers(timestamps, tolerance=0.1):
     
     return improvedTimeStep, outlierIndices, timestampErrorRate
 
+
 def isFrameNumberInData(frameToTest, frame):
     ans = False
     for item in frame:
@@ -76,8 +79,10 @@ def isFrameNumberInData(frameToTest, frame):
             break
     return ans
 
+
+# noinspection PyBroadException,PyUnusedLocal
 def manualTimeStampEntry(frame, dialog):
-    time = [] # Output --- to be computed from timestamp data entered in dialog
+    time = []  # Output --- to be computed from timestamp data entered in dialog
     dataEntered = 'error in data entry'
 
     result = dialog.exec_()
@@ -107,7 +112,7 @@ def manualTimeStampEntry(frame, dialog):
             try:
                 frameNum2 = float(dialog.frameNum2.text())
             except:
-                return '"' +dialog.frameNum2.text() + '" is invalid as frame number input', time, dataEntered
+                return '"' + dialog.frameNum2.text() + '" is invalid as frame number input', time, dataEntered
             try:
                 hh2 = int(dialog.hh2.text())
             except:
@@ -167,16 +172,10 @@ def manualTimeStampEntry(frame, dialog):
             frameDeltaTime = (t2 - t1) / (frameNum2 - frameNum1)
             time = timestampsFromFrameDelta(t1, frameNum1, frameDeltaTime, frame)
 
-
-        # print(frameNum1, frameNum2)
-        # print(hh1, hh2)
-        # print(mm1, mm2)
-        # print(ss1, ss2)
-        # print(frameDeltaTime)
-
         return 'ok', time, dataEntered
     else:
         return 'ok', time, 'Manual timestamp entry was cancelled.'
+
 
 def timestampsFromFrameDelta(t1, frameNum1, frameDeltaTime, frame):
     time = []

@@ -123,8 +123,6 @@ class CorrelatedNoiseGenerator:
         self.acfmatrix = build_acf_matrix(acfcoeffs, size=self.acf_length * 10)
 
         self.noise_matrix = cholesky(self.acfmatrix, lower=False)
-        global nm
-        nm = self.noise_matrix
         # The noise_matrix is composed mostly of zeroes. For each column, there
         # will be as many non-zero entries as there are in acfcoeffs. The limiting
         # values are in the bottom of the last column.

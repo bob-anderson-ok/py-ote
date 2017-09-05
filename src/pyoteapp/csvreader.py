@@ -75,8 +75,9 @@ def tangraParser(line, frame, time, value, ref1, ref2, ref3):
             ref2.append(part[4])
         if len(part) >= 6:
             ref3.append(part[5])
-    
 
+
+# noinspection PyUnusedLocal
 def limovieParser(line, frame, time, value, ref1, ref2, ref3):
     """
     Limovie sample line ---
@@ -91,8 +92,8 @@ def limovieParser(line, frame, time, value, ref1, ref2, ref3):
     if part[12]:
         ref2.append(part[12])
 
-    
 
+# noinspection PyUnusedLocal
 def roteParser(line, frame, time, value, ref1, ref2, ref3):
     """
     R-OTE sample line ---
@@ -107,6 +108,7 @@ def roteParser(line, frame, time, value, ref1, ref2, ref3):
             ref1.append(part[3])
 
 
+# noinspection PyUnusedLocal
 def rawParser(line, frame, time, value, secondary):
     value.append(line)
     
@@ -153,6 +155,7 @@ def readAs(file):
                     while True:
                         line = fileobject.readline()
                         if line:
+                            # noinspection PyBroadException
                             try:
                                 parser(line, frame, time, value, ref1, ref2, ref3)
                             except:
@@ -163,4 +166,3 @@ def readAs(file):
             else:
                 return (False, colHeaderKey + ' not found as first column header', 
                         [], [], [], [], [], [], headers)
-    

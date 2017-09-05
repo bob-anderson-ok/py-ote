@@ -13,26 +13,31 @@ import numpy as np
 from pyoteapp.likelihood_calculations import cum_loglikelihood, aicc, logLikelihoodLine
 from pyoteapp.likelihood_calculations import loglikelihood
 
+
 def aicModelValue(*, obsValue=None, B=None, A=None, sigmaB=None, sigmaA=None):
     assert(B >= A and sigmaA > 0.0 and sigmaB > 0.0)
     # This function determines if an observation point should categorized as a baseline (B)
     # point, an event (A) point, or a valid intermediate point using the Akaike Information Criterion
     # An intermediate point reflects a more complex model (higher dimension model)
-    if obsValue >= B: return B # Categorize as baseline point
-    if obsValue <= A: return A # Categorize as event point
-    if B == A: return B
+    if obsValue >= B:
+        return B  # Categorize as baseline point
+    if obsValue <= A:
+        return A  # Categorize as event point
+    if B == A:
+        return B
 
     sigmaM = sigmaA + (sigmaB - sigmaA) * ((obsValue - A) / (B - A))
     loglB = loglikelihood(obsValue, B, sigmaB)
     loglM = loglikelihood(B, B, sigmaM) - 1.0  # The -1 is the aic model complexity 'penalty'
     loglA = loglikelihood(obsValue, A, sigmaA)
 
-    if loglM  > loglA and loglM > loglB:
-        return obsValue # Categorize as valid intermediate value
+    if loglM > loglA and loglM > loglB:
+        return obsValue  # Categorize as valid intermediate value
     elif loglB > loglA:
-        return B # Categorize as baseline point
+        return B  # Categorize as baseline point
     else:
-        return A # Categorize as event point
+        return A  # Categorize as event point
+
 
 def model(*, B=None, A=None,
           edgeTuple=None, 
@@ -258,18 +263,6 @@ def scoreSubFrame(yValues, left, right, cand, sigmaB, sigmaA):
         if (yValues[R] < B) and (yValues[R] > A):
             m[R] = yValues[R]
     return cum_loglikelihood(yValues, m, sigma, left, right), B, A
-
-
-# def getAssociationForEntry(*, yValues=None, entry=None,
-#                            B=None, A=None,
-#                            sigmaB=None, sigmaA=None):
-#     eVal = yValues[entry]
-#     if (eVal > (A + 3 * sigmaA)) and (eVal < (B - 3 * sigmaB)):
-#         return 'subFrameValue'
-#     elif abs(eVal - B) < abs(eVal-A):
-#         return 'B'
-#     else:
-#         return 'A'
     
 
 def candidateCounter(*, eventType='DandR',
@@ -327,41 +320,7 @@ def candidateCounter(*, eventType='DandR',
                 return 'error', -1
             
     else:
-        raise Exception("Unrecognized event type")  
-
-
-def old_subFrameAdjusted(*, eventType=None, cand=None, B=None, A=None,
-                     sigmaA=None, sigmaB=None,
-                     yValues=None, left=None, right=None):
-
-    # Unlike R-OTE, where an AIC determination is made to qualify for subframe timing,
-    # here we simply compare against sigmaB and sigmaB
-    sigFactor = 1.5
-
-    def adjusted(transitionPoint):
-        value = yValues[transitionPoint]
-        if (value > (A + sigFactor * sigmaA)) and (value < (B - sigFactor * sigmaB)):
-            if transitionPoint == R:
-                adj = (B - value) / (B - A)
-            else:
-                adj = (value - A) / (B - A)
-            return transitionPoint + adj
-        else:
-            return transitionPoint
-
-    D, R = cand
-    
-    if eventType == 'Donly':
-        return (adjusted(D), R), B, A
-
-    elif eventType == 'Ronly':
-        return (D, adjusted(R)), B, A
-
-    elif eventType == 'DandR':
-        return (adjusted(D), adjusted(R)), B, A
-                       
-    else:
-        raise Exception('Unrecognized event type')
+        raise Exception("Unrecognized event type")
 
 
 def subFrameAdjusted(*, eventType=None, cand=None, B=None, A=None,

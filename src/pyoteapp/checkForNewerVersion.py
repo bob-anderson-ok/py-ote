@@ -23,10 +23,10 @@ def getMostRecentVersionOfPyote():
     # all available versions.
     # Below is an example capture...
 
-    ### Could not find a version that satisfies the requirement
-    ###   pyote==?? (from versions: 1.11, 1.12, 1.13, 1.14, 1.15, 1.16)
+    # Could not find a version that satisfies the requirement
+    #   pyote==?? (from versions: 1.11, 1.12, 1.13, 1.14, 1.15, 1.16)
 
-    pip.main(['install', 'pyote==??']) # Give an invalid version number in the request to force error.
+    pip.main(['install', 'pyote==??'])  # Give an invalid version number in the request to force error.
 
     # Restore the original assignments of stderr and stdout
     sys.stderr = savedStdErr
@@ -48,8 +48,9 @@ def getMostRecentVersionOfPyote():
     elif ans[0] != 'Could':
         return False, 'Failed to find pyote package in PyPI repository'
     else:
-        versionFound = ans[-1][0:-1] # Use last string, but not the trailing right paren
+        versionFound = ans[-1][0:-1]  # Use last string, but not the trailing right paren
         return True, versionFound
+
 
 def upgradePyote():
 
