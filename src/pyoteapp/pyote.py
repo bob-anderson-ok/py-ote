@@ -61,6 +61,7 @@ acfCoefThreshold = 0.05  # To match what is being done in R-OTE 4.5.4+
 # and that was raising an exception.  Below is my 'cure', effected by overriding the internal
 # methods of ImageExporter the manipulate width and height
 
+
 class FixedImageExporter(pex.ImageExporter):
     def __init__(self, item):
         pex.ImageExporter.__init__(self, item)
@@ -79,6 +80,7 @@ class FixedImageExporter(pex.ImageExporter):
         ar = float(sr.width()) / sr.height()
         self.params.param('width').setValue(int(self.params['height'] * ar))
 
+
 class Signal:
     def __init__(self):
         self.__subscribers = []
@@ -92,6 +94,7 @@ class Signal:
 
 mouseSignal = Signal()
 
+
 class CustomViewBox(pg.ViewBox):
     def __init__(self, *args, **kwds):
         pg.ViewBox.__init__(self, *args, **kwds)
@@ -103,11 +106,11 @@ class CustomViewBox(pg.ViewBox):
             self.autoRange()
             mouseSignal.emit()
 
-    def mouseDragEvent(self, ev):
+    def mouseDragEvent(self, ev, axis=None):
         if ev.button() == QtCore.Qt.RightButton:
             ev.ignore()
         else:
-            pg.ViewBox.mouseDragEvent(self, ev)
+            pg.ViewBox.mouseDragEvent(self, ev, axis)
             mouseSignal.emit()
 
 
@@ -115,6 +118,7 @@ class TSdialog(QDialog, timestampDialog.Ui_manualTimestampDialog):
     def __init__(self):
         super(TSdialog, self).__init__()
         self.setupUi(self)
+
 
 class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
     def __init__(self):
@@ -155,7 +159,6 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         # Button: Normalize around selected point
         self.normalizeButton.clicked.connect(self.normalize)
 
-
         # Button: Do block integration
         self.doBlockIntegration.clicked.connect(self.doIntegration)
         
@@ -182,6 +185,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         
         # Button: Write error bar plot to file
         self.writeBarPlots.clicked.connect(self.exportBarPlots)
+
         # Button: Write graphic to file
         self.writePlot.clicked.connect(self.exportGraphic)
         
@@ -194,20 +198,20 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         
         # Re-instantiate mainPlot             Note: examine gui.py
         # to get this right after a re-layout !!!!  self.widget changes sometimes
-        # as does horizontalLayout_7
+        # as does horizontalLayout_?
 
         oldMainPlot = self.mainPlot
         self.mainPlot = PlotWidget(self.widget,
                                    viewBox=CustomViewBox(border=(255, 255, 255)),
                                    enableMenu=False)
         self.mainPlot.setObjectName("mainPlot")
-        self.horizontalLayout_8.addWidget(self.mainPlot,stretch=1)
+        self.horizontalLayout_8.addWidget(self.mainPlot, stretch=1)
 
         oldMainPlot.setParent(None)
 
         self.mainPlot.scene().sigMouseMoved.connect(self.reportMouseMoved)
         self.verticalCursor = pg.InfiniteLine(angle=90, movable=False, pen=(0, 0, 0))
-        self.mainPlot.addItem(self.verticalCursor, ignoreBounds=True)
+        self.mainPlot.addItem(self.verticalCursor)
         self.blankCursor = True
         self.mainPlot.viewport().setProperty("cursor", QtGui.QCursor(QtCore.Qt.BlankCursor))
         mouseSignal.connect(self.mouseEvent)
@@ -252,7 +256,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             self.blankCursor = True
             self.mainPlot.viewport().setProperty("cursor", QtGui.QCursor(QtCore.Qt.BlankCursor))
 
-    def keyPressEvent(self,ev):
+    def keyPressEvent(self, ev):
         if ev.key() == QtCore.Qt.Key_Shift:
             # self.showMsg('Shift key pressed')
             if self.blankCursor:
@@ -262,7 +266,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 self.blankCursor = True
                 self.mainPlot.viewport().setProperty("cursor", QtGui.QCursor(QtCore.Qt.BlankCursor))
 
-    def timestampListIsEmpty(self, alist):
+    @staticmethod
+    def timestampListIsEmpty(alist):
         ans = True
         for item in alist:
             # Limovie = '[::]'   Tangra = ''  R-OTE = '[NA]' or 'NA'
@@ -277,6 +282,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         selText = self.secondarySelector.text()
         self.showMsg('Secondary reference ' + selText + ' selected.')
         refNum = int(selText)
+        refStar = None
         if refNum == 1:
             refStar = [float(item) for item in self.secondary]
         if refNum == 2:
@@ -314,7 +320,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         else:
             self.showMsg(latestVersion, color='red', bold=True)
 
-    def queryWhetherNewVersionShouldBeInstalled(self):
+    @staticmethod
+    def queryWhetherNewVersionShouldBeInstalled():
         msg = QMessageBox()
         msg.setIcon(QMessageBox.Question)
         msg.setText('A newer version of PYOTE is available. Do you wish to install it?')
@@ -365,7 +372,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 "Select directory/modify filename (png will be appended for you)",     # title for dialog
                 self.settings.value('lightcurvedir', "") + '/' + name,  # starting directory
                 # "csv files (*.csv)", options=myOptions)
-                "png files (*.png)", options = myOptions)
+                "png files (*.png)", options=myOptions)
         
         if self.graphicFile:
             self.graphicFile = self.removeCsvExtension(self.graphicFile)
@@ -381,7 +388,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             
             self.showInfo('Wrote to: \r\r' + targetFileD + ' \r\r' + targetFileDur)
 
-    def removeCsvExtension(self, path):
+    @staticmethod
+    def removeCsvExtension(path):
         base, ext = os.path.splitext(path)
         if ext == '.csv':
             return base
@@ -508,7 +516,6 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 [leftEdge, rightEdge], movable=False, brush=(0, 200, 0, 50))
         self.mainPlot.addItem(self.dRegion)
 
-        
         self.showMsg('D zone selected: ' + str(selIndices))
         self.removePointSelections()
         self.reDrawMainPlot()
@@ -610,6 +617,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                     self.showInfo('smoothing window must be size 5 or greater - defaulting to 101')
                     userSpecedWindow = 101
 
+        window = None
         try:
             if len(y) > userSpecedWindow:
                 window = userSpecedWindow
@@ -786,10 +794,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         
     def cellClick(self, row, column):
         entry = self.table.item(row, 0)
-        # self.highlightReading(int(entry.text()))
         self.togglePointSelected(int(entry.text()))
 
-        
     def highlightReading(self, rdgNum):
         x = [rdgNum]
         y = [self.yValues[x]]
@@ -1030,9 +1036,9 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             ts = self.yTimes[int(D)]
             time = convertTimeStringToTime(ts)
             adjTime = time + (D - int(D)) * self.timeDelta
-            self.Dtime = adjTime # This is needed for the duration report (assumed to follow!!!)
+            self.Dtime = adjTime  # This is needed for the duration report (assumed to follow!!!)
             ts = convertTimeToTimeString(adjTime)
-            self.showMsg('D time: %s' % ts, blankLine=False )
+            self.showMsg('D time: %s' % ts, blankLine=False)
             errBar = max(abs(self.deltaDlo68), abs(self.deltaDhi68)) * self.timeDelta
             self.showMsg('D: 0.6800 confidence intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar), blankLine=False)
             errBar = max(abs(self.deltaDlo95), abs(self.deltaDhi95)) * self.timeDelta
@@ -1040,14 +1046,13 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             errBar = max(abs(self.deltaDlo99), abs(self.deltaDhi99)) * self.timeDelta
             self.showMsg('D: 0.9973 confidence intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar))
 
-
     def doRtimeReport(self):
         if self.eventType == 'DandR' or self.eventType == 'Ronly':
             _, R = self.solution
             ts = self.yTimes[int(R)]
             time = convertTimeStringToTime(ts)
             adjTime = time + (R - int(R)) * self.timeDelta
-            self.Rtime = adjTime # This is needed for the duration report (assumed to follow!!!)
+            self.Rtime = adjTime  # This is needed for the duration report (assumed to follow!!!)
             ts = convertTimeToTimeString(adjTime)
             self.showMsg('R time: %s' % ts, blankLine=False)
             errBar = max(abs(self.deltaRlo68), abs(self.deltaRhi68)) * self.timeDelta
@@ -1059,7 +1064,6 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
     def doDurTimeReport(self):
         if self.eventType == 'DandR':
-            D, R = self.solution
             self.showMsg('Duration (R - D): {0:0.4f} seconds'.format(self.Rtime - self.Dtime), blankLine=False)
             errBar = ((self.deltaDurhi68 - self.deltaDurlo68) / 2) * self.timeDelta
             self.showMsg('Duration: 0.6800 confidence intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar), blankLine=False)
@@ -1067,7 +1071,6 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             self.showMsg('Duration: 0.9500 confidence intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar), blankLine=False)
             errBar = ((self.deltaDurhi99 - self.deltaDurlo99) / 2) * self.timeDelta
             self.showMsg('Duration: 0.9973 confidence intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar))
-
 
     def reportTimeValidity(self, D, R):
         intD = int(D)
@@ -1089,13 +1092,9 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             self.showMsg('! There is something wrong with timestamps at D and/or R or frames have been dropped !')
         
     def computeErrorBars(self):
-        global dist
-        
-        # self.showMsg('Error calculation requested')
-        
+
         self.snrB = (self.B - self.A) / self.sigmaB
         self.snrA = (self.B - self.A) / self.sigmaA
-        # snr = min(snrB, snrA)
         snr = self.snrB  # A more reliable number
         D = int(round(80 / snr**2 + 0.5))
         
@@ -1113,6 +1112,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 ntrials=100000, numPts=numPts, D=D, acfcoeffs=posCoefs,
                 B=self.B, A=self.A, sigmaB=self.sigmaB, sigmaA=self.sigmaA)
 
+        dist = None
         for dist in distGen:
             if type(dist) == float:
                 if dist == -1.0:
@@ -1147,8 +1147,11 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.deltaRlo68 = - self.deltaDhi68
         self.deltaRhi68 = - self.deltaDlo68
         
-        # global durDist
-        durDist = createDurDistribution(dist)
+        if isinstance(dist, np.ndarray):
+            durDist = createDurDistribution(dist)
+        else:
+            self.showInfo('Unexpected error: variable dist is not of type np.ndarray')
+            return
         ydur, xdur = np.histogram(durDist, bins=1000)
         self.loDurbar95, _, self.hiDurbar95, self.deltaDurlo95, self.deltaDurhi95 = ciBars(dist=durDist, ci=0.95)
         self.loDurbar99, _, self.hiDurbar99, self.deltaDurlo99, self.deltaDurhi99 = ciBars(dist=durDist, ci=0.9973)
@@ -1285,12 +1288,11 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.reDrawMainPlot()  # To add envelope to solution
         
     def findEvent(self):
-        global yValues, left, right, sigmaB, sigmaA  # For debugging and experiments
-        yValues = self.yValues[0:self.dataLen]
-        left = self.left
-        right = self.right
-        sigmaB = self.sigmaB
-        sigmaA = self.sigmaA
+        # yValues = self.yValues[0:self.dataLen]
+        # left = self.left
+        # right = self.right
+        # sigmaB = self.sigmaB
+        # sigmaA = self.sigmaA
         
         if self.DandR.isChecked():
             self.eventType = 'DandR'
@@ -1412,11 +1414,14 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 R = round(R, 2)
             self.solution = (D, R)
             if self.eventType == 'DandR':
-                ans = '(%.2f,%.2f) B: %.2f  A: %.2f' % (D, R, self.B, self.A)
+                # ans = '(%.2f,%.2f) B: %.2f  A: %.2f' % (D, R, self.B, self.A)
+                pass
             elif self.eventType == 'Donly':
-                ans = '(%.2f,None) B: %.2f  A: %.2f' % (D, self.B, self.A)
+                # ans = '(%.2f,None) B: %.2f  A: %.2f' % (D, self.B, self.A)
+                pass
             elif self.eventType == 'Ronly':
-                ans = '(None,%.2f) B: %.2f  A: %.2f' % (R, self.B, self.A)
+                # ans = '(None,%.2f) B: %.2f  A: %.2f' % (R, self.B, self.A)
+                pass
             else:
                 raise Exception('Undefined event type')
             # self.showMsg('Raw solution (debug output): ' + ans)
@@ -1479,10 +1484,9 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 frame, time, value, self.secondary, self.ref2, self.ref3, headers = readLightCurve(self.filename)
                 values = [float(item) for item in value]
 
-                if frame == []:
+                if not frame:
                     # This is a raw data file, imported for test purposes
-                    global raw
-                    raw = values
+                    # raw = values
                     self.showInfo('raw data file read')
                     return
 
@@ -1492,10 +1496,10 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 if self.secondary:
                     self.showSecondaryCheckBox.setEnabled(True)
                     self.showSecondaryCheckBox.setChecked(True)
-                    if self.ref2 != []:
+                    if self.ref2:
                         self.secondarySelector.setEnabled(True)
                         self.secondarySelector.setMaximum(2)
-                        if self.ref3 != []:
+                        if self.ref3:
                             self.secondarySelector.setMaximum(3)
                     else:
                         self.secondarySelector.setEnabled(False)
@@ -1513,7 +1517,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                             self.showInfo(errmsg)
                         else:
                             self.showMsg(dataEntered, bold=True)
-                            if manualTime != []: # Needed only during development
+                            if manualTime:  # Needed only during development
                                 time = manualTime[:]
 
                 self.showMsg('=' * 20 + ' file header lines ' + '=' * 20, bold=True, blankLine=False)
@@ -1643,10 +1647,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         
         self.removePointSelections()
         
-        # For experiments in console, write data into the global namespace
-        global baseX, baseY
-        baseX = self.baselineXvals
-        baseY = self.baselineYvals
+        # baseX = self.baselineXvals
+        # baseY = self.baselineYvals
         
         self.newCorCoefs, self.numNApts, sigB = getCorCoefs(self.baselineXvals, self.baselineYvals)
         self.showMsg('Baseline noise analysis done using ' + str(self.numNApts) + 

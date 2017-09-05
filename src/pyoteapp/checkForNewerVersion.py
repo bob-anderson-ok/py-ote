@@ -44,12 +44,12 @@ def getMostRecentVersionOfPyote():
 
     ans = pipResult.split()
     if ans[0] == 'Retrying':
-        return (False, 'No Internet connection --- could not reach PyPI')
+        return False, 'No Internet connection --- could not reach PyPI'
     elif ans[0] != 'Could':
-        return (False, 'Failed to find pyote package in PyPI repository')
+        return False, 'Failed to find pyote package in PyPI repository'
     else:
         versionFound = ans[-1][0:-1] # Use last string, but not the trailing right paren
-        return (True, versionFound)
+        return True, versionFound
 
 def upgradePyote():
 

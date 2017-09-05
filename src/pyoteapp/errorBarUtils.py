@@ -3,28 +3,29 @@
 """
 Created on Sat Jun  3 09:37:59 2017
 
-@author: bob
+@author: Bob Anderson
 """
-from typing import List
+
+from typing import List, Iterator, Union, Tuple
 from scipy.signal import savgol_filter as savgol
 from pyoteapp.solverUtils import model
 from pyoteapp import autocorrtools
 import numpy as np
+
 import pyximport
 pyximport.install()
-
 from pyoteapp.c_functions import find_Dedge_logl  # Finds D using a subframe model
 
 
-def edgeDistributionGenerator(*, ntrials: int = 10000, numPts: int = None, D: int = None, acfcoeffs: List[float] = None,
-                              B: float = None, A: float = None, sigmaB: float = None, sigmaA: float = None):
+def edgeDistributionGenerator(*, ntrials: int= 10000, numPts: int = None, D: int = None, acfcoeffs: List[float] = None,
+                              B: float = None, A: float = None, sigmaB: float = None, sigmaA: float = None
+                              ) -> Iterator[Union[float, List[float]]]:
     my_noise_gen = None
     try:
         my_noise_gen = autocorrtools.CorrelatedNoiseGenerator(acfcoeffs)
     except np.linalg.LinAlgError:
         yield -1.0  # This is a flag value that is only returned when a LinAlgError exception occurs
 
-    # y = np.ndarray(shape=(numPts,), dtype=np.double)
     mb = np.ndarray(shape=(numPts,), dtype=np.double)  # 'model' B value
     ma = np.ndarray(shape=(numPts,), dtype=np.double)  # 'model' A value
     mm = np.ndarray(shape=(numPts,), dtype=np.double)  # 'model' intermediate value
@@ -52,7 +53,7 @@ def edgeDistributionGenerator(*, ntrials: int = 10000, numPts: int = None, D: in
     yield edgePos
 
 
-def ciBars(*, dist=None, ci=None):
+def ciBars(*, dist: np.ndarray = None, ci: float = None) -> Tuple[float, ...]:
     assert(ci >= 0)
     
     ecdfX = np.sort(dist)
@@ -66,7 +67,7 @@ def ciBars(*, dist=None, ci=None):
      
     indices = np.where(ecdfY >= 0.5 - ci / 2)[0]
     if indices.size == 0:
-        loBar = 0
+        loBar = 0.0
     else:
         loBar = ecdfX[np.where(ecdfY >= 0.5 - ci / 2)[0][0]]
     
@@ -75,7 +76,7 @@ def ciBars(*, dist=None, ci=None):
     return loBar, midBar, hiBar, loBar - midBar, hiBar - midBar
 
 
-def sampledCdf(dist, nsamples):
+def sampledCdf(dist: np.ndarray, nsamples: int) -> Tuple[np.ndarray, np.ndarray]:
     sdist = np.sort(dist)
     
     # spt stands for 'sample point'
@@ -99,14 +100,14 @@ def sampledCdf(dist, nsamples):
     return np.array(x), np.array(y)
 
 
-def smoothedSolutionDistribution(dist, nsamples):
+def smoothedSolutionDistribution(dist: np.ndarray, nsamples: int) -> Tuple[np.ndarray, np.ndarray]:
     sampledX, sampledY = sampledCdf(dist, nsamples)
     smoothedY = savgol(sampledY, 21, 3)
     
     return np.array(sampledX[:-1]), np.diff(smoothedY)
 
 
-def createDurDistribution(dist):
+def createDurDistribution(dist: np.ndarray) -> np.ndarray:
     maxIndex = dist.size - 1
     
     def sample():

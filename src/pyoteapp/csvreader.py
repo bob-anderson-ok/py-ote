@@ -7,9 +7,9 @@ Created on Tue May 23 07:24:21 2017
 """
 
 import os
-from PyQt5.QtWidgets import QMessageBox
 
 tangraNeedsBackgroundSubtraction = True
+
 
 def readLightCurve(filepath):
     """

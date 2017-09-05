@@ -7,7 +7,7 @@ Created on Thu May 25 12:26:10 2017
 """
 
 import numpy as np
-from PyQt5.QtWidgets import QDialog, QMessageBox
+from PyQt5.QtWidgets import QDialog
 
 def convertTimeStringToTime(timeStr):
     """
