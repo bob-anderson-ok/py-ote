@@ -717,6 +717,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.yRefStar = np.array(newRef)
         self.yTimes = newTime[:]
         self.yFrame = newFrame[:]
+        # noinspection PyUnusedLocal
         self.yStatus = [1 for _i in range(self.dataLen)]
         self.fillTableViewOfData()
         
@@ -764,7 +765,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                     self.table.setCurrentCell(index, 0)
                 else:
                     pass  # Out of bounds clicks simply ignored
-            except:
+            except AttributeError:
                 pass
         
     def initializeTableView(self):
@@ -792,7 +793,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         entry = self.table.item(row, 0)
         self.highlightReading(int(entry.text()))
         
-    def cellClick(self, row, column):
+    def cellClick(self, row):
         entry = self.table.item(row, 0)
         self.togglePointSelected(int(entry.text()))
 
@@ -1542,7 +1543,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 self.yFrameCopy = frame[:]
                 
                 # Automatically select all points
-                self.yStatus = [1 for _i in range(self.dataLen)]  # 1 means included
+                # noinspection PyUnusedLocal
+                self.yStatus = [INCLUDED for _i in range(self.dataLen)]
                 self.left = 0
                 self.right = self.dataLen - 1
 
@@ -1720,7 +1722,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.minEventEdit.setEnabled(False)
         self.maxEventEdit.setEnabled(False)
         self.writeBarPlots.setEnabled(False)
-       
+
+    # noinspection PyUnusedLocal
     def restart(self):
         
         self.initializeVariablesThatDontDependOnAfile()
@@ -1986,7 +1989,8 @@ def main():
     app = QtGui.QApplication(sys.argv)
     
     # Save the current/proper sys.excepthook object
-    sys._excepthook = sys.excepthook
+    # sys._excepthook = sys.excepthook
+    saved_excepthook = sys.excepthook
 
     def exception_hook(exctype, value, tb):
         print('')
@@ -1997,7 +2001,8 @@ def main():
 
         traceback.print_tb(tb)
         # Call the usual exception processor
-        sys._excepthook(exctype, value, tb)
+        # sys._excepthook(exctype, value, tb)
+        saved_excepthook(exctype, value, tb)
         # Exit if you prefer...
         # sys.exit(1)
         
