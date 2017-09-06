@@ -1681,7 +1681,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                               'This may be because the light curve needs some degree of block integration. ' +
                               'Failure to do a needed block integration allows point-to-point correlations caused by ' +
                               'the camera integration to artificially induce non-physical correlated noise.')
-            elif len(self.corCoefs > 1):
+            elif len(self.corCoefs) > 1:
                 if self.corCoefs[2] >= 0.3:
                     self.showInfo('The auto-correlation coefficient at lag 2 is suspiciously large. ' +
                                   'This may be because the light curve needs some degree of block integration. ' +
