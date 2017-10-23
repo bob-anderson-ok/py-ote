@@ -59,7 +59,7 @@ acfCoefThreshold = 0.05  # To match what is being done in R-OTE 4.5.4+
 # There is a bug in pyqtgraph ImageExpoter, probably caused by new versions of PyQt5 returning
 # float values for image rectangles.  Those floats were being given to numpy to create a matrix,
 # and that was raising an exception.  Below is my 'cure', effected by overriding the internal
-# methods of ImageExporter the manipulate width and height
+# methods of ImageExporter that manipulate width and height
 
 
 class FixedImageExporter(pex.ImageExporter):
@@ -91,6 +91,7 @@ class Signal:
 
     def connect(self, func):
         self.__subscribers.append(func)
+
 
 mouseSignal = Signal()
 
@@ -1287,14 +1288,40 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             self.finalReport()
 
         self.reDrawMainPlot()  # To add envelope to solution
-        
+
+    def try_to_get_solution(self):
+        self.solution = None
+        self.reDrawMainPlot()
+        solverGen = solver(
+            eventType=self.eventType, yValues=self.yValues,
+            left=self.left, right=self.right,
+            sigmaB=self.sigmaB, sigmaA=self.sigmaA,
+            dLimits=self.dLimits, rLimits=self.rLimits,
+            minSize=self.minEvent, maxSize=self.maxEvent)
+        self.cancelRequested = False
+        for item in solverGen:
+            if item[0] == 'fractionDone':
+                # Here we should update progress bar and check for cancellation
+                self.progressBar.setValue(item[1] * 100)
+                QtGui.QApplication.processEvents()
+                if self.cancelRequested:
+                    self.cancelRequested = False
+                    self.runSolver = False
+                    self.showMsg('Solution search was cancelled')
+                    self.progressBar.setValue(0)
+                    break
+            elif item[0] == 'no event present':
+                self.showMsg('No event fitting search criteria could be found.')
+                self.progressBar.setValue(0)
+                self.runSolver = False
+                break
+            else:
+                self.progressBar.setValue(0)
+                self.solution = item[0]
+                self.B = item[1]
+                self.A = item[2]
+
     def findEvent(self):
-        # yValues = self.yValues[0:self.dataLen]
-        # left = self.left
-        # right = self.right
-        # sigmaB = self.sigmaB
-        # sigmaA = self.sigmaA
-        
         if self.DandR.isChecked():
             self.eventType = 'DandR'
             self.showMsg('Locate a "D and R" event triggered')
@@ -1357,7 +1384,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.showMsg('Number of candidate solutions: ' + str(numCandidates) +
                      ' (' + candFrom + ')')
     
-        runSolver = True
+        self.runSolver = True
         if numCandidates > 10000:
             msg = 'There are ' + str(numCandidates) + ' candidates in the solution set. '
             msg = msg + 'Do you wish to continue?'
@@ -1369,45 +1396,48 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 self.reDrawMainPlot()
             else:
                 self.showMsg('"No" was clicked, so solver will be skipped')
-                runSolver = False
+                self.runSolver = False
         
-        if runSolver:
-            self.solution = None
-            self.reDrawMainPlot()
-            solverGen = solver(
-                    eventType=self.eventType, yValues=self.yValues,
-                    left=self.left, right=self.right,
-                    sigmaB=self.sigmaB, sigmaA=self.sigmaA, 
-                    dLimits=self.dLimits, rLimits=self.rLimits,  
-                    minSize=self.minEvent, maxSize=self.maxEvent)
-            self.cancelRequested = False
-            for item in solverGen:
-                if item[0] == 'fractionDone':
-                    # Here we should update progress bar and check for cancellation
-                    self.progressBar.setValue(item[1] * 100)
-                    QtGui.QApplication.processEvents()
-                    if self.cancelRequested:
-                        self.cancelRequested = False
-                        runSolver = False
-                        self.showMsg('Solution search was cancelled')
-                        self.progressBar.setValue(0)
-                        break
-                elif item[0] == 'no event present':
-                    self.showMsg('No event fitting search criteria could be found.')
-                    self.progressBar.setValue(0)
-                    runSolver = False
-                    break
-                else:
-                    self.progressBar.setValue(0)
-                    self.solution = item[0]
-                    self.B = item[1]
-                    self.A = item[2]
-                    self.dRegion = None
-                    self.rRegion = None
-                    self.dLimits = None
-                    self.rLimits = None
+        if self.runSolver:
+            self.solution = (None, None)
+            self.try_to_get_solution()
+            # self.solution = None
+            # self.reDrawMainPlot()
+            # solverGen = solver(
+            #         eventType=self.eventType, yValues=self.yValues,
+            #         left=self.left, right=self.right,
+            #         sigmaB=self.sigmaB, sigmaA=self.sigmaA,
+            #         dLimits=self.dLimits, rLimits=self.rLimits,
+            #         minSize=self.minEvent, maxSize=self.maxEvent)
+            # self.cancelRequested = False
+            # for item in solverGen:
+            #     if item[0] == 'fractionDone':
+            #         # Here we should update progress bar and check for cancellation
+            #         self.progressBar.setValue(item[1] * 100)
+            #         QtGui.QApplication.processEvents()
+            #         if self.cancelRequested:
+            #             self.cancelRequested = False
+            #             self.runSolver = False
+            #             self.showMsg('Solution search was cancelled')
+            #             self.progressBar.setValue(0)
+            #             break
+            #     elif item[0] == 'no event present':
+            #         self.showMsg('No event fitting search criteria could be found.')
+            #         self.progressBar.setValue(0)
+            #         self.runSolver = False
+            #         break
+            #     else:
+            #         self.progressBar.setValue(0)
+            #         self.solution = item[0]
+            #         self.B = item[1]
+            #         self.A = item[2]
+            if self.solution:
+                self.dRegion = None
+                self.rRegion = None
+                self.dLimits = None
+                self.rLimits = None
             
-        if runSolver and self.solution:
+        if self.runSolver and self.solution:
             D, R = self.solution
             if D is not None:
                 D = round(D, 2)
@@ -1426,7 +1456,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             else:
                 raise Exception('Undefined event type')
             # self.showMsg('Raw solution (debug output): ' + ans)
-        elif runSolver:
+        elif self.runSolver:
             self.showMsg('Event could not be found')
             
         self.reDrawMainPlot()
@@ -2012,5 +2042,6 @@ def main():
     form.show()
     app.exec_()
     
+
 if __name__ == '__main__':
     main()
