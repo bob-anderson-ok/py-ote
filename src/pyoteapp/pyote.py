@@ -10,6 +10,9 @@ import datetime
 import os
 import sys
 
+from math import trunc, floor
+from copy import deepcopy
+
 import numpy as np
 import pyqtgraph as pg
 import pyqtgraph.exporters as pex
@@ -422,12 +425,15 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             self.showInfo('Wrote to: \r\r' + targetFile)
         
     def initializeVariablesThatDontDependOnAfile(self):
-        
+
+        self.normalized = False
         self.selectedPoints = {}  # Clear/declare 'selected points' dictionary
         self.baselineXvals = []
         self.baselineYvals = []
         self.blockSize = 1  # Contains the number of points used in block integration
-
+        self.solution = None
+        self.firstPassSolution = None
+        self.secondPassSolution = None
         self.smoothSecondary = []
         self.corCoefs = []
         self.numPtsInCorCoefs = 0
@@ -591,6 +597,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 self.showMsg(str(e))
 
         self.showMsg('Light curve normalized to secondary around point ' + str(index))
+        self.normalized = True
         
         self.removePointSelections()
         self.normalizeButton.setEnabled(False)
@@ -825,6 +832,26 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 fileObject.write('\n')
             fileObject.close()
 
+    def reportSpecialProceduredUsed(self):
+        if self.blockSize == 1:
+            self.showMsg('This light curve has not been block integrated.',
+                         color='blue', bold=True, blankLine=False)
+        else:
+            self.showMsg('Block integration of size %d has been applied to '
+                         'this light curve.' %
+                         self.blockSize, color='blue', bold=True, blankLine=False)
+
+        if self.normalized:
+            self.showMsg('This light curve has been normalized against a '
+                         'reference star.',
+                         color='blue', bold=True, blankLine=False)
+
+        if not (self.left == 0 and self.right == self.dataLen - 1):
+            self.showMsg('This light curve has been trimmed.',
+                         color='blue', bold=True, blankLine=False)
+
+        self.showMsg('', blankLine=False)
+
     def Dreport(self, deltaDhi, deltaDlo):
         D, _ = self.solution
 
@@ -972,6 +999,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.doDurFrameReport()
 
         self.showMsg('=============== Summary report for Excel file =====================')
+
+        self.reportSpecialProceduredUsed()
 
         if self.A > 0:
             self.showMsg('nominal magDrop: %0.2f' % ((np.log10(self.B) - np.log10(self.A)) * 2.5))
@@ -1289,6 +1318,90 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
         self.reDrawMainPlot()  # To add envelope to solution
 
+    def displaySolution(self):
+        D, R = self.solution
+
+        # D and R are floats and may be fractional because of sub-frame timing.
+        # We have to remove the effects of sub-frame timing to calulate the D
+        # and R transition points as integers.
+
+        if D and R:
+            Dtransition = trunc(floor(self.solution[0]))
+            Rtransition = trunc(floor(self.solution[1]))
+            solMsg = ('D: %d  R: %d  D(subframe): %0.2f  R(subframe): %0.2f' %
+                      (Dtransition, Rtransition, D, R))
+            self.showMsg('solution indices found: ' + solMsg)
+        elif D:
+            Dtransition = trunc(floor(self.solution[0]))
+            solMsg = ('D: %d  D(subframe): %0.2f' %
+                      (Dtransition, D))
+            self.showMsg('solution indices found: ' + solMsg)
+        else:
+            Rtransition = trunc(floor(self.solution[1]))
+            solMsg = ('R: %d  R(subframe): %0.2f' %
+                      (Rtransition, R))
+            self.showMsg('solution indices found: ' + solMsg)
+
+    def update_noise_parameters_from_solution(self):
+        D, R = self.solution
+        # D and R are floats and may be fractional because of sub-frame timing.
+        # Here we remove the effects of sub-frame timing to calulate the D and
+        # and R transition points as integers.
+        if D:
+            D = trunc(floor(D))
+        if R:
+            R = trunc(floor(R))
+
+        self.showMsg('Recalculating noise parameters to include all points '
+                     'based on first pass solution ====',
+                     color='red', bold=True)
+        if D and R:
+            self.sigmaA = None
+            self.corCoefs = []
+            self.selectedPoints = {}
+
+            self.togglePointSelected(self.left)
+            self.togglePointSelected(D-1)
+            self.processBaselineNoise(secondPass=True)
+
+            self.selectedPoints = {}
+            self.togglePointSelected(R+1)
+            self.togglePointSelected(self.right)
+            self.processBaselineNoise(secondPass=True)
+
+            self.selectedPoints = {}
+            self.togglePointSelected(D+1)
+            self.togglePointSelected(R-1)
+            self.processEventNoise(secondPass=True)
+        elif D:
+            self.sigmaA = None
+            self.corCoefs = []
+            self.selectedPoints = {}
+
+            self.togglePointSelected(self.left)
+            self.togglePointSelected(D - 1)
+            self.processBaselineNoise(secondPass=True)
+
+            self.selectedPoints = {}
+            self.togglePointSelected(D + 1)
+            self.togglePointSelected(self.right)
+            self.processEventNoise(secondPass=True)
+        else:
+            self.sigmaA = None
+            self.corCoefs = []
+            self.selectedPoints = {}
+
+            self.togglePointSelected(R + 1)
+            self.togglePointSelected(self.right)
+            self.processBaselineNoise(secondPass=True)
+
+            self.selectedPoints = {}
+            self.togglePointSelected(self.left)
+            self.togglePointSelected(R - 1)
+            self.processEventNoise(secondPass=True)
+
+        return
+
     def try_to_get_solution(self):
         self.solution = None
         self.reDrawMainPlot()
@@ -1320,6 +1433,31 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 self.solution = item[0]
                 self.B = item[1]
                 self.A = item[2]
+
+    def compareFirstAndSecondPassResults(self):
+        D1, R1 = self.firstPassSolution
+        D2, R2 = self.secondPassSolution
+        if D1:
+            D1 = trunc(floor(D1))
+        if D2:
+            D2 = trunc(floor(D2))
+        if R1:
+            R1 = trunc(floor(R1))
+        if R2:
+            R2 = trunc(floor(R2))
+
+        if D1 == D2 and R1 == R2:
+            return
+
+        # There is a difference in the D and/or R transition points identified
+        # in the first and second passes --- alert the user.
+        self.showInfo('The D and/or R transition points identified in pass 1 '
+                      'are different from those found in pass 2 (after '
+                      'automatic noise analysis).  '
+                      'It is recommended that you '
+                      'rerun the light curve using the D and R values found in '
+                      'this second pass to more accurately select points for '
+                      'the initial noise analysis.')
 
     def findEvent(self):
         if self.DandR.isChecked():
@@ -1401,41 +1539,25 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         if self.runSolver:
             self.solution = (None, None)
             self.try_to_get_solution()
-            # self.solution = None
-            # self.reDrawMainPlot()
-            # solverGen = solver(
-            #         eventType=self.eventType, yValues=self.yValues,
-            #         left=self.left, right=self.right,
-            #         sigmaB=self.sigmaB, sigmaA=self.sigmaA,
-            #         dLimits=self.dLimits, rLimits=self.rLimits,
-            #         minSize=self.minEvent, maxSize=self.maxEvent)
-            # self.cancelRequested = False
-            # for item in solverGen:
-            #     if item[0] == 'fractionDone':
-            #         # Here we should update progress bar and check for cancellation
-            #         self.progressBar.setValue(item[1] * 100)
-            #         QtGui.QApplication.processEvents()
-            #         if self.cancelRequested:
-            #             self.cancelRequested = False
-            #             self.runSolver = False
-            #             self.showMsg('Solution search was cancelled')
-            #             self.progressBar.setValue(0)
-            #             break
-            #     elif item[0] == 'no event present':
-            #         self.showMsg('No event fitting search criteria could be found.')
-            #         self.progressBar.setValue(0)
-            #         self.runSolver = False
-            #         break
-            #     else:
-            #         self.progressBar.setValue(0)
-            #         self.solution = item[0]
-            #         self.B = item[1]
-            #         self.A = item[2]
+
             if self.solution:
-                self.dRegion = None
-                self.rRegion = None
-                self.dLimits = None
-                self.rLimits = None
+                self.displaySolution()
+                self.firstPassSolution = deepcopy(self.solution)
+                # Now we will use the solution for D and/or R to update
+                # noise calculation and then make a second pass.
+                self.update_noise_parameters_from_solution()
+                self.showMsg('Second pass solution using updated noise '
+                             'parameters =====', color='red', bold=True)
+                self.solution = (None, None)
+                self.try_to_get_solution()
+                if self.solution:
+                    self.displaySolution()
+                    self.secondPassSolution = deepcopy(self.solution)
+                    self.compareFirstAndSecondPassResults()
+                    self.dRegion = None
+                    self.rRegion = None
+                    self.dLimits = None
+                    self.rLimits = None
             
         if self.runSolver and self.solution:
             D, R = self.solution
@@ -1622,7 +1744,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         outStr = outStr + '  sigmaB: ' + fp.to_precision(self.sigmaB, 4)
         self.showMsg(outStr)
     
-    def processEventNoise(self):
+    def processEventNoise(self, secondPass=False):
         if len(self.selectedPoints) != 2:
             self.showInfo('Exactly two points must be selected for this operation')
             return
@@ -1630,8 +1752,13 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         left = int(min(selPts))
         right = int(max(selPts))
         if (right - left) < 9:
-            self.showInfo('At least 10 points must be included.')
-            return
+            if secondPass:
+                self.removePointSelections()
+                self.sigmaA = self.sigmaB
+                return
+            else:
+                self.showInfo('At least 10 points must be included.')
+                return
         if left < self.left or right > self.right:
             self.showInfo('Selection point(s) outside of included data points')
             self.removePointSelections()
@@ -1642,7 +1769,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             for i in range(left, right+1):
                 self.eventXvals.append(i)
                 self.eventYvals.append(self.yValues[i])
-            self.showSelectedPoints('Points selected for noise analysis: ')
+            self.showSelectedPoints('Points selected for event noise '
+                                    'analysis: ')
             self.doNoiseAnalysis.setEnabled(True)
             self.computeSigmaA.setEnabled(True)
         
@@ -1653,7 +1781,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         
         self.reDrawMainPlot()
         
-    def processBaselineNoise(self):
+    def processBaselineNoise(self, secondPass=False):
 
         if len(self.selectedPoints) != 2:
             self.showInfo('Exactly two points must be selected for this operation')
@@ -1662,8 +1790,12 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         left = int(min(selPts))
         right = int(max(selPts))
         if (right - left) < 14:
-            self.showInfo('At least 15 points must be included.')
-            return
+            if secondPass:
+                self.removePointSelections()
+                return
+            else:
+                self.showInfo('At least 15 points must be included.')
+                return
         if left < self.left or right > self.right:
             self.showInfo('Selection point(s) outside of included data points')
             return
@@ -1673,14 +1805,12 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             for i in range(left, right+1):
                 self.baselineXvals.append(i)
                 self.baselineYvals.append(self.yValues[i])
-            self.showSelectedPoints('Points selected for noise analysis: ')
+            self.showSelectedPoints('Points selected for baseline noise '
+                                    'analysis: ')
             self.doNoiseAnalysis.setEnabled(True)
             self.computeSigmaA.setEnabled(True)
         
         self.removePointSelections()
-        
-        # baseX = self.baselineXvals
-        # baseY = self.baselineYvals
         
         self.newCorCoefs, self.numNApts, sigB = getCorCoefs(self.baselineXvals, self.baselineYvals)
         self.showMsg('Baseline noise analysis done using ' + str(self.numNApts) + 
@@ -1720,7 +1850,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         
         if self.sigmaA is None:
             self.sigmaA = self.sigmaB
-            
+
         self.reDrawMainPlot()
                 
         self.locateEvent.setEnabled(True)
