@@ -35,11 +35,15 @@ from pyoteapp.errorBarUtils import ciBars
 from pyoteapp.errorBarUtils import createDurDistribution
 from pyoteapp.errorBarUtils import edgeDistributionGenerator
 from pyoteapp.noiseUtils import getCorCoefs
-from pyoteapp.solverUtils import candidateCounter, solver
+from pyoteapp.solverUtils import candidateCounter, solver, subFrameAdjusted
 from pyoteapp.timestampUtils import convertTimeStringToTime
 from pyoteapp.timestampUtils import convertTimeToTimeString
 from pyoteapp.timestampUtils import getTimeStepAndOutliers
 from pyoteapp.timestampUtils import manualTimeStampEntry
+from pyoteapp.iterative_logl_functions import locate_event_from_d_and_r_ranges
+from pyoteapp.iterative_logl_functions import find_best_event_from_min_max_size
+from pyoteapp.iterative_logl_functions import find_best_r_only_from_min_max_size
+from pyoteapp.iterative_logl_functions import find_best_d_only_from_min_max_size
 
 cursorAlert = pyqtSignal()
 
@@ -76,12 +80,14 @@ class FixedImageExporter(pex.ImageExporter):
     def widthChanged(self):
         sr = self.getSourceRect()
         ar = float(sr.height()) / sr.width()
-        self.params.param('height').setValue(int(self.params['width'] * ar))
+        self.params.param('height').setValue(int(self.params['width'] * ar),
+                                             blockSignal=self.heightChanged)
 
     def heightChanged(self):
         sr = self.getSourceRect()
         ar = float(sr.width()) / sr.height()
-        self.params.param('width').setValue(int(self.params['height'] * ar))
+        self.params.param('width').setValue(int(self.params['height'] * ar),
+                                            blockSignal=self.widthChanged)
 
 
 class Signal:
@@ -243,6 +249,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.initializeVariablesThatDontDependOnAfile()
 
         self.checkForNewVersion()
+
+        self.only_new_solver_wanted = False
 
     def openHelpFile(self):
         helpFilePath = os.path.join(os.path.split(__file__)[0], 'pyote-info.pdf')
@@ -496,22 +504,33 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         
         leftEdge = int(min(selIndices))
         rightEdge = int(max(selIndices))
-        
-        if leftEdge < self.left or rightEdge > self.right:
-            self.showInfo('The D region must be positioned within the trimmed data!')
+
+        if self.rLimits:
+            if rightEdge > self.rLimits[0] - 2:  # Enforce at least 1 'a' point
+                rightEdge = self.rLimits[0] - 2
+
+            if self.rLimits[1] < self.right:  # At least 1 'b' point is present
+                if leftEdge < self.left:
+                    leftEdge = self.left
+            else:
+                if leftEdge < self.left + 1:
+                    leftEdge = self.left + 1
+        else:
+            if rightEdge >= self.right - 1:
+                rightEdge = self.right - 1    # Enforce at least 1 'a' point
+            if leftEdge < self.left + 1:
+                leftEdge = self.left + 1  # Enforce at least 1 'b' point
+
+        if rightEdge < self.left or rightEdge <= leftEdge:
             self.removePointSelections()
             self.reDrawMainPlot()
             return
-        
-        if self.rLimits:
-            if rightEdge >= self.rLimits[0]:
-                self.showInfo('The D region may not overlap (or come after) R region!')
-                self.removePointSelections()
-                self.reDrawMainPlot()
-                return
-            
+
         self.setDataLimits.setEnabled(False)
-        
+
+        if self.only_new_solver_wanted:
+            self.locateEvent.setEnabled(True)
+
         self.dLimits = [leftEdge, rightEdge]
         
         if self.rLimits:
@@ -523,7 +542,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 [leftEdge, rightEdge], movable=False, brush=(0, 200, 0, 50))
         self.mainPlot.addItem(self.dRegion)
 
-        self.showMsg('D zone selected: ' + str(selIndices))
+        self.showMsg('D zone selected: ' + str([leftEdge, rightEdge]))
         self.removePointSelections()
         self.reDrawMainPlot()
         
@@ -544,22 +563,32 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         
         leftEdge = int(min(selIndices))
         rightEdge = int(max(selIndices))
-        
-        if leftEdge < self.left or rightEdge > self.right:
-            self.showInfo('The R region must be positioned within the trimmed data!')
+
+        if self.dLimits:
+            if leftEdge < self.dLimits[1] + 2:
+                leftEdge = self.dLimits[1] + 2  # Enforce at least 1 'a' point
+            if self.dLimits[0] == self.left:
+                if rightEdge >= self.right:
+                    rightEdge = self.right - 1  # Enforce at least 1 'b' point
+            else:
+                if rightEdge >= self.right:
+                    rightEdge = self.right
+        else:
+            if rightEdge >= self.right - 1:
+                rightEdge = self.right - 1  # Enforce 1 'a' (for r-only search)
+            if leftEdge < self.left + 1:
+                leftEdge = self.left + 1    # Enforce  1 'b' point
+
+        if rightEdge <= leftEdge:
             self.removePointSelections()
             self.reDrawMainPlot()
             return
-        
-        if self.dLimits:
-            if leftEdge <= self.dLimits[1]:
-                self.showInfo('The R region may not overlap (or come before) D region!')
-                self.removePointSelections()
-                self.reDrawMainPlot()
-                return
-        
+
         self.setDataLimits.setEnabled(False)
-        
+
+        if self.only_new_solver_wanted:
+            self.locateEvent.setEnabled(True)
+
         self.rLimits = [leftEdge, rightEdge]
         
         if self.dLimits:
@@ -569,10 +598,9 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             
         self.rRegion = pg.LinearRegionItem(
                 [leftEdge, rightEdge], movable=False, brush=(200, 0, 0, 50))
-        # self.rRegion.setZValue(-10)
         self.mainPlot.addItem(self.rRegion)
         
-        self.showMsg('R zone selected: ' + str(selIndices))
+        self.showMsg('R zone selected: ' + str([leftEdge, rightEdge]))
         self.removePointSelections()
         self.reDrawMainPlot()
         
@@ -699,8 +727,11 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         while p > 0:
             avg = np.mean(self.yValues[p:(p+span)])
             newVal.insert(0, avg)
-            avg = np.mean(self.yRefStar[p:(p+span)])
-            newRef.insert(0, avg)
+
+            if len(self.yRefStar) > 0:
+                avg = np.mean(self.yRefStar[p:(p+span)])
+                newRef.insert(0, avg)
+
             newFrame.insert(0, self.yFrame[p])
             newTime.insert(0, self.yTimes[p])
             p = p - span
@@ -709,8 +740,11 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         while p < self.dataLen - span:
             avg = np.mean(self.yValues[p:(p+span)])
             newVal.append(avg)
-            avg = np.mean(self.yRefStar[p:(p+span)])
-            newRef.append(avg)
+
+            if len(self.yRefStar) > 0:
+                avg = np.mean(self.yRefStar[p:(p+span)])
+                newRef.append(avg)
+
             newFrame.append(self.yFrame[p])
             newTime.append(self.yTimes[p])
             p = p + span
@@ -722,7 +756,11 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.right = self.dataLen - 1
         
         self.yValues = np.array(newVal)
-        self.yRefStar = np.array(newRef)
+        if len(newRef) > 0:
+            self.yRefStar = np.array(newRef)
+        else:
+            self.yRefStar = []
+
         self.yTimes = newTime[:]
         self.yFrame = newFrame[:]
         # noinspection PyUnusedLocal
@@ -1120,7 +1158,9 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         if numEnclosedReadings == intR - intD:
             self.showMsg('Timestamps appear valid @ D and R')
         else:
-            self.showMsg('! There is something wrong with timestamps at D and/or R or frames have been dropped !')
+            self.showMsg('! There is something wrong with timestamps at D '
+                         'and/or R or frames have been dropped !', bold=True,
+                         color='red')
         
     def computeErrorBars(self):
 
@@ -1318,7 +1358,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
         self.reDrawMainPlot()  # To add envelope to solution
 
-    def displaySolution(self):
+    def displaySolution(self, subframe=True):
         D, R = self.solution
 
         # D and R are floats and may be fractional because of sub-frame timing.
@@ -1328,18 +1368,26 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         if D and R:
             Dtransition = trunc(floor(self.solution[0]))
             Rtransition = trunc(floor(self.solution[1]))
-            solMsg = ('D: %d  R: %d  D(subframe): %0.2f  R(subframe): %0.2f' %
-                      (Dtransition, Rtransition, D, R))
+            if subframe:
+                solMsg = ('D: %d  R: %d  D(subframe): %0.2f  R(subframe): %0.2f' %
+                          (Dtransition, Rtransition, D, R))
+            else:
+                solMsg = ('D: %d  R: %d' % (D, R))
             self.showMsg('solution indices found: ' + solMsg)
         elif D:
             Dtransition = trunc(floor(self.solution[0]))
-            solMsg = ('D: %d  D(subframe): %0.2f' %
-                      (Dtransition, D))
+            if subframe:
+                solMsg = ('D: %d  D(subframe): %0.2f' % (Dtransition, D))
+            else:
+                solMsg = ('D: %d' % (D))
             self.showMsg('solution indices found: ' + solMsg)
         else:
             Rtransition = trunc(floor(self.solution[1]))
-            solMsg = ('R: %d  R(subframe): %0.2f' %
-                      (Rtransition, R))
+            if subframe:
+                solMsg = ('R: %d  R(subframe): %0.2f' % (Rtransition, R))
+            else:
+                solMsg = ('R: %d' % (R))
+
             self.showMsg('solution indices found: ' + solMsg)
 
     def update_noise_parameters_from_solution(self):
@@ -1399,6 +1447,56 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             self.togglePointSelected(self.left)
             self.togglePointSelected(R - 1)
             self.processEventNoise(secondPass=True)
+
+        return
+
+    def extract_noise_parameters_from_iterative_solution(self):
+
+        D, R = self.solution
+        # D and R are floats and may be fractional because of sub-frame timing.
+        # Here we remove the effects of sub-frame timing to calulate the D and
+        # and R transition points as integers.
+        if D:
+            D = trunc(floor(D))
+        if R:
+            R = trunc(floor(R))
+
+        if D and R:
+            self.sigmaA = None
+            self.corCoefs = []
+
+            self.processBaselineNoiseFromIterativeSolution(self.left, D - 1)
+
+            self.processBaselineNoiseFromIterativeSolution(R + 1, self.right)
+
+            self.processEventNoiseFromIterativeSolution(D + 1, R - 1)
+
+            # self.sigmaB = 10.0
+            # self.sigmaA = 8.0
+            # self.corCoefs = np.array([1.0, 0.75, .025])
+
+            if self.sigmaA is None:
+                self.sigmaA = self.sigmaB
+        elif D:
+            self.sigmaA = None
+            self.corCoefs = []
+
+            self.processBaselineNoiseFromIterativeSolution(self.left, D - 1)
+
+            self.processEventNoiseFromIterativeSolution(D + 1, self.right)
+            if self.sigmaA is None:
+                self.sigmaA = self.sigmaB
+        else:  # R only
+            self.sigmaA = None
+            self.corCoefs = []
+
+            self.processBaselineNoiseFromIterativeSolution(R + 1, self.right)
+
+            self.processEventNoiseFromIterativeSolution(self.left, R - 1)
+            if self.sigmaA is None:
+                self.sigmaA = self.sigmaB
+
+        self.prettyPrintCorCoefs()
 
         return
 
@@ -1535,30 +1633,113 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             else:
                 self.showMsg('"No" was clicked, so solver will be skipped')
                 self.runSolver = False
-        
-        if self.runSolver:
-            self.solution = (None, None)
-            self.try_to_get_solution()
 
-            if self.solution:
-                self.displaySolution()
-                self.firstPassSolution = deepcopy(self.solution)
-                # Now we will use the solution for D and/or R to update
-                # noise calculation and then make a second pass.
-                self.update_noise_parameters_from_solution()
-                self.showMsg('Second pass solution using updated noise '
-                             'parameters =====', color='red', bold=True)
+        if self.runSolver:
+            if self.eventType == 'DandR':
+                self.showMsg('New solver results...', color='blue', bold=True)
+
+                if self.minEvent and self.maxEvent:
+                    d, r, b, a, sigmaB, sigmaA, metric = \
+                        find_best_event_from_min_max_size(
+                            self.yValues, self.left, self.right,
+                            self.minEvent, self.maxEvent)
+                else:
+                    d, r, b, a, sigmaB, sigmaA, metric = \
+                        locate_event_from_d_and_r_ranges(
+                            self.yValues, self.left, self.right, self.dLimits[0],
+                            self.dLimits[1], self.rLimits[0], self.rLimits[1])
+
+                self.solution = (d, r)   # These will be integer solutions
+            elif self.eventType == 'Ronly':
+                self.showMsg('New solver results...', color='blue', bold=True)
+                if self.minEvent and self.maxEvent:
+                    pass
+                else:
+                    self.minEvent = self.rLimits[0] - self.left
+                    self.maxEvent = self.rLimits[1] - self.left
+                d, r, b, a, sigmaB, sigmaA, metric = \
+                    find_best_r_only_from_min_max_size(
+                        self.yValues, self.left, self.right, self.minEvent,
+                        self.maxEvent)
+
+                self.solution = (d, r)
+            else:  # Donly
+                self.showMsg('New solver results...', color='blue', bold=True)
+                if self.minEvent and self.maxEvent:
+                    pass
+                else:
+                    self.minEvent = self.right - self.dLimits[1]
+                    self.maxEvent = self.right - self.dLimits[0] - 1
+
+                d, r, b, a, sigmaB, sigmaA, metric = \
+                    find_best_d_only_from_min_max_size(
+                        self.yValues, self.left, self.right, self.minEvent,
+                        self.maxEvent)
+
+                self.solution = (d, r)
+
+            self.showMsg('Integer (non-subframe) solution...', blankLine=False)
+            self.showMsg(
+                'sigB:%.2f  sigA:%.2f B:%.2f A:%.2f' %
+                (sigmaB, sigmaA, b, a),
+                blankLine=False)
+            self.displaySolution(subframe=False)  # First solution
+
+            # This fills in self.sigmaB and self.sigmaA
+            self.extract_noise_parameters_from_iterative_solution()
+
+            subDandR, new_b, new_a = subFrameAdjusted(
+                eventType=self.eventType, cand=(d, r), B=b, A=a,
+                sigmaB=self.sigmaB, sigmaA=self.sigmaA, yValues=self.yValues,
+                left=self.left, right=self.right)
+
+            self.solution = subDandR
+
+            self.showMsg('Subframe adjusted solution...', blankLine=False)
+            self.showMsg(
+                'sigB:%.2f  sigA:%.2f B:%.2f A:%.2f' %
+                (self.sigmaB, self.sigmaA, new_b, new_a),
+                blankLine=False)
+            self.displaySolution()  # Adjusted solution
+
+            self.B = new_b
+            self.A = new_a
+
+            # Activate this code if not using old solver following this.
+            if self.only_new_solver_wanted:
+                self.dRegion = None
+                self.rRegion = None
+                self.dLimits = None
+                self.rLimits = None
+
+            self.showMsg('... end New solver results', color='blue', bold=True)
+
+            if not self.only_new_solver_wanted:
+                # Proceed with old dual-pass 'solver'
                 self.solution = (None, None)
                 self.try_to_get_solution()
+
                 if self.solution:
+                    self.showMsg(
+                        'sigB:%.2f  sigA:%.2f B:%.2f A:%.2f' %
+                        (self.sigmaB, self.sigmaA, self.B, self.A),
+                        blankLine=False)
                     self.displaySolution()
-                    self.secondPassSolution = deepcopy(self.solution)
-                    self.compareFirstAndSecondPassResults()
+                    # self.firstPassSolution = deepcopy(self.solution)
+                    # # Now we will use the solution for D and/or R to update
+                    # # noise calculation and then make a second pass.
+                    # self.update_noise_parameters_from_solution()
+                    # self.showMsg('Second pass solution using updated noise '
+                    #              'parameters =====', color='red', bold=True)
+                    # self.solution = (None, None)
+                    # self.try_to_get_solution()
+                    # if self.solution:
+                    #     self.displaySolution()
                     self.dRegion = None
                     self.rRegion = None
                     self.dLimits = None
                     self.rLimits = None
-            
+
         if self.runSolver and self.solution:
             D, R = self.solution
             if D is not None:
@@ -1706,8 +1887,22 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
                 self.setDataLimits.setEnabled(True)
                 self.writePlot.setEnabled(True)
-                self.doNoiseAnalysis.setEnabled(True)
-                self.computeSigmaA.setEnabled(True)
+
+                if self.only_new_solver_wanted:
+                    self.markDzone.setEnabled(True)
+                    self.markRzone.setEnabled(True)
+                    self.minEventEdit.setEnabled(True)
+                    self.maxEventEdit.setEnabled(True)
+                    self.locateEvent.setEnabled(True)
+                else:
+                    self.markDzone.setEnabled(True)
+                    self.markRzone.setEnabled(True)
+                    self.minEventEdit.setEnabled(True)
+                    self.maxEventEdit.setEnabled(True)
+                    self.locateEvent.setEnabled(True)
+                    # self.doNoiseAnalysis.setEnabled(True)
+                    # self.computeSigmaA.setEnabled(True)
+
                 self.doBlockIntegration.setEnabled(True)
                 self.startOver.setEnabled(True)
                 self.fillTableViewOfData()
@@ -1780,7 +1975,24 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                      ' points ---  sigmaA: ' + fp.to_precision(self.sigmaA, 4))
         
         self.reDrawMainPlot()
-        
+
+    def processEventNoiseFromIterativeSolution(self, left, right):
+
+        if (right - left) < 9:
+            return
+
+        assert left >= self.left
+        assert right <= self.right
+
+        self.eventXvals = []
+        self.eventYvals = []
+        for i in range(left, right + 1):
+            self.eventXvals.append(i)
+            self.eventYvals.append(self.yValues[i])
+
+        _, self.numNApts, self.sigmaA = getCorCoefs(self.eventXvals,
+                                                    self.eventYvals)
+
     def processBaselineNoise(self, secondPass=False):
 
         if len(self.selectedPoints) != 2:
@@ -1835,17 +2047,17 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         # warnings are given.  Later, the Cholesky-Decomposition may fail because block integration
         # was really needed.  That is a fatal error but is trapped and the user alerted to the problem
 
-        if len(self.corCoefs) > 0:
+        if len(self.corCoefs) > 1:
             if self.corCoefs[1] >= 0.7:
-                self.showInfo('The auto-correlation coefficient at lag 1 is suspiciously large. ' +
-                              'This may be because the light curve needs some degree of block integration. ' +
-                              'Failure to do a needed block integration allows point-to-point correlations caused by ' +
+                self.showInfo('The auto-correlation coefficient at lag 1 is suspiciously large. '
+                              'This may be because the light curve needs some degree of block integration. '
+                              'Failure to do a needed block integration allows point-to-point correlations caused by '
                               'the camera integration to artificially induce non-physical correlated noise.')
-            elif len(self.corCoefs) > 1:
+            elif len(self.corCoefs) > 2:
                 if self.corCoefs[2] >= 0.3:
-                    self.showInfo('The auto-correlation coefficient at lag 2 is suspiciously large. ' +
-                                  'This may be because the light curve needs some degree of block integration. ' +
-                                  'Failure to do a needed block integration allows point-to-point correlations caused by ' +
+                    self.showInfo('The auto-correlation coefficient at lag 2 is suspiciously large. '
+                                  'This may be because the light curve needs some degree of block integration. '
+                                  'Failure to do a needed block integration allows point-to-point correlations caused by '
                                   'the camera integration to artificially induce non-physical correlated noise.')
         
         if self.sigmaA is None:
@@ -1858,7 +2070,57 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.markRzone.setEnabled(True)
         self.minEventEdit.setEnabled(True)
         self.maxEventEdit.setEnabled(True)
-    
+
+    def processBaselineNoiseFromIterativeSolution(self, left, right):
+
+        if (right - left) < 14:
+            return 'Failed'
+
+        assert left >= self.left
+        assert right <= self.right
+
+        self.baselineXvals = []
+        self.baselineYvals = []
+        for i in range(left, right + 1):
+            self.baselineXvals.append(i)
+            self.baselineYvals.append(self.yValues[i])
+
+        self.newCorCoefs, self.numNApts, sigB = getCorCoefs(self.baselineXvals,
+                                                            self.baselineYvals)
+
+        if len(self.corCoefs) == 0:
+            self.corCoefs = np.ndarray(shape=(len(self.newCorCoefs),))
+            np.copyto(self.corCoefs, self.newCorCoefs)
+            self.numPtsInCorCoefs = self.numNApts
+            self.sigmaB = sigB
+        else:
+            totalPoints = self.numNApts + self.numPtsInCorCoefs
+            self.corCoefs = (self.corCoefs * self.numPtsInCorCoefs +
+                             self.newCorCoefs * self.numNApts) / totalPoints
+            self.sigmaB = (self.sigmaB * self.numPtsInCorCoefs +
+                           sigB * self.numNApts) / totalPoints
+            self.numPtsInCorCoefs = totalPoints
+
+        # Try to warn user about the possible need for block integration by testing the lag 1
+        # and lag 2 correlation coefficients.  The tests are just guesses on my part, so only
+        # warnings are given.  Later, the Cholesky-Decomposition may fail because block integration
+        # was really needed.  That is a fatal error but is trapped and the user alerted to the problem
+
+        if len(self.corCoefs) > 1:
+            if self.corCoefs[1] >= 0.7:
+                self.showInfo(
+                    'The auto-correlation coefficient at lag 1 is suspiciously large. '
+                    'This may be because the light curve needs some degree of block integration. '
+                    'Failure to do a needed block integration allows point-to-point correlations caused by '
+                    'the camera integration to artificially induce non-physical correlated noise.')
+            elif len(self.corCoefs) > 2:
+                if self.corCoefs[2] >= 0.3:
+                    self.showInfo(
+                        'The auto-correlation coefficient at lag 2 is suspiciously large. '
+                        'This may be because the light curve needs some degree of block integration. '
+                        'Failure to do a needed block integration allows point-to-point correlations caused by '
+                        'the camera integration to artificially induce non-physical correlated noise.')
+
     def removePointSelections(self):
         for i, oldStatus in self.selectedPoints.items():
             self.yStatus[i] = oldStatus
@@ -1912,8 +2174,22 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.startOver.setEnabled(True)
         self.doBlockIntegration.setEnabled(True)
         self.setDataLimits.setEnabled(True)
-        self.doNoiseAnalysis.setEnabled(True)
-        self.computeSigmaA.setEnabled(True)
+
+        if self.only_new_solver_wanted:
+            self.markDzone.setEnabled(True)
+            self.markRzone.setEnabled(True)
+            self.locateEvent.setEnabled(True)
+            self.minEventEdit.setEnabled(True)
+            self.maxEventEdit.setEnabled(True)
+        else:
+            self.markDzone.setEnabled(True)
+            self.markRzone.setEnabled(True)
+            self.minEventEdit.setEnabled(True)
+            self.maxEventEdit.setEnabled(True)
+            self.locateEvent.setEnabled(True)
+            # self.doNoiseAnalysis.setEnabled(True)
+            # self.computeSigmaA.setEnabled(True)
+
         # Reset the data plot so that all points are visible
         self.mainPlot.autoRange()
         
@@ -2082,7 +2358,6 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         if self.showSecondaryCheckBox.isChecked() and len(self.yRefStar) == self.dataLen:
             self.mainPlot.plot(self.yRefStar)
             right = min(self.dataLen, self.right+1)
-            # right = self.right
             x = [i for i in range(self.left, right)]
             y = [self.yRefStar[i]for i in range(self.left, right)]            
             self.mainPlot.plot(x, y, pen=None, symbol='o', 

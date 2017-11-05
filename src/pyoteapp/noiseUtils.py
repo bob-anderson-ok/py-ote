@@ -46,5 +46,5 @@ def getCorCoefs(x, y):
     ans = []
     for lag in range(11):
         ans.append(laggedCoef(residuals, lag))
-        
+
     return np.array(ans), len(x), np.std(residuals)

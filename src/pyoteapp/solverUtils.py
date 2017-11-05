@@ -343,12 +343,18 @@ def subFrameAdjusted(*, eventType=None, cand=None, B=None, A=None,
 
     if eventType == 'Donly':
         if aicModelValue(obsValue=yValues[D], B=B, A=A, sigmaB=sigmaB, sigmaA=sigmaA) == yValues[D]:
-            # If point at D categorizes as M (valid mid-point), do sub-frame adjustment
+            # If point at D categorizes as M (valid mid-point), do sub-frame
+            # adjustment and exit
             adjD = adjustD()
         elif aicModelValue(obsValue=yValues[D], B=B, A=A, sigmaB=sigmaB, sigmaA=sigmaA) == B:
-            # else if point at D categorizes as B, set D to D+1 and recalculate B and A
+            # else if point at D categorizes as B, set D to D+1
             D = D + 1
             adjD = D
+            # It's possible that this new point qualifies as M --- so we check:
+            if aicModelValue(
+                    obsValue=yValues[D], B=B, A=A, sigmaB=sigmaB,
+                    sigmaA=sigmaA) == yValues[D]:
+                adjD = adjustD()
             B, A = calcBandA(yValues=yValues, left=left, right=right, cand=(D, R))
         # else (point at D categorizes as A) --- nothing to do
         return (adjD, adjR), B, A
@@ -361,27 +367,64 @@ def subFrameAdjusted(*, eventType=None, cand=None, B=None, A=None,
             # else if point at R categorizes as A, set R to R + 1 and recalculate B and A
             R = R + 1
             adjR = R
+            # It's possible that this new point qualifies as M --- so we check
+            if aicModelValue(
+                    obsValue=yValues[R], B=B, A=A, sigmaB=sigmaB,
+                    sigmaA=sigmaA) == yValues[R]:
+                adjR = adjustR()
             B, A = calcBandA(yValues=yValues, left=left, right=right, cand=(D, R))
         # else (point at R categorizes as B) --- nothing to do
         return (adjD, adjR), B, A
 
     elif eventType == 'DandR':
-        if aicModelValue(obsValue=yValues[D], B=B, A=A, sigmaB=sigmaB, sigmaA=sigmaA) == yValues[D]:
-            # The point at D categorizes as M, do sub-frame adjustment
+        if aicModelValue(
+                obsValue=yValues[D], B=B, A=A, sigmaB=sigmaB, sigmaA=sigmaA) == yValues[D]:
+            # The point at D categorizes as M, do sub-frame adjustment; this
+            # (finishes D)
             adjD = adjustD()
         elif aicModelValue(obsValue=yValues[D], B=B, A=A, sigmaB=sigmaB, sigmaA=sigmaA) == B:
             # The point at D categorizes as B, set D to D+1 and recalculate B and A
             D = D + 1
             adjD = D
+            # It's possible that this new point qualifies as M --- so we check
+            if aicModelValue(
+                    obsValue=yValues[D], B=B, A=A, sigmaB=sigmaB,
+                    sigmaA=sigmaA) == yValues[D]:
+                adjD = adjustD()
             B, A = calcBandA(yValues=yValues, left=left, right=right, cand=(D, R))
-        if aicModelValue(obsValue=yValues[R], B=B, A=A, sigmaB=sigmaB, sigmaA=sigmaA) == yValues[R]:
+        elif aicModelValue(obsValue=yValues[D-1], B=B, A=A, sigmaB=sigmaB,
+                           sigmaA=sigmaA) == yValues[D-1]:
+            # The point at D categorizes as A, and we have found
+            # that the point at D-1 categorizes as M, so set D to D-1 and
+            # recalculate B and A
+            D = D - 1
+            adjD = adjustD()
+            B, A = calcBandA(yValues=yValues, left=left, right=right,
+                             cand=(D, R))
+
+        if aicModelValue(
+                obsValue=yValues[R], B=B, A=A, sigmaB=sigmaB, sigmaA=sigmaA) == yValues[R]:
             # The point at R categorizes as M, do sub-frame adjustment
             adjR = adjustR()
         elif aicModelValue(obsValue=yValues[R], B=B, A=A, sigmaB=sigmaB, sigmaA=sigmaA) == A:
             # The point at R categorizes as A, set R to R + 1 and recalculate B and A
             R = R + 1
             adjR = R
+            # It's possible that this new point qualifies as M --- so we check
+            if aicModelValue(
+                    obsValue=yValues[R], B=B, A=A, sigmaB=sigmaB,
+                    sigmaA=sigmaA) == yValues[R]:
+                adjR = adjustR()
             B, A = calcBandA(yValues=yValues, left=left, right=right, cand=(D, R))
+        elif aicModelValue(obsValue=yValues[R - 1], B=B, A=A, sigmaB=sigmaB,
+                           sigmaA=sigmaA) == yValues[R - 1]:
+            # The point at R categorizes as B, and we have found
+            # that the point at R-1 categorizes as M, so set R to R-1 and
+            # recalculate B and A
+            R = R - 1
+            adjR = adjustR()
+            B, A = calcBandA(yValues=yValues, left=left, right=right,
+                             cand=(D, R))
         return (adjD, adjR), B, A
 
     else:
