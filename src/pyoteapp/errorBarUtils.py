@@ -17,8 +17,8 @@ pyximport.install()
 from pyoteapp.c_functions import find_Dedge_logl  # Finds D using a subframe model
 
 
-def edgeDistributionGenerator(*, ntrials: int= 10000, numPts: int = None, D: int = None, acfcoeffs: List[float] = None,
-                              B: float = None, A: float = None, sigmaB: float = None, sigmaA: float = None
+def edgeDistributionGenerator(*, ntrials: int=10000, numPts: int=None, D: int=None, acfcoeffs: List[float]=None,
+                              B: float=None, A: float=None, sigmaB: float=None, sigmaA: float=None
                               ) -> Iterator[Union[float, List[float]]]:
     my_noise_gen = None
     try:

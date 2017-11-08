@@ -73,7 +73,7 @@ def test_calc_logl_from_metric():
 def test_locate_fixed_event_position():
     y = np.repeat([10.0], 1000)
     y[500:600] = 9.0
-    d, r, b, a, sigma_b, sigma_a, metric = \
+    d, r, b, a, sigma_b, sigma_a, metric, sol_count = \
         locate_fixed_event_position(y, 0, 999, 100)
     assert d == 499
     assert r == 600
@@ -85,7 +85,7 @@ def test_locate_fixed_event_position():
     np.random.seed(1)
     y = np.random.normal(10.0, 3.0, 1000)
     y[500:600] -= 5
-    d, r, b, a, sigma_b, sigma_a, metric = \
+    d, r, b, a, sigma_b, sigma_a, metric, sol_count = \
         locate_fixed_event_position(y, 0, 999, 100)
     assert d == 497
     assert r == 598
@@ -97,12 +97,27 @@ def test_locate_fixed_event_position():
 
 
 def test_find_best_event_from_min_max_size():
+
+    d = None
+    r = None
+    b = None
+    a = None
+    sigma_b = None
+    sigma_a = None
+    metric = None
+
     y = np.repeat([10.0], 1000)
     y[500:602] = 5.0
     y[500] = 6.0
     y[601] = 7.0
-    d, r, b, a, sigma_b, sigma_a, metric = \
-        find_best_event_from_min_max_size(y, 0, 999, 80, 110)
+
+    solverGen = find_best_event_from_min_max_size(y, 0, 999, 80, 110)
+    for item in solverGen:
+        if item[0] == 'fractionDone' or item[0] == 'event not found':
+            pass
+        else:
+            d, r, b, a, sigma_b, sigma_a, metric = item
+
     assert d == 500
     assert r == 601
     assert isclose(b, 10.0)
@@ -127,8 +142,12 @@ def test_find_best_event_from_min_max_size():
 
     y = np.array(y_list)
 
-    d, r, b, a, sigma_b, sigma_a, metric = \
-        find_best_event_from_min_max_size(y, 0, 51, 1, 10)
+    solverGen = find_best_event_from_min_max_size(y, 0, 51, 1, 10)
+    for item in solverGen:
+        if item[0] == 'fractionDone' or item[0] == 'event not found':
+            pass
+        else:
+            d, r, b, a, sigma_b, sigma_a, metric = item
 
     assert d == 24
     assert r == 28
@@ -138,8 +157,12 @@ def test_find_best_event_from_min_max_size():
     assert isclose(sigma_a, 1.5188367090842694)
     assert isclose(metric, -272.39810149042796)
 
-    d, r, b, a, sigma_b, sigma_a, metric = \
-        find_best_event_from_min_max_size(y, 10, 41, 1, 10)
+    solverGen = find_best_event_from_min_max_size(y, 10, 41, 1, 10)
+    for item in solverGen:
+        if item[0] == 'fractionDone' or item[0] == 'event not found':
+            pass
+        else:
+            d, r, b, a, sigma_b, sigma_a, metric = item
 
     assert d == 25
     assert r == 27
@@ -151,12 +174,28 @@ def test_find_best_event_from_min_max_size():
 
 
 def test_locate_event_from_d_and_r_ranges():
+    d = None
+    r = None
+    b = None
+    a = None
+    sigma_b = None
+    sigma_a = None
+    metric = None
+
     y = np.repeat([10.0], 1000)
     y[500:602] = 5.0
     y[500] = 6.0
     y[601] = 7.0
-    d, r, b, a, sigma_b, sigma_a, metric = \
-        locate_event_from_d_and_r_ranges(y, 0, 999, 1, 520, 522, 999)
+
+    # d, r, b, a, sigma_b, sigma_a, metric = \
+    #     locate_event_from_d_and_r_ranges(y, 0, 999, 1, 520, 522, 999)
+    solverGen = locate_event_from_d_and_r_ranges(y, 0, 999, 1, 520, 522, 999)
+    for item in solverGen:
+        if item[0] == 'fractionDone' or item[0] == 'event not found':
+            pass
+        else:
+            d, r, b, a, sigma_b, sigma_a, metric = item
+
     assert d == 500
     assert r == 601
     assert isclose(b, 10.0)
@@ -165,8 +204,15 @@ def test_locate_event_from_d_and_r_ranges():
     assert sigma_a == pytest.approx(0.0)
     assert isclose(metric, 706979.6256951995)
 
-    d, r, b, a, sigma_b, sigma_a, metric = \
-        locate_event_from_d_and_r_ranges(y, 10, 990, 10, 520, 522, 989)
+    # d, r, b, a, sigma_b, sigma_a, metric = \
+    #     locate_event_from_d_and_r_ranges(y, 10, 990, 10, 520, 522, 989)
+    solverGen = locate_event_from_d_and_r_ranges(y, 10, 990, 10, 520, 522, 989)
+    for item in solverGen:
+        if item[0] == 'fractionDone' or item[0] == 'event not found':
+            pass
+        else:
+            d, r, b, a, sigma_b, sigma_a, metric = item
+
     assert d == 500
     assert r == 601
     assert isclose(b, 10.0)
@@ -182,9 +228,12 @@ def test_find_best_r_only_from_min_max_size():
     y[500] = 6.0
 
     # Test with left=10 and right=900 (trimmed light curve)
-    d, r, b, a, sigma_b, sigma_a, metric = \
-        find_best_r_only_from_min_max_size(
-            y, 10, 900, 400, 600)
+    # d, r, b, a, sigma_b, sigma_a, metric = \
+    #     find_best_r_only_from_min_max_size(
+    #         y, 10, 900, 400, 600)
+
+    solverGen = find_best_r_only_from_min_max_size( y, 10, 900, 400, 600)
+    d, r, b, a, sigma_b, sigma_a, metric = next(solverGen)
 
     assert d is None
     assert r == 500
@@ -195,9 +244,8 @@ def test_find_best_r_only_from_min_max_size():
     assert isclose(metric, 630472.812493715)
 
     # Test with no trimming and smallest event size in the mix
-    d, r, b, a, sigma_b, sigma_a, metric = \
-        find_best_r_only_from_min_max_size(
-            y, 0, 999, 1, 600)
+    solverGen = find_best_r_only_from_min_max_size(y, 0, 999, 1, 600)
+    d, r, b, a, sigma_b, sigma_a, metric = next(solverGen)
 
     assert d is None
     assert r == 500
@@ -212,9 +260,8 @@ def test_find_best_r_only_from_min_max_size():
     y[0] = 5.0
     y[1] = 6.0
 
-    d, r, b, a, sigma_b, sigma_a, metric = \
-        find_best_r_only_from_min_max_size(
-            y, 0, 999, 1, 600)
+    solverGen = find_best_r_only_from_min_max_size(y, 0, 999, 1, 600)
+    d, r, b, a, sigma_b, sigma_a, metric = next(solverGen)
 
     assert d is None
     assert r == 1
@@ -231,9 +278,8 @@ def test_find_best_r_only_from_min_max_size():
     y[999] += 9.0
     y[998] += 6.0
 
-    d, r, b, a, sigma_b, sigma_a, metric = \
-        find_best_r_only_from_min_max_size(
-            y, 0, 999, 800, 998)
+    solverGen = find_best_r_only_from_min_max_size(y, 0, 999, 800, 998)
+    d, r, b, a, sigma_b, sigma_a, metric = next(solverGen)
 
     assert d is None
     assert r == 998
@@ -251,9 +297,8 @@ def test_find_best_d_only_from_min_max_size():
     y[0] = 10.0
     y[1] = 6.0
 
-    d, r, b, a, sigma_b, sigma_a, metric = \
-        find_best_d_only_from_min_max_size(
-            y, 0, 999, 1, 998)
+    solverGen = find_best_d_only_from_min_max_size(y, 0, 999, 1, 998)
+    d, r, b, a, sigma_b, sigma_a, metric = next(solverGen)
 
     assert d == 1
     assert r is None
@@ -268,9 +313,8 @@ def test_find_best_d_only_from_min_max_size():
     y[998] = 5.0
     y[999] = 0.0
 
-    d, r, b, a, sigma_b, sigma_a, metric = \
-        find_best_d_only_from_min_max_size(
-            y, 0, 999, 1, 998)
+    solverGen = find_best_d_only_from_min_max_size(y, 0, 999, 1, 998)
+    d, r, b, a, sigma_b, sigma_a, metric = next(solverGen)
 
     assert d == 998
     assert r is None
@@ -285,9 +329,8 @@ def test_find_best_d_only_from_min_max_size():
     y[99] = 0.0
     # y[98] = 0.0
 
-    d, r, b, a, sigma_b, sigma_a, metric = \
-        find_best_d_only_from_min_max_size(
-            y, 0, 99, 1, 98)
+    solverGen = find_best_d_only_from_min_max_size(y, 0, 99, 1, 98)
+    d, r, b, a, sigma_b, sigma_a, metric = next(solverGen)
 
     assert d == 98
     assert r is None

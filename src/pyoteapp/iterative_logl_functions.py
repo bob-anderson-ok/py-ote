@@ -9,8 +9,12 @@ curve.
 
 import numpy as np
 import sys
-from math import log, pi, sqrt
+from math import log, pi, sqrt, exp
 from typing import Tuple
+from pyoteapp.solverUtils import calcNumCandidatesFromEventSize
+from pyoteapp.solverUtils import calcNumCandidatesFromDandRlimits
+from pyoteapp.solverUtils import model, logLikelihoodLine
+from pyoteapp.likelihood_calculations import cum_loglikelihood, aicc
 
 
 def add_entry(ynew: float, s: float, s2: float, n: int, calc_var: bool):
@@ -105,8 +109,14 @@ def find_best_event_from_min_max_size(
     sigma_b_best = 0.0
     sigma_a_best = 0.0
 
+    num_candidates = calcNumCandidatesFromEventSize(
+        left=left, right=right, minSize=min_event, maxSize=max_event)
+
+    clump_size = np.ceil(num_candidates / 50)
+    solution_counter = 0
+
     for event in range(min_event, max_event + 1):
-        d, r, b, a, sigma_b, sigma_a, metric = \
+        d, r, b, a, sigma_b, sigma_a, metric, sol_count = \
             locate_fixed_event_position(y, left, right, event)
 
         # This little 'trick' is used to auto-initialize the 'best' values
@@ -122,7 +132,17 @@ def find_best_event_from_min_max_size(
             sigma_b_best = sigma_b
             sigma_a_best = sigma_a
 
-    return d_best, r_best, b_best, a_best, sigma_b_best, sigma_a_best, \
+        solution_counter += sol_count
+
+        # if solution_counter % clump_size == 0:
+        yield 'fractionDone', solution_counter / num_candidates
+
+    # Here we test for solution being better than straight line
+    if not solution_is_better_than_straight_line(
+            y, left, right, d_best, r_best, b, a, sigma_b, sigma_a, k=4):
+        yield 'no event present', solution_counter / num_candidates
+
+    yield d_best, r_best, b_best, a_best, sigma_b_best, sigma_a_best, \
         max_metric
 
 
@@ -193,7 +213,15 @@ def find_best_r_only_from_min_max_size(
         if metric > max_metric and b > a:
             update_best_solution()
 
-    return None, r_best, b_best, a_best, sigma_b, sigma_a, max_metric
+            # Here we test for solution being better than straight line
+        if not solution_is_better_than_straight_line(
+                y, left, right, None, r_best, b, a, sigma_b, sigma_a, k=3):
+            yield 'no event present', 1.0
+
+    if b_best <= a_best:
+        yield 'no event present', 1.0
+
+    yield None, r_best, b_best, a_best, sigma_b, sigma_a, max_metric
 
 
 def find_best_d_only_from_min_max_size(
@@ -264,11 +292,20 @@ def find_best_d_only_from_min_max_size(
         if metric > max_metric and b > a:
             update_best_solution()
 
-    return d_best, None, b_best, a_best, sigma_b, sigma_a, max_metric
+    if not solution_is_better_than_straight_line(
+            y, left, right, d_best, None, b, a, sigma_b, sigma_a, k=3):
+        yield 'no event present', 1.0
+
+    if b_best <= a_best:
+        yield 'no event present', 1.0
+
+    yield d_best, None, b_best, a_best, sigma_b, sigma_a, max_metric
 
 
-def locate_fixed_event_position(y: np.ndarray, left: int, right: int,
-                                event_size: int) -> StdAnswer:
+def locate_fixed_event_position(
+        y: np.ndarray, left: int, right: int,
+        event_size: int) -> Tuple[int, int, float, float, float, float,
+                                  float, int]:
     """Finds the best location for a fixed size event"""
 
     def update_best_solution():
@@ -325,6 +362,8 @@ def locate_fixed_event_position(y: np.ndarray, left: int, right: int,
 
     # metrics = [metric]  # For use during development
 
+    solution_count = 0
+
     while r < right - 1:
         # calc metric for next event position from current position
         b_s, b_s2, b_n, b_var = add_entry(y[d], b_s, b_s2, b_n, False)
@@ -344,13 +383,11 @@ def locate_fixed_event_position(y: np.ndarray, left: int, right: int,
         if metric > max_metric and b > a:
             update_best_solution()
 
+        solution_count += 1
+
         # metrics.append(metric)  # For use during developmen
 
-    # ans = 'd:%i  r:%i  b:%.2f sigmaB:%.2f  a:%.2f sigmaA:%.2f  metric:%f' % \
-    #       (d_max, r_max, b,  sigma_b, a, sigma_a, max_metric)
-    # print(ans)
-
-    return d_max, r_max, b_max, a_max, sigma_b, sigma_a, max_metric
+    return d_max, r_max, b_max, a_max, sigma_b, sigma_a, max_metric, solution_count
 
 
 def locate_event_from_d_and_r_ranges(
@@ -382,6 +419,12 @@ def locate_event_from_d_and_r_ranges(
             b_var = max_var
         return -b_n * log(b_var) - a_n * log(a_var)
 
+    num_candidates = calcNumCandidatesFromDandRlimits(
+        dLimits=(d_start, d_end), rLimits=(r_start, r_end))
+
+    clump_size = np.ceil(num_candidates / 50)
+    solution_counter = 0
+
     d = d_start
 
     max_metric = None
@@ -400,7 +443,7 @@ def locate_event_from_d_and_r_ranges(
         r = r_start
 
         if d > left:
-            b_sl, b_s2l, b_nl, b_varl = calc_metric_numpy(y[left:d])   #
+            b_sl, b_s2l, b_nl, b_varl = calc_metric_numpy(y[left:d])
             # Lefthand wing
         else:
             b_sl = 0.0
@@ -408,7 +451,7 @@ def locate_event_from_d_and_r_ranges(
             b_nl = 0
             b_varl = 0.0
 
-        b_sr, b_s2r, b_nr, b_varr = calc_metric_numpy(y[r+1:right+1])  #
+        b_sr, b_s2r, b_nr, b_varr = calc_metric_numpy(y[r+1:right+1])
         # Righthand wing
 
         b_s = b_sl + b_sr
@@ -422,7 +465,10 @@ def locate_event_from_d_and_r_ranges(
 
         if not max_metric:
             update_best_solution()
-        if metric >= max_metric:
+
+        b = b_s / b_n
+        a = a_s / a_n
+        if metric >= max_metric and b > a:
             update_best_solution()
 
         while r < r_end:
@@ -432,8 +478,14 @@ def locate_event_from_d_and_r_ranges(
 
             metric = calc_metric()
 
-            if metric >= max_metric:
+            b = b_s / b_n
+            a = a_s / a_n
+            if metric >= max_metric and b > a:
                 update_best_solution()
+
+            solution_counter += 1
+            if solution_counter % clump_size == 0:
+                yield 'fractionDone', solution_counter / num_candidates
         d += 1
 
     b = b_s_best / b_n_best
@@ -441,7 +493,35 @@ def locate_event_from_d_and_r_ranges(
     sigma_b = sqrt(b_var_best)
     sigma_a = sqrt(a_var_best)
 
-    return d_best, r_best, b, a, sigma_b, sigma_a, max_metric
+    # Here we test for solution being better than straight line
+    if not solution_is_better_than_straight_line(
+            y, left, right, d_best, r_best, b, a, sigma_b, sigma_a, k=4):
+        yield 'no event present', solution_counter / num_candidates
+
+    yield d_best, r_best, b, a, sigma_b, sigma_a, max_metric
+
+
+def solution_is_better_than_straight_line(y, left, right, d, r, b, a, sigma_b,
+                                          sigma_a, k=4):
+    m, sigma = model(
+        B=b, A=a, edgeTuple=(d, r), sigmaB=sigma_b, sigmaA=sigma_a,
+        numPts=y.size)
+
+    solution_logl = cum_loglikelihood(y, m, sigma, left, right)
+
+    lineScore = logLikelihoodLine(y, sigmaB=sigma_b, left=left, right=right)
+
+    aiccSol = aicc(solution_logl, right - left + 1, k)
+    aiccLine = aicc(lineScore, right - left + 1, 1)
+
+    if aiccSol < aiccLine:
+        pLine = exp(-(aiccLine - aiccSol) / 2)
+    else:
+        pLine = 1.00
+    if pLine > 0.001:
+        return False
+    else:
+        return True
 
 
 def calc_logl_from_metric(s: float, s2: float, n: int) -> Tuple[float, float]:
@@ -453,7 +533,7 @@ def calc_logl_from_metric(s: float, s2: float, n: int) -> Tuple[float, float]:
     return -n * 0.9189385332046727 - n / 2.0 - n * log(sigma2) / 2.0, sigma2
 
 
-def cum_loglikelihood(y, m, sigma):
+def cum_loglikelihood_raw(y, m, sigma):
     """ numpy accelerated sum of loglikelihoods --- for test purposes
 
         Args:

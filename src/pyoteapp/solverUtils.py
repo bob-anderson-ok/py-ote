@@ -15,7 +15,9 @@ from pyoteapp.likelihood_calculations import loglikelihood
 
 
 def aicModelValue(*, obsValue=None, B=None, A=None, sigmaB=None, sigmaA=None):
-    assert(B >= A and sigmaA > 0.0 and sigmaB > 0.0)
+    assert(B >= A)
+    assert(sigmaA > 0.0)
+    assert(sigmaB > 0.0)
     # This function determines if an observation point should categorized as a baseline (B)
     # point, an event (A) point, or a valid intermediate point using the Akaike Information Criterion
     # An intermediate point reflects a more complex model (higher dimension model)

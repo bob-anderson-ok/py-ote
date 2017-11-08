@@ -48,7 +48,7 @@ from pyoteapp.iterative_logl_functions import find_best_d_only_from_min_max_size
 cursorAlert = pyqtSignal()
 
 # The gui module was created by typing
-#    !pyuic5 simple-plot.ui -o gui.py
+#    !pyuic5 simple_plot.ui -o gui.py
 # in the IPython console while in pyoteapp directory
 
 # The timestampDialog module was created by typing
@@ -173,10 +173,10 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.doBlockIntegration.clicked.connect(self.doIntegration)
         
         # Button: Perform baseline noise analysis
-        self.doNoiseAnalysis.clicked.connect(self.processBaselineNoise)
+        # self.doNoiseAnalysis.clicked.connect(self.processBaselineNoise)
         
         # Button: Perform event noise analysis (determine sigmaA only)
-        self.computeSigmaA.clicked.connect(self.processEventNoise)
+        # self.computeSigmaA.clicked.connect(self.processEventNoise)
         
         # Button: Mark D zone
         self.markDzone.clicked.connect(self.showDzone)
@@ -215,7 +215,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                                    viewBox=CustomViewBox(border=(255, 255, 255)),
                                    enableMenu=False)
         self.mainPlot.setObjectName("mainPlot")
-        self.horizontalLayout_8.addWidget(self.mainPlot, stretch=1)
+        self.horizontalLayout_11.addWidget(self.mainPlot, stretch=1)
 
         oldMainPlot.setParent(None)
 
@@ -250,7 +250,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
         self.checkForNewVersion()
 
-        self.only_new_solver_wanted = False
+        self.only_new_solver_wanted = True
 
     def openHelpFile(self):
         helpFilePath = os.path.join(os.path.split(__file__)[0], 'pyote-info.pdf')
@@ -1166,7 +1166,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
         self.snrB = (self.B - self.A) / self.sigmaB
         self.snrA = (self.B - self.A) / self.sigmaA
-        snr = self.snrB  # A more reliable number
+        snr = max(self.snrB, 0.2)  # A more reliable number
+
         D = int(round(80 / snr**2 + 0.5))
         
         D = max(10, D)
@@ -1197,7 +1198,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                     self.cancelRequested = False
                     self.showMsg('Error bar calculation was cancelled')
                     self.progressBar.setValue(0)
-                    self.finalReport()
+                    # self.finalReport()
                     return
             else:
                 # self.showMsg('Error bar calculation done')
@@ -1471,9 +1472,25 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
             self.processEventNoiseFromIterativeSolution(D + 1, R - 1)
 
-            # self.sigmaB = 10.0
-            # self.sigmaA = 8.0
-            # self.corCoefs = np.array([1.0, 0.75, .025])
+            # Try to warn user about the possible need for block integration by testing the lag 1
+            # and lag 2 correlation coefficients.  The tests are just guesses on my part, so only
+            # warnings are given.  Later, the Cholesky-Decomposition may fail because block integration
+            # was really needed.  That is a fatal error but is trapped and the user alerted to the problem
+
+            if len(self.corCoefs) > 1:
+                if self.corCoefs[1] >= 0.7:
+                    self.showInfo(
+                        'The auto-correlation coefficient at lag 1 is suspiciously large. '
+                        'This may be because the light curve needs some degree of block integration. '
+                        'Failure to do a needed block integration allows point-to-point correlations caused by '
+                        'the camera integration to artificially induce non-physical correlated noise.')
+                elif len(self.corCoefs) > 2:
+                    if self.corCoefs[2] >= 0.3:
+                        self.showInfo(
+                            'The auto-correlation coefficient at lag 2 is suspiciously large. '
+                            'This may be because the light curve needs some degree of block integration. '
+                            'Failure to do a needed block integration allows point-to-point correlations caused by '
+                            'the camera integration to artificially induce non-physical correlated noise.')
 
             if self.sigmaA is None:
                 self.sigmaA = self.sigmaB
@@ -1512,22 +1529,23 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.cancelRequested = False
         for item in solverGen:
             if item[0] == 'fractionDone':
+                pass
                 # Here we should update progress bar and check for cancellation
-                self.progressBar.setValue(item[1] * 100)
-                QtGui.QApplication.processEvents()
-                if self.cancelRequested:
-                    self.cancelRequested = False
-                    self.runSolver = False
-                    self.showMsg('Solution search was cancelled')
-                    self.progressBar.setValue(0)
-                    break
+                # self.progressBar.setValue(item[1] * 100)
+                # QtGui.QApplication.processEvents()
+                # if self.cancelRequested:
+                #     self.cancelRequested = False
+                #     self.runSolver = False
+                #     self.showMsg('Solution search was cancelled')
+                #     self.progressBar.setValue(0)
+                #     break
             elif item[0] == 'no event present':
                 self.showMsg('No event fitting search criteria could be found.')
-                self.progressBar.setValue(0)
+                # self.progressBar.setValue(0)
                 self.runSolver = False
                 break
             else:
-                self.progressBar.setValue(0)
+                # self.progressBar.setValue(0)
                 self.solution = item[0]
                 self.B = item[1]
                 self.A = item[2]
@@ -1608,7 +1626,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             maxText = '<blank>'
         self.showMsg('minEvent: ' + minText + '  maxEvent: ' + maxText)
         
-        candFrom, numCandidates = candidateCounter(eventType=self.eventType, 
+        candFrom, numCandidates = candidateCounter(eventType=self.eventType,
                                                    dLimits=self.dLimits, rLimits=self.rLimits,
                                                    left=self.left, right=self.right,
                                                    numPts=self.right - self.left + 1,
@@ -1616,67 +1634,96 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         if numCandidates < 0:
             self.showInfo('Search parameters are not properly specified')
             return
-        
-        self.showMsg('Number of candidate solutions: ' + str(numCandidates) +
-                     ' (' + candFrom + ')')
-    
+
+        if candFrom == 'usedSize':
+            self.showMsg('Number of candidate solutions: ' + str(numCandidates) +
+                     ' (using event min/max entries)')
+        else:
+            self.showMsg(
+                'Number of candidate solutions: ' + str(numCandidates) +
+                ' (using D/R region selections)')
+
+        # self.runSolver = True
+        # if numCandidates > 10000:
+        #     msg = 'There are ' + str(numCandidates) + ' candidates in the solution set. '
+        #     msg = msg + 'Do you wish to continue?'
+        #     self.showQuery(msg, 'Your chance to narrow the potential candidates')
+        #
+        #     if self.queryRetVal == QMessageBox.Yes:
+        #         self.showMsg('Yes was clicked --- starting solution search...')
+        #         self.solution = None
+        #         self.reDrawMainPlot()
+        #     else:
+        #         self.showMsg('"No" was clicked, so solver will be skipped')
+        #         self.runSolver = False
+
         self.runSolver = True
-        if numCandidates > 10000:
-            msg = 'There are ' + str(numCandidates) + ' candidates in the solution set. '
-            msg = msg + 'Do you wish to continue?'
-            self.showQuery(msg, 'Your chance to narrow the potential candidates')
-        
-            if self.queryRetVal == QMessageBox.Yes:
-                self.showMsg('Yes was clicked --- starting solution search...')
-                self.solution = None
-                self.reDrawMainPlot()
-            else:
-                self.showMsg('"No" was clicked, so solver will be skipped')
-                self.runSolver = False
+        solverGen = None
 
         if self.runSolver:
             if self.eventType == 'DandR':
                 self.showMsg('New solver results...', color='blue', bold=True)
 
-                if self.minEvent and self.maxEvent:
-                    d, r, b, a, sigmaB, sigmaA, metric = \
-                        find_best_event_from_min_max_size(
-                            self.yValues, self.left, self.right,
-                            self.minEvent, self.maxEvent)
+                if candFrom == 'usedSize':
+                    solverGen = find_best_event_from_min_max_size(
+                        self.yValues, self.left, self.right,
+                        self.minEvent, self.maxEvent)
                 else:
-                    d, r, b, a, sigmaB, sigmaA, metric = \
-                        locate_event_from_d_and_r_ranges(
+                    solverGen = locate_event_from_d_and_r_ranges(
                             self.yValues, self.left, self.right, self.dLimits[0],
                             self.dLimits[1], self.rLimits[0], self.rLimits[1])
 
-                self.solution = (d, r)   # These will be integer solutions
             elif self.eventType == 'Ronly':
                 self.showMsg('New solver results...', color='blue', bold=True)
-                if self.minEvent and self.maxEvent:
+                if candFrom == 'usedSize':
                     pass
                 else:
                     self.minEvent = self.rLimits[0] - self.left
                     self.maxEvent = self.rLimits[1] - self.left
-                d, r, b, a, sigmaB, sigmaA, metric = \
+                solverGen = \
                     find_best_r_only_from_min_max_size(
                         self.yValues, self.left, self.right, self.minEvent,
                         self.maxEvent)
 
-                self.solution = (d, r)
             else:  # Donly
                 self.showMsg('New solver results...', color='blue', bold=True)
-                if self.minEvent and self.maxEvent:
+                if candFrom == 'usedSize':
                     pass
                 else:
                     self.minEvent = self.right - self.dLimits[1]
                     self.maxEvent = self.right - self.dLimits[0] - 1
 
-                d, r, b, a, sigmaB, sigmaA, metric = \
+                solverGen = \
                     find_best_d_only_from_min_max_size(
                         self.yValues, self.left, self.right, self.minEvent,
                         self.maxEvent)
 
-                self.solution = (d, r)
+            if solverGen is None:
+                self.showInfo('Generator version not yet implemented')
+                return
+
+            self.cancelRequested = False
+
+            for item in solverGen:
+                if item[0] == 'fractionDone':
+                    self.progressBar.setValue(item[1] * 100)
+                    QtGui.QApplication.processEvents()
+                    if self.cancelRequested:
+                        self.cancelRequested = False
+                        self.runSolver = False
+                        self.showMsg('Solution search was cancelled')
+                        self.progressBar.setValue(0)
+                        return
+                elif item[0] == 'no event present':
+                    self.showMsg(
+                        'No event fitting search criteria could be found.')
+                    self.progressBar.setValue(0)
+                    self.runSolver = False
+                    return
+                else:
+                    d, r, b, a, sigmaB, sigmaA, metric = item
+                    self.solution = (d, r)
+                    self.progressBar.setValue(0)
 
             self.showMsg('Integer (non-subframe) solution...', blankLine=False)
             self.showMsg(
@@ -1966,8 +2013,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 self.eventYvals.append(self.yValues[i])
             self.showSelectedPoints('Points selected for event noise '
                                     'analysis: ')
-            self.doNoiseAnalysis.setEnabled(True)
-            self.computeSigmaA.setEnabled(True)
+            # self.doNoiseAnalysis.setEnabled(True)
+            # self.computeSigmaA.setEnabled(True)
         
         self.removePointSelections()
         _, self.numNApts, self.sigmaA = getCorCoefs(self.eventXvals, self.eventYvals)
@@ -2019,8 +2066,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 self.baselineYvals.append(self.yValues[i])
             self.showSelectedPoints('Points selected for baseline noise '
                                     'analysis: ')
-            self.doNoiseAnalysis.setEnabled(True)
-            self.computeSigmaA.setEnabled(True)
+            # self.doNoiseAnalysis.setEnabled(True)
+            # self.computeSigmaA.setEnabled(True)
         
         self.removePointSelections()
         
@@ -2101,26 +2148,6 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                            sigB * self.numNApts) / totalPoints
             self.numPtsInCorCoefs = totalPoints
 
-        # Try to warn user about the possible need for block integration by testing the lag 1
-        # and lag 2 correlation coefficients.  The tests are just guesses on my part, so only
-        # warnings are given.  Later, the Cholesky-Decomposition may fail because block integration
-        # was really needed.  That is a fatal error but is trapped and the user alerted to the problem
-
-        if len(self.corCoefs) > 1:
-            if self.corCoefs[1] >= 0.7:
-                self.showInfo(
-                    'The auto-correlation coefficient at lag 1 is suspiciously large. '
-                    'This may be because the light curve needs some degree of block integration. '
-                    'Failure to do a needed block integration allows point-to-point correlations caused by '
-                    'the camera integration to artificially induce non-physical correlated noise.')
-            elif len(self.corCoefs) > 2:
-                if self.corCoefs[2] >= 0.3:
-                    self.showInfo(
-                        'The auto-correlation coefficient at lag 2 is suspiciously large. '
-                        'This may be because the light curve needs some degree of block integration. '
-                        'Failure to do a needed block integration allows point-to-point correlations caused by '
-                        'the camera integration to artificially induce non-physical correlated noise.')
-
     def removePointSelections(self):
         for i, oldStatus in self.selectedPoints.items():
             self.yStatus[i] = oldStatus
@@ -2134,7 +2161,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.numSmoothPointsEdit.setEnabled(False)
         self.setDataLimits.setEnabled(False)      
         self.doBlockIntegration.setEnabled(False)    
-        self.doNoiseAnalysis.setEnabled(False)
+        # self.doNoiseAnalysis.setEnabled(False)
         self.locateEvent.setEnabled(False)
         self.calcErrBars.setEnabled(False)
         self.startOver.setEnabled(False)
@@ -2247,7 +2274,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
         if self.eventType == 'DandR':
             self.nBpts = self.right - self.solution[1] + self.solution[0] - self.left
-            self.nApts = self.solution[1] - self.left + self.right - self.solution[0] - 1
+            self.nApts = self.solution[1] - self.solution[0] - 1
 
         if self.nBpts < 1:
             self.nBpts = 1
