@@ -43,8 +43,13 @@ def getCorCoefs(x, y):
     yvalsConcat = np.array([item[1] for item in combo])
     trend = savgolTrendLine(yvalsConcat, window=301, degree=1)
     residuals = yvalsConcat - trend
-    ans = []
-    for lag in range(11):
-        ans.append(laggedCoef(residuals, lag))
+
+    # We only compute correlation coefficients if there at least 14 data points
+    if len(residuals) < 14:
+        ans = [1.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    else:
+        ans = []
+        for lag in range(11):
+            ans.append(laggedCoef(residuals, lag))
 
     return np.array(ans), len(x), np.std(residuals)

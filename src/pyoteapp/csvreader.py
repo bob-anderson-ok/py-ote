@@ -57,24 +57,32 @@ def tangraParser(line, frame, time, value, ref1, ref2, ref3):
        An example data line:  11,[16:00:14.183],2837.8,100.0,4097.32,200.0
     """
     part = line.split(',')
-    frame.append(part[0])
-    time.append(part[1])
-    if tangraNeedsBackgroundSubtraction:
-        value.append(str(float(part[2]) - float(part[3])))
-        if len(part) >= 6:
-            ref1.append(str(float(part[4]) - float(part[5])))
-        if len(part) >= 8:
-            ref2.append(str(float(part[6]) - float(part[7])))
-        if len(part) >= 10:
-            ref3.append(str(float(part[8]) - float(part[9])))
+    if len(part) < 2:
+        raise Exception(line + " :is an invalid Tangra file entry.")
     else:
-        value.append(part[2])
-        if len(part) >= 4:
-            ref1.append(part[3])
-        if len(part) >= 5:
-            ref2.append(part[4])
-        if len(part) >= 6:
-            ref3.append(part[5])
+        frame.append(part[0])
+        time.append(part[1])
+
+    try:
+        if tangraNeedsBackgroundSubtraction:
+            value.append(str(float(part[2]) - float(part[3])))
+            if len(part) >= 6:
+                ref1.append(str(float(part[4]) - float(part[5])))
+            if len(part) >= 8:
+                ref2.append(str(float(part[6]) - float(part[7])))
+            if len(part) >= 10:
+                ref3.append(str(float(part[8]) - float(part[9])))
+        else:
+            value.append(part[2])
+            if len(part) >= 4:
+                ref1.append(part[3])
+            if len(part) >= 5:
+                ref2.append(part[4])
+            if len(part) >= 6:
+                ref3.append(part[5])
+    except ValueError as e:
+        raise Exception(line + " :cannot be parsed.  Are there empty fields?")
+
 
 
 # noinspection PyUnusedLocal
@@ -158,8 +166,10 @@ def readAs(file):
                             # noinspection PyBroadException
                             try:
                                 parser(line, frame, time, value, ref1, ref2, ref3)
-                            except:
-                                return False, 'format error', frame, time, value, ref1, ref2, ref3, headers
+                            except Exception as e:
+                                return False, str(e), frame, time, value, \
+                                       ref1, \
+                                       ref2, ref3, headers
                         else:
                             return True, kind, frame, time, value, ref1, ref2, ref3, headers
                 headers.append(line)

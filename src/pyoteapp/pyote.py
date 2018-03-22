@@ -353,17 +353,17 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
         exporter = FixedImageExporter(self.dBarPlotItem)
         exporter.makeWidthHeightInts()
-        targetFileD = self.graphicFile + '.D.png'
+        targetFileD = self.graphicFile + '.D.PYOTE.png'
         exporter.export(targetFileD)
 
         exporter = FixedImageExporter(self.durBarPlotItem)
         exporter.makeWidthHeightInts()
-        targetFileDur = self.graphicFile + '.R-D.png'
+        targetFileDur = self.graphicFile + '.R-D.PYOTE.png'
         exporter.export(targetFileDur)
 
         exporter = FixedImageExporter(self.mainPlot.getPlotItem())
         exporter.makeWidthHeightInts()
-        targetFile = self.graphicFile + '.png'
+        targetFile = self.graphicFile + '.PYOTE.png'
         exporter.export(targetFile)
 
     def exportBarPlots(self):
@@ -390,12 +390,12 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             self.graphicFile = self.removeCsvExtension(self.graphicFile)
             exporter = FixedImageExporter(self.dBarPlotItem)
             exporter.makeWidthHeightInts()
-            targetFileD = self.graphicFile + '.D.png'
+            targetFileD = self.graphicFile + '.D.PYOTE.png'
             exporter.export(targetFileD)
             
             exporter = FixedImageExporter(self.durBarPlotItem)
             exporter.makeWidthHeightInts()
-            targetFileDur = self.graphicFile + '.R-D.png'
+            targetFileDur = self.graphicFile + '.R-D.PYOTE.png'
             exporter.export(targetFileDur)
             
             self.showInfo('Wrote to: \r\r' + targetFileD + ' \r\r' + targetFileDur)
@@ -428,13 +428,14 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             self.graphicFile = self.removeCsvExtension(self.graphicFile)
             exporter = FixedImageExporter(self.mainPlot.getPlotItem())
             exporter.makeWidthHeightInts()
-            targetFile = self.graphicFile + '.png'
+            targetFile = self.graphicFile + '.PYOTE.png'
             exporter.export(targetFile)
             self.showInfo('Wrote to: \r\r' + targetFile)
         
     def initializeVariablesThatDontDependOnAfile(self):
 
         self.normalized = False
+        self.timesAreValid = False
         self.selectedPoints = {}  # Clear/declare 'selected points' dictionary
         self.baselineXvals = []
         self.baselineYvals = []
@@ -1040,6 +1041,10 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
         self.reportSpecialProceduredUsed()
 
+        if not self.timesAreValid:
+            self.showMsg("Times are invalid due to corrupted timestamps!",
+                         color='red', bold=True)
+
         if self.A > 0:
             self.showMsg('nominal magDrop: %0.2f' % ((np.log10(self.B) - np.log10(self.A)) * 2.5))
         else:
@@ -1151,12 +1156,23 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         if rTime < dTime:
             rTime += 24 * 60 * 60
             self.showMsg('D and R enclose a transition through midnight')
-            
+
+        if self.timeDelta == 0:
+            self.showMsg('Timestamps are corrupted in a manner that caused a '
+                         'timeDelta of '
+                         '0.0 to be estimated!', color='red', bold=True)
+            self.showInfo(
+                'Timestamps are corrupted in a manner that caused a '
+                         'timeDelta of '
+                         '0.0 to be estimated!')
+            return
+
         numEnclosedReadings = int(round((rTime - dTime) / self.timeDelta))
         self.showMsg('From timestamps at D and R, calculated %d reading blocks.  From reading blocks, calculated %d blocks.' %
                      (numEnclosedReadings, intR - intD))
         if numEnclosedReadings == intR - intD:
             self.showMsg('Timestamps appear valid @ D and R')
+            self.timesAreValid = True
         else:
             self.showMsg('! There is something wrong with timestamps at D '
                          'and/or R or frames have been dropped !', bold=True,
@@ -1850,7 +1866,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             self.setWindowTitle('PYOTE Version: ' + version.version() + '  File in process: ' + self.filename)
             dirpath, _ = os.path.split(self.filename)
             self.logFile, _ = os.path.splitext(self.filename)
-            self.logFile = self.logFile + '.log'
+            self.logFile = self.logFile + '.PYOTE.log'
             
             curDateTime = datetime.datetime.today().ctime()
             self.showMsg('')
@@ -2120,8 +2136,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
     def processBaselineNoiseFromIterativeSolution(self, left, right):
 
-        if (right - left) < 14:
-            return 'Failed'
+        # if (right - left) < 14:
+        #     return 'Failed'
 
         assert left >= self.left
         assert right <= self.right
