@@ -1905,8 +1905,21 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 # If no timestamps were found in the input file, prompt for manual entry
                 if self.timestampListIsEmpty(time):
                     self.showMsg('Manual entry of timestamps requested as the file contained no timestamp entries', bold=True)
-                    self.showInfo('This file does not contain timestamp entries. The manual entry of either two timestamps' +
-                                  ' OR one timestamp and a frame delta time will need to be done.')
+                    self.showInfo('This files does not contain timestamp '
+                                  'entries so manual entry of either two '
+                                  'timestamps OR one timestamp and a frame '
+                                  'delta time is required.'
+                                  '\n\nEnter the timestamp '
+                                  'values that the avi '
+                                  'processing software (Limovie, Tangra, '
+                                  'etc) would have produced '
+                                  'had the OCR process not failed.  By doing '
+                                  'it in this manner, you can continue '
+                                  'processing the file as though OCR had '
+                                  'succeeded and then follow the standard '
+                                  'procedure for reporting results through '
+                                  'the IOTA event reporting spreadsheet ('
+                                  'which will make the needed corrections for camera delay and VTI offset).')
                     errmsg = ''
                     while errmsg != 'ok':
                         errmsg, manualTime, dataEntered = manualTimeStampEntry(frame, TSdialog())
