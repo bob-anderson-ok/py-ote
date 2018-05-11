@@ -5,6 +5,7 @@ Created on Mon May 29 07:00:33 2017
 
 @author: Bob Anderson
 """
+MIN_SIGMA = 0.1
 
 from math import exp
 
@@ -342,6 +343,17 @@ def subFrameAdjusted(*, eventType=None, cand=None, B=None, A=None,
     D, R = cand
     adjD = D
     adjR = R
+
+    # Here we add code so we can analyze light curves that may have sigmaB or
+    #  sigmaA values of zero.  This happens when testing with artificial data
+    #  but can also result from real light curves that may be clipped so that
+    #  all B pixels have a constant value.  Limovie can produce a sigmaA=0
+    # when a rectangular aperture is in use as well
+
+    if sigmaA == 0.0:
+        sigmaA = MIN_SIGMA
+    if sigmaB == 0.0:
+        sigmaB = MIN_SIGMA
 
     if eventType == 'Donly':
         if aicModelValue(obsValue=yValues[D], B=B, A=A, sigmaB=sigmaB, sigmaA=sigmaA) == yValues[D]:

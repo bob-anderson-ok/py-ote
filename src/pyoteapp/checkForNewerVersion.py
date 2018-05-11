@@ -1,22 +1,6 @@
 def getMostRecentVersionOfPyote():
 
-    import pip
-    import sys
-    import os
-
-    # We are going to run a pip command that writes to stderr and stdout.  In order to
-    # capture that output, we redirect sys.stderr and sys.stdout to our own files.  But
-    # we will have to undo this redirection, so we save the current assignments...
-    savedStdErr = sys.stderr
-    savedStdOut = sys.stdout
-
-    # ... and open sockets of our own ...
-    fsockErr = open('bobsStdErr.log', 'w')
-    fsockStd = open('bobsStdOut.log', 'w')
-
-    # ... and do the redirection.
-    sys.stderr = fsockErr
-    sys.stdout = fsockStd
+    import subprocess
 
     # The call to pip that follows utilizes a trick: when pip is given a valid package but an
     # invalid version number, it writes to stderr an error message that contains a list of
@@ -26,23 +10,15 @@ def getMostRecentVersionOfPyote():
     # Could not find a version that satisfies the requirement
     #   pyote==?? (from versions: 1.11, 1.12, 1.13, 1.14, 1.15, 1.16)
 
-    pip.main(['install', 'pyote==??'])  # Give an invalid version number in the request to force error.
+    resp = subprocess.run(['python', '-m', 'pip', 'install', 'pyote==??'],
+                          stderr=subprocess.PIPE, stdout=subprocess.PIPE)
 
-    # Restore the original assignments of stderr and stdout
-    sys.stderr = savedStdErr
-    sys.stdout = savedStdOut
+    # Convert the byte array to a string and split into lines
+    ans = resp.stderr.decode("utf-8").split('\n')
 
-    fsockErr.close()
-    fsockStd.close()
+    # Split the first line of the response into its sub-strings
+    ans = ans[0].split()
 
-    fsockErr = open('bobsStdErr.log', 'r')
-    with fsockErr:
-        pipResult = fsockErr.readline()
-
-    os.remove('bobsStdErr.log')
-    os.remove('bobsStdOut.log')
-
-    ans = pipResult.split()
     if ans[0] == 'Retrying':
         return False, 'No Internet connection --- could not reach PyPI'
     elif ans[0] != 'Could':
@@ -54,41 +30,14 @@ def getMostRecentVersionOfPyote():
 
 def upgradePyote():
 
-    import pip
-    import sys
-    import os
+    import subprocess
 
-    # We are going to run a pip command that writes to stderr and stdout.  In order to
-    # capture that output, we redirect sys.stderr and sys.stdout to our own files.  But
-    # we will have to undo this redirection, so we save the current assignments...
-    savedStdErr = sys.stderr
-    savedStdOut = sys.stdout
+    resp = subprocess.run(['python', '-m', 'pip', 'install', '--upgrade', 'pyote'],
+                          stderr=subprocess.PIPE, stdout=subprocess.PIPE)
 
-    # ... and open sockets of our own ...
-    fsockErr = open('bobsStdErr.log', 'w')
-    fsockStd = open('bobsStdOut.log', 'w')
+    ans = resp.stderr.decode("utf-8").split('\n')
 
-    # ... and do the redirection.
-    sys.stderr = fsockErr
-    sys.stdout = fsockStd
-
-    pip.main(['install', '--upgrade', 'pyote'])
-
-    # Restore the original assignments of stderr and stdout
-    sys.stderr = savedStdErr
-    sys.stdout = savedStdOut
-
-    fsockErr.close()
-    fsockStd.close()
-
-    fsockStd = open('bobsStdOut.log', 'r')
-    with fsockStd:
-        pipResult = fsockStd.readlines()
-
-    os.remove('bobsStdErr.log')
-    os.remove('bobsStdOut.log')
-
-    return pipResult
+    return ans
 
 if __name__ == '__main__':
     result = getMostRecentVersionOfPyote()

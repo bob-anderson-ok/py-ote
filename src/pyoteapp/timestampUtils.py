@@ -48,7 +48,14 @@ def convertTimeToTimeString(time):
 
 def improveTimeStep(outliers, deltaTime):
     validIntervals = [deltaTime[i] for i in range(len(deltaTime)) if i not in outliers]
-    return np.mean(validIntervals)
+    # Under some circumstances, OCR can be so bad that no valid intervals can
+    # be found.  In that case, we return a timeStep of 0.0 and let the
+    # program respond to this invlid value at a higher level.
+    if validIntervals:
+        betterTimeStep = np.mean(validIntervals)
+    else:
+        betterTimeStep = 0.0
+    return betterTimeStep
 
 
 def getTimeStepAndOutliers(timestamps, tolerance=0.1):
@@ -71,19 +78,30 @@ def getTimeStepAndOutliers(timestamps, tolerance=0.1):
     return improvedTimeStep, outlierIndices, timestampErrorRate
 
 
+# def isFrameNumberInData(frameToTest, frame):
+#     ans = False
+#     for item in frame:
+#         if float(item) == frameToTest:
+#             ans = True
+#             break
+#     return ans
+
 def isFrameNumberInData(frameToTest, frame):
-    ans = False
-    for item in frame:
-        if float(item) == frameToTest:
-            ans = True
-            break
-    return ans
+    first = float(frame[0])
+    last = float(frame[-1])
+    return frameToTest >= first and frameToTest <= last
 
 
 # noinspection PyBroadException,PyUnusedLocal
-def manualTimeStampEntry(frame, dialog):
+def manualTimeStampEntry(frame, dialog, flashFrames=[]):
     time = []  # Output --- to be computed from timestamp data entered in dialog
     dataEntered = 'error in data entry'
+
+    if flashFrames:
+        dialog.frameNum1.setText(str(flashFrames[0]))
+        if len(flashFrames) > 1:
+            dialog.frameNum2.setText(str(flashFrames[1]))
+
 
     result = dialog.exec_()
 
@@ -151,9 +169,9 @@ def manualTimeStampEntry(frame, dialog):
             if frameDeltaTime <= 0:
                 return 'frame delta time must be > 0.00', time, dataEntered
 
-        timeStr1 = 'Manual timestamp info: @ frame {:0.1f} [{:02d}:{:02d}:{:07.4f}]'.format(frameNum1, hh1, mm1, ss1)
+        timeStr1 = 'Manual timestamp info: @ frame {:0.2f} [{:02d}:{:02d}:{:07.4f}]'.format(frameNum1, hh1, mm1, ss1)
         if frameNum2 != -1:
-            timeStr2 = ' --- @ frame {:0.1f} [{:02d}:{:02d}:{:07.4f}]'.format(frameNum2, hh2, mm2, ss2)
+            timeStr2 = ' --- @ frame {:0.2f} [{:02d}:{:02d}:{:07.4f}]'.format(frameNum2, hh2, mm2, ss2)
         else:
             timeStr2 = ' --- frameDeltaTime = {:f}'.format(frameDeltaTime)
         dataEntered = timeStr1 + timeStr2

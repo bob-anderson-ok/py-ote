@@ -213,12 +213,13 @@ def find_best_r_only_from_min_max_size(
         if metric > max_metric and b > a:
             update_best_solution()
 
-            # Here we test for solution being better than straight line
-        if not solution_is_better_than_straight_line(
-                y, left, right, None, r_best, b, a, sigma_b, sigma_a, k=3):
-            yield 'no event present', 1.0
 
     if b_best <= a_best:
+        yield 'no event present', 1.0
+
+    # Here we test for the best solution being better than straight line
+    if not solution_is_better_than_straight_line(
+            y, left, right, None, r_best, b, a, sigma_b, sigma_a, k=3):
         yield 'no event present', 1.0
 
     yield None, r_best, b_best, a_best, sigma_b, sigma_a, max_metric
@@ -292,11 +293,11 @@ def find_best_d_only_from_min_max_size(
         if metric > max_metric and b > a:
             update_best_solution()
 
-    if not solution_is_better_than_straight_line(
-            y, left, right, d_best, None, b, a, sigma_b, sigma_a, k=3):
+    if b_best <= a_best:
         yield 'no event present', 1.0
 
-    if b_best <= a_best:
+    if not solution_is_better_than_straight_line(
+            y, left, right, d_best, None, b, a, sigma_b, sigma_a, k=3):
         yield 'no event present', 1.0
 
     yield d_best, None, b_best, a_best, sigma_b, sigma_a, max_metric
@@ -503,13 +504,35 @@ def locate_event_from_d_and_r_ranges(
 
 def solution_is_better_than_straight_line(y, left, right, d, r, b, a, sigma_b,
                                           sigma_a, k=4):
+
+    # The only time that the result of this routine is important is for very
+    # low snr signals.  In that case, sigma_b and sigma_a are approximately
+    # equal anyway.  For other cases, we want to 'score' the straight line
+    # against the signal in as equal a manner as possible, so we will use a
+    # common noise value for all points.  Here we calculate that value...
+
+    big_sigma = max(sigma_b, sigma_a)
+
+    # And here we make sure it never gets too small...
+
+    if big_sigma < (b - a) / 100.0:  # 100 == max snr
+        big_sigma = (b - a) / 100.0
+
+    # If the current snr is greater than 3, the solution is always better
+    # than a straight line, so we skip the calculations.
+
+    if (b - a) / big_sigma > 3.0:
+        return True
+
+    # If this point is reached, a valid scoring needs to be performed.
+
     m, sigma = model(
-        B=b, A=a, edgeTuple=(d, r), sigmaB=sigma_b, sigmaA=sigma_a,
+        B=b, A=a, edgeTuple=(d, r), sigmaB=big_sigma, sigmaA=big_sigma,
         numPts=y.size)
 
     solution_logl = cum_loglikelihood(y, m, sigma, left, right)
 
-    lineScore = logLikelihoodLine(y, sigmaB=sigma_b, left=left, right=right)
+    lineScore = logLikelihoodLine(y, sigmaB=big_sigma, left=left, right=right)
 
     aiccSol = aicc(solution_logl, right - left + 1, k)
     aiccLine = aicc(lineScore, right - left + 1, 1)

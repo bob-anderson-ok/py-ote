@@ -5,6 +5,7 @@ Created on Sat May 20 15:32:13 2017
 
 @author: Bob Anderson
 """
+MIN_SIGMA = 0.1
 
 import datetime
 import os
@@ -28,6 +29,7 @@ from pyoteapp import version
 from pyoteapp import fixedPrecision as fp
 from pyoteapp import gui
 from pyoteapp import timestampDialog
+from pyoteapp import helpDialog
 from pyoteapp.checkForNewerVersion import getMostRecentVersionOfPyote
 from pyoteapp.checkForNewerVersion import upgradePyote
 from pyoteapp.csvreader import readLightCurve
@@ -48,11 +50,15 @@ from pyoteapp.iterative_logl_functions import find_best_d_only_from_min_max_size
 cursorAlert = pyqtSignal()
 
 # The gui module was created by typing
-#    !pyuic5 simple_plot.ui -o gui.py
+#    !pyuic5 simple_plot2.ui -o gui.py
 # in the IPython console while in pyoteapp directory
 
 # The timestampDialog module was created by typing
 #    !pyuic5 timestamp_dialog.ui -o timestampDialog.py
+# in the IPython console while in pyoteapp directory
+
+# The help-dialog module was created by typing
+#    !pyuic5 helpDialog.ui -o helpDialog.py
 # in the IPython console while in pyoteapp directory
 
 # Status of points and associated dot colors ---
@@ -129,6 +135,10 @@ class TSdialog(QDialog, timestampDialog.Ui_manualTimestampDialog):
         super(TSdialog, self).__init__()
         self.setupUi(self)
 
+class HelpDialog(QDialog, helpDialog.Ui_Dialog):
+    def __init__(self):
+        super(HelpDialog, self).__init__()
+        self.setupUi(self)
 
 class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
     def __init__(self):
@@ -142,35 +152,64 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
         self.setWindowTitle('PYOTE  Version: ' + version.version())
 
+        # Checkbox: Use manual timestamp entry
+        self.manualTimestampCheckBox.clicked.connect(self.toggleManualEntryButton)
+        self.manualTimestampCheckBox.installEventFilter(self)
+
+        # Button: Manual timestamp entry
+        self.manualEntryPushButton.clicked.connect(self.doManualTimestampEntry)
+        self.manualEntryPushButton.installEventFilter(self)
+
         # Button: Info
         self.infoButton.clicked.connect(self.openHelpFile)
+        self.infoButton.installEventFilter(self)
 
         # Button: Read light curve
         self.readData.clicked.connect(self.readDataFromFile)
+        self.readData.installEventFilter(self)
         
         # CheckBox: Show secondary star
         self.showSecondaryCheckBox.clicked.connect(self.toggleDisplayOfSecondaryStar)
+        self.showSecondaryCheckBox.installEventFilter(self)
 
         # Checkbox: Show timestamp errors
         self.showTimestampErrors.clicked.connect(self.toggleDisplayOfTimestampErrors)
 
+        # Checkbox: Enable Tooltips
+        self.enableTooltipsCheckBox.clicked.connect(self.toggleTooltips)
+
         # QSpinBox
         self.secondarySelector.valueChanged.connect(self.changeSecondary)
 
+        # QSpinBox
+        self.curveToAnalyzeSpinBox.valueChanged.connect(self.changePrimary)
+        self.curveToAnalyzeSpinBox.installEventFilter(self)
+
+        #QSpinBox: secondarySelector
+        self.secondarySelector.installEventFilter(self)
+
         # Button: Trim/Select data points
         self.setDataLimits.clicked.connect(self.doTrim)
-        
+        self.setDataLimits.installEventFilter(self)
+
+        # Checkbox: Enable Tooltips
+        self.enableTooltipsCheckBox.installEventFilter(self)
+
         # Button: Smooth secondary
         self.smoothSecondaryButton.clicked.connect(self.smoothRefStar)
+        self.smoothSecondaryButton.installEventFilter(self)
 
         # QLineEdit: window size for secondary smoothing
         self.numSmoothPointsEdit.editingFinished.connect(self.smoothRefStar)
+        self.numSmoothPointsEdit.installEventFilter(self)
 
         # Button: Normalize around selected point
         self.normalizeButton.clicked.connect(self.normalize)
+        self.normalizeButton.installEventFilter(self)
 
         # Button: Do block integration
         self.doBlockIntegration.clicked.connect(self.doIntegration)
+        self.doBlockIntegration.installEventFilter(self)
         
         # Button: Perform baseline noise analysis
         # self.doNoiseAnalysis.clicked.connect(self.processBaselineNoise)
@@ -180,10 +219,22 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         
         # Button: Mark D zone
         self.markDzone.clicked.connect(self.showDzone)
-        
+        self.markDzone.installEventFilter(self)
+
         # Button: Mark R zone
         self.markRzone.clicked.connect(self.showRzone)
-        
+        self.markRzone.installEventFilter(self)
+
+        # Button: Calc flash edge
+        self.calcFlashEdge.clicked.connect(self.calculateFlashREdge)
+        self.calcFlashEdge.installEventFilter(self)
+
+        # Edit box: min event
+        self.minEventEdit.installEventFilter(self)
+
+        # Edit box: max event
+        self.maxEventEdit.installEventFilter(self)
+
         # Button: Locate event
         self.locateEvent.clicked.connect(self.findEvent)
         
@@ -192,30 +243,35 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         
         # Button: Calculate error bars
         self.calcErrBars.clicked.connect(self.computeErrorBars)
+        self.calcErrBars.installEventFilter(self)
         
         # Button: Write error bar plot to file
         self.writeBarPlots.clicked.connect(self.exportBarPlots)
+        self.writeBarPlots.installEventFilter(self)
 
         # Button: Write graphic to file
         self.writePlot.clicked.connect(self.exportGraphic)
+        self.writePlot.installEventFilter(self)
         
         # Button: Start over
         self.startOver.clicked.connect(self.restart)
+        self.startOver.installEventFilter(self)
         
         # Set up handlers for clicks on table view of data
         self.table.cellClicked.connect(self.cellClick)
         self.table.verticalHeader().sectionClicked.connect(self.rowClick)
+        self.table.installEventFilter(self)
         
         # Re-instantiate mainPlot             Note: examine gui.py
         # to get this right after a re-layout !!!!  self.widget changes sometimes
         # as does horizontalLayout_?
 
         oldMainPlot = self.mainPlot
-        self.mainPlot = PlotWidget(self.widget,
+        self.mainPlot = PlotWidget(self.layoutWidget,
                                    viewBox=CustomViewBox(border=(255, 255, 255)),
                                    enableMenu=False)
         self.mainPlot.setObjectName("mainPlot")
-        self.horizontalLayout_11.addWidget(self.mainPlot, stretch=1)
+        self.horizontalLayout_12.addWidget(self.mainPlot, stretch=1)
 
         oldMainPlot.setParent(None)
 
@@ -251,6 +307,28 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.checkForNewVersion()
 
         self.only_new_solver_wanted = True
+
+        self.helperThing = HelpDialog()
+
+    def eventFilter(self, obj, event):
+        if event.type() == QtCore.QEvent.ToolTip:
+            if not self.enableTooltipsCheckBox.isChecked():
+                return True
+            elif obj.toolTip():
+                self.helperThing.textEdit.insertHtml(obj.toolTip())
+                self.helperThing.exec()
+                self.helperThing.textEdit.clear()
+                return True
+        return False
+
+    def toggleTooltips(self):
+        pass
+
+    def toggleManualEntryButton(self):
+        if self.manualTimestampCheckBox.isChecked():
+            self.manualEntryPushButton.setEnabled(True)
+        else:
+            self.manualEntryPushButton.setEnabled(False)
 
     def openHelpFile(self):
         helpFilePath = os.path.join(os.path.split(__file__)[0], 'pyote-info.pdf')
@@ -291,22 +369,59 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         return ans
 
     def changeSecondary(self):
+        # Resolve curve-to-analyze and normalization-curve being the same
+        prim = self.curveToAnalyzeSpinBox.value()
+        norm = self.secondarySelector.value()
+        if prim == norm:
+            if prim == 1:
+                self.curveToAnalyzeSpinBox.setValue(2)
+            else:
+                self.curveToAnalyzeSpinBox.setValue(norm - 1)
+
         selText = self.secondarySelector.text()
         self.showMsg('Secondary reference ' + selText + ' selected.')
         refNum = int(selText)
-        refStar = None
+
         if refNum == 1:
-            refStar = [float(item) for item in self.secondary]
+            self.yRefStar = self.LC1
         if refNum == 2:
-            refStar = [float(item) for item in self.ref2]
+            self.yRefStar = self.LC2
         if refNum == 3:
-            refStar = [float(item) for item in self.ref3]
+            self.yRefStar = self.LC3
+        if refNum == 4:
+            self.yRefStar = self.LC4
 
         self.smoothSecondary = []
-        self.yRefStar = np.array(refStar)
-        self.yRefStarCopy = np.array(refStar)
         self.reDrawMainPlot()
         self.mainPlot.autoRange()
+
+    def changePrimary(self):
+        # Resolve curve-to-analyze and normalization-curve being the same
+        prim = self.curveToAnalyzeSpinBox.value()
+        norm = self.secondarySelector.value()
+        if prim == norm:
+            if norm == 1:
+                self.secondarySelector.setValue(2)
+            else:
+                self.secondarySelector.setValue(prim - 1)
+
+        selText = self.curveToAnalyzeSpinBox.text()
+        self.showMsg('Analyze light curve ' + selText + ' selected.')
+        refNum = int(selText)
+
+        if refNum == 1:
+            self.yValues = self.LC1
+        if refNum == 2:
+            self.yValues = self.LC2
+        if refNum == 3:
+            self.yValues = self.LC3
+        if refNum == 4:
+            self.yValues = self.LC4
+
+        self.solution = None
+        self.reDrawMainPlot()
+        self.mainPlot.autoRange()
+
 
     def installLatestVersion(self):
         pipResult = upgradePyote()
@@ -434,12 +549,13 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         
     def initializeVariablesThatDontDependOnAfile(self):
 
+        self.flashEdges = []
         self.normalized = False
-        self.timesAreValid = False
+        self.timesAreValid = True # until we find out otherwise
         self.selectedPoints = {}  # Clear/declare 'selected points' dictionary
         self.baselineXvals = []
         self.baselineYvals = []
-        self.blockSize = 1  # Contains the number of points used in block integration
+        # self.blockSize = 1  # Contains the number of points used in block integration
         self.solution = None
         self.firstPassSolution = None
         self.secondPassSolution = None
@@ -604,7 +720,79 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.showMsg('R zone selected: ' + str([leftEdge, rightEdge]))
         self.removePointSelections()
         self.reDrawMainPlot()
-        
+
+    def calculateFlashREdge(self):
+        if len(self.selectedPoints) != 2:
+            self.showInfo(
+                'Exactly two points must be selected for this operation.')
+            return
+
+        selIndices = [key for key, _ in self.selectedPoints.items()]
+        selIndices.sort()
+
+        savedLeft = self.left
+        savedRight = self.right
+
+        leftEdge = int(min(selIndices))
+        rightEdge = int(max(selIndices))
+
+        self.left = leftEdge
+        self.right = rightEdge
+
+        if self.dLimits:
+            if leftEdge < self.dLimits[1] + 2:
+                leftEdge = self.dLimits[1] + 2  # Enforce at least 1 'a' point
+            if self.dLimits[0] == self.left:
+                if rightEdge >= self.right:
+                    rightEdge = self.right - 1  # Enforce at least 1 'b' point
+            else:
+                if rightEdge >= self.right:
+                    rightEdge = self.right
+        else:
+            if rightEdge >= self.right - 1:
+                rightEdge = self.right - 1  # Enforce 1 'a' (for r-only search)
+            if leftEdge < self.left + 1:
+                leftEdge = self.left + 1  # Enforce  1 'b' point
+
+        if rightEdge <= leftEdge:
+            self.removePointSelections()
+            self.reDrawMainPlot()
+            return
+
+        if self.only_new_solver_wanted:
+            self.locateEvent.setEnabled(True)
+
+        self.rLimits = [leftEdge, rightEdge]
+
+        if self.dLimits:
+            self.DandR.setChecked(True)
+        else:
+            self.Ronly.setChecked(True)
+
+        self.rRegion = pg.LinearRegionItem(
+            [leftEdge, rightEdge], movable=False, brush=(200, 0, 0, 50))
+        self.mainPlot.addItem(self.rRegion)
+
+        self.showMsg('R zone selected: ' + str([leftEdge, rightEdge]))
+        self.removePointSelections()
+        self.reDrawMainPlot()
+
+        self.findEvent()
+
+        self.left = savedLeft
+        self.right = savedRight
+        self.reDrawMainPlot()
+
+        if self.solution:
+            frameDelta = float(self.yFrame[1]) - float(self.yFrame[0])
+            frameZero  = float(self.yFrame[0])
+            flashFrame = self.solution[1] * frameDelta + frameZero
+            # self.flashEdges.append(self.solution[1] + float(self.yFrame[0]))
+            self.flashEdges.append(flashFrame)
+            self.flashEdges[-1] = '%0.2f' % self.flashEdges[-1]
+            msg = 'flash edges (in frame units): %s' % str(self.flashEdges)
+            self.showMsg(msg, bold=True, color='red')
+
     def normalize(self):
         if len(self.selectedPoints) != 1:
             self.showInfo('A single point must be selected for this operation.' +
@@ -682,6 +870,11 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.mainPlot.autoRange()
 
     def toggleDisplayOfSecondaryStar(self):
+        if self.showSecondaryCheckBox.isChecked():
+            self.secondarySelector.setEnabled(True)
+        else:
+            self.secondarySelector.setEnabled(False)
+
         self.reDrawMainPlot()
         self.mainPlot.autoRange()
         
@@ -696,7 +889,36 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         msgBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
         msgBox.setDefaultButton(QMessageBox.Yes)
         self.queryRetVal = msgBox.exec_()
-        
+
+    def fillPrimaryAndRef(self):
+        # Load self.yValues and sel.yRefStar with proper light curves as
+        # indicated by the spinner values
+
+        # Get indices of selected primary and reference light curves
+        primary = self.curveToAnalyzeSpinBox.value()
+        reference = self.secondarySelector.value()
+        if primary == 1:
+            self.yValues = self.LC1
+        elif primary == 2:
+            self.yValues = self.LC2
+        elif primary == 3:
+            self.yValues = self.LC3
+        elif primary == 4:
+            self.yValues = self.LC4
+
+        if primary == reference:
+            if reference == 1:
+                self.yRefStar = self.LC1
+            elif reference == 2:
+                self.yRefStar = self.LC2
+            elif reference == 3:
+                self.yRefStar = self.LC3
+            elif reference == 4:
+                self.yRefStar = self.LC4
+
+        # noinspection PyUnusedLocal
+        self.yStatus = [1 for _i in range(self.dataLen)]
+
     def doIntegration(self):
         if len(self.selectedPoints) != 2:
             self.showInfo('Exactly two points must be selected for a block integration')
@@ -721,17 +943,27 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.blockSize = span
         newFrame = []
         newTime = []
-        newVal = []
-        newRef = []
+        newLC1 = []
+        newLC2 = []
+        newLC3 = []
+        newLC4 = []
         
         p = p0 - span  # Start working toward the left
         while p > 0:
-            avg = np.mean(self.yValues[p:(p+span)])
-            newVal.insert(0, avg)
+            avg = np.mean(self.LC1[p:(p+span)])
+            newLC1.insert(0, avg)
 
-            if len(self.yRefStar) > 0:
-                avg = np.mean(self.yRefStar[p:(p+span)])
-                newRef.insert(0, avg)
+            if len(self.LC2) > 0:
+                avg = np.mean(self.LC2[p:(p+span)])
+                newLC2.insert(0, avg)
+
+            if len(self.LC3) > 0:
+                avg = np.mean(self.LC3[p:(p+span)])
+                newLC3.insert(0, avg)
+
+            if len(self.LC4) > 0:
+                avg = np.mean(self.LC4[p:(p+span)])
+                newLC4.insert(0, avg)
 
             newFrame.insert(0, self.yFrame[p])
             newTime.insert(0, self.yTimes[p])
@@ -739,33 +971,41 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             
         p = p0  # Start working toward the right
         while p < self.dataLen - span:
-            avg = np.mean(self.yValues[p:(p+span)])
-            newVal.append(avg)
+            avg = np.mean(self.LC1[p:(p+span)])
+            newLC1.append(avg)
 
-            if len(self.yRefStar) > 0:
-                avg = np.mean(self.yRefStar[p:(p+span)])
-                newRef.append(avg)
+            if len(self.LC2) > 0:
+                avg = np.mean(self.LC2[p:(p + span)])
+                newLC2.append(avg)
+
+            if len(self.LC3) > 0:
+                avg = np.mean(self.LC3[p:(p + span)])
+                newLC3.append(avg)
+
+            if len(self.LC4) > 0:
+                avg = np.mean(self.LC4[p:(p + span)])
+                newLC4.append(avg)
+
 
             newFrame.append(self.yFrame[p])
             newTime.append(self.yTimes[p])
             p = p + span
             
-        self.dataLen = len(newVal)
-        
+        self.dataLen = len(newLC1)
+
+        self.LC1 = np.array(newLC1)
+        self.LC2 = np.array(newLC2)
+        self.LC3 = np.array(newLC3)
+        self.LC4 = np.array(newLC4)
+
         # auto-select all points
         self.left = 0
         self.right = self.dataLen - 1
-        
-        self.yValues = np.array(newVal)
-        if len(newRef) > 0:
-            self.yRefStar = np.array(newRef)
-        else:
-            self.yRefStar = []
+
+        self.fillPrimaryAndRef()
 
         self.yTimes = newTime[:]
         self.yFrame = newFrame[:]
-        # noinspection PyUnusedLocal
-        self.yStatus = [1 for _i in range(self.dataLen)]
         self.fillTableViewOfData()
         
         selPts.sort()
@@ -1045,6 +1285,12 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             self.showMsg("Times are invalid due to corrupted timestamps!",
                          color='red', bold=True)
 
+        if self.choleskyFailed:
+            self.showMsg('Cholesky decomposition failed during error bar '
+                         'calculations. '
+                         'Noise has therefore been treated as being '
+                         'uncorrelated.',
+                         bold=True, color='red')
         if self.A > 0:
             self.showMsg('nominal magDrop: %0.2f' % ((np.log10(self.B) - np.log10(self.A)) * 2.5))
         else:
@@ -1158,6 +1404,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             self.showMsg('D and R enclose a transition through midnight')
 
         if self.timeDelta == 0:
+            self.timesAreValid = False
             self.showMsg('Timestamps are corrupted in a manner that caused a '
                          'timeDelta of '
                          '0.0 to be estimated!', color='red', bold=True)
@@ -1174,11 +1421,18 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             self.showMsg('Timestamps appear valid @ D and R')
             self.timesAreValid = True
         else:
+            self.timesAreValid = False
             self.showMsg('! There is something wrong with timestamps at D '
                          'and/or R or frames have been dropped !', bold=True,
                          color='red')
         
     def computeErrorBars(self):
+
+        if self.sigmaB == 0.0:
+            self.sigmaB = MIN_SIGMA
+
+        if self.sigmaA == 0.0:
+            self.sigmaA = MIN_SIGMA
 
         self.snrB = (self.B - self.A) / self.sigmaB
         self.snrA = (self.B - self.A) / self.sigmaA
@@ -1201,13 +1455,22 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 B=self.B, A=self.A, sigmaB=self.sigmaB, sigmaA=self.sigmaA)
 
         dist = None
+        self.choleskyFailed = False
         for dist in distGen:
             if type(dist) == float:
                 if dist == -1.0:
+                    self.choleskyFailed = True
                     self.showInfo(
                         'The Cholesky-Decomposition routine has failed.  This may be because the light curve ' +
-                        'required some level of block integration.  Please examine the light curve for that possibility.')
-                    return
+                        'required some level of block integration.  Please '
+                        'examine the light curve for that possibility.' +
+                        '\nWe treat this situation as though there is no '
+                        'correlation in the noise.')
+                    self.showMsg('Cholesky decomposition has failed.  '
+                                 'Proceeding by '
+                                 'treating noise as being uncorrelated.',
+                                 bold=True, color='red')
+                    # return
                 self.progressBar.setValue(dist * 100)
                 QtGui.QApplication.processEvents()
                 if self.cancelRequested:
@@ -1382,30 +1645,46 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         # We have to remove the effects of sub-frame timing to calulate the D
         # and R transition points as integers.
 
+        solMsg2 = ''
+        frameConv = float(self.yFrame[0])
         if D and R:
             Dtransition = trunc(floor(self.solution[0]))
             Rtransition = trunc(floor(self.solution[1]))
             if subframe:
                 solMsg = ('D: %d  R: %d  D(subframe): %0.2f  R(subframe): %0.2f' %
                           (Dtransition, Rtransition, D, R))
+                solMsg2 = ('D: %d  R: %d  D(subframe): %0.2f  R(subframe): '
+                           '%0.2f' %
+                (Dtransition + frameConv, Rtransition + frameConv,
+                 D + frameConv, R + frameConv))
             else:
                 solMsg = ('D: %d  R: %d' % (D, R))
-            self.showMsg('solution indices found: ' + solMsg)
+            self.showMsg('in entryNum units: ' + solMsg)
+            if solMsg2:
+                self.showMsg('in frameNum units: ' + solMsg2, bold=True)
         elif D:
             Dtransition = trunc(floor(self.solution[0]))
             if subframe:
                 solMsg = ('D: %d  D(subframe): %0.2f' % (Dtransition, D))
+                solMsg2 = ('D: %d  D(subframe): %0.2f' %
+                           (Dtransition + frameConv, D + frameConv))
             else:
                 solMsg = ('D: %d' % (D))
-            self.showMsg('solution indices found: ' + solMsg)
+            self.showMsg('in entryNum units: ' + solMsg)
+            if solMsg2:
+                self.showMsg('in frameNum units: ' + solMsg2, bold=True)
         else:
             Rtransition = trunc(floor(self.solution[1]))
             if subframe:
                 solMsg = ('R: %d  R(subframe): %0.2f' % (Rtransition, R))
+                solMsg2 = ('R: %d  R(subframe): %0.2f' %
+                           (Rtransition + frameConv, R + frameConv))
             else:
                 solMsg = ('R: %d' % (R))
 
-            self.showMsg('solution indices found: ' + solMsg)
+            self.showMsg('in entryNum units: ' + solMsg)
+            if solMsg2:
+                self.showMsg('in frameNum units: ' + solMsg2, bold=True)
 
     def update_noise_parameters_from_solution(self):
         D, R = self.solution
@@ -1659,20 +1938,6 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 'Number of candidate solutions: ' + str(numCandidates) +
                 ' (using D/R region selections)')
 
-        # self.runSolver = True
-        # if numCandidates > 10000:
-        #     msg = 'There are ' + str(numCandidates) + ' candidates in the solution set. '
-        #     msg = msg + 'Do you wish to continue?'
-        #     self.showQuery(msg, 'Your chance to narrow the potential candidates')
-        #
-        #     if self.queryRetVal == QMessageBox.Yes:
-        #         self.showMsg('Yes was clicked --- starting solution search...')
-        #         self.solution = None
-        #         self.reDrawMainPlot()
-        #     else:
-        #         self.showMsg('"No" was clicked, so solver will be skipped')
-        #         self.runSolver = False
-
         self.runSolver = True
         solverGen = None
 
@@ -1845,11 +2110,40 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             newitem = QtGui.QTableWidgetItem(str(self.yFrame[i]))
             self.table.setItem(i, 1, newitem)
             
-        self.table.resizeColumnsToContents()   
-        
+        self.table.resizeColumnsToContents()
+
+    def doManualTimestampEntry(self):
+        errmsg = ''
+        while errmsg != 'ok':
+            errmsg, manualTime, dataEntered = \
+                manualTimeStampEntry(self.yFrame, TSdialog(), self.flashEdges)
+            if errmsg != 'ok':
+                self.showInfo(errmsg)
+            else:
+                self.showMsg(dataEntered, bold=True)
+                # If user cancelled out of timestamp entry dialog,
+                # then manualTime will be an empty list.
+                if manualTime:
+                    self.yTimes = manualTime[:]
+                    self.timeDelta, self.outliers, self.errRate = getTimeStepAndOutliers(
+                        self.yTimes)
+                    self.fillTableViewOfData()
+                    self.reDrawMainPlot()
+                    self.showMsg(
+                        'timeDelta: ' + fp.to_precision(self.timeDelta,
+                                                        6) + ' seconds per reading',
+                        blankLine=False)
+                    self.showMsg(
+                        'timestamp error rate: ' + fp.to_precision(100 *
+                                                                   self.errRate,
+                                                                   3) + '%')
+                    self.fillTableViewOfData()
+
+
     def readDataFromFile(self):
         
         self.initializeVariablesThatDontDependOnAfile()
+        self.blockSize = 1
         
         self.disableAllButtons()
         self.mainPlot.clear()
@@ -1862,6 +2156,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 "Select light curve csv file",             # title for dialog
                 self.settings.value('lightcurvedir', ""),  # starting directory
                 "Csv files (*.csv)")
+
         if self.filename:
             self.setWindowTitle('PYOTE Version: ' + version.version() + '  File in process: ' + self.filename)
             dirpath, _ = os.path.split(self.filename)
@@ -1878,57 +2173,71 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
             try:
                 self.outliers = []
-                frame, time, value, self.secondary, self.ref2, self.ref3, headers = readLightCurve(self.filename)
+                frame, time, value, self.secondary, self.ref2, self.ref3, \
+                headers = readLightCurve(self.filename)
                 values = [float(item) for item in value]
+                self.yValues = np.array(values)  # yValues = curve to analyze
+                self.dataLen = len(self.yValues)
+                self.LC1 = np.array(values)
 
-                if not frame:
-                    # This is a raw data file, imported for test purposes
-                    # raw = values
-                    self.showInfo('raw data file read')
-                    return
+                # Automatically select all points
+                # noinspection PyUnusedLocal
+                self.yStatus = [INCLUDED for _i in range(self.dataLen)]
 
                 refStar = [float(item) for item in self.secondary]
 
+                vals = [float(item) for item in self.secondary]
+                self.LC2 = np.array(vals)
+
+                vals = [float(item) for item in self.ref2]
+                self.LC3 = np.array(vals)
+
+                vals = [float(item) for item in self.ref3]
+                self.LC4 = np.array(vals)
+
                 self.secondarySelector.setValue(1)
+                self.curveToAnalyzeSpinBox.setMaximum(1)
                 if self.secondary:
+                    self.secondarySelector.setEnabled(True)
+                    self.normLabel.setEnabled(True)
+                    self.secondarySelector.setMaximum(2)
+                    self.secondarySelector.setValue(2)
                     self.showSecondaryCheckBox.setEnabled(True)
-                    self.showSecondaryCheckBox.setChecked(True)
+                    self.showSecondaryCheckBox.setChecked(False)
+                    self.curveToAnalyzeSpinBox.setMaximum(2)
                     if self.ref2:
                         self.secondarySelector.setEnabled(True)
-                        self.secondarySelector.setMaximum(2)
+                        self.secondarySelector.setMaximum(3)
+                        self.curveToAnalyzeSpinBox.setMaximum(3)
                         if self.ref3:
-                            self.secondarySelector.setMaximum(3)
-                    else:
-                        self.secondarySelector.setEnabled(False)
-                        self.secondarySelector.setMaximum(1)
+                            self.secondarySelector.setMaximum(4)
+                            self.curveToAnalyzeSpinBox.setMaximum(4)
+
+                self.lightCurveNumberLabel.setEnabled(True)
+                self.curveToAnalyzeSpinBox.setEnabled(True)
 
                 # If no timestamps were found in the input file, prompt for manual entry
                 if self.timestampListIsEmpty(time):
-                    self.showMsg('Manual entry of timestamps requested as the file contained no timestamp entries', bold=True)
-                    self.showInfo('This files does not contain timestamp '
-                                  'entries so manual entry of either two '
-                                  'timestamps OR one timestamp and a frame '
-                                  'delta time is required.'
-                                  '\n\nEnter the timestamp '
-                                  'values that the avi '
-                                  'processing software (Limovie, Tangra, '
-                                  'etc) would have produced '
-                                  'had the OCR process not failed.  By doing '
-                                  'it in this manner, you can continue '
-                                  'processing the file as though OCR had '
-                                  'succeeded and then follow the standard '
-                                  'procedure for reporting results through '
-                                  'the IOTA event reporting spreadsheet ('
-                                  'which will make the needed corrections for camera delay and VTI offset).')
-                    errmsg = ''
-                    while errmsg != 'ok':
-                        errmsg, manualTime, dataEntered = manualTimeStampEntry(frame, TSdialog())
-                        if errmsg != 'ok':
-                            self.showInfo(errmsg)
-                        else:
-                            self.showMsg(dataEntered, bold=True)
-                            if manualTime:  # Needed only during development
-                                time = manualTime[:]
+                    self.showMsg('Manual entry of timestamps was requested.',
+                                 bold=True)
+                    # If the user knew there were no timestamps, the is no
+                    # reason to show info box.
+                    if not self.manualTimestampCheckBox.isChecked():
+                        self.showInfo('This file does not contain timestamp '
+                                      'entries so manual entry of either two '
+                                      'timestamps OR one timestamp and a frame '
+                                      'delta time is required.'
+                                      '\n\nEnter the timestamp '
+                                      'values that the avi '
+                                      'processing software (Limovie, Tangra, '
+                                      'etc) would have produced '
+                                      'had the OCR process not failed.  By doing '
+                                      'it in this manner, you can continue '
+                                      'processing the file as though OCR had '
+                                      'succeeded and then follow the standard '
+                                      'procedure for reporting results through '
+                                      'the IOTA event reporting spreadsheet ('
+                                      'which will make the needed corrections for camera delay and VTI offset).')
 
                 self.showMsg('=' * 20 + ' file header lines ' + '=' * 20, bold=True, blankLine=False)
                 for item in headers:
@@ -1936,61 +2245,62 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 self.showMsg('=' * 20 + ' end header lines ' + '=' * 20, bold=True)
 
                 self.yTimes = time[:]
-                self.yTimesCopy = time[:]
+                # self.yTimesCopy = time[:]
                 self.yValues = np.array(values)
                 self.yValCopy = np.ndarray(shape=(len(self.yValues),))
                 np.copyto(self.yValCopy, self.yValues)
                 self.yRefStar = np.array(refStar)
                 self.yRefStarCopy = np.array(refStar)
-                
+
                 if self.yRefStar.size > 0:
                     self.smoothSecondaryButton.setEnabled(True)
                     self.numSmoothPointsEdit.setEnabled(True)
                     
                 self.dataLen = len(self.yValues)
                 self.yFrame = frame[:]
-                self.yFrameCopy = frame[:]
-                
+
                 # Automatically select all points
                 # noinspection PyUnusedLocal
                 self.yStatus = [INCLUDED for _i in range(self.dataLen)]
                 self.left = 0
                 self.right = self.dataLen - 1
 
-                self.timeDelta, self.outliers, self.errRate = getTimeStepAndOutliers(self.yTimes)
-
                 self.mainPlot.autoRange()
 
                 self.setDataLimits.setEnabled(True)
                 self.writePlot.setEnabled(True)
 
-                if self.only_new_solver_wanted:
-                    self.markDzone.setEnabled(True)
-                    self.markRzone.setEnabled(True)
-                    self.minEventEdit.setEnabled(True)
-                    self.maxEventEdit.setEnabled(True)
-                    self.locateEvent.setEnabled(True)
-                else:
-                    self.markDzone.setEnabled(True)
-                    self.markRzone.setEnabled(True)
-                    self.minEventEdit.setEnabled(True)
-                    self.maxEventEdit.setEnabled(True)
-                    self.locateEvent.setEnabled(True)
-                    # self.doNoiseAnalysis.setEnabled(True)
-                    # self.computeSigmaA.setEnabled(True)
+                self.markDzone.setEnabled(True)
+                self.markRzone.setEnabled(True)
+                self.calcFlashEdge.setEnabled(True)
+                self.minEventEdit.setEnabled(True)
+                self.maxEventEdit.setEnabled(True)
+                self.locateEvent.setEnabled(True)
 
                 self.doBlockIntegration.setEnabled(True)
                 self.startOver.setEnabled(True)
                 self.fillTableViewOfData()
+
                 self.timeDelta, self.outliers, self.errRate = getTimeStepAndOutliers(self.yTimes)
+
                 self.showMsg('timeDelta: ' + fp.to_precision(self.timeDelta, 6) + ' seconds per reading', blankLine=False)
-                self.showMsg('timestamp error rate: ' + fp.to_precision(100 * self.errRate, 2) + '%')
+                self.showMsg('timestamp error rate: ' + fp.to_precision(100 *
+                                                                        self.errRate, 3) + '%')
 
                 if self.outliers:
                     self.showTimestampErrors.setEnabled(True)
                     self.showTimestampErrors.setChecked(True)
                 self.reDrawMainPlot()
                 self.mainPlot.autoRange()
+
+                if self.timeDelta == 0.0 and not self.manualTimestampCheckBox.isChecked():
+                    self.showInfo("Analysis of timestamp fields resulted in "
+                                  "an invalid timeDelta of 0.0\n\nSuggestion: Enable manual timestamp entry (checkbox at top left)"
+                                  ", then press the now active 'Manual timestamp entry' button."
+                                  "\n\nThis will give you a chance to "
+                                  "manually correct the timestamps using "
+                                  "the data available in the table in the "
+                                  "lower left corner or incorporate flash timing data.")
             except Exception as e:
                 self.showMsg(str(e))
     
@@ -2183,6 +2493,10 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.selectedPoints = {}
         
     def disableAllButtons(self):
+        self.calcFlashEdge.setEnabled(False)
+        self.lightCurveNumberLabel.setEnabled(False)
+        self.normLabel.setEnabled(False)
+        self.curveToAnalyzeSpinBox.setEnabled(False)
         self.showSecondaryCheckBox.setEnabled(False)
         self.secondarySelector.setEnabled(False)
         self.normalizeButton.setEnabled(False)
@@ -2190,7 +2504,6 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.numSmoothPointsEdit.setEnabled(False)
         self.setDataLimits.setEnabled(False)      
         self.doBlockIntegration.setEnabled(False)    
-        # self.doNoiseAnalysis.setEnabled(False)
         self.locateEvent.setEnabled(False)
         self.calcErrBars.setEnabled(False)
         self.startOver.setEnabled(False)
@@ -2203,19 +2516,19 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
     # noinspection PyUnusedLocal
     def restart(self):
-        
+
+        savedFlashEdges = self.flashEdges
         self.initializeVariablesThatDontDependOnAfile()
+        self.flashEdges = savedFlashEdges
         self.disableAllButtons()
-        
+
+        self.lightCurveNumberLabel.setEnabled(True)
+        self.curveToAnalyzeSpinBox.setEnabled(True)
+        self.normLabel.setEnabled(True)
+
         if self.errBarWin:
             self.errBarWin.close()
-                
-        self.yValues = np.ndarray(shape=(len(self.yValCopy),))
-        np.copyto(self.yValues, self.yValCopy)
-        self.yRefStar = np.ndarray(shape=(len(self.yRefStarCopy),))
-        np.copyto(self.yRefStar, self.yRefStarCopy)
-        self.yTimes = self.yTimesCopy[:]
-        self.yFrame = self.yFrameCopy[:]
+
         self.dataLen = len(self.yTimes)
         self.timeDelta, self.outliers, self.errRate = getTimeStepAndOutliers(self.yTimes)
         self.fillTableViewOfData()
@@ -2228,23 +2541,13 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         
         # Enable the initial set of buttons (allowed operations)
         self.startOver.setEnabled(True)
-        self.doBlockIntegration.setEnabled(True)
         self.setDataLimits.setEnabled(True)
 
-        if self.only_new_solver_wanted:
-            self.markDzone.setEnabled(True)
-            self.markRzone.setEnabled(True)
-            self.locateEvent.setEnabled(True)
-            self.minEventEdit.setEnabled(True)
-            self.maxEventEdit.setEnabled(True)
-        else:
-            self.markDzone.setEnabled(True)
-            self.markRzone.setEnabled(True)
-            self.minEventEdit.setEnabled(True)
-            self.maxEventEdit.setEnabled(True)
-            self.locateEvent.setEnabled(True)
-            # self.doNoiseAnalysis.setEnabled(True)
-            # self.computeSigmaA.setEnabled(True)
+        self.markDzone.setEnabled(True)
+        self.markRzone.setEnabled(True)
+        self.locateEvent.setEnabled(True)
+        self.minEventEdit.setEnabled(True)
+        self.maxEventEdit.setEnabled(True)
 
         # Reset the data plot so that all points are visible
         self.mainPlot.autoRange()
@@ -2262,7 +2565,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.reDrawMainPlot()
         self.mainPlot.autoRange()
         self.showMsg('*' * 20 + ' starting over ' + '*' * 20, color='blue')
-    
+
+
     def drawSolution(self):
         def plot(x, y):
             self.mainPlot.plot(x, y, pen=pg.mkPen((150, 100, 100), width=3), symbol=None)

@@ -24,6 +24,9 @@ def edgeDistributionGenerator(*, ntrials: int=10000, numPts: int=None, D: int=No
     try:
         my_noise_gen = autocorrtools.CorrelatedNoiseGenerator(acfcoeffs)
     except np.linalg.LinAlgError:
+        # New in version 2.0.7  Fall back to uncorrelated noise if Cholesky
+        # fails.
+        my_noise_gen = autocorrtools.CorrelatedNoiseGenerator([1.0])
         yield -1.0  # This is a flag value that is only returned when a LinAlgError exception occurs
 
     mb = np.ndarray(shape=(numPts,), dtype=np.double)  # 'model' B value
