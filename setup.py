@@ -2,6 +2,7 @@ import codecs
 import os
 
 from Cython.Build import cythonize
+
 from Cython.Distutils import build_ext
 from setuptools import setup, find_packages, Extension
 
@@ -35,7 +36,7 @@ CLASSIFIERS = [
 # in use, and that has PyQt5 already installed.  Adding PyQt5 in this list also works, but adds about
 # 100Mb to the normal install download of about 10Mb
 
-INSTALL_REQUIRES = ['pyqtgraph']
+INSTALL_REQUIRES = ['pyqtgraph','Cython']
 
 ###################################################################
 

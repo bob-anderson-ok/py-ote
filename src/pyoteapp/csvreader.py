@@ -53,7 +53,7 @@ def tangraParser(line, frame, time, value, ref1, ref2, ref3):
     We only accept Tangra files that have been formatted
     according to the AOTA default which is ---
        UT time field formatted as  [hh:mm:ss.sss]
-       and readings reported as signal,background (no background subtraction)
+       We detect the state of background subtraction (either done or needed)
        An example data line:  11,[16:00:14.183],2837.8,100.0,4097.32,200.0
     """
     part = line.split(',')

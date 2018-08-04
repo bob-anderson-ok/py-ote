@@ -12,7 +12,6 @@ import os
 import sys
 
 from math import trunc, floor
-from copy import deepcopy
 
 import numpy as np
 import pyqtgraph as pg
@@ -42,6 +41,7 @@ from pyoteapp.timestampUtils import convertTimeStringToTime
 from pyoteapp.timestampUtils import convertTimeToTimeString
 from pyoteapp.timestampUtils import getTimeStepAndOutliers
 from pyoteapp.timestampUtils import manualTimeStampEntry
+from pyoteapp.blockIntegrateUtils import mean_std_versus_offset
 from pyoteapp.iterative_logl_functions import locate_event_from_d_and_r_ranges
 from pyoteapp.iterative_logl_functions import find_best_event_from_min_max_size
 from pyoteapp.iterative_logl_functions import find_best_r_only_from_min_max_size
@@ -299,6 +299,13 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         # Use 'sticky' settings to size and position the main screen
         self.resize(self.settings.value('size', QSize(800, 800)))
         self.move(self.settings.value('pos', QPoint(50, 50)))
+
+        # Use 'sticky' settings to set the show tooltips check box
+        saved_state = self.settings.value('showtooltips', True)
+        if saved_state == 'false':
+            self.enableTooltipsCheckBox.setCheckState(False)
+        else:
+            self.enableTooltipsCheckBox.setCheckState(True)
      
         self.outliers = []
         self.logFile = ''
@@ -453,6 +460,18 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         msg.setIcon(QMessageBox.Question)
         msg.setText('A newer version of PYOTE is available. Do you wish to install it?')
         msg.setWindowTitle('Get latest version of PYOTE query')
+        msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        retval = msg.exec_()
+        return retval
+
+    @staticmethod
+    def queryWhetherBlockIntegrationShouldBeAcccepted():
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Question)
+        msg.setText(
+            'Do you want the pyote estimation of block integration parameters to be used'
+            ' for block integration?')
+        msg.setWindowTitle('Is auto-determined block integration ok')
         msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
         retval = msg.exec_()
         return retval
@@ -920,22 +939,82 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.yStatus = [1 for _i in range(self.dataLen)]
 
     def doIntegration(self):
-        if len(self.selectedPoints) != 2:
+
+        left = right = None
+
+        if len(self.selectedPoints) == 0:
+            self.showMsg('Analysis of all possible block integration sizes and offsets',
+                         color='red', bold=True)
+            notchList = []
+            kList = []
+            offsetList = []
+            # Do analysis test instead
+            for k in [2, 4, 8, 16, 32, 48, 64, 96, 128, 256]:
+                kList.append(k)
+                ans = mean_std_versus_offset(k, self.yValues)
+                offsetList.append(np.argmin(ans))
+                median = np.median(ans)
+                notch = np.min(ans) / median
+                notchList.append(notch)
+                s = '%3d notch %0.2f [' % (k, notch)
+
+                for item in ans:
+                    s = s + '%0.1f, ' % item
+                self.showMsg(s[:-2] + ']', blankLine=False)
+
+            best = np.argmin(notchList)
+            blockSize = kList[best]
+            offset = offsetList[best]
+            self.showMsg(' ', blankLine=False)
+            s = '\r\nBest integration estimate: blockSize: %d @ offset %d' % (blockSize, offset)
+            self.showMsg(s, color='red', bold=True)
+
+            brush1 = (  0, 200, 0, 70)
+            brush2 = (200,   0, 0, 70)
+
+            leftEdge = offset
+            rightEdge = leftEdge + blockSize - 1
+            bFlag = True
+
+            while rightEdge <= len(self.yValues):
+                if bFlag:
+                    bFlag = False
+                    brushToUse = brush2
+                else:
+                    bFlag = True
+                    brushToUse = brush1
+
+                if bFlag:
+                    self.mainPlot.addItem(pg.LinearRegionItem([leftEdge, rightEdge],
+                                          movable=False, brush=brushToUse))
+                leftEdge  += blockSize
+                rightEdge += blockSize
+
+            if self.queryWhetherBlockIntegrationShouldBeAcccepted()== QMessageBox.Yes:
+                # Set the integration selection point indices
+                left = offset
+                right = offset + blockSize - 1
+                selPts = [left, right]
+            else:
+                return
+
+        elif len(self.selectedPoints) != 2:
             self.showInfo('Exactly two points must be selected for a block integration')
             return
-        
-        if self.outliers:
-            self.showInfo('This data set contains some erroneous time steps, which have ' +
-                          'been marked with red lines.  Best practice is to ' +
-                          'choose an integration block that is ' +
-                          'positioned in an unmarked region, hopefully containing ' +
-                          'the "event".  Block integration ' +
-                          'proceeds to the left and then to the right of the marked block.')
-            
-        selPts = [key for key in self.selectedPoints.keys()]
-        self.removePointSelections()
-        left = min(selPts)
-        right = max(selPts)
+
+        if left is None:
+            if self.outliers:
+                self.showInfo('This data set contains some erroneous time steps, which have ' +
+                              'been marked with red lines.  Best practice is to ' +
+                              'choose an integration block that is ' +
+                              'positioned in an unmarked region, hopefully containing ' +
+                              'the "event".  Block integration ' +
+                              'proceeds to the left and then to the right of the marked block.')
+
+            selPts = [key for key in self.selectedPoints.keys()]
+            self.removePointSelections()
+            left = min(selPts)
+            right = max(selPts)
 
         # Time to do the work
         p0 = left
@@ -1066,6 +1145,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         # Capture the close request and update 'sticky' settings
         self.settings.setValue('size', self.size())
         self.settings.setValue('pos', self.pos())
+        self.settings.setValue('showtooltips', self.enableTooltipsCheckBox.isChecked())
         
         curDateTime = datetime.datetime.today().ctime()
         self.showMsg('')
@@ -1383,8 +1463,11 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             self.showMsg('R: 0.9973 confidence intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar))
 
     def doDurTimeReport(self):
+        dur = self.Rtime - self.Dtime
+        if dur < 0:  # We have bracketed midnight
+            dur = dur + 3600 * 24  # Add seconds in a day
         if self.eventType == 'DandR':
-            self.showMsg('Duration (R - D): {0:0.4f} seconds'.format(self.Rtime - self.Dtime), blankLine=False)
+            self.showMsg('Duration (R - D): {0:0.4f} seconds'.format(dur), blankLine=False)
             errBar = ((self.deltaDurhi68 - self.deltaDurlo68) / 2) * self.timeDelta
             self.showMsg('Duration: 0.6800 confidence intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar), blankLine=False)
             errBar = ((self.deltaDurhi95 - self.deltaDurlo95) / 2) * self.timeDelta

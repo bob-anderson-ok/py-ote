@@ -33,6 +33,7 @@ import sys
 from cx_Freeze import Executable
 from cx_Freeze import setup as cx_setup
 from distutils.core import setup
+
 from Cython.Build import cythonize
 
 # Compile the cython modules
