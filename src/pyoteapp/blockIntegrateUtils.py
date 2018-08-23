@@ -24,7 +24,11 @@ def mean_stds(index, blockSize, y):
             ans += std
             n += 1
         i = i + blockSize
-    return ans / n
+
+    if n > 0:
+        return ans / n
+    else:
+        return ans
 
 
 # Returns a list of the block standard deviations for all possible

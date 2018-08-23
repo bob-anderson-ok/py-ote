@@ -210,6 +210,10 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         # Button: Do block integration
         self.doBlockIntegration.clicked.connect(self.doIntegration)
         self.doBlockIntegration.installEventFilter(self)
+
+        # Button: Accept integration
+        self.acceptBlockIntegration.clicked.connect(self.applyIntegration)
+        self.acceptBlockIntegration.installEventFilter(self)
         
         # Button: Perform baseline noise analysis
         # self.doNoiseAnalysis.clicked.connect(self.processBaselineNoise)
@@ -267,7 +271,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         # as does horizontalLayout_?
 
         oldMainPlot = self.mainPlot
-        self.mainPlot = PlotWidget(self.layoutWidget,
+        self.mainPlot = PlotWidget(self.centralwidget,
                                    viewBox=CustomViewBox(border=(255, 255, 255)),
                                    enableMenu=False)
         self.mainPlot.setObjectName("mainPlot")
@@ -309,6 +313,9 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
      
         self.outliers = []
         self.logFile = ''
+        self.left = None
+        self.right = None
+        self.selPts = []
         self.initializeVariablesThatDontDependOnAfile()
 
         self.checkForNewVersion()
@@ -316,6 +323,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.only_new_solver_wanted = True
 
         self.helperThing = HelpDialog()
+
 
     def eventFilter(self, obj, event):
         if event.type() == QtCore.QEvent.ToolTip:
@@ -567,6 +575,10 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             self.showInfo('Wrote to: \r\r' + targetFile)
         
     def initializeVariablesThatDontDependOnAfile(self):
+
+        self.left = None   # Used during block integration
+        self.right = None  #  "
+        self.selPts = []   #  "
 
         self.flashEdges = []
         self.normalized = False
@@ -940,18 +952,22 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
     def doIntegration(self):
 
-        left = right = None
-
         if len(self.selectedPoints) == 0:
             self.showMsg('Analysis of all possible block integration sizes and offsets',
                          color='red', bold=True)
             notchList = []
             kList = []
             offsetList = []
-            # Do analysis test instead
-            for k in [2, 4, 8, 16, 32, 48, 64, 96, 128, 256]:
+
+            self.progressBar.setValue(0)
+            progress = 0
+            integrationSizes = [2, 4, 8, 16, 32, 48, 64, 96, 128, 256]
+            for k in integrationSizes:
                 kList.append(k)
                 ans = mean_std_versus_offset(k, self.yValues)
+                progress += 1
+                self.progressBar.setValue((progress / len(integrationSizes)) * 100)
+                QtGui.QApplication.processEvents()
                 offsetList.append(np.argmin(ans))
                 median = np.median(ans)
                 notch = np.min(ans) / median
@@ -961,6 +977,10 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 for item in ans:
                     s = s + '%0.1f, ' % item
                 self.showMsg(s[:-2] + ']', blankLine=False)
+                QtGui.QApplication.processEvents()
+
+            self.progressBar.setValue(0)
+            QtGui.QApplication.processEvents()
 
             best = np.argmin(notchList)
             blockSize = kList[best]
@@ -990,19 +1010,31 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 leftEdge  += blockSize
                 rightEdge += blockSize
 
-            if self.queryWhetherBlockIntegrationShouldBeAcccepted()== QMessageBox.Yes:
-                # Set the integration selection point indices
-                left = offset
-                right = offset + blockSize - 1
-                selPts = [left, right]
-            else:
-                return
+            # Set the integration selection point indices
+            self.left = offset
+            self.right = offset + blockSize - 1
+            self.selPts = [self.left, self.right]
+
+            self.acceptBlockIntegration.setEnabled(True)
+
+            # if self.queryWhetherBlockIntegrationShouldBeAcccepted()== QMessageBox.Yes:
+            #     # Set the integration selection point indices
+            #     self.left = offset
+            #     self.right = offset + blockSize - 1
+            #     self.selPts = [self.left, self.right]
+            #     self.applyIntegration()
+            # else:
+            #     return
 
         elif len(self.selectedPoints) != 2:
             self.showInfo('Exactly two points must be selected for a block integration')
             return
+        else:
+            self.left = None  # Force use of selectPoints in applyIntegration()
+            self.applyIntegration()
 
-        if left is None:
+    def applyIntegration(self):
+        if self.left is None:
             if self.outliers:
                 self.showInfo('This data set contains some erroneous time steps, which have ' +
                               'been marked with red lines.  Best practice is to ' +
@@ -1011,14 +1043,14 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                               'the "event".  Block integration ' +
                               'proceeds to the left and then to the right of the marked block.')
 
-            selPts = [key for key in self.selectedPoints.keys()]
+            self.selPts = [key for key in self.selectedPoints.keys()]
             self.removePointSelections()
-            left = min(selPts)
-            right = max(selPts)
+            self.left = min(self.selPts)
+            self.right = max(self.selPts)
 
         # Time to do the work
-        p0 = left
-        span = right - left + 1  # Number of points in integration block
+        p0 = self.left
+        span = self.right - self.left + 1  # Number of points in integration block
         self.blockSize = span
         newFrame = []
         newTime = []
@@ -1087,9 +1119,9 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.yFrame = newFrame[:]
         self.fillTableViewOfData()
         
-        selPts.sort()
-        self.showMsg('Block integration started at entry ' + str(selPts[0]) +
-                     ' with block size of ' + str(selPts[1]-selPts[0]+1) + ' readings')
+        self.selPts.sort()
+        self.showMsg('Block integration started at entry ' + str(self.selPts[0]) +
+                     ' with block size of ' + str(self.selPts[1]-self.selPts[0]+1) + ' readings')
         
         self.timeDelta, self.outliers, self.errRate = getTimeStepAndOutliers(self.yTimes)
         self.showMsg('timeDelta: ' + fp.to_precision(self.timeDelta, 6) + ' seconds per block', blankLine=False)
@@ -1098,6 +1130,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.illustrateTimestampOutliers()
         
         self.doBlockIntegration.setEnabled(False)
+        self.acceptBlockIntegration.setEnabled(False)
         self.reDrawMainPlot()
         self.mainPlot.autoRange()
 
@@ -1553,17 +1586,14 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                                  'Proceeding by '
                                  'treating noise as being uncorrelated.',
                                  bold=True, color='red')
-                    # return
                 self.progressBar.setValue(dist * 100)
                 QtGui.QApplication.processEvents()
                 if self.cancelRequested:
                     self.cancelRequested = False
                     self.showMsg('Error bar calculation was cancelled')
                     self.progressBar.setValue(0)
-                    # self.finalReport()
                     return
             else:
-                # self.showMsg('Error bar calculation done')
                 self.calcErrBars.setEnabled(False)
                 self.progressBar.setValue(0)
         
