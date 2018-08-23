@@ -992,8 +992,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             brush1 = (  0, 200, 0, 70)
             brush2 = (200,   0, 0, 70)
 
-            leftEdge = offset
-            rightEdge = leftEdge + blockSize - 1
+            leftEdge = offset - 0.5
+            rightEdge = leftEdge + blockSize
             bFlag = True
 
             while rightEdge <= len(self.yValues):
@@ -1016,15 +1016,6 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             self.selPts = [self.left, self.right]
 
             self.acceptBlockIntegration.setEnabled(True)
-
-            # if self.queryWhetherBlockIntegrationShouldBeAcccepted()== QMessageBox.Yes:
-            #     # Set the integration selection point indices
-            #     self.left = offset
-            #     self.right = offset + blockSize - 1
-            #     self.selPts = [self.left, self.right]
-            #     self.applyIntegration()
-            # else:
-            #     return
 
         elif len(self.selectedPoints) != 2:
             self.showInfo('Exactly two points must be selected for a block integration')
