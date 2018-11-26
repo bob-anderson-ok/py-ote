@@ -1011,9 +1011,9 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 rightEdge += blockSize
 
             # Set the integration selection point indices
-            self.left = offset
-            self.right = offset + blockSize - 1
-            self.selPts = [self.left, self.right]
+            self.bint_left = offset
+            self.bint_right = offset + blockSize - 1
+            self.selPts = [self.bint_left, self.bint_right]
 
             self.acceptBlockIntegration.setEnabled(True)
 
@@ -1021,11 +1021,12 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             self.showInfo('Exactly two points must be selected for a block integration')
             return
         else:
-            self.left = None  # Force use of selectPoints in applyIntegration()
+            self.bint_left = None  # Force use of selectPoints in applyIntegration()
+            # self.acceptBlockIntegration.setEnabled(False)
             self.applyIntegration()
 
     def applyIntegration(self):
-        if self.left is None:
+        if self.bint_left is None:
             if self.outliers:
                 self.showInfo('This data set contains some erroneous time steps, which have ' +
                               'been marked with red lines.  Best practice is to ' +
@@ -1036,12 +1037,12 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
             self.selPts = [key for key in self.selectedPoints.keys()]
             self.removePointSelections()
-            self.left = min(self.selPts)
-            self.right = max(self.selPts)
+            self.bint_left = min(self.selPts)
+            self.bint_right = max(self.selPts)
 
         # Time to do the work
-        p0 = self.left
-        span = self.right - self.left + 1  # Number of points in integration block
+        p0 = self.bint_left
+        span = self.bint_right - self.bint_left + 1  # Number of points in integration block
         self.blockSize = span
         newFrame = []
         newTime = []
@@ -1151,6 +1152,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                         if index > self.right:
                             index = self.right
                         self.togglePointSelected(index)
+                        self.acceptBlockIntegration.setEnabled(False)
                     # Move the table view of data so that clicked point data is visible
                     self.table.setCurrentCell(index, 0)
                 else:
