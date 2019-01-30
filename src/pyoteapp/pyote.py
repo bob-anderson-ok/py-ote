@@ -10,6 +10,7 @@ MIN_SIGMA = 0.1
 import datetime
 import os
 import sys
+import platform
 
 from math import trunc, floor
 
@@ -320,10 +321,36 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
         self.checkForNewVersion()
 
+        self.copy_desktop_icon_file_to_home_directory()
+
         self.only_new_solver_wanted = True
 
         self.helperThing = HelpDialog()
 
+    def copy_desktop_icon_file_to_home_directory(self):
+        if platform.mac_ver()[0]:
+            icon_dest_path = f"{os.environ['HOME']}{r'/Desktop/run-pyote'}"
+            if not os.path.exists(icon_dest_path):
+                # Here is where the .bat file will be when running an installed pyote
+                icon_src_path = f"{os.environ['HOME']}" + r"/Anaconda3/Lib/site-packages/pyoteapp/run-pyote-mac.bat"
+                if not os.path.exists(icon_src_path):
+                    # But here is where the .bat file is during a development run
+                    icon_src_path = os.path.join(os.path.split(__file__)[0], 'run-pyote-mac.bat')
+                with open(icon_src_path) as src, open(icon_dest_path, 'w') as dest:
+                    dest.writelines(src.readlines())
+                os.chmod(icon_dest_path, 0o755)  # Make it executable
+        else:
+            # We must be on a Windows machine because Mac version number was empty
+            icon_dest_path = r"C:\Anaconda3\PYOTE.bat"
+
+            if not os.path.exists(icon_dest_path):
+                # Here is where the .bat file will be when running an installed pyote
+                icon_src_path = r"C:\Anaconda3\Lib\site-packages\pyoteapp\PYOTE.bat"
+                if not os.path.exists(icon_src_path):
+                    # But here is where the .bat file is during a development run
+                    icon_src_path = os.path.join(os.path.split(__file__)[0], 'PYOTE.bat')
+                with open(icon_src_path) as src, open(icon_dest_path, 'w') as dest:
+                    dest.writelines(src.readlines())
 
     def eventFilter(self, obj, event):
         if event.type() == QtCore.QEvent.ToolTip:
@@ -1309,10 +1336,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.showMsg('B: %0.2f  {+/- %0.2f}' % (self.B, numSigmas * self.sigmaB / np.sqrt(self.nBpts)))
         self.showMsg('A: %0.2f  {+/- %0.2f}' % (self.A, numSigmas * self.sigmaA / np.sqrt(self.nApts)))
 
-        if self.A > 0:
-            self.showMsg('nominal magDrop: %0.2f' % ((np.log10(self.B) - np.log10(self.A)) * 2.5))
-        else:
-            self.showMsg('magDrop calculation not possible because A is negative')
+        self.magdropReport(numSigmas)
+
         self.showMsg('snr: %0.2f' % self.snrB)
 
         if self.eventType == 'Donly':
@@ -1331,6 +1356,37 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             minusDur = plusDur
             self.showMsg('Duration (R - D): %.4f {+%.4f,-%.4f} seconds' %
                          (Rtime - Dtime, plusDur, minusDur))
+
+    def magdropReport(self, numSigmas):
+        Adelta = numSigmas * self.sigmaA / np.sqrt(self.nApts)
+        Amin = self.A - Adelta
+        Anom = self.A
+        Amax = self.A + Adelta
+        Bdelta = numSigmas * self.sigmaB / np.sqrt(self.nBpts)
+        Bmin = self.B - Bdelta
+        Bnom = self.B
+        Bmax = self.B + Bdelta
+
+        if Amax > 0 and Bmin >= Amax:
+            self.showMsg('minimum magDrop: %0.2f' % (
+                        (np.log10(Bmin) - np.log10(Amax)) * 2.5))
+        else:
+            self.showMsg(
+                'minimum magDrop: NA because Amax is negative or Bmin less than Amax')
+
+        if Anom > 0:
+            self.showMsg('nominal magDrop: %0.2f' % (
+                        (np.log10(Bnom) - np.log10(Anom)) * 2.5))
+        else:
+            self.showMsg(
+                'nominal magDrop: NA because Anom is negative')
+
+        if Amin > 0:
+            self.showMsg('maximum magDrop: %0.2f' % (
+                        (np.log10(Bmax) - np.log10(Amin)) * 2.5))
+        else:
+            self.showMsg(
+                'maximum magDrop: NA because Amin is negative')
 
     def finalReport(self):
         self.writeDefaultGraphicsPlots()
@@ -1397,17 +1453,21 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                          'Noise has therefore been treated as being '
                          'uncorrelated.',
                          bold=True, color='red')
+
+        # self.magdropReport(numSigmas=2)
+
         if self.A > 0:
             self.showMsg('nominal magDrop: %0.2f' % ((np.log10(self.B) - np.log10(self.A)) * 2.5))
         else:
             self.showMsg('magDrop calculation not possible because A is negative')
+
         self.showMsg('snr: %0.2f' % self.snrB)
 
         self.doDtimeReport()
         self.doRtimeReport()
         self.doDurTimeReport()
 
-        self.showMsg('Enter confidence intervals in Excel spreadsheet without + or - sign (assumed to be +/-)')
+        self.showMsg('Enter D and R error bars for each confidence interval in Excel spreadsheet without + or - sign (assumed to be +/-)')
 
         self.showMsg('=========== end Summary report for Excel file =====================')
 
@@ -2046,6 +2106,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
         self.runSolver = True
         solverGen = None
+        self.calcErrBars.setEnabled(False)
 
         if self.runSolver:
             if self.eventType == 'DandR':
@@ -2183,6 +2244,20 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             self.solution = (D, R)
             if self.eventType == 'DandR':
                 # ans = '(%.2f,%.2f) B: %.2f  A: %.2f' % (D, R, self.B, self.A)
+                # Check for solution search based on min max event limits
+                if self.maxEvent is not None:
+                    if (R - D) > self.maxEvent:
+                        self.reDrawMainPlot()
+                        self.showMsg('Invalid solution: max event limit constrained solution', color='red', bold = True)
+                        self.showInfo('The solution is likely incorrect because the max event limit' +
+                                      ' was set too low.  Increase that limit and try again.')
+                        return
+                    if self.minEvent > (R - D):
+                        self.reDrawMainPlot()
+                        self.showMsg('Invalid solution: min event limit constrained solution!', color='red', bold = True)
+                        self.showInfo('The solution is likely incorrect because the min event limit' +
+                                      ' was set too high.  Decrease that limit and try again.')
+                        return
                 pass
             elif self.eventType == 'Donly':
                 # ans = '(%.2f,None) B: %.2f  A: %.2f' % (D, self.B, self.A)
@@ -2823,9 +2898,16 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         
         if self.showSecondaryCheckBox.isChecked() and len(self.yRefStar) == self.dataLen:
             self.mainPlot.plot(self.yRefStar)
-            right = min(self.dataLen, self.right+1)
-            x = [i for i in range(self.left, right)]
-            y = [self.yRefStar[i]for i in range(self.left, right)]            
+            if self.right is not None:
+                right = min(self.dataLen, self.right+1)
+            else:
+                right = self.dataLen
+            if self.left is None:
+                left = 0
+            else:
+                left = self.left
+            x = [i for i in range(left, right)]
+            y = [self.yRefStar[i]for i in range(left, right)]
             self.mainPlot.plot(x, y, pen=None, symbol='o', 
                                symbolBrush=(0, 255, 0), symbolSize=6)
             if len(self.smoothSecondary) > 0:

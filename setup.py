@@ -4,7 +4,16 @@ import os
 from Cython.Build import cythonize
 
 from Cython.Distutils import build_ext
-from setuptools import setup, find_packages, Extension
+
+# To get the wheel build to work in python 3.7 Anaconda3 5.3.1 the follwing changes were made...
+# Commented out the following line..
+#from setuptools import setup, find_packages, Extension
+
+# Added the following lines...
+from setuptools import find_packages
+from distutils.core import setup
+from distutils.extension import Extension
+# End changes
 
 from src.pyoteapp import version  # Edit this file to change version number
 
@@ -26,7 +35,7 @@ CLASSIFIERS = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: MacOS :: MacOS X",
     "Operating System :: Microsoft :: Windows",
-    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
     "Programming Language :: Cython",
     "Programming Language :: Python :: Implementation :: CPython",
     "Topic :: Scientific/Engineering",
@@ -36,7 +45,7 @@ CLASSIFIERS = [
 # in use, and that has PyQt5 already installed.  Adding PyQt5 in this list also works, but adds about
 # 100Mb to the normal install download of about 10Mb
 
-INSTALL_REQUIRES = ['pyqtgraph','Cython']
+INSTALL_REQUIRES = ['pyqtgraph', 'Cython']
 
 ###################################################################
 
@@ -76,6 +85,7 @@ if __name__ == "__main__":
         packages=PACKAGES,
         package_dir={"": "src"},
         zip_safe=False,
+        package_data={'': ['*.bat']},
         include_package_data=True,
         classifiers=CLASSIFIERS,
         install_requires=INSTALL_REQUIRES,
