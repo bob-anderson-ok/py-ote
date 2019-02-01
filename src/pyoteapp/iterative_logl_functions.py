@@ -119,9 +119,6 @@ def find_best_event_from_min_max_size(
         d, r, b, a, sigma_b, sigma_a, metric, sol_count = \
             locate_fixed_event_position(y, left, right, event)
 
-        if (d == 268) or (r == 274):
-            print(metric)
-
         # This little 'trick' is used to auto-initialize the 'best' values
         if not max_metric:
             max_metric = metric
@@ -142,7 +139,7 @@ def find_best_event_from_min_max_size(
 
     # Here we test for solution being better than straight line
     if not solution_is_better_than_straight_line(
-            y, left, right, d_best, r_best, b, a, sigma_b, sigma_a, k=4):
+            y, left, right, d_best, r_best, b_best, a_best, sigma_b, sigma_a, k=4):
         yield 'no event present', solution_counter / num_candidates
 
     yield d_best, r_best, b_best, a_best, sigma_b_best, sigma_a_best, \
@@ -213,7 +210,10 @@ def find_best_r_only_from_min_max_size(
         b = b_s / b_n
         a = a_s / a_n
 
-        if metric > max_metric and b > a:
+        goodSolution = solution_is_better_than_straight_line(
+                y, left, right, None, r, b, a, sqrt(b_var), sqrt(a_var), k=3)
+
+        if metric > max_metric and b > a and goodSolution:
             update_best_solution()
 
 
@@ -293,7 +293,10 @@ def find_best_d_only_from_min_max_size(
         b = b_s / b_n
         a = a_s / a_n
 
-        if metric > max_metric and b > a:
+        goodSolution = solution_is_better_than_straight_line(
+            y, left, right, d, None, b, a, sqrt(b_var), sqrt(a_var), k=3)
+
+        if metric > max_metric and b > a and goodSolution:
             update_best_solution()
 
     if b_best <= a_best:
@@ -384,12 +387,15 @@ def locate_fixed_event_position(
         b = b_s / b_n
         a = a_s / a_n
 
-        if metric > max_metric and b > a:
+        goodSolution = solution_is_better_than_straight_line(
+            y, left, right, d, r, b, a, sqrt(b_var), sqrt(a_var), k=4)
+
+        if metric > max_metric and b > a and goodSolution:
             update_best_solution()
 
         solution_count += 1
 
-        # metrics.append(metric)  # For use during developmen
+        # metrics.append(metric)  # For use during development
 
     return d_max, r_max, b_max, a_max, sigma_b, sigma_a, max_metric, solution_count
 
@@ -484,7 +490,11 @@ def locate_event_from_d_and_r_ranges(
 
             b = b_s / b_n
             a = a_s / a_n
-            if metric >= max_metric and b > a:
+
+            goodSolution = solution_is_better_than_straight_line(
+                y, left, right, d, r, b, a, sqrt(b_var), sqrt(a_var), k=4)
+
+            if metric >= max_metric and b > a and goodSolution:
                 update_best_solution()
 
             solution_counter += 1
