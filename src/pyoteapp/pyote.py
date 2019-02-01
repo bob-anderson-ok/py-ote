@@ -1198,7 +1198,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.table.clear()
         self.table.setColumnCount(6)
         self.table.setRowCount(3)
-        colLabels = ['Frame num', 'timestamp', 'LC1', 'LC2', 'LC3', 'LC4']
+        colLabels = ['Frame num', 'Timestamp', 'LC1', 'LC2', 'LC3', 'LC4']
         self.table.setHorizontalHeaderLabels(colLabels)
         
     def closeEvent(self, event):
@@ -2296,13 +2296,16 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             newitem = QtGui.QTableWidgetItem(str(self.yFrame[i]))
             self.table.setItem(i, 0, newitem)
             if len(self.LC2) > 0:
-                newitem = QtGui.QTableWidgetItem(str(self.LC2[i]))
+                neatStr = fp.to_precision(self.LC2[i], 6)
+                newitem = QtGui.QTableWidgetItem(str(neatStr))
                 self.table.setItem(i, 3, newitem)
             if len(self.LC3) > 0:
-                newitem = QtGui.QTableWidgetItem(str(self.LC3[i]))
+                neatStr = fp.to_precision(self.LC3[i], 6)
+                newitem = QtGui.QTableWidgetItem(str(neatStr))
                 self.table.setItem(i, 4, newitem)
             if len(self.LC4) > 0:
-                newitem = QtGui.QTableWidgetItem(str(self.LC4[i]))
+                neatStr = fp.to_precision(self.LC3[i], 6)
+                newitem = QtGui.QTableWidgetItem(str(neatStr))
                 self.table.setItem(i, 5, newitem)
 
             
@@ -2322,7 +2325,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                     msg = (
                         f'Possible dropped readings !!!\n\n'
                         f'Reading count input: {actualFrameCount:.2f}  \n\n'
-                        f'Reading count computed from frame/field rate: {expectedFrameCount:.2f}'
+                        f'Reading count computed from frame rate: {expectedFrameCount:.2f}'
                     )
                     self.showMsg(msg, color='red', bold=True)
                     self.showInfo(msg)

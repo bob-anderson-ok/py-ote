@@ -28,7 +28,7 @@
      <item>
       <widget class="QLabel" name="label_13">
        <property name="text">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;PyOTE assumes that a frame/field timestamp represents the UTC time of the synch pulse that &lt;/p&gt;&lt;p&gt;first appears in the composite video output as the frame/field is emitted from the camera. &lt;/p&gt;&lt;p&gt;For an IOTA-VTI frame display, this will be the earliest of the two times displayed in the overlay text.&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;PyOTE assumes that a frame timestamp represents the UTC time of the synch pulse that &lt;br/&gt;first appears in the composite video output as the frame/field is emitted from the camera. &lt;br/&gt;&lt;br/&gt;For an IOTA-VTI frame display, this will be the earliest of the two times displayed in the overlay text.&lt;/p&gt;&lt;p&gt;Note: if the light curve was processed in field mode, frame numbers are still used but become fractional&lt;br/&gt;to indicate fields.  And the frame time remains the proper time unit to specify.&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
      </item>
@@ -39,7 +39,7 @@
      <item>
       <widget class="QLabel" name="label_14">
        <property name="text">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;In order to detect dropped frames/fields, PyOTE needs to know the expected frame/field time. Make a selection below:&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;In order to detect dropped readings, PyOTE needs to know the expected frame time. Make a selection below:&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
      </item>
@@ -61,27 +61,6 @@
       </widget>
      </item>
      <item>
-      <widget class="Line" name="line">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QRadioButton" name="radioButtonNTSCfield">
-       <property name="text">
-        <string>use NTSC field time   (1.001/60 seconds)</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QRadioButton" name="radioButtonPALfield">
-       <property name="text">
-        <string>use PAL    field time   (1.000/50 seconds)</string>
-       </property>
-      </widget>
-     </item>
-     <item>
       <widget class="Line" name="line_2">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
@@ -94,7 +73,7 @@
         <enum>Qt::LeftToRight</enum>
        </property>
        <property name="text">
-        <string>use Custom time (enter number or numerical expression in box below)</string>
+        <string>use Custom frame time (enter number or numerical expression in box below)</string>
        </property>
       </widget>
      </item>
@@ -105,7 +84,7 @@
      <item>
       <widget class="QLabel" name="label_9">
        <property name="text">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Timestamp (early frame/field)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Timestamp (early frame)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
@@ -122,7 +101,7 @@
          <item>
           <widget class="QLabel" name="label">
            <property name="text">
-            <string>frame/field num</string>
+            <string>frame number</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
@@ -203,7 +182,7 @@
      <item>
       <widget class="QLabel" name="label_10">
        <property name="text">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Timestamp (later frame/field)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Timestamp (later frame)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
@@ -220,7 +199,7 @@
          <item>
           <widget class="QLabel" name="label_5">
            <property name="text">
-            <string>frame/field num</string>
+            <string>frame number</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
@@ -311,7 +290,7 @@
      <item>
       <widget class="QLabel" name="label_11">
        <property name="text">
-        <string>Custom time (seconds)</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Custom frame time (seconds)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>

@@ -103,7 +103,7 @@ def manualTimeStampEntry(frame, dialog, flashFrames=[]):
         try:
             frameNum1 = float(dialog.frameNum1.text())
         except:
-            return '"' + dialog.frameNum1.text() + '" is invalid as frame/field number input', \
+            return '"' + dialog.frameNum1.text() + '" is invalid as frame number input', \
                    time, dataEntered, nf, ef
         try:
             hh1 = int(dialog.hh1.text())
@@ -126,7 +126,7 @@ def manualTimeStampEntry(frame, dialog, flashFrames=[]):
             try:
                 frameNum2 = float(dialog.frameNum2.text())
             except:
-                return '"' + dialog.frameNum2.text() + '" is invalid as frame/field number input', \
+                return '"' + dialog.frameNum2.text() + '" is invalid as frame number input', \
                        time, dataEntered, nf, ef
             try:
                 hh2 = int(dialog.hh2.text())
@@ -151,10 +151,6 @@ def manualTimeStampEntry(frame, dialog, flashFrames=[]):
             expectedFrameDeltaTime = 1.001 / 30.0
         elif dialog.radioButtonPAL.isChecked():
             expectedFrameDeltaTime = 1.000 / 25.0
-        elif dialog.radioButtonNTSCfield.isChecked():
-            expectedFrameDeltaTime = 1.001 / 60.0
-        elif dialog.radioButtonPALfield.isChecked():
-            expectedFrameDeltaTime = 1.000 / 50.0
         else:
             try:
                 expectedFrameDeltaTime = eval(dialog.frameDeltaTime.text(), {}, {})
@@ -171,23 +167,23 @@ def manualTimeStampEntry(frame, dialog, flashFrames=[]):
         # Validate data entries
 
         if frameNum2 <= frameNum1:
-            return 'early frame/field num must be less than late frame/field num', \
+            return 'early frame num must be less than late frame num', \
                    time, dataEntered, nf, ef
         if frameNum1 < 0 or hh1 < 0 or mm1 < 0 or ss1 < 0:
-            return 'Negative values of frame/field num are invalid.', \
+            return 'Negative values of frame num are invalid.', \
                    time, dataEntered, nf, ef
         if frameNum2 < 0 or hh2 < 0 or mm2 < 0 or ss2 < 0:
-            return 'Negative values of frame/field num are invalid.', \
+            return 'Negative values of frame num are invalid.', \
                    time, dataEntered, nf, ef
         if not isFrameNumberInData(frameNum1, frame):
-            return 'early frame/field num is not valid: could not be found in the file data', \
+            return 'early frame num is not valid: could not be found in the file data', \
                    time, dataEntered, nf, ef
         if not isFrameNumberInData(frameNum2, frame):
-            return 'late frame/field num is not valid: could not be found in the file data', \
+            return 'late frame num is not valid: could not be found in the file data', \
                    time, dataEntered, nf, ef
 
-        timeStr1 = 'Manual timestamp info: @ frame/field {:0.2f} [{:02d}:{:02d}:{:07.4f}]'.format(frameNum1, hh1, mm1, ss1)
-        timeStr2 = ' --- @ frame/field {:0.2f} [{:02d}:{:02d}:{:07.4f}]'.format(frameNum2, hh2, mm2, ss2)
+        timeStr1 = 'Manual timestamp info: @ frame {:0.2f} [{:02d}:{:02d}:{:07.4f}]'.format(frameNum1, hh1, mm1, ss1)
+        timeStr2 = ' --- @ frame {:0.2f} [{:02d}:{:02d}:{:07.4f}]'.format(frameNum2, hh2, mm2, ss2)
         dataEntered = timeStr1 + timeStr2
 
         numFramesInSpan = frameNum2 - frameNum1

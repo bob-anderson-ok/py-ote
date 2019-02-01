@@ -119,6 +119,9 @@ def find_best_event_from_min_max_size(
         d, r, b, a, sigma_b, sigma_a, metric, sol_count = \
             locate_fixed_event_position(y, left, right, event)
 
+        if (d == 268) or (r == 274):
+            print(metric)
+
         # This little 'trick' is used to auto-initialize the 'best' values
         if not max_metric:
             max_metric = metric
