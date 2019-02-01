@@ -654,6 +654,19 @@
               </property>
              </widget>
             </item>
+            <item>
+             <widget class="QPushButton" name="writeCSVButton">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Use this button to write the contents of the data table below to a csv file.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;The comment lines from the original input file are preserved.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;The most common use for this function is to capture the result of a successful Manual Timestamp Entry for later use (without the need to again go through the manual timestamp entry procedure).&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>Write csv file</string>
+              </property>
+             </widget>
+            </item>
            </layout>
           </item>
           <item>
@@ -710,7 +723,7 @@
          </size>
         </property>
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Clicking on a data row (at the extreme left) in this panel will cause the corresponding point to be highlighted in the light curve plot. The highlighted point is shown as a largish yellow dot with a red rim --- it may be hard to see/find, but look for it.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt; font-weight:600;&quot;&gt;Clicking on a data cell in a row will select/deselect that point in the primary (dark blue) light curve plot. This is provided as an alternative method to clicking on points in the main light curve plot to select/deslect them.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Note: Clicking on a point in the primary (dark blue) light curve will cause the data row for that point to be selected/positioned.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;The data displayed in this table is read from the input file.  The light curve values in this table are never modified, but the timestamp column will be filled in in response to a successful Manual Timestamp Entry procedure.  The results of smoothing and normalization are NOT reflected in this table.  This policy allows this table to be used as the source when a user requests that a csv file be written, presumably to capture timestamps filled in by Manual Timestamp Entry, thus speeding future re-analysis efforts.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Clicking on a data row (at the extreme left) in this panel will cause the corresponding point to be highlighted in the light curve plot. The highlighted point is shown as a largish yellow dot with a red rim --- it may be hard to see/find, but look for it.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt; font-weight:600;&quot;&gt;Clicking on a data cell in a row will select/deselect that point in the primary (dark blue) light curve plot. This is provided as an alternative method to clicking on points in the main light curve plot to select/deslect them.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Note: Clicking on a point in the primary (dark blue) light curve will cause the data row for that point to be selected/positioned.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="toolTipDuration">
          <number>4000</number>

@@ -55,7 +55,7 @@ cursorAlert = pyqtSignal()
 # in the IPython console while in pyoteapp directory
 
 # The timestampDialog module was created by typing
-#    !pyuic5 timestamp_dialog.ui -o timestampDialog.py
+#    !pyuic5 timestamp_dialog_alt.ui -o timestampDialog.py
 # in the IPython console while in pyoteapp directory
 
 # The help-dialog module was created by typing
@@ -257,6 +257,10 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         # Button: Write graphic to file
         self.writePlot.clicked.connect(self.exportGraphic)
         self.writePlot.installEventFilter(self)
+
+        # Button: Write csv file
+        self.writeCSVButton.clicked.connect(self.writeCSVfile)
+        self.writeCSVButton.installEventFilter(self)
         
         # Button: Start over
         self.startOver.clicked.connect(self.restart)
@@ -326,6 +330,9 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.only_new_solver_wanted = True
 
         self.helperThing = HelpDialog()
+
+    def writeCSVfile(self):
+        self.showInfo("Not yet implemented.  Stay tuned.")
 
     def copy_desktop_icon_file_to_home_directory(self):
         if platform.mac_ver()[0]:
@@ -1189,9 +1196,9 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         
     def initializeTableView(self):
         self.table.clear()
-        self.table.setColumnCount(4)
+        self.table.setColumnCount(6)
         self.table.setRowCount(3)
-        colLabels = ['entry num', 'Frame num', 'timestamp', 'value']
+        colLabels = ['Frame num', 'timestamp', 'LC1', 'LC2', 'LC3', 'LC4']
         self.table.setHorizontalHeaderLabels(colLabels)
         
     def closeEvent(self, event):
@@ -1210,12 +1217,10 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         event.accept()
     
     def rowClick(self, row):
-        entry = self.table.item(row, 0)
-        self.highlightReading(int(entry.text()))
+        self.highlightReading(row)
         
     def cellClick(self, row):
-        entry = self.table.item(row, 0)
-        self.togglePointSelected(int(entry.text()))
+        self.togglePointSelected(row)
 
     def highlightReading(self, rdgNum):
         x = [rdgNum]
@@ -2282,26 +2287,47 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
         for i in range(self.dataLen):
             newitem = QtGui.QTableWidgetItem(str(i))
-            self.table.setItem(i, 0, newitem)
+            # self.table.setItem(i, 0, newitem)
             neatStr = fp.to_precision(self.yValues[i], 6)
             newitem = QtGui.QTableWidgetItem(str(neatStr))
-            self.table.setItem(i, 3, newitem)
-            newitem = QtGui.QTableWidgetItem(str(self.yTimes[i]))
             self.table.setItem(i, 2, newitem)
-            newitem = QtGui.QTableWidgetItem(str(self.yFrame[i]))
+            newitem = QtGui.QTableWidgetItem(str(self.yTimes[i]))
             self.table.setItem(i, 1, newitem)
+            newitem = QtGui.QTableWidgetItem(str(self.yFrame[i]))
+            self.table.setItem(i, 0, newitem)
+            if len(self.LC2) > 0:
+                newitem = QtGui.QTableWidgetItem(str(self.LC2[i]))
+                self.table.setItem(i, 3, newitem)
+            if len(self.LC3) > 0:
+                newitem = QtGui.QTableWidgetItem(str(self.LC3[i]))
+                self.table.setItem(i, 4, newitem)
+            if len(self.LC4) > 0:
+                newitem = QtGui.QTableWidgetItem(str(self.LC4[i]))
+                self.table.setItem(i, 5, newitem)
+
             
         self.table.resizeColumnsToContents()
+        self.writeCSVButton.setEnabled(True)
 
     def doManualTimestampEntry(self):
         errmsg = ''
         while errmsg != 'ok':
-            errmsg, manualTime, dataEntered = \
+            errmsg, manualTime, dataEntered, actualFrameCount, expectedFrameCount = \
                 manualTimeStampEntry(self.yFrame, TSdialog(), self.flashEdges)
             if errmsg != 'ok':
                 self.showInfo(errmsg)
             else:
                 self.showMsg(dataEntered, bold=True)
+                if abs(actualFrameCount - expectedFrameCount) >= 0.12:
+                    msg = (
+                        f'Possible dropped readings !!!\n\n'
+                        f'Reading count input: {actualFrameCount:.2f}  \n\n'
+                        f'Reading count computed from frame/field rate: {expectedFrameCount:.2f}'
+                    )
+                    self.showMsg(msg, color='red', bold=True)
+                    self.showInfo(msg)
+
+
                 # If user cancelled out of timestamp entry dialog,
                 # then manualTime will be an empty list.
                 if manualTime:
@@ -2311,8 +2337,9 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                     self.fillTableViewOfData()
                     self.reDrawMainPlot()
                     self.showMsg(
-                        'timeDelta: ' + fp.to_precision(self.timeDelta,
-                                                        6) + ' seconds per reading',
+                        'timeDelta: ' + fp.to_precision(self.timeDelta,6) +
+                        ' seconds per reading' +
+                        ' (timeDelta calculated from manual input timestamps)',
                         blankLine=False)
                     self.showMsg(
                         'timestamp error rate: ' + fp.to_precision(100 *
@@ -2694,6 +2721,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.minEventEdit.setEnabled(False)
         self.maxEventEdit.setEnabled(False)
         self.writeBarPlots.setEnabled(False)
+        self.writeCSVButton.setEnabled(False)
 
     # noinspection PyUnusedLocal
     def restart(self):
