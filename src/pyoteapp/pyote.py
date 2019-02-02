@@ -332,7 +332,47 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.helperThing = HelpDialog()
 
     def writeCSVfile(self):
-        self.showInfo("Not yet implemented.  Stay tuned.")
+        _, name = os.path.split(self.filename)
+        name = self.removeCsvExtension(name)
+
+        name += '.PYOTE.csv'
+
+        myOptions = QFileDialog.Options()
+        # myOptions |= QFileDialog.DontConfirmOverwrite
+        myOptions |= QFileDialog.DontUseNativeDialog
+        myOptions |= QFileDialog.ShowDirsOnly
+
+        self.csvFile, _ = QFileDialog.getSaveFileName(
+                self,                                  # parent
+                "Select directory/modify filename",    # title for dialog
+                self.settings.value('lightcurvedir', "") + '/' + name,  # starting directory
+                "", options=myOptions)
+
+        if self.csvFile:
+            with open(self.csvFile, 'w') as fileObject:
+                fileObject.write('# ' + 'PYOTE ' + version.version() + '\n')
+                for hdr in self.headers:
+                    fileObject.write('# ' + hdr)
+                columnHeadings = 'FrameNum,timeInfo,primaryData'
+                if len(self.LC2) > 0:
+                    columnHeadings += ',LC2'
+                if len(self.LC3) > 0:
+                    columnHeadings += ',LC3'
+                if len(self.LC4) > 0:
+                    columnHeadings += ',LC4'
+                fileObject.write(columnHeadings + '\n')
+
+                for i in range(self.table.rowCount()):
+                    line = self.table.item(i,0).text() + ','
+                    line += self.table.item(i,1).text() + ','
+                    line += self.table.item(i,2).text()
+                    if len(self.LC2) > 0:
+                        line += ',' + self.table.item(i,3).text()
+                    if len(self.LC3) > 0:
+                        line += ',' + self.table.item(i,4).text()
+                    if len(self.LC4) > 0:
+                        line += ',' + self.table.item(i,5).text()
+                    fileObject.write(line + '\n')
 
     def copy_desktop_icon_file_to_home_directory(self):
         if platform.mac_ver()[0]:
@@ -2385,7 +2425,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             try:
                 self.outliers = []
                 frame, time, value, self.secondary, self.ref2, self.ref3, \
-                headers = readLightCurve(self.filename)
+                self.headers = readLightCurve(self.filename)
                 values = [float(item) for item in value]
                 self.yValues = np.array(values)  # yValues = curve to analyze
                 self.dataLen = len(self.yValues)
@@ -2451,7 +2491,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                                       'which will make the needed corrections for camera delay and VTI offset).')
 
                 self.showMsg('=' * 20 + ' file header lines ' + '=' * 20, bold=True, blankLine=False)
-                for item in headers:
+                for item in self.headers:
                     self.showMsg(item, blankLine=False)
                 self.showMsg('=' * 20 + ' end header lines ' + '=' * 20, bold=True)
 

@@ -14,7 +14,7 @@ tangraNeedsBackgroundSubtraction = True
 def readLightCurve(filepath):
     """
     Reads the intensities and timestamps from Limovie,
-    Tangra, or R-OTE csv files.
+    Tangra, PYOTE, or R-OTE csv files.  (PYOTE and R-OTE file formats are equal)
     """
     if fileCanBeOpened(filepath):
         
@@ -40,7 +40,7 @@ def getFileKind(file):
             return 'Tangra'
         elif 'Limovie' in line:
             return 'Limovie'
-        elif 'R-OTE' in line or line[0] == '#':
+        elif 'R-OTE' in line or line[0] == '#': # Matches PYOTE files too!
             return 'R-OTE'
         elif 'RAW' in line:
             return 'raw'
@@ -105,7 +105,7 @@ def limovieParser(line, frame, time, value, ref1, ref2, ref3):
 def roteParser(line, frame, time, value, ref1, ref2, ref3):
     """
     R-OTE sample line ---
-        1.00,[17:25:39.3415],2737.8,3897.32
+        1.00,[17:25:39.3415],2737.8,3897.32,675.3,892.12
     """
     part = line.split(',')
     frame.append(part[0])
@@ -114,6 +114,12 @@ def roteParser(line, frame, time, value, ref1, ref2, ref3):
     if len(part) >= 4:
         if part[3]:
             ref1.append(part[3])
+    if len(part) >= 5:
+        if part[4]:
+            ref2.append(part[4])
+    if len(part) >= 6:
+        if part[5]:
+            ref3.append(part[5])
 
 
 # noinspection PyUnusedLocal
@@ -138,7 +144,7 @@ def readAs(file):
     if kind == 'Tangra':
         colHeaderKey = 'FrameNo'
         parser = tangraParser
-    elif kind == 'R-OTE':
+    elif kind == 'R-OTE':  # PYOTE uses same colHeaderKey
         colHeaderKey = 'FrameNum'
         parser = roteParser
     elif kind == 'Limovie':
