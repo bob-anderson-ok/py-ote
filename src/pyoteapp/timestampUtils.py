@@ -84,6 +84,36 @@ def isFrameNumberInData(frameToTest, frame):
     return frameToTest >= first and frameToTest <= last
 
 
+savedF1 = savedHH1 = savedMM1 = savedSS1 = ''
+savedF2 = savedHH2 = savedMM2 = savedSS2 = ''
+savedNTSCButton = True
+savedPALButton = False
+savedCustomButton = False
+savedCustomText = ''
+
+def saveAllDialogEntries(dialog):
+    global savedF1, savedHH1, savedMM1, savedSS1
+    global savedF2, savedHH2, savedMM2, savedSS2
+    global savedNTSCButton, savedPALButton, savedCustomButton
+    global savedCustomText
+
+    savedF1 = dialog.frameNum1.text()
+    savedHH1 = dialog.hh1.text()
+    savedMM1 = dialog.mm1.text()
+    savedSS1 = dialog.ss1.text()
+
+    savedF2 = dialog.frameNum2.text()
+    savedHH2 = dialog.hh2.text()
+    savedMM2 = dialog.mm2.text()
+    savedSS2 = dialog.ss2.text()
+
+    savedNTSCButton = dialog.radioButtonNTSC.isChecked()
+    savedPALButton = dialog.radioButtonPAL.isChecked()
+    savedCustomButton = dialog.radioButtonCustom.isChecked()
+
+    savedCustomText = dialog.frameDeltaTime.text()
+
+
 # noinspection PyBroadException,PyUnusedLocal
 def manualTimeStampEntry(frame, dialog, flashFrames=[]):
     time = []  # Output --- to be computed from timestamp data entered in dialog
@@ -93,9 +123,31 @@ def manualTimeStampEntry(frame, dialog, flashFrames=[]):
         dialog.frameNum1.setText(str(flashFrames[0]))
         if len(flashFrames) > 1:
             dialog.frameNum2.setText(str(flashFrames[1]))
+    else:
+        dialog.frameNum1.setText(savedF1)
+        dialog.frameNum2.setText(savedF2)
+
+    dialog.hh1.setText(savedHH1)
+    dialog.mm1.setText(savedMM1)
+    dialog.ss1.setText(savedSS1)
+
+    dialog.hh2.setText(savedHH2)
+    dialog.mm2.setText(savedMM2)
+    dialog.ss2.setText(savedSS2)
+
+    if savedNTSCButton:
+        dialog.radioButtonNTSC.setChecked(savedNTSCButton)
+    if savedPALButton:
+        dialog.radioButtonPAL.setChecked(savedPALButton)
+    if savedCustomButton:
+        dialog.radioButtonCustom.setChecked(savedCustomButton)
+
+    dialog.frameDeltaTime.setText(savedCustomText)
 
 
     result = dialog.exec_()
+
+    saveAllDialogEntries(dialog)
 
     if result == QDialog.Accepted:
         nf = ef = frameNum1 = frameNum2 = frameDeltaTime = -1
@@ -145,6 +197,12 @@ def manualTimeStampEntry(frame, dialog, flashFrames=[]):
                        time, dataEntered, nf, ef
         else:
             return 'Both entries must be supplied', \
+                   time, dataEntered, nf, ef
+
+        if dialog.frameDeltaTime.text() and not dialog.radioButtonCustom.isChecked():
+            return 'You have something entered in custom frame time edit box ' + \
+                   'but have not clicked on the radio button to enable use of this value.\n\n' + \
+                   'Please clarify your intentions.', \
                    time, dataEntered, nf, ef
 
         if dialog.radioButtonNTSC.isChecked():
