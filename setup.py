@@ -51,7 +51,6 @@ INSTALL_REQUIRES = ['pyqtgraph', 'Cython']
 
 HERE = os.path.abspath(os.path.dirname(__file__))
 
-
 def read(*parts):
     """
     Build an absolute path from *parts* and and return the contents of the

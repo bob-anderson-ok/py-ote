@@ -142,8 +142,11 @@ class HelpDialog(QDialog, helpDialog.Ui_Dialog):
         self.setupUi(self)
 
 class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
-    def __init__(self):
+    def __init__(self, csv_file):
         super(SimplePlot, self).__init__()
+
+        # This is an externally supplied csv file path (probably from PyMovie)
+        self.externalCsvFilePath = csv_file
 
         # Change pyqtgraph plots to be black on white
         pg.setConfigOption('background', (255, 255, 255))  # Do before any widgets drawn
@@ -330,6 +333,14 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.only_new_solver_wanted = True
 
         self.helperThing = HelpDialog()
+
+        if not self.externalCsvFilePath is None:
+            if os.path.exists(self.externalCsvFilePath):
+                self.showMsg(f'We will read: {self.externalCsvFilePath}')
+                self.readDataFromFile()
+            else:
+                self.showMsg(f'Could not find csv file specified: {self.externalCsvFilePath}')
+                self.externalCsvFilePath = None
 
     def writeCSVfile(self):
         _, name = os.path.split(self.filename)
@@ -2344,7 +2355,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 newitem = QtGui.QTableWidgetItem(str(neatStr))
                 self.table.setItem(i, 4, newitem)
             if len(self.LC4) > 0:
-                neatStr = fp.to_precision(self.LC3[i], 6)
+                neatStr = fp.to_precision(self.LC4[i], 6)
                 newitem = QtGui.QTableWidgetItem(str(neatStr))
                 self.table.setItem(i, 5, newitem)
 
@@ -2400,13 +2411,16 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.mainPlot.clear()
         self.textOut.clear()
         self.initializeTableView()
-        
-        # Open a file select dialog
-        self.filename, _ = QFileDialog.getOpenFileName(
-                self,                                      # parent
-                "Select light curve csv file",             # title for dialog
-                self.settings.value('lightcurvedir', ""),  # starting directory
-                "Csv files (*.csv)")
+
+        if self.externalCsvFilePath is None:
+            # Open a file select dialog
+            self.filename, _ = QFileDialog.getOpenFileName(
+                    self,                                      # parent
+                    "Select light curve csv file",             # title for dialog
+                    self.settings.value('lightcurvedir', ""),  # starting directory
+                    "Csv files (*.csv)")
+        else:
+            self.filename = self.externalCsvFilePath
 
         if self.filename:
             self.setWindowTitle('PYOTE Version: ' + version.version() + '  File in process: ' + self.filename)
@@ -3037,7 +3051,10 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.mainPlot.autoRange()        
 
 
-def main():
+def main(csv_file_path=None):
+
+    # csv_file_path gets filled in by PyMovie
+
     import traceback
     QtGui.QApplication.setStyle('fusion')
     app = QtGui.QApplication(sys.argv)
@@ -3062,7 +3079,7 @@ def main():
         
     sys.excepthook = exception_hook
     
-    form = SimplePlot()
+    form = SimplePlot(csv_file_path)
     form.show()
     app.exec_()
     

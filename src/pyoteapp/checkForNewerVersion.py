@@ -24,7 +24,8 @@ def getMostRecentVersionOfPyote():
 
     if ans[0] == 'Retrying':
         return False, 'No Internet connection --- could not reach PyPI'
-    elif ans[0] != 'Could':
+    elif not (ans[0] == 'Could' or ans[1] == 'Could'):
+        # The above test accomodates the return from pip version 18.1 AND version 19.0+
         return False, 'Failed to find pyote package in PyPI repository'
     else:
         versionFound = ans[-1][0:-1]  # Use last string, but not the trailing right paren

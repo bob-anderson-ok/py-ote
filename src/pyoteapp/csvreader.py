@@ -10,6 +10,8 @@ import os
 
 tangraNeedsBackgroundSubtraction = True
 
+pymovieSignalColumnCount = 0
+
 
 def readLightCurve(filepath):
     """
@@ -40,7 +42,9 @@ def getFileKind(file):
             return 'Tangra'
         elif 'Limovie' in line:
             return 'Limovie'
-        elif 'R-OTE' in line or line[0] == '#': # Matches PYOTE files too!
+        elif 'PyMovie' in line:
+            return'PyMovie'
+        elif 'R-OTE' in line or line[0] == '#': # Matches PyOTE and PyMovie files too!
             return 'R-OTE'
         elif 'RAW' in line:
             return 'raw'
@@ -64,6 +68,10 @@ def tangraParser(line, frame, time, value, ref1, ref2, ref3):
         time.append(part[1])
 
     try:
+        for item in part:
+            if item == '':
+                raise Exception(line + " :cannot be parsed.  Are there empty fields in data lines? Fix them all!")
+
         if tangraNeedsBackgroundSubtraction:
             value.append(str(float(part[2]) - float(part[3])))
             if len(part) >= 6:
@@ -127,6 +135,26 @@ def roteParser(line, frame, time, value, ref1, ref2, ref3):
         if part[5]:
             ref3.append(part[5])
 
+# noinspection PyUnusedLocal
+def pymovieParser(line, frame, time, value, ref1, ref2, ref3):
+    """
+    R-OTE sample line ---
+        1.00,[17:25:39.3415],2737.8,3897.32,675.3,892.12
+    """
+    part = line.split(',')
+    frame.append(part[0])
+    time.append(part[1])
+    value.append(part[2])
+    if len(part) >= 4 and pymovieSignalColumnCount >= 2:
+        if part[3]:
+            ref1.append(part[3])
+    if len(part) >= 5 and pymovieSignalColumnCount >= 3:
+        if part[4]:
+            ref2.append(part[4])
+    if len(part) >= 6 and pymovieSignalColumnCount >= 4:
+        if part[5]:
+            ref3.append(part[5])
+
 
 # noinspection PyUnusedLocal
 def rawParser(line, frame, time, value, secondary):
@@ -135,6 +163,7 @@ def rawParser(line, frame, time, value, secondary):
 
 def readAs(file):
     global tangraNeedsBackgroundSubtraction
+    global pymovieSignalColumnCount
 
     kind = getFileKind(file)
     
@@ -153,6 +182,10 @@ def readAs(file):
     elif kind == 'R-OTE':  # PYOTE uses same colHeaderKey
         colHeaderKey = 'FrameNum'
         parser = roteParser
+    elif kind == 'PyMovie':
+        colHeaderKey = 'FrameNum'
+        pymovieSignalColumnCount = 0
+        parser = pymovieParser
     elif kind == 'Limovie':
         colHeaderKey = 'No.'
         parser = limovieParser
@@ -167,11 +200,21 @@ def readAs(file):
             line = fileobject.readline()
             if line:
                 if colHeaderKey in line:
+
                     if kind == 'Tangra':
                         if line.find('SignalMinusBackground') > 0:
                             tangraNeedsBackgroundSubtraction = False
                         else:
                             tangraNeedsBackgroundSubtraction = True
+
+                    if kind == 'PyMovie':
+                        # We need to count the number of times 'signal" starts
+                        # a column header
+                        parts = line.split(',')
+                        for part in parts:
+                            if part.startswith('signal'):
+                                pymovieSignalColumnCount += 1
+
                     while True:
                         line = fileobject.readline()
                         if line:
