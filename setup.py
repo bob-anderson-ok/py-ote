@@ -1,10 +1,6 @@
 import codecs
 import os
 
-# from Cython.Build import cythonize
-
-# from Cython.Distutils import build_ext
-
 # To get the wheel build to work in python 3.7 Anaconda3 5.3.1 the follwing changes were made...
 # Commented out the following line..
 # from setuptools import setup, find_packages, Extension
@@ -12,7 +8,6 @@ import os
 # Added the following lines...
 from setuptools import find_packages
 from distutils.core import setup
-# from distutils.extension import Extension
 # End changes
 
 from src.pyoteapp import version  # Edit this file to change version number
@@ -46,7 +41,6 @@ CLASSIFIERS = [
 # 100Mb to the normal install download of about 10Mb
 
 INSTALL_REQUIRES = ['pyqtgraph', 'numba']
-# INSTALL_REQUIRES = ['pyqtgraph', 'Cython', 'numba']
 
 ###################################################################
 
@@ -62,17 +56,9 @@ def read(*parts):
         return f.read()
 
 
-# extensions = [
-#     Extension(name='pyoteapp.c_functions',  # using dots! to get .so in correct directory
-#               sources=['src/pyoteapp/c_functions.pyx'])
-#     ]
-
-
 if __name__ == "__main__":
     setup(
         name='pyote',
-        # ext_modules=cythonize(extensions),
-        # cmdclass={'build_ext': build_ext},
         description='pyote is a simplified subset of R-OTE',
         license='License :: OSI Approved :: MIT License',
         url=r'https://github.com/bob-anderson-ok/py-ote',

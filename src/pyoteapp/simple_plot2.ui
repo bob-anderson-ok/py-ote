@@ -78,7 +78,7 @@
                </sizepolicy>
               </property>
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Click this button to to open the &lt;/span&gt;&lt;span style=&quot; font-size:18pt; color:#ff0000;&quot;&gt;help.pdf&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt; file that is included in the installation.  The file will open in whatever PDF viewer you have assigned as the default viewer for pdf files.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Click this button to to open the &lt;/span&gt;&lt;span style=&quot; font-size:18pt; color:#ff0000;&quot;&gt;help.pdf&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt; file that is included in the installation. The file will open in whatever PDF viewer you have assigned as the default viewer for pdf files.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;The first part of this file is version info that should be examined every time a new version of PyOTE is installed.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;At the bottom of this version info is a brief introduction to PyOTE that should be read by new users.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="whatsThis">
                <string>How does this show up?</string>
@@ -91,7 +91,7 @@
               </property>
              </widget>
             </item>
-            <item row="0" column="1">
+            <item row="0" column="2">
              <widget class="QPushButton" name="readData">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Ignored" vsizetype="Maximum">
@@ -100,13 +100,29 @@
                </sizepolicy>
               </property>
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt;&quot;&gt;PYOTE reads Limovie, R-OTE, and Tangra files and includes up to four light curves.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt;&quot;&gt;Normally (but not required) object1 is the occulted star; other (optional) objects are reference stars to be used for normalizing the occulted star light curve or flash curves from an LED timer.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;Mouse button functions within the light curve plot:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt; font-weight:600; color:#ff0000;&quot;&gt;Left click&lt;/span&gt;&lt;span style=&quot; font-size:14pt;&quot;&gt;: selects/deselects points on the primary (dark blue) light curve that intersect with the vertical hairline (the mouse cursor is disabled).&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt; font-weight:600; color:#ff0000;&quot;&gt;Left click and drag&lt;/span&gt;&lt;span style=&quot; font-size:14pt;&quot;&gt;: rectangular zoom is available to more clearly see points for selection (but point selection can also be accomplished through clicks in the tabular data display at the lower left)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt; font-weight:600;&quot;&gt;Note! The shift key will toggle the mouse cursor on/off in the light curve plot.&lt;/span&gt;&lt;span style=&quot; font-size:14pt;&quot;&gt; This enables the starting corner for the zoom to be seen. (But points cannot be selected/deselected while the mouse cursor is visible. A right click will always 'blank' the mouse cursor.) &lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt; font-weight:600; color:#ff0000;&quot;&gt;Right click&lt;/span&gt;&lt;span style=&quot; font-size:14pt;&quot;&gt;: undo zoom&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt; color:#996633;&quot;&gt;Timestamp errors are shown with vertical red hairlines when a file is first read. These will disappear after the first point is selected so that the working view is as clear as possible. The red hairlines will re-appear permanently after the error bars have been calculated and the final report written to the log.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;PYOTE reads Limovie, R-OTE, and Tangra files and includes up to four light curves.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Normally (but not required) object1 is the occulted star; other (optional) objects are reference stars to be used for normalizing the occulted star light curve or flash curves from an LED timer.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;Mouse button functions within the light curve plot:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; color:#ff0000;&quot;&gt;Left click&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;: selects/deselects points on the primary (dark blue) light curve that intersect with the vertical hairline (the mouse cursor is disabled).&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; color:#ff0000;&quot;&gt;Left click and drag&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;: rectangular zoom is available to more clearly see points for selection (but point selection can also be accomplished through clicks in the tabular data display at the lower left)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt; font-weight:600;&quot;&gt;Note! The shift key will toggle the mouse cursor on/off in the light curve plot.&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt; This enables the starting corner for the zoom to be seen. (But points cannot be selected/deselected while the mouse cursor is visible. A right click will always 'blank' the mouse cursor.) &lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; color:#ff0000;&quot;&gt;Right click&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;: undo zoom&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt; color:#996633;&quot;&gt;Timestamp errors are shown with vertical red hairlines when a file is first read. These will disappear after the first point is selected so that the working view is as clear as possible. The red hairlines will re-appear permanently after the error bars have been calculated and the final report written to the log.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="toolTipDuration">
                <number>-1</number>
               </property>
               <property name="text">
                <string>Read light curve</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QPushButton" name="helpButton">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;'Help' is available for most GUI items by right-clicking on the item.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;If an item already has a different action assigned to a right-click, there will be a nearby text line that can be clicked on instead.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Thee is no need to close the help panel before right-clicking on another GUI item. One can use this feature to get a quick survey of the 'help' that is available by sequentially clicking on all GUI items.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>Help</string>
               </property>
              </widget>
             </item>
@@ -124,6 +140,9 @@
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
+              </property>
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Use this spinner to select which light curve to analyze for an occultation event or as a source for 'flash timing' edges.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>Light curve number to analyze (blue):</string>
@@ -221,6 +240,9 @@
               <property name="enabled">
                <bool>false</bool>
               </property>
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;If there are multiple reference stars in the file, this spinner will activate to allow the choice of which one to display/use.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
               <property name="text">
                <string>for normalization (green)</string>
               </property>
@@ -248,21 +270,11 @@
               <property name="enabled">
                <bool>false</bool>
               </property>
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Timestamp errors are indicated by red lines that show where a time step is not within +/- 10% of the expected value.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Sometimes there are so many red lines that is becomes hard to see the plot.  In that case, uncheck this box to suppress the red line display.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
               <property name="text">
                <string>Show timestamp errors</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QCheckBox" name="enableTooltipsCheckBox">
-              <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Hovering the mouse pointer over a button/control will cause a 'help dialog' to appear. These dialogs are instructive and are an important part of the documentation for this program.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Once a user has become familiar with what the buttons and widgets do, these 'tips' popping up will become a nuisance. This checkbox can be used to stop these dialogs from unwanted appearances.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-              <property name="text">
-               <string>Enable Tooltips</string>
-              </property>
-              <property name="checked">
-               <bool>true</bool>
               </property>
              </widget>
             </item>
@@ -691,6 +703,16 @@
             </property>
             <property name="text">
              <string>Start over</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="helpLabelForDataGrid">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Clicking at the left-edge of a data line will cause the corresponding data point in the main display to be highlighted.  Only one such point can be high-lighted at a time.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Clicking a point in the main data plot will cause this data grid to be positioned at that data point with the row shown in red.  Clicking anywhere in this row will 'toggle' the selection of that point, useful when the main data plot is very dense.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Right-click this label to get explanation of data grid below:</string>
             </property>
            </widget>
           </item>

@@ -158,6 +158,13 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
         self.setWindowTitle('PYOTE  Version: ' + version.version())
 
+        # This object is used to display tooltip help in a separate
+        # modeless dialog box.
+        self.helperThing = HelpDialog()
+
+        self.helpButton.clicked.connect(self.helpButtonClicked)
+        self.helpButton.installEventFilter(self)
+
         # Checkbox: Use manual timestamp entry
         self.manualTimestampCheckBox.clicked.connect(self.toggleManualEntryButton)
         self.manualTimestampCheckBox.installEventFilter(self)
@@ -177,12 +184,11 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         # CheckBox: Show secondary star
         self.showSecondaryCheckBox.clicked.connect(self.toggleDisplayOfSecondaryStar)
         self.showSecondaryCheckBox.installEventFilter(self)
+        self.normLabel.installEventFilter(self)
 
         # Checkbox: Show timestamp errors
         self.showTimestampErrors.clicked.connect(self.toggleDisplayOfTimestampErrors)
-
-        # Checkbox: Enable Tooltips
-        self.enableTooltipsCheckBox.clicked.connect(self.toggleTooltips)
+        self.showTimestampErrors.installEventFilter(self)
 
         # QSpinBox
         self.secondarySelector.valueChanged.connect(self.changeSecondary)
@@ -190,6 +196,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         # QSpinBox
         self.curveToAnalyzeSpinBox.valueChanged.connect(self.changePrimary)
         self.curveToAnalyzeSpinBox.installEventFilter(self)
+        self.lightCurveNumberLabel.installEventFilter(self)
 
         # QSpinBox: secondarySelector
         self.secondarySelector.installEventFilter(self)
@@ -197,9 +204,6 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         # Button: Trim/Select data points
         self.setDataLimits.clicked.connect(self.doTrim)
         self.setDataLimits.installEventFilter(self)
-
-        # Checkbox: Enable Tooltips
-        self.enableTooltipsCheckBox.installEventFilter(self)
 
         # Button: Smooth secondary
         self.smoothSecondaryButton.clicked.connect(self.smoothRefStar)
@@ -220,12 +224,6 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         # Button: Accept integration
         self.acceptBlockIntegration.clicked.connect(self.applyIntegration)
         self.acceptBlockIntegration.installEventFilter(self)
-        
-        # Button: Perform baseline noise analysis
-        # self.doNoiseAnalysis.clicked.connect(self.processBaselineNoise)
-        
-        # Button: Perform event noise analysis (determine sigmaA only)
-        # self.computeSigmaA.clicked.connect(self.processEventNoise)
         
         # Button: Mark D zone
         self.markDzone.clicked.connect(self.showDzone)
@@ -275,6 +273,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.table.cellClicked.connect(self.cellClick)
         self.table.verticalHeader().sectionClicked.connect(self.rowClick)
         self.table.installEventFilter(self)
+        self.helpLabelForDataGrid.installEventFilter(self)
         
         # Re-instantiate mainPlot             Note: examine gui.py
         # to get this right after a re-layout !!!!  self.widget changes sometimes
@@ -313,13 +312,6 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         # Use 'sticky' settings to size and position the main screen
         self.resize(self.settings.value('size', QSize(800, 800)))
         self.move(self.settings.value('pos', QPoint(50, 50)))
-
-        # Use 'sticky' settings to set the show tooltips check box
-        saved_state = self.settings.value('showtooltips', True)
-        if saved_state == 'false':
-            self.enableTooltipsCheckBox.setCheckState(False)
-        else:
-            self.enableTooltipsCheckBox.setCheckState(True)
      
         self.outliers = []
         self.logFile = ''
@@ -343,6 +335,41 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             else:
                 self.showMsg(f'Could not find csv file specified: {self.externalCsvFilePath}')
                 self.externalCsvFilePath = None
+
+    def helpButtonClicked(self):
+        self.showHelp(self.helpButton)
+
+    def showHelp(self, obj):
+        if obj.toolTip():
+            self.helperThing.textEdit.clear()
+            self.helperThing.textEdit.insertHtml(obj.toolTip())
+            self.helperThing.raise_()
+            self.helperThing.show()
+
+    def eventFilter(self, obj, event):
+        if event.type() == QtCore.QEvent.KeyPress:
+            handled = self.processKeystroke(event)
+            if handled:
+                return True
+            else:
+                return super(SimplePlot, self).eventFilter(obj, event)
+
+        if event.type() == QtCore.QEvent.MouseButtonPress:
+            if event.button() == QtCore.Qt.RightButton:
+                if obj.toolTip():
+                    self.helperThing.textEdit.clear()
+                    self.helperThing.textEdit.insertHtml(obj.toolTip())
+                    self.helperThing.raise_()
+                    self.helperThing.show()
+                    return True
+            return super(SimplePlot, self).eventFilter(obj, event)
+            # return False
+
+        if event.type() == QtCore.QEvent.ToolTip:
+            return True
+
+        return super(SimplePlot, self).eventFilter(obj, event)
+        # return False
 
     def writeCSVfile(self):
         _, name = os.path.split(self.filename)
@@ -412,20 +439,6 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                     icon_src_path = os.path.join(os.path.split(__file__)[0], 'PYOTE.bat')
                 with open(icon_src_path) as src, open(icon_dest_path, 'w') as dest:
                     dest.writelines(src.readlines())
-
-    def eventFilter(self, obj, event):
-        if event.type() == QtCore.QEvent.ToolTip:
-            if not self.enableTooltipsCheckBox.isChecked():
-                return True
-            elif obj.toolTip():
-                self.helperThing.textEdit.insertHtml(obj.toolTip())
-                self.helperThing.exec()
-                self.helperThing.textEdit.clear()
-                return True
-        return False
-
-    def toggleTooltips(self):
-        pass
 
     def toggleManualEntryButton(self):
         if self.manualTimestampCheckBox.isChecked():
@@ -1257,8 +1270,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         # Capture the close request and update 'sticky' settings
         self.settings.setValue('size', self.size())
         self.settings.setValue('pos', self.pos())
-        self.settings.setValue('showtooltips', self.enableTooltipsCheckBox.isChecked())
-        
+        self.helperThing.close()
+
         curDateTime = datetime.datetime.today().ctime()
         self.showMsg('')
         self.showMsg('#' * 20 + ' Session ended: ' + curDateTime + '  ' + '#' * 20)

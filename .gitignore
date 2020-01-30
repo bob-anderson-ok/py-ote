@@ -1,4 +1,7 @@
 .gitignore
+.DS_Store
+src/.DS_Store
+src/pyoteapp/.DS_Store
 .cache/
 .idea/
 build/
