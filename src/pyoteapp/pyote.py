@@ -136,10 +136,12 @@ class TSdialog(QDialog, timestampDialog.Ui_manualTimestampDialog):
         super(TSdialog, self).__init__()
         self.setupUi(self)
 
+
 class HelpDialog(QDialog, helpDialog.Ui_Dialog):
     def __init__(self):
         super(HelpDialog, self).__init__()
         self.setupUi(self)
+
 
 class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
     def __init__(self, csv_file):
@@ -189,7 +191,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.curveToAnalyzeSpinBox.valueChanged.connect(self.changePrimary)
         self.curveToAnalyzeSpinBox.installEventFilter(self)
 
-        #QSpinBox: secondarySelector
+        # QSpinBox: secondarySelector
         self.secondarySelector.installEventFilter(self)
 
         # Button: Trim/Select data points
@@ -334,7 +336,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
         self.helperThing = HelpDialog()
 
-        if not self.externalCsvFilePath is None:
+        if self.externalCsvFilePath is not None:
             if os.path.exists(self.externalCsvFilePath):
                 self.showMsg(f'We will read: {self.externalCsvFilePath}')
                 self.readDataFromFile()
@@ -374,18 +376,19 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 fileObject.write(columnHeadings + '\n')
 
                 for i in range(self.table.rowCount()):
-                    line = self.table.item(i,0).text() + ','
-                    line += self.table.item(i,1).text() + ','
-                    line += self.table.item(i,2).text()
+                    line = self.table.item(i, 0).text() + ','
+                    line += self.table.item(i, 1).text() + ','
+                    line += self.table.item(i, 2).text()
                     if len(self.LC2) > 0:
-                        line += ',' + self.table.item(i,3).text()
+                        line += ',' + self.table.item(i, 3).text()
                     if len(self.LC3) > 0:
-                        line += ',' + self.table.item(i,4).text()
+                        line += ',' + self.table.item(i, 4).text()
                     if len(self.LC4) > 0:
-                        line += ',' + self.table.item(i,5).text()
+                        line += ',' + self.table.item(i, 5).text()
                     fileObject.write(line + '\n')
 
-    def copy_desktop_icon_file_to_home_directory(self):
+    @staticmethod
+    def copy_desktop_icon_file_to_home_directory():
         if platform.mac_ver()[0]:
             icon_dest_path = f"{os.environ['HOME']}{r'/Desktop/run-pyote'}"
             if not os.path.exists(icon_dest_path):
@@ -521,7 +524,6 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.solution = None
         self.reDrawMainPlot()
         self.mainPlot.autoRange()
-
 
     def installLatestVersion(self):
         pipResult = upgradePyote()
@@ -661,14 +663,14 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         
     def initializeVariablesThatDontDependOnAfile(self):
 
-        self.left = None   # Used during block integration
-        self.right = None  #  "
-        self.selPts = []   #  "
+        self.left = None    # Used during block integration
+        self.right = None   # "
+        self.selPts = []    # "
 
         self.flashEdges = []
         self.normalized = False
-        self.timesAreValid = True # until we find out otherwise
-        self.selectedPoints = {}  # Clear/declare 'selected points' dictionary
+        self.timesAreValid = True  # until we find out otherwise
+        self.selectedPoints = {}   # Clear/declare 'selected points' dictionary
         self.baselineXvals = []
         self.baselineYvals = []
         # self.blockSize = 1  # Contains the number of points used in block integration
@@ -901,7 +903,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
         if self.solution:
             frameDelta = float(self.yFrame[1]) - float(self.yFrame[0])
-            frameZero  = float(self.yFrame[0])
+            frameZero = float(self.yFrame[0])
             flashFrame = self.solution[1] * frameDelta + frameZero
             # self.flashEdges.append(self.solution[1] + float(self.yFrame[0]))
             self.flashEdges.append(flashFrame)
@@ -1067,15 +1069,15 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             self.progressBar.setValue(0)
             QtGui.QApplication.processEvents()
 
-            best = np.argmin(notchList)
+            best = int(np.argmin(notchList))
             blockSize = kList[best]
-            offset = offsetList[best]
+            offset = int(offsetList[best])
             self.showMsg(' ', blankLine=False)
             s = '\r\nBest integration estimate: blockSize: %d @ offset %d' % (blockSize, offset)
             self.showMsg(s, color='red', bold=True)
 
-            brush1 = (  0, 200, 0, 70)
-            brush2 = (200,   0, 0, 70)
+            brush1 = (0, 200, 0, 70)
+            brush2 = (200, 0, 0, 70)
 
             leftEdge = offset - 0.5
             rightEdge = leftEdge + blockSize
@@ -1092,7 +1094,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 if bFlag:
                     self.mainPlot.addItem(pg.LinearRegionItem([leftEdge, rightEdge],
                                           movable=False, brush=brushToUse))
-                leftEdge  += blockSize
+                leftEdge += blockSize
                 rightEdge += blockSize
 
             # Set the integration selection point indices
@@ -1173,7 +1175,6 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             if len(self.LC4) > 0:
                 avg = np.mean(self.LC4[p:(p + span)])
                 newLC4.append(avg)
-
 
             newFrame.append(self.yFrame[p])
             newTime.append(self.yTimes[p])
@@ -1423,7 +1424,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         Bnom = self.B
         Bmax = self.B + Bdelta
 
-        if Amax > 0 and Bmin >= Amax:
+        if 0 < Amax <= Bmin:
             self.showMsg('minimum magDrop: %0.2f' % (
                         (np.log10(Bmin) - np.log10(Amax)) * 2.5))
         else:
@@ -1633,10 +1634,9 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             self.showMsg('Timestamps are corrupted in a manner that caused a '
                          'timeDelta of '
                          '0.0 to be estimated!', color='red', bold=True)
-            self.showInfo(
-                'Timestamps are corrupted in a manner that caused a '
-                         'timeDelta of '
-                         '0.0 to be estimated!')
+            self.showInfo('Timestamps are corrupted in a manner that caused a '
+                          'timeDelta of '
+                          '0.0 to be estimated!')
             return
 
         numEnclosedReadings = int(round((rTime - dTime) / self.timeDelta))
@@ -1877,8 +1877,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                           (Dtransition, Rtransition, D, R))
                 solMsg2 = ('D: %d  R: %d  D(subframe): %0.2f  R(subframe): '
                            '%0.2f' %
-                (Dtransition + frameConv, Rtransition + frameConv,
-                 D + frameConv, R + frameConv))
+                           (Dtransition + frameConv, Rtransition + frameConv,
+                            D + frameConv, R + frameConv))
             else:
                 solMsg = ('D: %d  R: %d' % (D, R))
             self.showMsg('in entryNum units: ' + solMsg)
@@ -1891,7 +1891,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 solMsg2 = ('D: %d  D(subframe): %0.2f' %
                            (Dtransition + frameConv, D + frameConv))
             else:
-                solMsg = ('D: %d' % (D))
+                solMsg = ('D: %d' % D)
             self.showMsg('in entryNum units: ' + solMsg)
             if solMsg2:
                 self.showMsg('in frameNum units: ' + solMsg2, bold=True)
@@ -1902,7 +1902,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 solMsg2 = ('R: %d  R(subframe): %0.2f' %
                            (Rtransition + frameConv, R + frameConv))
             else:
-                solMsg = ('R: %d' % (R))
+                solMsg = ('R: %d' % R)
 
             self.showMsg('in entryNum units: ' + solMsg)
             if solMsg2:
@@ -2154,14 +2154,14 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
         if candFrom == 'usedSize':
             self.showMsg('Number of candidate solutions: ' + str(numCandidates) +
-                     ' (using event min/max entries)')
+                         ' (using event min/max entries)')
         else:
             self.showMsg(
                 'Number of candidate solutions: ' + str(numCandidates) +
                 ' (using D/R region selections)')
 
         self.runSolver = True
-        solverGen = None
+        # solverGen = None
         self.calcErrBars.setEnabled(False)
 
         if self.runSolver:
@@ -2207,6 +2207,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 return
 
             self.cancelRequested = False
+
+            d = r = b = a = sigmaB = sigmaA = None
 
             for item in solverGen:
                 if item[0] == 'fractionDone':
@@ -2292,7 +2294,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                     self.rLimits = None
 
         if self.runSolver and self.solution:
-            D, R = self.solution
+            D, R = self.solution  # type: int
             if D is not None:
                 D = round(D, 2)
             if R is not None:
@@ -2304,13 +2306,13 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 if self.maxEvent is not None:
                     if (R - D) > self.maxEvent:
                         self.reDrawMainPlot()
-                        self.showMsg('Invalid solution: max event limit constrained solution', color='red', bold = True)
+                        self.showMsg('Invalid solution: max event limit constrained solution', color='red', bold=True)
                         self.showInfo('The solution is likely incorrect because the max event limit' +
                                       ' was set too low.  Increase that limit and try again.')
                         return
                     if self.minEvent >= (R - D):
                         self.reDrawMainPlot()
-                        self.showMsg('Invalid solution: min event limit constrained solution!', color='red', bold = True)
+                        self.showMsg('Invalid solution: min event limit constrained solution!', color='red', bold=True)
                         self.showInfo('The solution is likely incorrect because the min event limit' +
                                       ' was set too high.  Decrease that limit and try again.')
                         return
@@ -2337,7 +2339,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.table.setVerticalHeaderLabels([str(i) for i in range(self.dataLen)])
 
         for i in range(self.dataLen):
-            newitem = QtGui.QTableWidgetItem(str(i))
+            # newitem = QtGui.QTableWidgetItem(str(i))
             # self.table.setItem(i, 0, newitem)
             neatStr = fp.to_precision(self.yValues[i], 6)
             newitem = QtGui.QTableWidgetItem(str(neatStr))
@@ -2359,7 +2361,6 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 newitem = QtGui.QTableWidgetItem(str(neatStr))
                 self.table.setItem(i, 5, newitem)
 
-            
         self.table.resizeColumnsToContents()
         self.writeCSVButton.setEnabled(True)
 
@@ -2381,7 +2382,6 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                     self.showMsg(msg, color='red', bold=True)
                     self.showInfo(msg)
 
-
                 # If user cancelled out of timestamp entry dialog,
                 # then manualTime will be an empty list.
                 if manualTime:
@@ -2391,7 +2391,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                     self.fillTableViewOfData()
                     self.reDrawMainPlot()
                     self.showMsg(
-                        'timeDelta: ' + fp.to_precision(self.timeDelta,6) +
+                        'timeDelta: ' + fp.to_precision(self.timeDelta, 6) +
                         ' seconds per reading' +
                         ' (timeDelta calculated from manual input timestamps)',
                         blankLine=False)
@@ -2400,7 +2400,6 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                                                                    self.errRate,
                                                                    3) + '%')
                     self.fillTableViewOfData()
-
 
     def readDataFromFile(self):
         
@@ -2439,7 +2438,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             try:
                 self.outliers = []
                 frame, time, value, self.secondary, self.ref2, self.ref3, \
-                self.headers = readLightCurve(self.filename)
+                    self.headers = readLightCurve(self.filename)
                 values = [float(item) for item in value]
                 self.yValues = np.array(values)  # yValues = curve to analyze
                 self.dataLen = len(self.yValues)
@@ -2832,7 +2831,6 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.mainPlot.autoRange()
         self.showMsg('*' * 20 + ' starting over ' + '*' * 20, color='blue')
 
-
     def drawSolution(self):
         def plot(x, y):
             self.mainPlot.plot(x, y, pen=pg.mkPen((150, 100, 100), width=3), symbol=None)
@@ -2879,7 +2877,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             self.nBpts = 1
 
         if self.nApts < 1:
-                self.nApts = 1
+            self.nApts = 1
 
     def drawEnvelope(self):
         def plot(x, y):

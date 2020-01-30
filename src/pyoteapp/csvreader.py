@@ -44,7 +44,7 @@ def getFileKind(file):
             return 'Limovie'
         elif 'PyMovie' in line:
             return'PyMovie'
-        elif 'R-OTE' in line or line[0] == '#': # Matches PyOTE and PyMovie files too!
+        elif 'R-OTE' in line or line[0] == '#':  # Matches PyOTE and PyMovie files too!
             return 'R-OTE'
         elif 'RAW' in line:
             return 'raw'
@@ -94,9 +94,8 @@ def tangraParser(line, frame, time, value, ref1, ref2, ref3):
             if len(part) >= 6:
                 if part[5]:
                     ref3.append(part[5])
-    except ValueError as e:
+    except ValueError:
         raise Exception(line + " :cannot be parsed.  Are there empty fields?")
-
 
 
 # noinspection PyUnusedLocal
@@ -134,6 +133,7 @@ def roteParser(line, frame, time, value, ref1, ref2, ref3):
     if len(part) >= 6:
         if part[5]:
             ref3.append(part[5])
+
 
 # noinspection PyUnusedLocal
 def pymovieParser(line, frame, time, value, ref1, ref2, ref3):

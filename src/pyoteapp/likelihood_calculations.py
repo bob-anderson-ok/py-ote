@@ -14,7 +14,7 @@ from math import log, exp, sqrt, pi
 import numpy as np
 
 __all__ = ['likelihood', 'loglikelihood', 'conditional_likelihood',
-           'cum_loglikelihood', 'cum_corr_loglikelihood', 'aicc']
+           'cum_loglikelihood', 'cum_corr_loglikelihood', 'aicc', 'logLikelihoodLine']
 
 
 def aicc(logLikelihood, n, k):

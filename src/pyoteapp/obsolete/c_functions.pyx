@@ -93,7 +93,7 @@ cdef double c_find_Dedge_logl(int n, double[:] y,
             mmax = mcur
             edge_pos = i + 1
             
-    if y[edge_pos] >= a and y[edge_pos] <= b:
+    if a <= y[edge_pos] <= b:
         adj = 1.0 - ((b-y[edge_pos]) / (b - a))
     elif y[edge_pos] > b:
         adj = 1.0

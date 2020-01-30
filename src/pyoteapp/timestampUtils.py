@@ -1,5 +1,4 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+
 """
 Created on Thu May 25 12:26:10 2017
 
@@ -7,7 +6,7 @@ Created on Thu May 25 12:26:10 2017
 """
 
 import numpy as np
-from PyQt5.QtWidgets import QDialog, QMessageBox
+from PyQt5.QtWidgets import QDialog
 
 
 def convertTimeStringToTime(timeStr):
@@ -27,7 +26,7 @@ def convertTimeStringToTime(timeStr):
         minSecs = float(parts[1]) * 60
         secs = float(parts[2])
         return hourSecs + minSecs + secs
-    except:
+    except Exception:
         return -1.0
     
 
@@ -81,7 +80,7 @@ def getTimeStepAndOutliers(timestamps, tolerance=0.1):
 def isFrameNumberInData(frameToTest, frame):
     first = float(frame[0])
     last = float(frame[-1])
-    return frameToTest >= first and frameToTest <= last
+    return first <= frameToTest <= last
 
 
 savedF1 = savedHH1 = savedMM1 = savedSS1 = ''
@@ -90,6 +89,7 @@ savedNTSCButton = True
 savedPALButton = False
 savedCustomButton = False
 savedCustomText = ''
+
 
 def saveAllDialogEntries(dialog):
     global savedF1, savedHH1, savedMM1, savedSS1
@@ -115,7 +115,7 @@ def saveAllDialogEntries(dialog):
 
 
 # noinspection PyBroadException,PyUnusedLocal
-def manualTimeStampEntry(frame, dialog, flashFrames=[]):
+def manualTimeStampEntry(frame, dialog, flashFrames=None):
     time = []  # Output --- to be computed from timestamp data entered in dialog
     dataEntered = 'error in data entry'
 
@@ -144,7 +144,6 @@ def manualTimeStampEntry(frame, dialog, flashFrames=[]):
 
     dialog.frameDeltaTime.setText(savedCustomText)
 
-
     result = dialog.exec_()
 
     saveAllDialogEntries(dialog)
@@ -154,22 +153,22 @@ def manualTimeStampEntry(frame, dialog, flashFrames=[]):
         hh1 = mm1 = ss1 = hh2 = mm2 = ss2 = -1
         try:
             frameNum1 = float(dialog.frameNum1.text())
-        except:
+        except Exception:
             return '"' + dialog.frameNum1.text() + '" is invalid as frame number input', \
                    time, dataEntered, nf, ef
         try:
             hh1 = int(dialog.hh1.text())
-        except:
+        except Exception:
             return '"' + dialog.hh1.text() + '" is invalid as hh input', \
                    time, dataEntered, nf, ef
         try:
             mm1 = int(dialog.mm1.text())
-        except:
+        except Exception:
             return '"' + dialog.mm1.text() + '" is invalid as mm input', \
                    time, dataEntered, nf, ef
         try:
             ss1 = float(dialog.ss1.text())
-        except:
+        except Exception:
             return '"' + dialog.ss1.text() + '" is invalid as ss.ssss input', \
                    time, dataEntered, nf, ef
 
@@ -177,22 +176,22 @@ def manualTimeStampEntry(frame, dialog, flashFrames=[]):
         if frameNum2text != '':
             try:
                 frameNum2 = float(dialog.frameNum2.text())
-            except:
+            except Exception:
                 return '"' + dialog.frameNum2.text() + '" is invalid as frame number input', \
                        time, dataEntered, nf, ef
             try:
                 hh2 = int(dialog.hh2.text())
-            except:
+            except Exception:
                 return '"' + dialog.hh2.text() + '" is invalid as hh input', \
                        time, dataEntered, nf, ef
             try:
                 mm2 = int(dialog.mm2.text())
-            except:
+            except Exception:
                 return '"' + dialog.mm2.text() + '" is invalid as mm input', \
                        time, dataEntered, nf, ef
             try:
                 ss2 = float(dialog.ss2.text())
-            except:
+            except Exception:
                 return '"' + dialog.ss2.text() + '" is invalid as ss.ssss input', \
                        time, dataEntered, nf, ef
         else:
@@ -212,7 +211,7 @@ def manualTimeStampEntry(frame, dialog, flashFrames=[]):
         else:
             try:
                 expectedFrameDeltaTime = eval(dialog.frameDeltaTime.text(), {}, {})
-            except:
+            except Exception:
                 return '"' + dialog.frameDeltaTime.text() + '" is invalid as timeDelta', \
                        time, dataEntered, nf, ef
             if not isinstance(expectedFrameDeltaTime, float):

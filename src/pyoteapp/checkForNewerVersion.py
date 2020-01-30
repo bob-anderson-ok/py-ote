@@ -10,10 +10,12 @@ def getMostRecentVersionOfPyote():
     # Could not find a version that satisfies the requirement
     #   pyote==?? (from versions: 1.11, 1.12, 1.13, 1.14, 1.15, 1.16)
 
+    resp = None
+    # noinspection PyBroadException
     try:
         resp = subprocess.run(['python', '-m', 'pip', 'install', 'pyote==??'],
-                          stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-    except:
+                              stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+    except Exception:
         pass
 
     # Convert the byte array to a string and split into lines
@@ -42,6 +44,7 @@ def upgradePyote():
     ans = resp.stderr.decode("utf-8").split('\n')
 
     return ans
+
 
 if __name__ == '__main__':
     result = getMostRecentVersionOfPyote()

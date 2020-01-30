@@ -8,9 +8,7 @@ Created on Mon May 29 07:00:33 2017
 MIN_SIGMA = 0.1
 
 from math import exp
-
 import numpy as np
-
 from pyoteapp.likelihood_calculations import cum_loglikelihood, aicc, logLikelihoodLine
 from pyoteapp.likelihood_calculations import loglikelihood
 
@@ -113,16 +111,16 @@ def candidatesFromEventSize(*, eventType='DandR',
     
     if eventType == 'Donly':
         for D in range(right-maxSize+1, right-minSize+2):
-            yield (D, None)
+            yield D, None
     
     elif eventType == 'Ronly':
         for R in range(left+minSize, left+maxSize+1):
-            yield (None, R)
+            yield None, R
     
     elif eventType == 'DandR':
         for size in range(minSize, maxSize+1):
             for pos in range(left+1, right+1-size):
-                yield (pos, pos+size)
+                yield pos, pos+size
         
     else:
         raise Exception("Unrecognized event type")
@@ -139,16 +137,16 @@ def candidatesFromDandRlimits(*, eventType='DandR',
     
     if eventType == 'Donly':
         for D in range(dLimits[0], dLimits[1] + 1):
-            yield (D, None)
+            yield D, None
     
     elif eventType == 'Ronly':
         for R in range(rLimits[0], rLimits[1] + 1):
-            yield (None, R)
+            yield None, R
     
     elif eventType == 'DandR':
         for D in range(dLimits[0], dLimits[1] + 1):
             for R in range(rLimits[0], rLimits[1] + 1):
-                yield (D, R)
+                yield D, R
         
     else:
         raise Exception("Unrecognized edvent type")

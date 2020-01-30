@@ -108,11 +108,12 @@ def find_best_event_from_min_max_size(
     a_best = 0.0
     sigma_b_best = 0.0
     sigma_a_best = 0.0
+    sigma_a = sigma_b = None  # To satisfy PEP8
 
     num_candidates = calcNumCandidatesFromEventSize(
         left=left, right=right, minSize=min_event, maxSize=max_event)
 
-    clump_size = np.ceil(num_candidates / 50)
+    # clump_size = np.ceil(num_candidates / 50)
     solution_counter = 0
 
     for event in range(min_event, max_event + 1):
@@ -215,7 +216,6 @@ def find_best_r_only_from_min_max_size(
 
         if metric > max_metric and b > a and goodSolution:
             update_best_solution()
-
 
     if b_best <= a_best:
         yield 'no event present', 1.0

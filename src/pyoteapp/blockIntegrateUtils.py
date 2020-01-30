@@ -1,5 +1,6 @@
 import numpy as np
 
+
 # Return the standard deviation of a single integration block
 # that starts at 'index'.   'index' is assumed to point to a value in y[], so
 # we also check for a 'block' that goes past the end of y[]
