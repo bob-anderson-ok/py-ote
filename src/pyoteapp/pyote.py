@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Created on Sat May 20 15:32:13 2017
 
@@ -345,6 +343,11 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             self.helperThing.textEdit.insertHtml(obj.toolTip())
             self.helperThing.raise_()
             self.helperThing.show()
+
+    @staticmethod
+    def processKeystroke(event):
+        _ = event.key()  # Just to satisfy PEP8
+        return False
 
     def eventFilter(self, obj, event):
         if event.type() == QtCore.QEvent.KeyPress:
@@ -3069,6 +3072,15 @@ def main(csv_file_path=None):
     import traceback
     QtGui.QApplication.setStyle('fusion')
     app = QtGui.QApplication(sys.argv)
+
+    if sys.platform == 'linux':
+        print(f'os: Linux')
+    elif sys.platform == 'darwin':
+        print(f'os: MacOS')
+    else:
+        print(f'os: Windows')
+        app.setStyleSheet("QLabel, QPushButton, QToolButton, QCheckBox, "
+                          "QRadioButton, QLineEdit , QTextEdit {font-size: 8pt}")
     
     # Save the current/proper sys.excepthook object
     # sys._excepthook = sys.excepthook
