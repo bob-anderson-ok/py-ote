@@ -12,6 +12,7 @@ import platform
 
 from math import trunc, floor
 
+from false_positive import compute_drops
 import numpy as np
 import pyqtgraph as pg
 import pyqtgraph.exporters as pex
@@ -247,7 +248,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         # Button: Cancel operation
         self.cancelButton.clicked.connect(self.requestCancel)
         
-        # Button: Calculate error bars
+        # Button: Calculate error bars  (... write report)
         self.calcErrBars.clicked.connect(self.computeErrorBars)
         self.calcErrBars.installEventFilter(self)
         
@@ -732,6 +733,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.dBarPlotItem = None
         self.durBarPlotItem = None
         self.errBarWin = None
+        self.falsePositiveWin = None
 
     def requestCancel(self):
         self.cancelRequested = True
@@ -1281,6 +1283,9 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         
         if self.errBarWin:
             self.errBarWin.close()
+
+        if self.falsePositiveWin:
+            self.falsePositiveWin.close()
         
         event.accept()
     
@@ -1461,7 +1466,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             self.showMsg(
                 'maximum magDrop: NA because Amin is negative')
 
-    def finalReport(self):
+    def finalReport(self, false_positive):
         self.writeDefaultGraphicsPlots()
 
         # Grab the D and R values found and apply our timing convention
@@ -1515,6 +1520,13 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.showMsg('=============== Summary report for Excel file =====================')
 
         self.reportSpecialProceduredUsed()
+
+        if false_positive:
+            self.showMsg("This event has a non-zero probability of being a false positive!!",
+                         color='red', bold=True)
+        else:
+            self.showMsg("This event is not likely to be a false positive.",
+                         color='green', bold=True)
 
         if not self.timesAreValid:
             self.showMsg("Times are invalid due to corrupted timestamps!",
@@ -1622,10 +1634,10 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             self.showMsg('R: 0.9973 confidence intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar))
 
     def doDurTimeReport(self):
-        dur = self.Rtime - self.Dtime
-        if dur < 0:  # We have bracketed midnight
-            dur = dur + 3600 * 24  # Add seconds in a day
         if self.eventType == 'DandR':
+            dur = self.Rtime - self.Dtime
+            if dur < 0:  # We have bracketed midnight
+                dur = dur + 3600 * 24  # Add seconds in a day
             self.showMsg('Duration (R - D): {0:0.4f} seconds'.format(dur), blankLine=False)
             errBar = ((self.deltaDurhi68 - self.deltaDurlo68) / 2) * self.timeDelta
             self.showMsg('Duration: 0.6800 confidence intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar), blankLine=False)
@@ -1748,10 +1760,14 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
         pg.setConfigOptions(antialias=True)
         pen = pg.mkPen((0, 0, 0), width=2)
-        
+
+        # Get rid of a previous errBarWin that may have been closed (but not properly disposed of) by the user.
+        if self.errBarWin is not None:
+            self.errBarWin.close()
+
         self.errBarWin = pg.GraphicsWindow(
-            title='Solution distributions with confidence intervals marked')
-        self.errBarWin.resize(1200, 600)
+            title='Solution distributions with confidence intervals marked --- false positive distribution')
+        self.errBarWin.resize(1200, 1000)
         layout = QtGui.QGridLayout()
         self.errBarWin.setLayout(layout)
         
@@ -1774,10 +1790,13 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         vb = pw2.getViewBox()
         vb.rbScaleBox.setPen(pg.mkPen((255, 0, 0), width=2))
         vb.rbScaleBox.setBrush(pg.mkBrush(None))
+
+        pw3, false_positive = self.doFalsePositiveReport(posCoefs)
         
         layout.addWidget(pw, 0, 0)
         layout.addWidget(pw2, 0, 1)
-        
+        layout.addWidget(pw3, 1, 0, 1, 2)
+
         pw.plot(x-D, y, stepMode=True, fillLevel=0, brush=(0, 0, 255, 150))
         pw.addLine(y=0, z=-10, pen=[0, 0, 255])
         pw.addLine(x=0, z=+10, pen=[255, 0, 0])
@@ -1872,9 +1891,56 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         if self.timestampListIsEmpty(self.yTimes):
             self.showMsg('Cannot produce final report because timestamps are missing.', bold=True, color='red')
         else:
-            self.finalReport()
+            self.finalReport(false_positive)
 
         self.reDrawMainPlot()  # To add envelope to solution
+
+    def doFalsePositiveReport(self, posCoefs):
+        d, r = self.solution
+        if self.eventType == 'Donly':
+            event_duration = self.right - int(np.trunc(d))
+        elif self.eventType == 'Ronly':
+            event_duration = int(np.ceil(r)) - self.left
+        else:
+            event_duration = int(np.ceil(r - d))
+        # print(self.left, self.right, self.dataLen, self.solution)
+        observation_size = self.right - self.left + 1
+        sigma = max(self.sigmaA, self.sigmaB)
+        observed_drop = self.B - self.A
+        # print(event_duration, observation_size, sigma, posCoefs)
+        num_trials = 50_000
+        drops = compute_drops(event_duration=event_duration, observation_size=observation_size,
+                              noise_sigma=sigma, corr_array=np.array(posCoefs), num_trials=num_trials)
+        # print(drops.size, np.max(drops), observed_drop)
+
+        # Get rid of a previous errBarWin that may have been closed (but not properly disposed of) by the user.
+        if self.falsePositiveWin is not None:
+            self.falsePositiveWin.close()
+
+        pw = PlotWidget(viewBox=CustomViewBox(border=(0, 0, 0)),
+                        enableMenu=False,
+                        title=f'Distribution of drops found in correlated noise for event duration: {event_duration}',
+                        labels={'bottom': 'drop size', 'left': 'number of times noise produced drop'})
+        pw.hideButtons()
+
+        vb = pw.getViewBox()
+        vb.rbScaleBox.setPen(pg.mkPen((255, 0, 0), width=2))
+        vb.rbScaleBox.setBrush(pg.mkBrush(None))
+
+        y, x = np.histogram(drops, bins=50)
+
+        pw.plot(x, y, stepMode=True, fillLevel=0, brush=(0, 0, 255, 150))
+        pw.plot(x=[observed_drop, observed_drop], y=[0, 1.5 * np.max(y)], pen=pg.mkPen([255, 0, 0], width=6))
+        pw.plot(x=[np.max(x), np.max(x)], y=[0, 0.25 * np.max(y)], pen=pg.mkPen([0, 0, 0], width=6))
+
+        pw.addLegend()
+        pw.plot(name='red line: the drop (B - A) extracted from lightcurve')
+        pw.plot(name=f'black line: max drop found in {num_trials} trials against pure noise')
+        pw.plot(name='If the red line is to the right of the black line, false positive prob = 0')
+
+        false_positive = observed_drop <= np.max(x)
+
+        return pw, false_positive
 
     def displaySolution(self, subframe=True):
         D, R = self.solution
@@ -2438,7 +2504,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             self.filename = self.externalCsvFilePath
 
         if self.filename:
-            self.setWindowTitle('PYOTE Version: ' + version.version() + '  File in process: ' + self.filename)
+            self.setWindowTitle('PYOTE Version: ' + version.version() + '  File being processed: ' + self.filename)
             dirpath, _ = os.path.split(self.filename)
             self.logFile, _ = os.path.splitext(self.filename)
             self.logFile = self.logFile + '.PYOTE.log'
@@ -2989,21 +3055,24 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.mainPlot.addItem(self.verticalCursor)
 
         self.mainPlot.plot(self.yValues)
-            
-        x = [i for i in range(self.dataLen) if self.yStatus[i] == INCLUDED]
-        y = [self.yValues[i] for i in range(self.dataLen) if self.yStatus[i] == INCLUDED]
-        self.mainPlot.plot(x, y, pen=None, symbol='o', 
-                           symbolBrush=(0, 0, 255), symbolSize=6)
-        
-        x = [i for i in range(self.dataLen) if self.yStatus[i] == BASELINE]
-        y = [self.yValues[i] for i in range(self.dataLen) if self.yStatus[i] == BASELINE]
-        self.mainPlot.plot(x, y, pen=None, symbol='o', 
-                           symbolBrush=(0, 200, 200), symbolSize=6)
-        
-        x = [i for i in range(self.dataLen) if self.yStatus[i] == SELECTED]
-        y = [self.yValues[i] for i in range(self.dataLen) if self.yStatus[i] == SELECTED]
-        self.mainPlot.plot(x, y, pen=None, symbol='o', 
-                           symbolBrush=(255, 0, 0), symbolSize=10)
+
+        try:
+            x = [i for i in range(self.dataLen) if self.yStatus[i] == INCLUDED]
+            y = [self.yValues[i] for i in range(self.dataLen) if self.yStatus[i] == INCLUDED]
+            self.mainPlot.plot(x, y, pen=None, symbol='o',
+                               symbolBrush=(0, 0, 255), symbolSize=6)
+
+            x = [i for i in range(self.dataLen) if self.yStatus[i] == BASELINE]
+            y = [self.yValues[i] for i in range(self.dataLen) if self.yStatus[i] == BASELINE]
+            self.mainPlot.plot(x, y, pen=None, symbol='o',
+                               symbolBrush=(0, 200, 200), symbolSize=6)
+
+            x = [i for i in range(self.dataLen) if self.yStatus[i] == SELECTED]
+            y = [self.yValues[i] for i in range(self.dataLen) if self.yStatus[i] == SELECTED]
+            self.mainPlot.plot(x, y, pen=None, symbol='o',
+                               symbolBrush=(255, 0, 0), symbolSize=10)
+        except IndexError:
+            pass
         
         if self.showSecondaryCheckBox.isChecked() and len(self.yRefStar) == self.dataLen:
             self.mainPlot.plot(self.yRefStar)
@@ -3072,7 +3141,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.selectedPoints = {}
         self.reDrawMainPlot()
         self.doBlockIntegration.setEnabled(False)
-        self.mainPlot.autoRange()        
+        self.mainPlot.autoRange()
 
 
 def main(csv_file_path=None):
