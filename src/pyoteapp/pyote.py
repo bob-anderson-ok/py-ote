@@ -2547,6 +2547,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
                 self.mainPlot.autoRange()
 
+                self.mainPlot.setMouseEnabled(x=True, y=False)
+
                 self.setDataLimits.setEnabled(True)
                 self.writePlot.setEnabled(True)
 
@@ -2855,8 +2857,10 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         A = self.A
         
         if self.eventType == 'DandR':
-            D = self.solution[0] - self.Doffset
-            R = self.solution[1] - self.Roffset
+            # D = self.solution[0] - self.Doffset
+            # R = self.solution[1] - self.Roffset
+            D = self.solution[0]
+            R = self.solution[1]
         
             plot([self.left, D], [B, B])
             plot([D, D], [B, A])
@@ -2864,12 +2868,14 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             plot([R, R], [A, B])
             plot([R, self.right], [B, B])
         elif self.eventType == 'Donly':
-            D = self.solution[0] - self.Doffset
+            # D = self.solution[0] - self.Doffset
+            D = self.solution[0]
             plot([self.left, D], [B, B])
             plot([D, D], [B, A])
             plot([D, self.right], [A, A])
         elif self.eventType == 'Ronly':
-            R = self.solution[1] - self.Roffset
+            # R = self.solution[1] - self.Roffset
+            R = self.solution[1]
             plot([self.left, R], [A, A])
             plot([R, R], [A, B])
             plot([R, self.right], [B, B])
@@ -2905,7 +2911,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.calcNumBandApoints()
 
         if self.eventType == 'Donly':
-            D = self.solution[0] - self.Doffset
+            # D = self.solution[0] - self.Doffset
+            D = self.solution[0]
             Dright = D + self.plusD
             Dleft = D - self.minusD
             Bup = self.B + 2 * self.sigmaB / np.sqrt(self.nBpts)
@@ -2923,7 +2930,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             return
             
         if self.eventType == 'Ronly':
-            R = self.solution[1] - self.Roffset
+            # R = self.solution[1] - self.Roffset
+            R = self.solution[1]
             Rright = R + self.plusR
             Rleft = R - self.minusR
             Bup = self.B + 2 * self.sigmaB / np.sqrt(self.nBpts)
@@ -2941,9 +2949,11 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             return
         
         if self.eventType == 'DandR':
-            R = self.solution[1] - self.Roffset
-            D = self.solution[0] - self.Doffset
-            
+            # R = self.solution[1] - self.Roffset
+            # D = self.solution[0] - self.Doffset
+            R = self.solution[1]
+            D = self.solution[0]
+
             Rright = R + self.plusR
             Rleft = R - self.minusR
             Dright = D + self.plusD
