@@ -1,10 +1,10 @@
 import numpy as np
 from numpy import random, convolve
 from numba import prange, jit, int64, float64
-import time
+# import time
 import matplotlib
-import matplotlib.pyplot as plt
-from pyoteapp.autocorrtools import *
+# import matplotlib.pyplot as plt
+# from pyoteapp.autocorrtools import *
 matplotlib.use('Qt5Agg')
 
 
@@ -123,7 +123,7 @@ def max_drop_in_simulated_observation(
     return best_drop_so_far
 
 
-@jit(parallel=True, cache=True)
+@jit(parallel=True)
 def compute_drops(event_duration: int,
                   observation_size: int,
                   noise_sigma: float,
@@ -148,65 +148,65 @@ def compute_drops(event_duration: int,
     return drops
 
 
-def excercise():
-    noise_gen_jit(1, 1.0)
-    noise_gen_jit(1, 1.0)
-
-    start_time = time.time()
-    _ = noise_gen_jit(4_000, 1.0)
-    stop_time = time.time()
-    print(f'noise_gen_jit time: {stop_time - start_time:.6f} seconds')
-
-    start_time = time.time()
-    _ = noise_gen_numpy(4_000, 1.0)
-    stop_time = time.time()
-    print(f'noise_gen_numpy time: {stop_time - start_time:.6f} seconds')
-
-    # Warm-up calls to allow Numba compiler to do its work
-    print(f'\nDoing Numba warm-up calls...')
-    simulated_observation(100, 1.0, np.ones(10))
-    simulated_observation(100, 1.0, np.ones(10))
-
-    max_drop_in_simulated_observation(10, 100, 1.0, np.ones(10))
-    max_drop_in_simulated_observation(10, 100, 1.0, np.ones(10))
-
-    compute_drops(10, 100, 1.0, np.ones(10), 1)
-    compute_drops(10, 100, 1.0, np.ones(10), 1)
-    print(f'...finished warm-up calls.\n')
-    # End warm-up calls
-
-    dur = 100
-    n_obs = 4000
-    sigma = 2.0
-    # corr = np.ones(10)
-    corr = np.array([0.11653067, 0.29474461, 0.40390159, 0.85814318])
-    n_trials = 10000
-
-    start_time = time.time()
-    drop_array = compute_drops(event_duration=dur, observation_size=n_obs,
-                               noise_sigma=sigma, corr_array=corr, num_trials=n_trials)
-    stop_time = time.time()
-    print(f'{n_trials} drops computed in {stop_time - start_time:.6f} seconds')
-
-    # %%
-    plt.plot(np.sort(drop_array))
-    plt.show()
-
-    # %%
-    hist_values, bin_edges = np.histogram(drop_array, 50)
-    # print(hist_values)
-    # print(bin_edges)
-    plt.hist(drop_array, bins=50)
-    max_drop = np.max(drop_array)
-    plt.vlines(max_drop, 0, max(hist_values), colors='r')
-    plt.show()
-
-    noise_gen = CorrelatedNoiseGenerator(acfcoeffs=[1.0, 0.5, 0.3, 0.1])
-    test_noise = noise_gen.corr_normal(num_values=100000)
-    print(f'sigma: {np.std(test_noise)}')
-    print(autocorr(test_noise, lastlag=6))
-    print(noise_gen.final_coeffs)
-
+# def excercise():
+#     noise_gen_jit(1, 1.0)
+#     noise_gen_jit(1, 1.0)
+#
+#     start_time = time.time()
+#     _ = noise_gen_jit(4_000, 1.0)
+#     stop_time = time.time()
+#     print(f'noise_gen_jit time: {stop_time - start_time:.6f} seconds')
+#
+#     start_time = time.time()
+#     _ = noise_gen_numpy(4_000, 1.0)
+#     stop_time = time.time()
+#     print(f'noise_gen_numpy time: {stop_time - start_time:.6f} seconds')
+#
+#     # Warm-up calls to allow Numba compiler to do its work
+#     print(f'\nDoing Numba warm-up calls...')
+#     simulated_observation(100, 1.0, np.ones(10))
+#     simulated_observation(100, 1.0, np.ones(10))
+#
+#     max_drop_in_simulated_observation(10, 100, 1.0, np.ones(10))
+#     max_drop_in_simulated_observation(10, 100, 1.0, np.ones(10))
+#
+#     compute_drops(10, 100, 1.0, np.ones(10), 1)
+#     compute_drops(10, 100, 1.0, np.ones(10), 1)
+#     print(f'...finished warm-up calls.\n')
+#     # End warm-up calls
+#
+#     dur = 100
+#     n_obs = 4000
+#     sigma = 2.0
+#     # corr = np.ones(10)
+#     corr = np.array([0.11653067, 0.29474461, 0.40390159, 0.85814318])
+#     n_trials = 10000
+#
+#     start_time = time.time()
+#     drop_array = compute_drops(event_duration=dur, observation_size=n_obs,
+#                                noise_sigma=sigma, corr_array=corr, num_trials=n_trials)
+#     stop_time = time.time()
+#     print(f'{n_trials} drops computed in {stop_time - start_time:.6f} seconds')
+#
+#     # %%
+#     plt.plot(np.sort(drop_array))
+#     plt.show()
+#
+#     # %%
+#     hist_values, bin_edges = np.histogram(drop_array, 50)
+#     # print(hist_values)
+#     # print(bin_edges)
+#     plt.hist(drop_array, bins=50)
+#     max_drop = np.max(drop_array)
+#     plt.vlines(max_drop, 0, max(hist_values), colors='r')
+#     plt.show()
+#
+#     noise_gen = CorrelatedNoiseGenerator(acfcoeffs=[1.0, 0.5, 0.3, 0.1])
+#     test_noise = noise_gen.corr_normal(num_values=100000)
+#     print(f'sigma: {np.std(test_noise)}')
+#     print(autocorr(test_noise, lastlag=6))
+#     print(noise_gen.final_coeffs)
+#
 
 # if __name__ == "__main__":
 #     excercise()

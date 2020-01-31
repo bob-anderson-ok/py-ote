@@ -12,7 +12,7 @@ import platform
 
 from math import trunc, floor
 
-from false_positive import compute_drops
+from pyoteapp.false_positive import compute_drops
 import numpy as np
 import pyqtgraph as pg
 import pyqtgraph.exporters as pex
@@ -607,6 +607,11 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         targetFileDur = self.graphicFile + '.R-D.PYOTE.png'
         exporter.export(targetFileDur)
 
+        exporter = FixedImageExporter(self.falsePositivePlotItem)
+        exporter.makeWidthHeightInts()
+        targetFileDur = self.graphicFile + '.false-positive.PYOTE.png'
+        exporter.export(targetFileDur)
+
         exporter = FixedImageExporter(self.mainPlot.getPlotItem())
         exporter.makeWidthHeightInts()
         targetFile = self.graphicFile + '.PYOTE.png'
@@ -642,6 +647,11 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             exporter = FixedImageExporter(self.durBarPlotItem)
             exporter.makeWidthHeightInts()
             targetFileDur = self.graphicFile + '.R-D.PYOTE.png'
+            exporter.export(targetFileDur)
+
+            exporter = FixedImageExporter(self.falsePositivePlotItem)
+            exporter.makeWidthHeightInts()
+            targetFileDur = self.graphicFile + '.false-positive.PYOTE.png'
             exporter.export(targetFileDur)
             
             self.showInfo('Wrote to: \r\r' + targetFileD + ' \r\r' + targetFileDur)
@@ -733,7 +743,6 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.dBarPlotItem = None
         self.durBarPlotItem = None
         self.errBarWin = None
-        self.falsePositiveWin = None
 
     def requestCancel(self):
         self.cancelRequested = True
@@ -1280,13 +1289,10 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         curDateTime = datetime.datetime.today().ctime()
         self.showMsg('')
         self.showMsg('#' * 20 + ' Session ended: ' + curDateTime + '  ' + '#' * 20)
-        
+
         if self.errBarWin:
             self.errBarWin.close()
 
-        if self.falsePositiveWin:
-            self.falsePositiveWin.close()
-        
         event.accept()
     
     def rowClick(self, row):
@@ -1782,20 +1788,13 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                          labels={'bottom': 'Reading blocks'})
         self.durBarPlotItem = pw2.getPlotItem()
         pw2.hideButtons()
-        
-        vb = pw.getViewBox()
-        vb.rbScaleBox.setPen(pg.mkPen((255, 0, 0), width=2))
-        vb.rbScaleBox.setBrush(pg.mkBrush(None))
-        
-        vb = pw2.getViewBox()
-        vb.rbScaleBox.setPen(pg.mkPen((255, 0, 0), width=2))
-        vb.rbScaleBox.setBrush(pg.mkBrush(None))
 
         pw3, false_positive = self.doFalsePositiveReport(posCoefs)
-        
+        self.falsePositivePlotItem = pw3.getPlotItem()
+
         layout.addWidget(pw, 0, 0)
         layout.addWidget(pw2, 0, 1)
-        layout.addWidget(pw3, 1, 0, 1, 2)
+        layout.addWidget(pw3, 1, 0, 1, 2)  # (pw3, row_start, col_start, n_rows_to_span, n_cols_to_span)
 
         pw.plot(x-D, y, stepMode=True, fillLevel=0, brush=(0, 0, 255, 150))
         pw.addLine(y=0, z=-10, pen=[0, 0, 255])
@@ -1903,29 +1902,20 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             event_duration = int(np.ceil(r)) - self.left
         else:
             event_duration = int(np.ceil(r - d))
-        # print(self.left, self.right, self.dataLen, self.solution)
+
         observation_size = self.right - self.left + 1
         sigma = max(self.sigmaA, self.sigmaB)
         observed_drop = self.B - self.A
-        # print(event_duration, observation_size, sigma, posCoefs)
         num_trials = 50_000
+
         drops = compute_drops(event_duration=event_duration, observation_size=observation_size,
                               noise_sigma=sigma, corr_array=np.array(posCoefs), num_trials=num_trials)
-        # print(drops.size, np.max(drops), observed_drop)
-
-        # Get rid of a previous errBarWin that may have been closed (but not properly disposed of) by the user.
-        if self.falsePositiveWin is not None:
-            self.falsePositiveWin.close()
 
         pw = PlotWidget(viewBox=CustomViewBox(border=(0, 0, 0)),
                         enableMenu=False,
                         title=f'Distribution of drops found in correlated noise for event duration: {event_duration}',
                         labels={'bottom': 'drop size', 'left': 'number of times noise produced drop'})
         pw.hideButtons()
-
-        vb = pw.getViewBox()
-        vb.rbScaleBox.setPen(pg.mkPen((255, 0, 0), width=2))
-        vb.rbScaleBox.setBrush(pg.mkBrush(None))
 
         y, x = np.histogram(drops, bins=50)
 
