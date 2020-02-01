@@ -1472,7 +1472,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             self.showMsg(
                 'maximum magDrop: NA because Amin is negative')
 
-    def finalReport(self, false_positive):
+    def finalReport(self, false_positive, false_probability):
         self.writeDefaultGraphicsPlots()
 
         # Grab the D and R values found and apply our timing convention
@@ -1528,10 +1528,10 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.reportSpecialProceduredUsed()
 
         if false_positive:
-            self.showMsg("This event has a non-zero probability of being a false positive!!",
+            self.showMsg(f"This event has a {false_probability:0.4f} probability of being a false positive!!",
                          color='red', bold=True)
         else:
-            self.showMsg("This event is not likely to be a false positive.",
+            self.showMsg(f"This event  has a {false_probability:0.4f} probability of being a false positive.",
                          color='green', bold=True)
 
         if not self.timesAreValid:
@@ -1789,7 +1789,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.durBarPlotItem = pw2.getPlotItem()
         pw2.hideButtons()
 
-        pw3, false_positive = self.doFalsePositiveReport(posCoefs)
+        pw3, false_positive, false_probability = self.doFalsePositiveReport(posCoefs)
         self.falsePositivePlotItem = pw3.getPlotItem()
 
         layout.addWidget(pw, 0, 0)
@@ -1890,7 +1890,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         if self.timestampListIsEmpty(self.yTimes):
             self.showMsg('Cannot produce final report because timestamps are missing.', bold=True, color='red')
         else:
-            self.finalReport(false_positive)
+            self.finalReport(false_positive, false_probability)
 
         self.reDrawMainPlot()  # To add envelope to solution
 
@@ -1928,9 +1928,21 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         pw.plot(name=f'black line: max drop found in {num_trials} trials against pure noise')
         pw.plot(name='If the red line is to the right of the black line, false positive prob = 0')
 
-        false_positive = observed_drop <= np.max(x)
+        sorted_drops = np.sort(drops)
+        index_of_observed_drop_inside_sorted_drops = None
+        for i, value in enumerate(sorted_drops):
+            if value >= observed_drop:
+                index_of_observed_drop_inside_sorted_drops = i
+                break
 
-        return pw, false_positive
+        if index_of_observed_drop_inside_sorted_drops is None:
+            false_probability = 0.0
+            false_positive = False
+        else:
+            false_probability = 1.0 - index_of_observed_drop_inside_sorted_drops / drops.size
+            false_positive = True
+
+        return pw, false_positive, false_probability
 
     def displaySolution(self, subframe=True):
         D, R = self.solution
