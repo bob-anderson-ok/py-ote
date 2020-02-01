@@ -2295,7 +2295,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             d = r = b = a = sigmaB = sigmaA = None
 
             for item in solverGen:
-                if item[0] == 'fractionDone':
+                # if item[0] == 'fractionDone':
+                if item[0] == 1.0:
                     self.progressBar.setValue(item[1] * 100)
                     QtGui.QApplication.processEvents()
                     if self.cancelRequested:
@@ -2304,14 +2305,20 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                         self.showMsg('Solution search was cancelled')
                         self.progressBar.setValue(0)
                         return
-                elif item[0] == 'no event present':
+                # elif item[0] == 'no event present':
+                elif item[0] == -1.0:
                     self.showMsg(
                         'No event fitting search criteria could be found.')
                     self.progressBar.setValue(0)
                     self.runSolver = False
                     return
                 else:
-                    d, r, b, a, sigmaB, sigmaA, metric = item
+                    # d, r, b, a, sigmaB, sigmaA, metric = item
+                    _, _, d, r, b, a, sigmaB, sigmaA, metric = item
+                    if d == -1.0:
+                        d = None
+                    if r == -1.0:
+                        r = None
                     self.solution = (d, r)
                     self.progressBar.setValue(0)
 

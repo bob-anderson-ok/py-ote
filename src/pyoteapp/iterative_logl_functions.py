@@ -136,15 +136,17 @@ def find_best_event_from_min_max_size(
         solution_counter += sol_count
 
         # if solution_counter % clump_size == 0:
-        yield 'fractionDone', solution_counter / num_candidates
+        # yield 'fractionDone', solution_counter / num_candidates
+        yield 1.0, solution_counter / num_candidates, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
 
     # Here we test for solution being better than straight line
     if not solution_is_better_than_straight_line(
             y, left, right, d_best, r_best, b_best, a_best, sigma_b, sigma_a, k=4):
-        yield 'no event present', solution_counter / num_candidates
+        # yield 'no event present', solution_counter / num_candidates
+        yield -1.0, solution_counter / num_candidates, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
 
-    yield d_best, r_best, b_best, a_best, sigma_b_best, sigma_a_best, \
-        max_metric
+    # yield d_best, r_best, b_best, a_best, sigma_b_best, sigma_a_best, max_metric
+    yield 0.0, 1.0, d_best, r_best, b_best, a_best, sigma_b_best, sigma_a_best, max_metric
 
 
 def find_best_r_only_from_min_max_size(
@@ -218,14 +220,22 @@ def find_best_r_only_from_min_max_size(
             update_best_solution()
 
     if b_best <= a_best:
-        yield 'no event present', 1.0
+        # yield 'no event present', 1.0
+        yield -1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+
+    event_size_found = r_best - left
+    if event_size_found == max_event or event_size_found == min_event:
+        # Invalid event size --- invalid limit
+        yield -1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
 
     # Here we test for the best solution being better than straight line
     if not solution_is_better_than_straight_line(
             y, left, right, None, r_best, b, a, sigma_b, sigma_a, k=3):
-        yield 'no event present', 1.0
+        # yield 'no event present', 1.0
+        yield -1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
 
-    yield None, r_best, b_best, a_best, sigma_b, sigma_a, max_metric
+    # yield None, r_best, b_best, a_best, sigma_b, sigma_a, max_metric
+    yield 0.0, 1.0, -1.0, r_best, b_best, a_best, sigma_b, sigma_a, max_metric
 
 
 def find_best_d_only_from_min_max_size(
@@ -300,13 +310,21 @@ def find_best_d_only_from_min_max_size(
             update_best_solution()
 
     if b_best <= a_best:
-        yield 'no event present', 1.0
+        # yield 'no event present', 1.0
+        yield -1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+
+    event_size_found = right - d_best
+    if event_size_found == max_event or event_size_found == min_event:
+        # Invalid event size --- invalid limit
+        yield -1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
 
     if not solution_is_better_than_straight_line(
             y, left, right, d_best, None, b, a, sigma_b, sigma_a, k=3):
-        yield 'no event present', 1.0
+        # yield 'no event present', 1.0
+        yield -1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
 
-    yield d_best, None, b_best, a_best, sigma_b, sigma_a, max_metric
+    # yield d_best, None, b_best, a_best, sigma_b, sigma_a, max_metric
+    yield 0.0, 1.0, d_best, -1.0, b_best, a_best, sigma_b, sigma_a, max_metric
 
 
 def locate_fixed_event_position(
@@ -499,7 +517,8 @@ def locate_event_from_d_and_r_ranges(
 
             solution_counter += 1
             if solution_counter % clump_size == 0:
-                yield 'fractionDone', solution_counter / num_candidates
+                # yield 'fractionDone', solution_counter / num_candidates
+                yield 1.0, solution_counter / num_candidates, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
         d += 1
 
     b = b_s_best / b_n_best
@@ -510,9 +529,10 @@ def locate_event_from_d_and_r_ranges(
     # Here we test for solution being better than straight line
     if not solution_is_better_than_straight_line(
             y, left, right, d_best, r_best, b, a, sigma_b, sigma_a, k=4):
-        yield 'no event present', solution_counter / num_candidates
+        # yield 'no event present', solution_counter / num_candidates
+        yield -1.0, solution_counter / num_candidates, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
 
-    yield d_best, r_best, b, a, sigma_b, sigma_a, max_metric
+    yield 0.0, 1.0, d_best, r_best, b, a, sigma_b, sigma_a, max_metric
 
 
 def solution_is_better_than_straight_line(y, left, right, d, r, b, a, sigma_b,
