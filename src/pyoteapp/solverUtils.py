@@ -157,17 +157,18 @@ def candidatesFromDandRlimits(*, eventType='DandR',
         raise Exception("Unrecognized edvent type")
         
 
-def calcNumCandidatesFromDandRlimits(*, eventType='DandR', dLimits=None,
-                                     rLimits=None):
+@njit
+def calcNumCandidatesFromDandRlimits(eventType='DandR', d_start=-1, d_end=-1,
+                                     r_start=-1, r_end=-1):
     
     # The D and R limits are assumed valid as input and are non-overlapping
     
     if eventType == 'Donly':
-        return dLimits[1] - dLimits[0] + 1
+        return d_end - d_start + 1
     elif eventType == 'Ronly':
-        return rLimits[1] - rLimits[0] + 1
+        return r_start - r_end + 1
     elif eventType == 'DandR':
-        return (dLimits[1] - dLimits[0] + 1) * (rLimits[1] - rLimits[0] + 1)
+        return (d_end - d_start + 1) * (r_end - r_start + 1)
     else:
         raise Exception("Unrecognized event type")
 
@@ -295,8 +296,8 @@ def candidateCounter(*, eventType='DandR',
     # D and R limits trumps event size as candidate generator/counter
     if eventType == 'Donly':
         if dLimits:
-            return ('usedLimits', calcNumCandidatesFromDandRlimits(eventType=eventType, 
-                    dLimits=dLimits, rLimits=rLimits))
+            return ('usedLimits', calcNumCandidatesFromDandRlimits(eventType=eventType,
+                    d_start=dLimits[0], d_end=dLimits[1], r_start=rLimits[0], r_end=rLimits[1]))
         else:
             if minMaxOk():
                 return ('usedSize', calcNumCandidatesFromEventSize(eventType=eventType, 
@@ -306,8 +307,8 @@ def candidateCounter(*, eventType='DandR',
             
     elif eventType == 'Ronly':
         if rLimits:
-            return ('usedLimits', calcNumCandidatesFromDandRlimits(eventType=eventType, 
-                    dLimits=dLimits, rLimits=rLimits))
+            return ('usedLimits', calcNumCandidatesFromDandRlimits(eventType=eventType,
+                    d_start=dLimits[0], d_end=dLimits[1],  r_start=rLimits[0], r_end=rLimits[1]))
         else:
             if minMaxOk():
                 return ('usedSize', calcNumCandidatesFromEventSize(eventType=eventType, 
@@ -318,7 +319,7 @@ def candidateCounter(*, eventType='DandR',
     elif eventType == 'DandR':
         if rLimits and dLimits:
             return ('usedLimits', calcNumCandidatesFromDandRlimits(eventType=eventType,
-                    dLimits=dLimits, rLimits=rLimits))
+                    d_start=dLimits[0], d_end=dLimits[1], r_start=rLimits[0], r_end=rLimits[1]))
         else:
             if minMaxOk():
                 return ('usedSize', calcNumCandidatesFromEventSize(eventType=eventType, 

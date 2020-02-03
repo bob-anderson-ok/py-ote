@@ -427,44 +427,46 @@ def locate_fixed_event_position(
     return d_max, r_max, b_max, a_max, sigma_b, sigma_a, max_metric, solution_count
 
 
+@njit
 def locate_event_from_d_and_r_ranges(
         y: np.ndarray, left: int, right: int, d_start: int, d_end: int,
-        r_start: int,  r_end: int) -> StdAnswer:
+        r_start: int,  r_end: int):
     """Finds the best size and location for event specified by d & r  ranges"""
 
-    def update_best_solution():
-        nonlocal max_metric, d_best, r_best, b_s_best, a_s_best
-        nonlocal b_var_best, a_var_best, b_n_best, a_n_best
+    # def update_best_solution():
+    #     nonlocal max_metric, d_best, r_best, b_s_best, a_s_best
+    #     nonlocal b_var_best, a_var_best, b_n_best, a_n_best
+    #
+    #     max_metric = metric
+    #     d_best = d
+    #     r_best = r
+    #     b_s_best = b_s
+    #     a_s_best = a_s
+    #     b_var_best = b_var
+    #     a_var_best = a_var
+    #     b_n_best = b_n
+    #     a_n_best = a_n
 
-        max_metric = metric
-        d_best = d
-        r_best = r
-        b_s_best = b_s
-        a_s_best = a_s
-        b_var_best = b_var
-        a_var_best = a_var
-        b_n_best = b_n
-        a_n_best = a_n
-
-    def calc_metric():
-        nonlocal a_var, b_var
-        max_var = max([a_var, b_var, sys.float_info.min])
-
-        if a_var <= 0.0:
-            a_var = max_var
-        if b_var <= 0.0:
-            b_var = max_var
-        return -b_n * log(b_var) - a_n * log(a_var)
+    # def calc_metric():
+    #     nonlocal a_var, b_var
+    #     max_var = max([a_var, b_var, sys.float_info.min])
+    #
+    #     if a_var <= 0.0:
+    #         a_var = max_var
+    #     if b_var <= 0.0:
+    #         b_var = max_var
+    #     return -b_n * log(b_var) - a_n * log(a_var)
 
     num_candidates = calcNumCandidatesFromDandRlimits(
-        dLimits=(d_start, d_end), rLimits=(r_start, r_end))
+        eventType='DandR',
+        d_start=d_start, d_end=d_end, r_start=r_start, r_end=r_end)
 
     clump_size = np.ceil(num_candidates / 50)
     solution_counter = 0
 
     d = d_start
 
-    max_metric = None
+    max_metric = 0.0
     d_best = 0
     r_best = 0
     b_s_best = 0.0
@@ -473,6 +475,7 @@ def locate_event_from_d_and_r_ranges(
     a_var_best = 0.0
     b_n_best = 0
     a_n_best = 0
+    not_started = True
 
     while d <= d_end:
         # Use numpy version of metric calculator to initialize iteration
@@ -498,22 +501,59 @@ def locate_event_from_d_and_r_ranges(
 
         a_s, a_s2, a_n, a_var = calc_metric_numpy(y[d+1:r])
 
-        metric = calc_metric()
+        # ============== calc_metric() =================
+        max_var = max([a_var, b_var, MIN_FLOAT])
 
-        if not max_metric:
-            update_best_solution()
+        if a_var <= 0.0:
+            a_var = max_var
+        if b_var <= 0.0:
+            b_var = max_var
+        metric =  - b_n * log(b_var) - a_n * log(a_var)
+        # ============== calc_metric() =================
+
+        if not_started:
+            # =========== update_best_solution() =======
+            max_metric = metric
+            d_best = d
+            r_best = r
+            b_s_best = b_s
+            a_s_best = a_s
+            b_var_best = b_var
+            a_var_best = a_var
+            b_n_best = b_n
+            a_n_best = a_n
+            # =========== update_best_solution() =======
+            not_started = False
 
         b = b_s / b_n
         a = a_s / a_n
         if metric >= max_metric and b > a:
-            update_best_solution()
+            # =========== update_best_solution() =======
+            max_metric = metric
+            d_best = d
+            r_best = r
+            b_s_best = b_s
+            a_s_best = a_s
+            b_var_best = b_var
+            a_var_best = a_var
+            b_n_best = b_n
+            a_n_best = a_n
+            # =========== update_best_solution() =======
 
         while r < r_end:
             r += 1
             b_s, b_s2, b_n, b_var = sub_entry(y[r], b_s, b_s2, b_n, True)
             a_s, a_s2, a_n, a_var = add_entry(y[r-1], a_s, a_s2, a_n, True)
 
-            metric = calc_metric()
+            # ============== calc_metric() =================
+            max_var = max([a_var, b_var, MIN_FLOAT])
+
+            if a_var <= 0.0:
+                a_var = max_var
+            if b_var <= 0.0:
+                b_var = max_var
+            metric = - b_n * log(b_var) - a_n * log(a_var)
+            # ============== calc_metric() =================
 
             b = b_s / b_n
             a = a_s / a_n
@@ -522,12 +562,22 @@ def locate_event_from_d_and_r_ranges(
                 y, left, right, d, r, b, a, sqrt(b_var), sqrt(a_var), k=4)
 
             if metric >= max_metric and b > a and goodSolution:
-                update_best_solution()
+                # =========== update_best_solution() =======
+                max_metric = metric
+                d_best = d
+                r_best = r
+                b_s_best = b_s
+                a_s_best = a_s
+                b_var_best = b_var
+                a_var_best = a_var
+                b_n_best = b_n
+                a_n_best = a_n
+                # =========== update_best_solution() =======
 
             solution_counter += 1
             if solution_counter % clump_size == 0:
                 # yield 'fractionDone', solution_counter / num_candidates
-                yield 1.0, solution_counter / num_candidates, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+                yield 1.0, solution_counter / num_candidates, -1, -1, 0.0, 0.0, 0.0, 0.0, 0.0
         d += 1
 
     b = b_s_best / b_n_best
@@ -539,7 +589,7 @@ def locate_event_from_d_and_r_ranges(
     if not solution_is_better_than_straight_line(
             y, left, right, d_best, r_best, b, a, sigma_b, sigma_a, k=4):
         # yield 'no event present', solution_counter / num_candidates
-        yield -1.0, solution_counter / num_candidates, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+        yield -1.0, solution_counter / num_candidates, -1, -1, 0.0, 0.0, 0.0, 0.0, 0.0
 
     yield 0.0, 1.0, d_best, r_best, b, a, sigma_b, sigma_a, max_metric
 
