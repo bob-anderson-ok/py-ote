@@ -94,7 +94,7 @@ def edgeDistributionGenerator(*, ntrials: int = 10000, numPts: int = None, D: in
 
     edgePos = np.zeros(shape=ntrials, dtype=np.float)
 
-    m, sigma = model(B=B, A=A, edgeTuple=(D, None), sigmaB=sigmaB, sigmaA=sigmaA, numPts=numPts)
+    m, sigma = model(B=B, A=A, D=D, R=-1, sigmaB=sigmaB, sigmaA=sigmaA, numPts=numPts)
     # m[:D] == B  m[D:] == A  sigma[:D] == sigmaB  sigma[:D] == sigmaA
 
     for i in range(ntrials):

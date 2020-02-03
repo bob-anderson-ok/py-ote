@@ -2292,7 +2292,9 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
             self.cancelRequested = False
 
-            d = r = b = a = sigmaB = sigmaA = None
+            d = r = -1
+            b = a = 0.0
+            sigmaB = sigmaA = 0.0
 
             for item in solverGen:
                 # if item[0] == 'fractionDone':

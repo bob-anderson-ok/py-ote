@@ -11,6 +11,7 @@ from math import exp
 import numpy as np
 from pyoteapp.likelihood_calculations import cum_loglikelihood, aicc, logLikelihoodLine
 from pyoteapp.likelihood_calculations import loglikelihood
+from numba import njit
 
 
 def aicModelValue(*, obsValue=None, B=None, A=None, sigmaB=None, sigmaA=None):
@@ -40,22 +41,26 @@ def aicModelValue(*, obsValue=None, B=None, A=None, sigmaB=None, sigmaA=None):
         return A  # Categorize as event point
 
 
-def model(*, B=None, A=None,
-          edgeTuple=None, 
-          sigmaB=None, sigmaA=None, numPts=None):
+# @njit("(float64, float64, int64, int64, float64, float64, int64)")
+@njit
+def model(B=0.0, A=0.0,
+          D=-1, R=-1,
+          sigmaB=0.0, sigmaA=0.0, numPts=0):
     
-    D, R = edgeTuple
+    # D, R = edgeTuple
     assert(numPts > 0 and sigmaA >= 0 and sigmaB >= 0)
-    m = np.ndarray(shape=[numPts])
-    sigma = np.ndarray(shape=[numPts])
-    
-    if D is None and R is None:
+    # m = np.ndarray(shape=(numPts,), dtype=np.float64)
+    m = np.zeros(numPts)
+    # sigma = np.ndarray(shape=(numPts,), dtype=np.float64)
+    sigma = np.zeros(numPts)
+
+    if D == -1 and R == -1:  # -1 means None
         m[:] = B
         sigma[:] = sigmaB
         
         return m, sigma
     
-    if D is not None and R is not None:
+    if not D == -1 and not R == -1:  # D and R are not None
         assert((D >= 0) and (R > D))
         assert((D < numPts) and (R < numPts))
         assert(R > D)
@@ -70,7 +75,7 @@ def model(*, B=None, A=None,
         
         return m, sigma
     
-    if D is not None and R is None:
+    if not D == -1 and R == -1:  # R is None
         assert((D >= 0) and (D < numPts))
         
         m[:D] = B
@@ -81,7 +86,7 @@ def model(*, B=None, A=None,
         
         return m, sigma
     
-    if R is not None and D is None:
+    if not R == -1 and D == -1:  # D is None
         assert((R >= 1) and (R < numPts))
         
         m[:R] = A
@@ -165,9 +170,10 @@ def calcNumCandidatesFromDandRlimits(*, eventType='DandR', dLimits=None,
         return (dLimits[1] - dLimits[0] + 1) * (rLimits[1] - rLimits[0] + 1)
     else:
         raise Exception("Unrecognized event type")
- 
 
-def calcNumCandidatesFromEventSize(*, eventType='DandR',
+
+@njit
+def calcNumCandidatesFromEventSize(eventType='DandR',
                                    left=None, right=None,
                                    minSize=None, maxSize=None):
     
@@ -247,14 +253,14 @@ def calcBandA(*, yValues=None, left=None, right=None, cand=None):
 
 def scoreCandidate(yValues, left, right, cand, sigmaB, sigmaA):
     B, A = calcBandA(yValues=yValues, left=left, right=right, cand=cand)
-    m, sigma = model(B=B, A=A, edgeTuple=cand, 
+    m, sigma = model(B=B, A=A, D=cand[0], R=cand[1],
                      sigmaB=sigmaB, sigmaA=sigmaA, numPts=yValues.size)
     return cum_loglikelihood(yValues, m, sigma, left, right), B, A
 
 
 def scoreSubFrame(yValues, left, right, cand, sigmaB, sigmaA):
     B, A = calcBandA(yValues=yValues, left=left, right=right, cand=cand)
-    m, sigma = model(B=B, A=A, edgeTuple=cand, 
+    m, sigma = model(B=B, A=A, D=cand[0], R=cand[1],
                      sigmaB=sigmaB, sigmaA=sigmaA, numPts=yValues.size)
     D, R = cand
     if D is not None:
