@@ -41,8 +41,7 @@ def aicModelValue(*, obsValue=None, B=None, A=None, sigmaB=None, sigmaA=None):
         return A  # Categorize as event point
 
 
-# @njit("(float64, float64, int64, int64, float64, float64, int64)")
-@njit
+@njit(cache=True)
 def model(B=0.0, A=0.0,
           D=-1, R=-1,
           sigmaB=0.0, sigmaA=0.0, numPts=0):
@@ -157,7 +156,7 @@ def candidatesFromDandRlimits(*, eventType='DandR',
         raise Exception("Unrecognized edvent type")
         
 
-@njit
+@njit(cache=True)
 def calcNumCandidatesFromDandRlimits(eventType='DandR', d_start=-1, d_end=-1,
                                      r_start=-1, r_end=-1):
     
@@ -166,14 +165,14 @@ def calcNumCandidatesFromDandRlimits(eventType='DandR', d_start=-1, d_end=-1,
     if eventType == 'Donly':
         return d_end - d_start + 1
     elif eventType == 'Ronly':
-        return r_start - r_end + 1
+        return r_end - r_start + 1
     elif eventType == 'DandR':
         return (d_end - d_start + 1) * (r_end - r_start + 1)
     else:
         raise Exception("Unrecognized event type")
 
 
-@njit
+@njit(cache=True)
 def calcNumCandidatesFromEventSize(eventType='DandR',
                                    left=None, right=None,
                                    minSize=None, maxSize=None):
@@ -297,7 +296,7 @@ def candidateCounter(*, eventType='DandR',
     if eventType == 'Donly':
         if dLimits:
             return ('usedLimits', calcNumCandidatesFromDandRlimits(eventType=eventType,
-                    d_start=dLimits[0], d_end=dLimits[1], r_start=rLimits[0], r_end=rLimits[1]))
+                    d_start=dLimits[0], d_end=dLimits[1], r_start=-1, r_end=-1))
         else:
             if minMaxOk():
                 return ('usedSize', calcNumCandidatesFromEventSize(eventType=eventType, 
@@ -308,7 +307,7 @@ def candidateCounter(*, eventType='DandR',
     elif eventType == 'Ronly':
         if rLimits:
             return ('usedLimits', calcNumCandidatesFromDandRlimits(eventType=eventType,
-                    d_start=dLimits[0], d_end=dLimits[1],  r_start=rLimits[0], r_end=rLimits[1]))
+                    d_start=-1, d_end=-1,  r_start=rLimits[0], r_end=rLimits[1]))
         else:
             if minMaxOk():
                 return ('usedSize', calcNumCandidatesFromEventSize(eventType=eventType, 

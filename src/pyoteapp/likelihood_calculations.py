@@ -18,7 +18,7 @@ __all__ = ['likelihood', 'loglikelihood', 'conditional_likelihood',
            'cum_loglikelihood', 'cum_corr_loglikelihood', 'aicc', 'logLikelihoodLine']
 
 
-@njit
+@njit(cache=True)
 def aicc(logLikelihood, n, k):
     """
     Akaike information criterion corrected for small sample size
@@ -68,7 +68,7 @@ def loglikelihood(y, m, sigma):
     return t1 + t2 + t3
 
 
-@njit
+@njit(cache=True)
 def logLikelihoodLine(y,  sigmaB=None, left=None, right=None):
     """ log likelihood of a straight line through the readings"""
     
@@ -82,7 +82,7 @@ def logLikelihoodLine(y,  sigmaB=None, left=None, right=None):
     return ans
 
 
-@njit
+@njit(cache=True)
 def cum_loglikelihood(y, m, sigma, left, right):
     """ numpy accelerated sum of loglikelihoods
 

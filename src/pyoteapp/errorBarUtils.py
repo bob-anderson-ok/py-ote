@@ -20,7 +20,7 @@ import numpy as np
 # from pyoteapp.c_functions import wrap_logl
 
 
-@njit
+@njit(cache=True)
 def loglikelihood(y: float64, m: float64, sigma: float64) -> float64:
     """ calculate ln(likelihood) given Gaussian statistics
 
@@ -39,7 +39,7 @@ def loglikelihood(y: float64, m: float64, sigma: float64) -> float64:
 
 
 # The following routine finds an D edge using a subframe model
-@njit(float64(int64, float64[:], float64[:], float64[:], float64[:], float64, float64, float64, float64))
+@njit(float64(int64, float64[:], float64[:], float64[:], float64[:], float64, float64, float64, float64), cache=True)
 def find_Dedge_logl_numba(n, y, mb, ma, mm, b, a, sigma_b, sigma_a):
 
     mcur = 0.0

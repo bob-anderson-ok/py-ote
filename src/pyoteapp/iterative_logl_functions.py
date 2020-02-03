@@ -102,10 +102,16 @@ StdAnswer = Tuple[int, int, float, float, float, float, float]
 """StdAnswer is: d, r, b, a, sigmaB, sigmaA, metric """
 
 
-@njit
+@njit  # cache=True did not work for this function --- gave a pickling error
 def find_best_event_from_min_max_size(
         y: np.ndarray, left: int, right: int, min_event: int, max_event: int):
     """Finds the best size and location for an event >=  min and <=  max"""
+
+    # The only time this function is called with a y containing 1 element
+    # is during the import of this module where the call is made to force the jit
+    # compiler into action --- a work-around to the pickle error problem.
+    if y.size == 1:
+        yield -1.0, 0.0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0
 
     max_metric = 0.0
     d_best = 0
@@ -333,7 +339,7 @@ def find_best_d_only_from_min_max_size(
     yield 0.0, 1.0, d_best, -1, b_best, a_best, sigma_b, sigma_a, max_metric
 
 
-@njit
+@njit(cache=True)
 def locate_fixed_event_position(
         y: np.ndarray, left: int, right: int,
         event_size: int) -> Tuple[int, int, float, float, float, float,
@@ -421,41 +427,22 @@ def locate_fixed_event_position(
             r_max = r
             # ======= update_best_solution() ========
 
-
         solution_count += 1
 
     return d_max, r_max, b_max, a_max, sigma_b, sigma_a, max_metric, solution_count
 
 
-@njit
+@njit  # cache=True gave pickling error
 def locate_event_from_d_and_r_ranges(
         y: np.ndarray, left: int, right: int, d_start: int, d_end: int,
         r_start: int,  r_end: int):
     """Finds the best size and location for event specified by d & r  ranges"""
 
-    # def update_best_solution():
-    #     nonlocal max_metric, d_best, r_best, b_s_best, a_s_best
-    #     nonlocal b_var_best, a_var_best, b_n_best, a_n_best
-    #
-    #     max_metric = metric
-    #     d_best = d
-    #     r_best = r
-    #     b_s_best = b_s
-    #     a_s_best = a_s
-    #     b_var_best = b_var
-    #     a_var_best = a_var
-    #     b_n_best = b_n
-    #     a_n_best = a_n
-
-    # def calc_metric():
-    #     nonlocal a_var, b_var
-    #     max_var = max([a_var, b_var, sys.float_info.min])
-    #
-    #     if a_var <= 0.0:
-    #         a_var = max_var
-    #     if b_var <= 0.0:
-    #         b_var = max_var
-    #     return -b_n * log(b_var) - a_n * log(a_var)
+    # The only time this function is called with a y containing 1 element
+    # is during the import of this module where the call is made to force the jit
+    # compiler into action --- a work-around to the pickle error problem.
+    if y.size == 1:
+        yield -1.0, 0.0, -1, -1, 0.0, 0.0, 0.0, 0.0, 0.0
 
     num_candidates = calcNumCandidatesFromDandRlimits(
         eventType='DandR',
@@ -508,7 +495,7 @@ def locate_event_from_d_and_r_ranges(
             a_var = max_var
         if b_var <= 0.0:
             b_var = max_var
-        metric =  - b_n * log(b_var) - a_n * log(a_var)
+        metric = - b_n * log(b_var) - a_n * log(a_var)
         # ============== calc_metric() =================
 
         if not_started:
@@ -594,7 +581,7 @@ def locate_event_from_d_and_r_ranges(
     yield 0.0, 1.0, d_best, r_best, b, a, sigma_b, sigma_a, max_metric
 
 
-@njit
+@njit(cache=True)
 def solution_is_better_than_straight_line(y, left=-1, right=-1, d=-1, r=-1, b=0.0, a=0.0, sigma_b=0.0,
                                           sigma_a=0.0, k=4):
 
@@ -739,6 +726,17 @@ def bob():
     # print(ans)
 
 
+# We perform the following calls to force the njit of the functions.  This hides the
+# compile time from the user (extends the load time a bit) and thus eliminates
+# the slightly disconcerting 1 or 2 second delay before this functions start to
+# operate if we wait until the user first invokes them after starting ppyote.  We
+# do this as a work-around to the pickle problem that keeps normal caching from working.
+
+_ = find_best_event_from_min_max_size(np.zeros(1), 0, 0, 0, 0)
+_ = locate_event_from_d_and_r_ranges(np.zeros(1), 0, 0, 0, 0, 0, 0)
+
+
 if __name__ == "__main__":
     bob()
     # bob.inspect_types()
+    pass
