@@ -1,6 +1,6 @@
 import numpy as np
 from numpy import random, convolve
-from numba import prange, jit, int64, float64
+from numba import prange, njit, int64, float64
 # import time
 import matplotlib
 # import matplotlib.pyplot as plt
@@ -8,7 +8,7 @@ import matplotlib
 matplotlib.use('Qt5Agg')
 
 
-@jit(float64[:](int64, float64), cache=True)
+@njit(float64[:](int64, float64), cache=True)
 def noise_gen_jit(num_points: int, noise_sigma: float) -> np.ndarray:
     out = np.empty(num_points)
     for i in range(num_points):
@@ -16,7 +16,7 @@ def noise_gen_jit(num_points: int, noise_sigma: float) -> np.ndarray:
     return out
 
 
-@jit(cache=True)
+@njit(cache=True)
 def simple_convolve(x, c):
     nx = len(x)
     nc = len(c)
@@ -28,7 +28,7 @@ def simple_convolve(x, c):
     return out
 
 
-@jit(cache=True)
+@njit(cache=True)
 def simple_convolve2(x, c):
     nx = len(x)
     nc = len(c)
@@ -66,7 +66,7 @@ def simulated_observation(observation_size: int, noise_sigma: float, corr_array:
 
 
 # noinspection PyPep8Naming
-@jit(cache=True)
+@njit(cache=True)
 def max_drop_in_simulated_observation(
         event_duration: int,
         observation_size: int,
@@ -123,7 +123,7 @@ def max_drop_in_simulated_observation(
     return best_drop_so_far
 
 
-@jit(parallel=True)
+@njit(parallel=True)
 def compute_drops(event_duration: int,
                   observation_size: int,
                   noise_sigma: float,

@@ -11,6 +11,9 @@ import sys
 import platform
 
 from math import trunc, floor
+import matplotlib.pyplot as plt
+
+from PIL import Image
 
 from pyoteapp.false_positive import compute_drops
 import numpy as np
@@ -339,6 +342,11 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.showHelp(self.helpButton)
 
     def showHelp(self, obj):
+        # plt.figure("frame 101", figsize=(10, 8))
+        # plt.show()
+        img = Image.open('test-img.png')
+        img.show()
+        print(img.format)
         if obj.toolTip():
             self.helperThing.textEdit.clear()
             self.helperThing.textEdit.insertHtml(obj.toolTip())

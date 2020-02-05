@@ -183,7 +183,7 @@ def find_best_r_only_from_min_max_size(
 
     def calc_metric():
         nonlocal a_var, b_var
-        max_var = max([a_var, b_var, sys.float_info.min])
+        max_var = max(a_var, b_var, sys.float_info.min)
 
         if a_var <= 0.0:
             a_var = max_var
@@ -271,7 +271,7 @@ def find_best_d_only_from_min_max_size(
 
     def calc_metric():
         nonlocal a_var, b_var
-        max_var = max([a_var, b_var, sys.float_info.min])
+        max_var = max(a_var, b_var, sys.float_info.min)
 
         if a_var <= 0.0:
             a_var = max_var
@@ -360,7 +360,7 @@ def locate_fixed_event_position(
 
     # Calculate metric for initial position of event at extreme left
     # ========== calc_metric() ===========
-    max_var = max([a_var, b_var, MIN_FLOAT])
+    max_var = max(a_var, b_var, MIN_FLOAT)
     if a_var <= 0.0:
         a_var = max_var
     if b_var <= 0.0:
@@ -401,7 +401,7 @@ def locate_fixed_event_position(
         a = a_s / a_n
 
         # ========== calc_metric() ===========
-        max_var = max([a_var, b_var, MIN_FLOAT])
+        max_var = max(a_var, b_var, MIN_FLOAT)
         if a_var <= 0.0:
             a_var = max_var
         if b_var <= 0.0:
@@ -489,7 +489,7 @@ def locate_event_from_d_and_r_ranges(
         a_s, a_s2, a_n, a_var = calc_metric_numpy(y[d+1:r])
 
         # ============== calc_metric() =================
-        max_var = max([a_var, b_var, MIN_FLOAT])
+        max_var = max(a_var, b_var, MIN_FLOAT)
 
         if a_var <= 0.0:
             a_var = max_var
@@ -533,7 +533,7 @@ def locate_event_from_d_and_r_ranges(
             a_s, a_s2, a_n, a_var = add_entry(y[r-1], a_s, a_s2, a_n, True)
 
             # ============== calc_metric() =================
-            max_var = max([a_var, b_var, MIN_FLOAT])
+            max_var = max(a_var, b_var, MIN_FLOAT)
 
             if a_var <= 0.0:
                 a_var = max_var
