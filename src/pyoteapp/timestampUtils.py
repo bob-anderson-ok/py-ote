@@ -257,7 +257,7 @@ def manualTimeStampEntry(frame, dialog, flashFrames=None):
 
         return 'ok', time, dataEntered, numFramesInSpan, expectedFramesInSpan
     else:
-        return 'ok', time, 'Manual timestamp entry was cancelled.'
+        return 'cancelled', time, dataEntered, -1, -1
 
 
 def timestampsFromFrameDelta(t1, frameNum1, frameDeltaTime, frame):

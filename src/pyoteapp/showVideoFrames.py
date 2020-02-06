@@ -16,7 +16,9 @@ def readAviFile(frame_to_read=0, full_file_path=None):
 
         cap = cv2.VideoCapture(full_file_path, cv2.CAP_FFMPEG)
         if not cap.isOpened():
-            return f'{full_file_path} could not be opened!'
+            errmsg = f'{full_file_path} could not be opened!'
+            return {"success": False, "image": None, "errmsg": errmsg,
+                    "fourcc": '', "fps": 0.0, "num_frames": 0}
         else:
             # Let's get the FOURCC code
             fourcc = int(cap.get(cv2.CAP_PROP_FOURCC))

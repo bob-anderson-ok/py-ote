@@ -332,6 +332,9 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.initializeVariablesThatDontDependOnAfile()
 
         self.pathToVideo = None
+        self.frameView = None
+
+        self.fieldMode = False
 
         self.checkForNewVersion()
 
@@ -350,7 +353,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 self.externalCsvFilePath = None
 
     def viewFrame(self):
-        # TODO deal with difference between raw frame number and frame_num in csv file
+        # TODO Acommodate field mode csv with fractional frame numbers
         if self.pathToVideo is None:
             return
 
@@ -362,10 +365,11 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             self.showMsg(f'Attempt to view frame returned errmsg: {ans["errmsg"]}')
             return
 
-        self.win = pg.GraphicsWindow(title=f'frame {frame_number} display')
-        self.win.resize(1000, 600)
+        self.frameView = pg.GraphicsWindow(title=f'FRAME: {frame_number}')
+
+        self.frameView.resize(1000, 600)
         layout = QtGui.QGridLayout()
-        self.win.setLayout(layout)
+        self.frameView.setLayout(layout)
         imv = pg.ImageView()
         layout.addWidget(imv, 0, 0)
 
@@ -374,7 +378,20 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         imv.ui.roiBtn.hide()
 
         # image = np.random.normal(0, 1.0, (480, 640))  # Generate test image
-        imv.setImage(ans['image'])
+        image = ans['image']
+
+        if self.fieldViewCheckBox.isChecked():
+            upper_field = image[0::2, :]
+            lower_field = image[1::2, :]
+            image = np.concatenate((upper_field, lower_field))
+
+        if self.flipYaxisCheckBox.isChecked():
+            image = np.flipud(image)
+
+        if self.flipXaxisCheckBox.isChecked():
+            image = np.fliplr(image)
+
+        imv.setImage(image)
 
     def helpButtonClicked(self):
         self.showHelp(self.helpButton)
@@ -1206,6 +1223,9 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         newLC2 = []
         newLC3 = []
         newLC4 = []
+
+        if not self.blockSize % 2 == 0:
+            self.showInfo(f'Blocksize is {self.blockSize}\n\nAn odd number for blocksize is likely an error!')
         
         p = p0 - span  # Start working toward the left
         while p > 0:
@@ -1327,6 +1347,9 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.settings.setValue('size', self.size())
         self.settings.setValue('pos', self.pos())
         self.helperThing.close()
+
+        if self.frameView:
+            self.frameView.close()
 
         curDateTime = datetime.datetime.today().ctime()
         self.showMsg('')
@@ -1998,13 +2021,20 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         if D and R:
             Dtransition = trunc(floor(self.solution[0]))
             Rtransition = trunc(floor(self.solution[1]))
+
+            # We need block_size in frame units, so a correction is applied if the csv
+            # is recorded in field mode.
+            block_size = self.blockSize
+            if self.fieldMode:
+                block_size = block_size / 2
+
             if subframe:
-                solMsg = ('D: %d  R: %d  D(subframe): %0.2f  R(subframe): %0.2f' %
+                solMsg = ('D: %d  R: %d  D(subframe): %0.4f  R(subframe): %0.4f' %
                           (Dtransition, Rtransition, D, R))
-                solMsg2 = ('D: %d  R: %d  D(subframe): %0.2f  R(subframe): '
-                           '%0.2f' %
-                           (Dtransition + frameConv, Rtransition + frameConv,
-                            D + frameConv, R + frameConv))
+                solMsg2 = ('D: %d  R: %d  D(subframe): %0.3f  R(subframe): '
+                           '%0.3f' %
+                           (Dtransition * block_size + frameConv, Rtransition * block_size + frameConv,
+                            D * block_size + frameConv, R * block_size + frameConv))
             else:
                 solMsg = ('D: %d  R: %d' % (D, R))
             self.showMsg('in entryNum units: ' + solMsg)
@@ -2469,9 +2499,16 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.calcErrBars.setEnabled(True)
         
     def fillTableViewOfData(self):
-        
+
         self.table.setRowCount(self.dataLen)
         self.table.setVerticalHeaderLabels([str(i) for i in range(self.dataLen)])
+
+        # print(self.yFrame[0], self.yFrame[-1])
+        min_frame = int(trunc(float(self.yFrame[0])))
+        max_frame = int(trunc(float(self.yFrame[-1])))
+        print(min_frame, max_frame)
+        self.frameNumSpinBox.setMinimum(min_frame)
+        self.frameNumSpinBox.setMaximum(max_frame)
 
         for i in range(self.dataLen):
             # newitem = QtGui.QTableWidgetItem(str(i))
@@ -2481,6 +2518,9 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             self.table.setItem(i, 2, newitem)
             newitem = QtGui.QTableWidgetItem(str(self.yTimes[i]))
             self.table.setItem(i, 1, newitem)
+            frameNum = float(self.yFrame[i])
+            if not np.ceil(frameNum) == np.floor(frameNum):
+                self.fieldMode = True
             newitem = QtGui.QTableWidgetItem(str(self.yFrame[i]))
             self.table.setItem(i, 0, newitem)
             if len(self.LC2) > 0:
@@ -2505,7 +2545,9 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             errmsg, manualTime, dataEntered, actualFrameCount, expectedFrameCount = \
                 manualTimeStampEntry(self.yFrame, TSdialog(), self.flashEdges)
             if errmsg != 'ok':
-                self.showInfo(errmsg)
+                self.showInfo('Manual timestamp entry cancelled.')
+                if errmsg == 'cancelled':
+                    return
             else:
                 self.showMsg(dataEntered, bold=True)
                 if abs(actualFrameCount - expectedFrameCount) >= 0.12:
@@ -2547,6 +2589,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         
         self.initializeVariablesThatDontDependOnAfile()
         self.blockSize = 1
+        self.fieldMode = False
 
         self.pathToVideo = None
 
@@ -2596,14 +2639,23 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                     if header.startswith('# PyMovie'):
                         for line in self.headers:
                             if line.startswith('# source:'):
-                                self.pathToVideo = line.split(':')[-1].strip()
-                                # Enable frame view controls
-                                ans = readAviFile(0, self.pathToVideo)
-                                if not ans['success']:
-                                    self.showMsg(f'Attempt to read source avi gave errmg: {ans["errmsg"]}')
+                                self.pathToVideo = line.replace('# source:', '', 1).strip()
+                                _, ext = os.path.splitext(self.pathToVideo)
+                                if ext == '.avi':
+                                    ans = readAviFile(0, self.pathToVideo)
+                                    if not ans['success']:
+                                        self.showMsg(
+                                            f'Attempt to read source avi gave errmg: {ans["errmsg"]}',
+                                            color='red', bold=True)
+                                    else:
+                                        # Enable frame view controls
+                                        self.enableDisableFrameViewControls(state_to_set=True)
+                                elif ext == '.ser':
+                                    self.showMsg('SER files not yet implemented')
+                                elif ext == '':
+                                    self.showMsg('FITS folder cannot be used for frame viewing.')
                                 else:
-                                    self.enableDisableFrameViewControls(state_to_set=True)
-                                    self.frameNumSpinBox.setMaximum(ans["num_frames"] - 1)
+                                    self.showMsg(f'Unexpected file type of {ext} found.')
 
                 # Automatically select all points
                 # noinspection PyUnusedLocal
@@ -2643,7 +2695,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
                 # If no timestamps were found in the input file, prompt for manual entry
                 if self.timestampListIsEmpty(time):
-                    self.showMsg('Manual entry of timestamps was requested.',
+                    self.showMsg('Manual entry of timestamps is required.',
                                  bold=True)
                     # If the user knew there were no timestamps, the is no
                     # reason to show info box.
