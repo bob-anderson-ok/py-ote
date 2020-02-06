@@ -255,6 +255,14 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         # Button: Calculate error bars  (... write report)
         self.calcErrBars.clicked.connect(self.computeErrorBars)
         self.calcErrBars.installEventFilter(self)
+
+        # Button: View frame
+        self.viewFrameButton.clicked.connect(self.viewFrame)
+        self.viewFrameButton.installEventFilter(self)
+        self.frameNumSpinBox.installEventFilter(self)
+        self.fieldViewCheckBox.installEventFilter(self)
+        self.flipYaxisCheckBox.installEventFilter(self)
+        self.flipXaxisCheckBox.installEventFilter(self)
         
         # Button: Write error bar plot to file
         self.writeBarPlots.clicked.connect(self.exportBarPlots)
@@ -341,18 +349,19 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 self.showMsg(f'Could not find csv file specified: {self.externalCsvFilePath}')
                 self.externalCsvFilePath = None
 
-    def helpButtonClicked(self):
-        self.showHelp(self.helpButton)
+    def viewFrame(self):
+        # TODO deal with difference between raw frame number and frame_num in csv file
+        if self.pathToVideo is None:
+            return
 
-    def showHelp(self, obj):
-        # Just a convenient place to put test code
-        frame_number = 102
-        success = False
-        image = None
-        errmsg = ''
-        if self.pathToVideo is not None:
-            print(self.pathToVideo)
-            success, image, errmsg = readAviFile(frame_number, full_file_path=self.pathToVideo)
+        frame_number = self.frameNumSpinBox.value()
+
+        print(self.pathToVideo)
+        ans = readAviFile(frame_number, full_file_path=self.pathToVideo)
+        if not ans['success']:
+            self.showMsg(f'Attempt to view frame returned errmsg: {ans["errmsg"]}')
+            return
+
         self.win = pg.GraphicsWindow(title=f'frame {frame_number} display')
         self.win.resize(1000, 600)
         layout = QtGui.QGridLayout()
@@ -364,11 +373,13 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         imv.ui.menuBtn.hide()
         imv.ui.roiBtn.hide()
 
-        # image = np.random.normal(0, 1.0, (480, 640))
-        if success:
-            imv.setImage(image)
-        else:
-            print(errmsg)
+        # image = np.random.normal(0, 1.0, (480, 640))  # Generate test image
+        imv.setImage(ans['image'])
+
+    def helpButtonClicked(self):
+        self.showHelp(self.helpButton)
+
+    def showHelp(self, obj):
 
         if obj.toolTip():
             self.helperThing.textEdit.clear()
@@ -2525,12 +2536,21 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                                                                    3) + '%')
                     self.fillTableViewOfData()
 
+    def enableDisableFrameViewControls(self, state_to_set):
+        self.viewFrameButton.setEnabled(state_to_set)
+        self.frameNumSpinBox.setEnabled(state_to_set)
+        self.fieldViewCheckBox.setEnabled(state_to_set)
+        self.flipXaxisCheckBox.setEnabled(state_to_set)
+        self.flipYaxisCheckBox.setEnabled(state_to_set)
+
     def readDataFromFile(self):
         
         self.initializeVariablesThatDontDependOnAfile()
         self.blockSize = 1
 
         self.pathToVideo = None
+
+        self.enableDisableFrameViewControls(state_to_set=False)
         
         self.disableAllButtons()
         self.mainPlot.clear()
@@ -2577,7 +2597,13 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                         for line in self.headers:
                             if line.startswith('# source:'):
                                 self.pathToVideo = line.split(':')[-1].strip()
-                                # print(self.pathToVideo)
+                                # Enable frame view controls
+                                ans = readAviFile(0, self.pathToVideo)
+                                if not ans['success']:
+                                    self.showMsg(f'Attempt to read source avi gave errmg: {ans["errmsg"]}')
+                                else:
+                                    self.enableDisableFrameViewControls(state_to_set=True)
+                                    self.frameNumSpinBox.setMaximum(ans["num_frames"] - 1)
 
                 # Automatically select all points
                 # noinspection PyUnusedLocal

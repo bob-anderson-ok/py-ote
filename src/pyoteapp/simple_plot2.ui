@@ -20,7 +20,7 @@
       <property name="orientation">
        <enum>Qt::Vertical</enum>
       </property>
-      <widget class="QWidget" name="">
+      <widget class="QWidget" name="layoutWidget">
        <layout class="QHBoxLayout" name="horizontalLayout_13">
         <item>
          <layout class="QVBoxLayout" name="verticalLayout">
@@ -641,32 +641,51 @@
            <layout class="QHBoxLayout" name="horizontalLayout_12">
             <item>
              <widget class="QPushButton" name="viewFrameButton">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this button to view a frame from the video that was used by PyMovie to prepare the csv file that is currently being analyzed.  Currently .avi and .ser files are viewable in this manner.&lt;/p&gt;&lt;p&gt;If this button is disabled, it is because the csv file did not come from PyMovie.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
               <property name="text">
                <string>View frame:</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="lineEdit"/>
+             <widget class="QSpinBox" name="frameNumSpinBox">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this spin box (which may be directly editted) to select the frame to be viewed.&lt;/p&gt;&lt;p&gt;Frames are numbered starting at 0.&lt;/p&gt;&lt;p&gt;The upper limit for an allowed frame number is set when the csv is read.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="maximum">
+               <number>99999</number>
+              </property>
+             </widget>
             </item>
             <item>
              <widget class="QCheckBox" name="fieldViewCheckBox">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;For videos from a composite video camera, check this box to view the frame as two fields.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
               <property name="text">
-               <string>fields</string>
+               <string>field view</string>
               </property>
              </widget>
             </item>
             <item>
              <widget class="QCheckBox" name="flipYaxisCheckBox">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Checking this box will rotate the frame view around the horizontal axis. (Flips top to bottom.)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
               <property name="text">
-               <string>flip Y axis</string>
+               <string>flip top/bottom</string>
               </property>
              </widget>
             </item>
             <item>
              <widget class="QCheckBox" name="flipXaxisCheckBox">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Check this box if it is necessary to rotate the image around the vertical axis. (Flip left to right.)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
               <property name="text">
-               <string>flip X axis</string>
+               <string>flip left/right</string>
               </property>
              </widget>
             </item>

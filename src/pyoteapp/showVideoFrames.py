@@ -3,10 +3,14 @@ import pyqtgraph.examples
 from PyQt5 import QtGui
 import cv2
 
+# TODO Deal with .avi versus .ser versus FITS (ignore FITS for now)
+
 
 def readAviFile(frame_to_read=0, full_file_path=None):
     cap = None
     fourcc = ''
+    fps = None
+    frame_count = None
 
     if full_file_path:
 
@@ -31,7 +35,8 @@ def readAviFile(frame_to_read=0, full_file_path=None):
     if cap is not None:
         cap.release()
 
-    return success, image, errmsg
+    return {"success": success, "image": image, "errmsg": errmsg,
+            "fourcc": fourcc, "fps": fps, "num_frames": frame_count}
 
 
 def readAviFrame(frame_to_show, cap, fourcc):
