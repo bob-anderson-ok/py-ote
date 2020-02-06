@@ -11,9 +11,9 @@ import sys
 import platform
 
 from math import trunc, floor
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
-from PIL import Image
+from pyoteapp.showVideoFrames import readAviFile
 
 from pyoteapp.false_positive import compute_drops
 import numpy as np
@@ -155,7 +155,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         # Change pyqtgraph plots to be black on white
         pg.setConfigOption('background', (255, 255, 255))  # Do before any widgets drawn
         pg.setConfigOption('foreground', 'k')  # Do before any widgets drawn
-        
+        pg.setConfigOptions(imageAxisOrder='row-major')
+
         self.setupUi(self)
 
         self.setWindowTitle('PYOTE  Version: ' + version.version())
@@ -286,7 +287,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                                    viewBox=CustomViewBox(border=(255, 255, 255)),
                                    enableMenu=False)
         self.mainPlot.setObjectName("mainPlot")
-        self.horizontalLayout_12.addWidget(self.mainPlot, stretch=1)
+        self.horizontalLayout_13.addWidget(self.mainPlot, stretch=1)
 
         oldMainPlot.setParent(None)
 
@@ -322,6 +323,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.selPts = []
         self.initializeVariablesThatDontDependOnAfile()
 
+        self.pathToVideo = None
+
         self.checkForNewVersion()
 
         self.copy_desktop_icon_file_to_home_directory()
@@ -342,11 +345,31 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.showHelp(self.helpButton)
 
     def showHelp(self, obj):
-        # plt.figure("frame 101", figsize=(10, 8))
-        # plt.show()
-        img = Image.open('test-img.png')
-        img.show()
-        print(img.format)
+        # Just a convenient place to put test code
+        frame_number = 102
+        success = False
+        image = None
+        errmsg = ''
+        if self.pathToVideo is not None:
+            print(self.pathToVideo)
+            success, image, errmsg = readAviFile(frame_number, full_file_path=self.pathToVideo)
+        self.win = pg.GraphicsWindow(title=f'frame {frame_number} display')
+        self.win.resize(1000, 600)
+        layout = QtGui.QGridLayout()
+        self.win.setLayout(layout)
+        imv = pg.ImageView()
+        layout.addWidget(imv, 0, 0)
+
+        # imv.ui.histogram.hide()
+        imv.ui.menuBtn.hide()
+        imv.ui.roiBtn.hide()
+
+        # image = np.random.normal(0, 1.0, (480, 640))
+        if success:
+            imv.setImage(image)
+        else:
+            print(errmsg)
+
         if obj.toolTip():
             self.helperThing.textEdit.clear()
             self.helperThing.textEdit.insertHtml(obj.toolTip())
@@ -2506,6 +2529,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         
         self.initializeVariablesThatDontDependOnAfile()
         self.blockSize = 1
+
+        self.pathToVideo = None
         
         self.disableAllButtons()
         self.mainPlot.clear()
@@ -2544,6 +2569,15 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 self.yValues = np.array(values)  # yValues = curve to analyze
                 self.dataLen = len(self.yValues)
                 self.LC1 = np.array(values)
+
+                # Check headers to see if this is a PyMovie file.  Grab the
+                # path to video file if it is a PyMovie file
+                for header in self.headers:
+                    if header.startswith('# PyMovie'):
+                        for line in self.headers:
+                            if line.startswith('# source:'):
+                                self.pathToVideo = line.split(':')[-1].strip()
+                                # print(self.pathToVideo)
 
                 # Automatically select all points
                 # noinspection PyUnusedLocal
