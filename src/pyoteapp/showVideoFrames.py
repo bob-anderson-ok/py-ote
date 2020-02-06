@@ -2,8 +2,9 @@ import pyqtgraph as pg
 import pyqtgraph.examples
 from PyQt5 import QtGui
 import cv2
-
-# TODO Deal with .avi versus .ser versus FITS (ignore FITS for now)
+import pyoteapp.SER
+import glob
+import astropy.io.fits as pyfits  # Used for reading/writing FITS files
 
 
 def readAviFile(frame_to_read=0, full_file_path=None):
@@ -23,22 +24,22 @@ def readAviFile(frame_to_read=0, full_file_path=None):
             # Let's get the FOURCC code
             fourcc = int(cap.get(cv2.CAP_PROP_FOURCC))
             fourcc_str = f'{fourcc & 0xff:c}{fourcc >> 8 & 0xff:c}{fourcc >> 16 & 0xff:c}{fourcc >> 24 & 0xff:c}'
-            print(f'FOURCC codec ID: {fourcc_str}')
+            # print(f'FOURCC codec ID: {fourcc_str}')
 
             fps = cap.get(cv2.CAP_PROP_FPS)
-            print(f'frames per second: {fps:0.6f}')
+            # print(f'frames per second: {fps:0.6f}')
 
             frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-            print(f'There are {frame_count} frames in the file.')
+            # print(f'There are {frame_count} frames in the file.')
 
     # Read the specified frame
-    success, image, errmsg = readAviFrame(frame_to_show=frame_to_read, cap=cap, fourcc=fourcc)
+    success, image, errmsg = readAviFrame(frame_to_show=frame_to_read, cap=cap, fourcc=fourcc_str)
 
     if cap is not None:
         cap.release()
 
     return {"success": success, "image": image, "errmsg": errmsg,
-            "fourcc": fourcc, "fps": fps, "num_frames": frame_count}
+            "fourcc": fourcc_str, "fps": fps, "num_frames": frame_count}
 
 
 def readAviFrame(frame_to_show, cap, fourcc):
@@ -80,6 +81,66 @@ def getDvsdAviFrame(fr_num, cap):
         return success, frame
 
     return False, None
+
+
+def readSerFile(frame_to_read=0, full_file_path=None):
+
+    if full_file_path:
+
+        ser_meta_data, ser_timestamps = pyoteapp.SER.getMetaData(full_file_path)
+
+        # showSerMetaData()
+        frame_count = ser_meta_data['FrameCount']
+        print(f'There are {frame_count} frames in the SER file.')
+        bytes_per_pixel = ser_meta_data['BytesPerPixel']
+        print(f'Image data is encoded in {bytes_per_pixel} bytes per pixel')
+
+        try:
+            bytes_per_pixel = ser_meta_data['BytesPerPixel']
+            image_width = ser_meta_data['ImageWidth']
+            image_height = ser_meta_data['ImageHeight']
+            little_endian = ser_meta_data['LittleEndian']
+            with open(full_file_path, 'rb') as ser_file_handle:
+                image = pyoteapp.SER.getSerImage(
+                    ser_file_handle, frame_to_read,
+                    bytes_per_pixel, image_width, image_height, little_endian
+                )
+            raw_ser_timestamp = ser_timestamps[frame_to_read]
+            parts = raw_ser_timestamp.split('T')
+            time_stamp = f'{parts[0]} @ {parts[1]}'
+            print(f'Timestamp found: {time_stamp}')
+        except Exception as e:
+            return {'success': False, 'errmsg': f"{e}", 'image': None, 'timestamp': ''}
+
+        return {'success': True, 'errmsg': '', 'image': image, 'timestamp': time_stamp}
+
+
+def readFitsFile(frame_to_read=0, full_file_path=None):
+    fits_filenames = sorted(glob.glob(full_file_path + '/*.fits'))
+    num_frames = len(fits_filenames)
+    # print(f'Number of FITS frames: {num_frames}')
+    errmsg = ''
+    success = False
+    time_stamp = ''
+
+    try:
+        hdr = pyfits.getheader(fits_filenames[frame_to_read], 0)
+
+        image = pyfits.getdata(fits_filenames[frame_to_read], 0)
+
+        if 'DATE-OBS' in hdr.keys():
+            date_time = hdr['DATE-OBS']
+            # The form of DATE-OBS is '2018-08-21T05:21:02.4561235' so we can simply 'split' at the T
+            parts = date_time.split('T')
+            time_stamp = f'{parts[0]} @ {parts[1]}'
+
+        success = True
+
+    except Exception as e3:
+        errmsg = f'While reading image data from FITS file: {e3}'
+        image = None
+
+    return {'success': success, 'image': image, 'errmsg': errmsg, 'timestamp': time_stamp, 'num_frames': num_frames}
 
 
 def excercise():

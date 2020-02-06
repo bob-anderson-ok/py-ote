@@ -14,6 +14,8 @@ from math import trunc, floor
 # import matplotlib.pyplot as plt
 
 from pyoteapp.showVideoFrames import readAviFile
+from pyoteapp.showVideoFrames import readSerFile
+from pyoteapp.showVideoFrames import readFitsFile
 
 from pyoteapp.false_positive import compute_drops
 import numpy as np
@@ -353,19 +355,39 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 self.externalCsvFilePath = None
 
     def viewFrame(self):
-        # TODO Acommodate field mode csv with fractional frame numbers
         if self.pathToVideo is None:
             return
 
         frame_number = self.frameNumSpinBox.value()
 
-        print(self.pathToVideo)
-        ans = readAviFile(frame_number, full_file_path=self.pathToVideo)
-        if not ans['success']:
-            self.showMsg(f'Attempt to view frame returned errmsg: {ans["errmsg"]}')
+        # print(self.pathToVideo)
+        _, ext = os.path.splitext(self.pathToVideo)
+
+        if ext == '.avi':
+            ans = readAviFile(frame_number, full_file_path=self.pathToVideo)
+            if not ans['success']:
+                self.showMsg(f'Attempt to view frame returned errmsg: {ans["errmsg"]}')
+                return
+        elif ext == '.ser':
+            ans = readSerFile(frame_number, full_file_path=self.pathToVideo)
+            if not ans['success']:
+                self.showMsg(f'Attempt to view frame returned errmsg: {ans["errmsg"]}')
+                return
+        elif ext == '':
+            # We assume its a FITS folder that we have been given
+            ans = readFitsFile(frame_number, full_file_path=self.pathToVideo)
+            if not ans['success']:
+                self.showMsg(f'Attempt to view frame returned errmsg: {ans["errmsg"]}')
+                return
+        else:
+            self.showMsg(f'Unsupported file extension: {ext}')
             return
 
-        self.frameView = pg.GraphicsWindow(title=f'FRAME: {frame_number}')
+        if 'timestamp' in ans.keys():
+            time_stamp = ans['timestamp']
+            self.frameView = pg.GraphicsWindow(title=f'FRAME: {frame_number}  TIMESTAMP: {time_stamp}')
+        else:
+            self.frameView = pg.GraphicsWindow(title=f'FRAME: {frame_number}')
 
         self.frameView.resize(1000, 600)
         layout = QtGui.QGridLayout()
@@ -390,6 +412,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
         if self.flipXaxisCheckBox.isChecked():
             image = np.fliplr(image)
+
+        # print(type(image))
 
         imv.setImage(image)
 
@@ -2506,7 +2530,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         # print(self.yFrame[0], self.yFrame[-1])
         min_frame = int(trunc(float(self.yFrame[0])))
         max_frame = int(trunc(float(self.yFrame[-1])))
-        print(min_frame, max_frame)
+        # print(min_frame, max_frame)
         self.frameNumSpinBox.setMinimum(min_frame)
         self.frameNumSpinBox.setMaximum(max_frame)
 
@@ -2645,15 +2669,33 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                                     ans = readAviFile(0, self.pathToVideo)
                                     if not ans['success']:
                                         self.showMsg(
-                                            f'Attempt to read source avi gave errmg: {ans["errmsg"]}',
+                                            f'Attempt to read .avi file gave errmg: {ans["errmsg"]}',
+                                            color='red', bold=True)
+                                    else:
+                                        self.showMsg(f'fourcc code of avi: {ans["fourcc"]}', blankLine=False)
+                                        self.showMsg(f'fps: {ans["fps"]}', blankLine=False)
+                                        self.showMsg(f'avi contains {ans["num_frames"]} frames')
+                                        # Enable frame view controls
+                                        self.enableDisableFrameViewControls(state_to_set=True)
+                                elif ext == '.ser':
+                                    ans = readSerFile(0, self.pathToVideo)
+                                    if not ans['success']:
+                                        self.showMsg(
+                                            f'Attempt to read .ser file gave errmg: {ans["errmsg"]}',
                                             color='red', bold=True)
                                     else:
                                         # Enable frame view controls
                                         self.enableDisableFrameViewControls(state_to_set=True)
-                                elif ext == '.ser':
-                                    self.showMsg('SER files not yet implemented')
                                 elif ext == '':
-                                    self.showMsg('FITS folder cannot be used for frame viewing.')
+                                    ans = readFitsFile(0, self.pathToVideo)
+                                    if not ans['success']:
+                                        self.showMsg(
+                                            f'Attempt to read FITS folder gave errmg: {ans["errmsg"]}',
+                                            color='red', bold=True)
+                                    else:
+                                        # Enable frame view controls
+                                        self.showMsg(f'{ans["num_frames"]} .fits files were found in FITS folder')
+                                        self.enableDisableFrameViewControls(state_to_set=True)
                                 else:
                                     self.showMsg(f'Unexpected file type of {ext} found.')
 
