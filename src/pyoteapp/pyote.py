@@ -2536,8 +2536,9 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         min_frame = int(trunc(float(self.yFrame[0])))
         max_frame = int(trunc(float(self.yFrame[-1])))
         # print(min_frame, max_frame)
-        self.frameNumSpinBox.setMinimum(min_frame)
-        self.frameNumSpinBox.setMaximum(max_frame)
+        if self.frameNumSpinBox.isEnabled():
+            self.frameNumSpinBox.setMinimum(min_frame)
+            self.frameNumSpinBox.setMaximum(max_frame)
 
         for i in range(self.dataLen):
             # newitem = QtGui.QTableWidgetItem(str(i))
@@ -2574,9 +2575,10 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             errmsg, manualTime, dataEntered, actualFrameCount, expectedFrameCount = \
                 manualTimeStampEntry(self.yFrame, TSdialog(), self.flashEdges)
             if errmsg != 'ok':
-                self.showInfo('Manual timestamp entry cancelled.')
                 if errmsg == 'cancelled':
                     return
+                else:
+                    self.showInfo(errmsg)
             else:
                 self.showMsg(dataEntered, bold=True)
                 if abs(actualFrameCount - expectedFrameCount) >= 0.12:

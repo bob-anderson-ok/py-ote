@@ -210,7 +210,7 @@ def manualTimeStampEntry(frame, dialog, flashFrames=None):
             expectedFrameDeltaTime = 1.000 / 25.0
         else:
             try:
-                expectedFrameDeltaTime = eval(dialog.frameDeltaTime.text(), {}, {})
+                expectedFrameDeltaTime = float(eval(dialog.frameDeltaTime.text(), {}, {}))
             except Exception:
                 return '"' + dialog.frameDeltaTime.text() + '" is invalid as timeDelta', \
                        time, dataEntered, nf, ef

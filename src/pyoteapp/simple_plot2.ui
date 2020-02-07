@@ -641,8 +641,11 @@
            <layout class="QHBoxLayout" name="horizontalLayout_12">
             <item>
              <widget class="QPushButton" name="viewFrameButton">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this button to view a frame from the video that was used by PyMovie or Limovie to prepare the csv file that is currently being analyzed. Currently .avi and .ser files are viewable in this manner as well as .fits files inside a FITS folder.&lt;/p&gt;&lt;p&gt;If this button is disabled, it is because the csv file did not come from PyMovie or Limovie.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this button to view a frame from the video that was used by PyMovie or Limovie to prepare the csv file that is currently being analyzed. Currently .avi and .ser files are viewable in this manner as well as .fits files inside a FITS folder.&lt;/p&gt;&lt;p&gt;If this button is disabled, it is because the csv file did not come from PyMovie or Limovie or simply cannot be found/opened.&lt;/p&gt;&lt;p&gt;This feature can/should be used as a final quality control check for a video that contains timestamps extracted using OCR. It is possible for OCR to fail in manner that is &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;not detected&lt;/span&gt; by PyOTE because the program only verifies that there is a consistent step (delata time) between frames. If a high order digit has been consistently misread, like reading an 8 as a 9 in the minutes field, the steps can be consistent but the reported time of the event will be wrong.&lt;/p&gt;&lt;p&gt;ALL time reporting is derived from the single timestamp(s) associated with D and/or R (the integer values, not the sub-frame values). If those timestamps are correct, the reported times will be correct even when there may be a few missing or duplicated frames and all other timestamps are wrong. So, best practice is to enter the D frame value in the spin box and visually confirm that the timestamp that you can see is the same as that extracted by the OCR procedure. Repeat for R.&lt;/p&gt;&lt;p&gt;Another use for this feature is to handle the case where there is a visual timestamp that can be seen in the video, but either OCR was not activated during the .csv preparation, or the timestamp overlay came from an unsupported VTI type. The workflow in this case is to let PyOTE find the D and R values, but before doing &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;... write&lt;/span&gt;&lt;span style=&quot; color:#fc0107;&quot;/&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;report&lt;/span&gt;, do a &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Manual timestamp entry&lt;/span&gt; for the D and R values found by viewing the relevant frames and entering the correct times in the Manual timestamp dialog.&lt;/p&gt;&lt;p&gt;Note that timestamps can be entered manually even if timestamps are already present in the file. The manual timestamps will be calculated and used to replace those already there.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>View frame:</string>
@@ -651,6 +654,9 @@
             </item>
             <item>
              <widget class="QSpinBox" name="frameNumSpinBox">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
               <property name="toolTip">
                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this spin box (which may be directly edited) to select the number of the frame/image you want to see.&lt;/p&gt;&lt;p&gt;The upper limit and lower limits for allowed numbers in this spin box are set when the csv is read, which sometimes only contains a subset of the frames available in the video.  If your 'edit' is refused, it is because you are trying to enter a number outside the range allowed, which is always restricted to frame numbers that actually appear in the csv file.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
@@ -661,6 +667,9 @@
             </item>
             <item>
              <widget class="QCheckBox" name="fieldViewCheckBox">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
               <property name="toolTip">
                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;For videos from a composite video camera, check this box to view the frame as two fields.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
@@ -671,6 +680,9 @@
             </item>
             <item>
              <widget class="QCheckBox" name="flipYaxisCheckBox">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
               <property name="toolTip">
                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Checking this box will rotate/flip the image around the horizontal axis. (Flips top to bottom.)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
@@ -681,6 +693,9 @@
             </item>
             <item>
              <widget class="QCheckBox" name="flipXaxisCheckBox">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
               <property name="toolTip">
                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Check this box if you need to rotate/flip the image around the vertical axis. (Flip left to right.)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
