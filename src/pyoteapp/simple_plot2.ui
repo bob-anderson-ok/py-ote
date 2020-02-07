@@ -642,7 +642,7 @@
             <item>
              <widget class="QPushButton" name="viewFrameButton">
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this button to view a frame from the video that was used by PyMovie to prepare the csv file that is currently being analyzed.  Currently .avi and .ser files are viewable in this manner.&lt;/p&gt;&lt;p&gt;If this button is disabled, it is because the csv file did not come from PyMovie.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this button to view a frame from the video that was used by PyMovie or Limovie to prepare the csv file that is currently being analyzed. Currently .avi and .ser files are viewable in this manner as well as .fits files inside a FITS folder.&lt;/p&gt;&lt;p&gt;If this button is disabled, it is because the csv file did not come from PyMovie or Limovie.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>View frame:</string>
@@ -652,7 +652,7 @@
             <item>
              <widget class="QSpinBox" name="frameNumSpinBox">
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this spin box (which may be directly editted) to select the frame to be viewed.&lt;/p&gt;&lt;p&gt;Frames are numbered starting at 0.&lt;/p&gt;&lt;p&gt;The upper limit for an allowed frame number is set when the csv is read.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this spin box (which may be directly edited) to select the number of the frame/image you want to see.&lt;/p&gt;&lt;p&gt;The upper limit and lower limits for allowed numbers in this spin box are set when the csv is read, which sometimes only contains a subset of the frames available in the video.  If your 'edit' is refused, it is because you are trying to enter a number outside the range allowed, which is always restricted to frame numbers that actually appear in the csv file.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="maximum">
                <number>99999</number>
@@ -672,7 +672,7 @@
             <item>
              <widget class="QCheckBox" name="flipYaxisCheckBox">
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Checking this box will rotate the frame view around the horizontal axis. (Flips top to bottom.)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Checking this box will rotate/flip the image around the horizontal axis. (Flips top to bottom.)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>flip top/bottom</string>
@@ -682,7 +682,7 @@
             <item>
              <widget class="QCheckBox" name="flipXaxisCheckBox">
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Check this box if it is necessary to rotate the image around the vertical axis. (Flip left to right.)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Check this box if you need to rotate/flip the image around the vertical axis. (Flip left to right.)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>flip left/right</string>

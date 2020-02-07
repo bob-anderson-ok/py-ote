@@ -265,6 +265,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.fieldViewCheckBox.installEventFilter(self)
         self.flipYaxisCheckBox.installEventFilter(self)
         self.flipXaxisCheckBox.installEventFilter(self)
+
+        # self.frameNumSpinBox.valueChanged.connect(self.viewFrame)
         
         # Button: Write error bar plot to file
         self.writeBarPlots.clicked.connect(self.exportBarPlots)
@@ -1454,11 +1456,11 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.plusD = plusD
         self.minusD = minusD
 
-        entryNum = intD
         frameNum = float(self.yFrame[intD])
-        # Dframe = D + frameNum - entryNum
-        Dframe = (D - intD) * self.blockSize + intD + frameNum - entryNum
-        self.showMsg('D: %.2f {+%.2f,-%.2f} (frame number)' % (Dframe, plusD * self.blockSize, minusD * self.blockSize),
+
+        Dframe = (D - intD) * self.framesPerEntry() + frameNum
+        self.showMsg('D: %.2f {+%.2f,-%.2f} (frame number)' % (Dframe, plusD * self.framesPerEntry(),
+                                                               minusD * self.framesPerEntry()),
                      blankLine=False)
         ts = self.yTimes[int(D)]
         time = convertTimeStringToTime(ts)
@@ -1485,11 +1487,10 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.minusR = minusR
 
         intR = int(R)
-        entryNum = intR
         frameNum = float(self.yFrame[intR])
-        # Rframe = R + frameNum - entryNum
-        Rframe = (R - intR) * self.blockSize + intR + frameNum - entryNum
-        self.showMsg('R: %.2f {+%.2f,-%.2f} (frame number)' % (Rframe, plusR * self.blockSize, minusR * self.blockSize),
+        Rframe = (R - intR) * self.framesPerEntry() + frameNum
+        self.showMsg('R: %.2f {+%.2f,-%.2f} (frame number)' % (Rframe, plusR * self.framesPerEntry(),
+                                                               minusR * self.framesPerEntry()),
                      blankLine=False)
 
         ts = self.yTimes[int(R)]
@@ -1523,7 +1524,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             plusDur = ((deltaDurhi - deltaDurlo) / 2)
             minusDur = plusDur
             self.showMsg('Duration (R - D): %.4f {+%.4f,-%.4f} readings' %
-                         ((R - D) * self.blockSize, plusDur * self.blockSize, minusDur * self.blockSize),
+                         ((R - D) * self.framesPerEntry(),
+                          plusDur * self.framesPerEntry(), minusDur * self.framesPerEntry()),
                          blankLine=False)
             plusDur = ((deltaDurhi - deltaDurlo) / 2) * self.timeDelta
             minusDur = plusDur
@@ -1658,42 +1660,50 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             D, _ = self.solution
             entryNum = int(D)
             frameNum = float(self.yFrame[entryNum])
-            # Dframe = D + frameNum - entryNum
-            Dframe = (D - int(D)) * self.blockSize + int(D) + frameNum - entryNum
+
+            Dframe = (D - int(D)) * self.framesPerEntry() + frameNum
             self.showMsg('D frame number: {0:0.2f}'.format(Dframe), blankLine=False)
-            errBar = max(abs(self.deltaDlo68), abs(self.deltaDhi68)) * self.blockSize
+            errBar = max(abs(self.deltaDlo68), abs(self.deltaDhi68)) * self.framesPerEntry()
             self.showMsg('D: 0.6800 confidence intervals:  {{+/- {0:0.2f}}} (readings)'.format(errBar), blankLine=False)
-            errBar = max(abs(self.deltaDlo95), abs(self.deltaDhi95)) * self.blockSize
+            errBar = max(abs(self.deltaDlo95), abs(self.deltaDhi95)) * self.framesPerEntry()
             self.showMsg('D: 0.9500 confidence intervals:  {{+/- {0:0.2f}}} (readings)'.format(errBar), blankLine=False)
-            errBar = max(abs(self.deltaDlo99), abs(self.deltaDhi99)) * self.blockSize
+            errBar = max(abs(self.deltaDlo99), abs(self.deltaDhi99)) * self.framesPerEntry()
             self.showMsg('D: 0.9973 confidence intervals:  {{+/- {0:0.2f}}} (readings)'.format(errBar))
+
+    def framesPerEntry(self):
+        # Normally, there is 1 frame per reading (entry), but if the source file was recorded
+        # in field mode, there is only 0.5 frames per reading (entry).  Here we make the correction.
+        if self.fieldMode:
+            return self.blockSize / 2
+        else:
+            return self.blockSize
 
     def doRframeReport(self):
         if self.eventType == 'DandR' or self.eventType == 'Ronly':
             _, R = self.solution
             entryNum = int(R)
             frameNum = float(self.yFrame[entryNum])
-            # Rframe = R + frameNum - entryNum
-            Rframe = (R - int(R)) * self.blockSize + int(R) + frameNum - entryNum
+
+            Rframe = (R - int(R)) * self.framesPerEntry() + frameNum
             self.showMsg('R frame number: {0:0.2f}'.format(Rframe), blankLine=False)
-            errBar = max(abs(self.deltaRlo68), abs(self.deltaRhi68)) * self.blockSize
+            errBar = max(abs(self.deltaRlo68), abs(self.deltaRhi68)) * self.framesPerEntry()
             self.showMsg('R: 0.6800 confidence intervals:  {{+/- {0:0.2f}}} (readings)'.format(errBar), blankLine=False)
-            errBar = max(abs(self.deltaRlo95), abs(self.deltaRhi95)) * self.blockSize
+            errBar = max(abs(self.deltaRlo95), abs(self.deltaRhi95)) * self.framesPerEntry()
             self.showMsg('R: 0.9500 confidence intervals:  {{+/- {0:0.2f}}} (readings)'.format(errBar), blankLine=False)
-            errBar = max(abs(self.deltaRlo99), abs(self.deltaRhi99)) * self.blockSize
+            errBar = max(abs(self.deltaRlo99), abs(self.deltaRhi99)) * self.framesPerEntry()
             self.showMsg('R: 0.9973 confidence intervals:  {{+/- {0:0.2f}}} (readings)'.format(errBar))
 
     def doDurFrameReport(self):
         if self.eventType == 'DandR':
             D, R = self.solution
-            self.showMsg('Duration (R - D): {0:0.4f} readings'.format((R - D) * self.blockSize), blankLine=False)
-            errBar = ((self.deltaDurhi68 - self.deltaDurlo68) / 2) * self.blockSize
+            self.showMsg('Duration (R - D): {0:0.4f} readings'.format((R - D) * self.framesPerEntry()), blankLine=False)
+            errBar = ((self.deltaDurhi68 - self.deltaDurlo68) / 2) * self.framesPerEntry()
             self.showMsg('Duration: 0.6800 confidence intervals:  {{+/- {0:0.4f}}} (readings)'.format(errBar),
                          blankLine=False)
-            errBar = ((self.deltaDurhi95 - self.deltaDurlo95) / 2) * self.blockSize
+            errBar = ((self.deltaDurhi95 - self.deltaDurlo95) / 2) * self.framesPerEntry()
             self.showMsg('Duration: 0.9500 confidence intervals:  {{+/- {0:0.4f}}} (readings)'.format(errBar),
                          blankLine=False)
-            errBar = ((self.deltaDurhi99 - self.deltaDurlo99) / 2) * self.blockSize
+            errBar = ((self.deltaDurhi99 - self.deltaDurlo99) / 2) * self.framesPerEntry()
             self.showMsg('Duration: 0.9973 confidence intervals:  {{+/- {0:0.4f}}} (readings)'.format(errBar))
 
     def doDtimeReport(self):
@@ -1826,7 +1836,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                     self.progressBar.setValue(0)
                     return
             else:
-                self.calcErrBars.setEnabled(False)
+                # self.calcErrBars.setEnabled(False)
                 self.progressBar.setValue(0)
         
         y, x = np.histogram(dist, bins=1000)
@@ -1902,8 +1912,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
         self.showMsg("Error bar report based on 100,000 simulations (units are readings)...")
 
-        self.showMsg('loDbar   @ .68 ci: %8.4f' % (x1 * self.blockSize), blankLine=False)
-        self.showMsg('hiDbar   @ .68 ci: %8.4f' % (x2 * self.blockSize), blankLine=False)
+        self.showMsg('loDbar   @ .68 ci: %8.4f' % (x1 * self.framesPerEntry()), blankLine=False)
+        self.showMsg('hiDbar   @ .68 ci: %8.4f' % (x2 * self.framesPerEntry()), blankLine=False)
         
         yp = max(y) * 0.25
         x1 = self.loDbar95-D
@@ -1911,8 +1921,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         x2 = self.hiDbar95-D
         pw.plot(x=[x2, x2], y=[0, yp], pen=pen)
         
-        self.showMsg('loDbar   @ .95 ci: %8.4f' % (x1 * self.blockSize), blankLine=False)
-        self.showMsg('hiDbar   @ .95 ci: %8.4f' % (x2 * self.blockSize), blankLine=False)
+        self.showMsg('loDbar   @ .95 ci: %8.4f' % (x1 * self.framesPerEntry()), blankLine=False)
+        self.showMsg('hiDbar   @ .95 ci: %8.4f' % (x2 * self.framesPerEntry()), blankLine=False)
         
         legend95 = '[%0.2f,%0.2f] @ 0.95' % (x1, x2)
         pw.plot(name=legend95)
@@ -1923,8 +1933,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         x2 = self.hiDbar99 - D
         pw.plot(x=[x2, x2], y=[0, yp], pen=pen)
 
-        self.showMsg('loDbar   @ .9973 ci: %8.4f' % (x1 * self.blockSize), blankLine=False)
-        self.showMsg('hiDbar   @ .9973 ci: %8.4f' % (x2 * self.blockSize), blankLine=True)
+        self.showMsg('loDbar   @ .9973 ci: %8.4f' % (x1 * self.framesPerEntry()), blankLine=False)
+        self.showMsg('hiDbar   @ .9973 ci: %8.4f' % (x2 * self.framesPerEntry()), blankLine=True)
 
         legend99 = '[%0.2f,%0.2f] @ 0.9973' % (x1, x2)
         pw.plot(name=legend99)
@@ -1945,8 +1955,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         legend68 = '[%0.2f,%0.2f] @ 0.6827' % (x1, x2)
         pw2.plot(name=legend68)
         
-        self.showMsg('loDurBar @ .68 ci: %8.4f' % (x1 * self.blockSize), blankLine=False)
-        self.showMsg('hiDurBar @ .68 ci: %8.4f' % (x2 * self.blockSize), blankLine=False)
+        self.showMsg('loDurBar @ .68 ci: %8.4f' % (x1 * self.framesPerEntry()), blankLine=False)
+        self.showMsg('hiDurBar @ .68 ci: %8.4f' % (x2 * self.framesPerEntry()), blankLine=False)
         
         yp = max(ydur) * 0.25
         x1 = self.loDurbar95
@@ -1954,8 +1964,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         x2 = self.hiDurbar95
         pw2.plot(x=[x2, x2], y=[0, yp], pen=pen)
         
-        self.showMsg('loDurBar @ .95 ci: %8.4f' % (x1 * self.blockSize), blankLine=False)
-        self.showMsg('hiDurBar @ .95 ci: %8.4f' % (x2 * self.blockSize), blankLine=False)
+        self.showMsg('loDurBar @ .95 ci: %8.4f' % (x1 * self.framesPerEntry()), blankLine=False)
+        self.showMsg('hiDurBar @ .95 ci: %8.4f' % (x2 * self.framesPerEntry()), blankLine=False)
         
         legend95 = '[%0.2f,%0.2f] @ 0.95' % (x1, x2)
         pw2.plot(name=legend95)
@@ -1966,8 +1976,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         x2 = self.hiDurbar99
         pw2.plot(x=[x2, x2], y=[0, yp], pen=pen)
 
-        self.showMsg('loDurBar @ .9973 ci: %8.4f' % (x1 * self.blockSize), blankLine=False)
-        self.showMsg('hiDurBar @ .9973 ci: %8.4f' % (x2 * self.blockSize), blankLine=True)
+        self.showMsg('loDurBar @ .9973 ci: %8.4f' % (x1 * self.framesPerEntry()), blankLine=False)
+        self.showMsg('hiDurBar @ .9973 ci: %8.4f' % (x2 * self.framesPerEntry()), blankLine=True)
 
         legend99 = '[%0.2f,%0.2f] @ 0.9973' % (x1, x2)
         pw2.plot(name=legend99)
@@ -2046,19 +2056,14 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             Dtransition = trunc(floor(self.solution[0]))
             Rtransition = trunc(floor(self.solution[1]))
 
-            # We need block_size in frame units, so a correction is applied if the csv
-            # is recorded in field mode.
-            block_size = self.blockSize
-            if self.fieldMode:
-                block_size = block_size / 2
-
             if subframe:
                 solMsg = ('D: %d  R: %d  D(subframe): %0.4f  R(subframe): %0.4f' %
                           (Dtransition, Rtransition, D, R))
                 solMsg2 = ('D: %d  R: %d  D(subframe): %0.3f  R(subframe): '
                            '%0.3f' %
-                           (Dtransition * block_size + frameConv, Rtransition * block_size + frameConv,
-                            D * block_size + frameConv, R * block_size + frameConv))
+                           (Dtransition * self.framesPerEntry() + frameConv,
+                            Rtransition * self.framesPerEntry() + frameConv,
+                            D * self.framesPerEntry() + frameConv, R * self.framesPerEntry() + frameConv))
             else:
                 solMsg = ('D: %d  R: %d' % (D, R))
             self.showMsg('in entryNum units: ' + solMsg)
@@ -2485,9 +2490,9 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         if self.runSolver and self.solution:
             D, R = self.solution  # type: int
             if D is not None:
-                D = round(D, 2)
+                D = round(D, 4)
             if R is not None:
-                R = round(R, 2)
+                R = round(R, 4)
             self.solution = (D, R)
             if self.eventType == 'DandR':
                 # ans = '(%.2f,%.2f) B: %.2f  A: %.2f' % (D, R, self.B, self.A)
@@ -2660,10 +2665,16 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 # Check headers to see if this is a PyMovie file.  Grab the
                 # path to video file if it is a PyMovie file
                 for header in self.headers:
-                    if header.startswith('# PyMovie'):
+                    if header.startswith('# PyMovie') or header.startswith('Limovie'):
                         for line in self.headers:
-                            if line.startswith('# source:'):
-                                self.pathToVideo = line.replace('# source:', '', 1).strip()
+                            if line.startswith('# source:') or line.startswith('"FileName :'):
+
+                                if line.startswith('# source:'):    # PyMovie format
+                                    self.pathToVideo = line.replace('# source:', '', 1).strip()
+                                if line.startswith('"FileName :'):  # Limovie format
+                                    self.pathToVideo = line.replace('"FileName :', '', 1).strip()
+                                    self.pathToVideo = self.pathToVideo.strip('"')
+
                                 _, ext = os.path.splitext(self.pathToVideo)
                                 if ext == '.avi':
                                     ans = readAviFile(0, self.pathToVideo)
