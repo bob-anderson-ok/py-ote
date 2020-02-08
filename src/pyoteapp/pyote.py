@@ -336,7 +336,9 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.initializeVariablesThatDontDependOnAfile()
 
         self.pathToVideo = None
-        self.frameView = None
+        self.cascadePosition = None
+        self.cascadeDelta = 25
+        self.frameViews = []
 
         self.fieldMode = False
 
@@ -356,13 +358,26 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 self.showMsg(f'Could not find csv file specified: {self.externalCsvFilePath}')
                 self.externalCsvFilePath = None
 
-    def viewFrame(self):
+    def findTimestampFromFrameNumber(self, frame):
+        # Currently PyMovie uses nn.00 for frame number
+        # Limovie uses nn.0 for frame number
+        # We use the 'starts with' flag so that we pick up both forms
+        items = self.table.findItems(f'{frame:0.1f}', QtCore.Qt.MatchStartsWith)
+        for item in items:
+            if item.column() == 0:  # Avoid a possible match from a data column
+                ts = self.table.item(item.row(), 1).text()
+                return ts
+        return ''
+
+    def showAnnotatedFrame(self, frame_to_show, annotation):
+
+        frame_number = frame_to_show
+
+        table_timestamp = self.findTimestampFromFrameNumber(frame_to_show)
+
         if self.pathToVideo is None:
             return
 
-        frame_number = self.frameNumSpinBox.value()
-
-        # print(self.pathToVideo)
         _, ext = os.path.splitext(self.pathToVideo)
 
         if ext == '.avi':
@@ -385,23 +400,32 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             self.showMsg(f'Unsupported file extension: {ext}')
             return
 
-        if 'timestamp' in ans.keys():
-            time_stamp = ans['timestamp']
-            self.frameView = pg.GraphicsWindow(title=f'FRAME: {frame_number}  TIMESTAMP: {time_stamp}')
-        else:
-            self.frameView = pg.GraphicsWindow(title=f'FRAME: {frame_number}')
+        # Check to see if user has closed all frame views
+        frame_visible = False
+        for frame_view in self.frameViews:
+            if frame_view and frame_view.isVisible():
+                frame_visible = True
 
-        self.frameView.resize(1000, 600)
+        if not frame_visible:
+            self.cascadePosition = 100
+
+        title = f'{annotation} {table_timestamp} @ frame {frame_number}'
+        self.frameViews.append(pg.GraphicsWindow(title=title))
+
+        cascade_origin = self.pos() + QPoint(self.cascadePosition, self.cascadePosition)
+
+        self.frameViews[-1].move(cascade_origin)
+        self.cascadePosition += self.cascadeDelta
+
+        self.frameViews[-1].resize(1000, 600)
         layout = QtGui.QGridLayout()
-        self.frameView.setLayout(layout)
+        self.frameViews[-1].setLayout(layout)
         imv = pg.ImageView()
         layout.addWidget(imv, 0, 0)
 
-        # imv.ui.histogram.hide()
         imv.ui.menuBtn.hide()
         imv.ui.roiBtn.hide()
 
-        # image = np.random.normal(0, 1.0, (480, 640))  # Generate test image
         image = ans['image']
 
         if self.fieldViewCheckBox.isChecked():
@@ -415,9 +439,23 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         if self.flipXaxisCheckBox.isChecked():
             image = np.fliplr(image)
 
-        # print(type(image))
-
         imv.setImage(image)
+
+        for i, frame_view in enumerate(self.frameViews):
+            if frame_view and not frame_view.isVisible():
+                # User has closed the image.  Remove it so that garbage collection occurs.
+                self.frameViews[i].close()
+                self.frameViews[i] = None
+            else:
+                if frame_view:
+                    frame_view.raise_()
+
+    def viewFrame(self):
+        if self.pathToVideo is None:
+            return
+
+        frame_to_show = self.frameNumSpinBox.value()
+        self.showAnnotatedFrame(frame_to_show=frame_to_show, annotation='generic')
 
     def helpButtonClicked(self):
         self.showHelp(self.helpButton)
@@ -1374,8 +1412,9 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.settings.setValue('pos', self.pos())
         self.helperThing.close()
 
-        if self.frameView:
-            self.frameView.close()
+        for frame_view in self.frameViews:
+            if frame_view:
+                frame_view.close()
 
         curDateTime = datetime.datetime.today().ctime()
         self.showMsg('')
