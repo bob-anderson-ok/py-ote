@@ -375,6 +375,9 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
         table_timestamp = self.findTimestampFromFrameNumber(frame_to_show)
 
+        if not table_timestamp:
+            table_timestamp = 'no timestamp found'
+
         if self.pathToVideo is None:
             return
 
@@ -455,7 +458,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             return
 
         frame_to_show = self.frameNumSpinBox.value()
-        self.showAnnotatedFrame(frame_to_show=frame_to_show, annotation='generic')
+        self.showAnnotatedFrame(frame_to_show=frame_to_show, annotation='User selected frame:')
 
     def helpButtonClicked(self):
         self.showHelp(self.helpButton)
@@ -2091,17 +2094,23 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
         solMsg2 = ''
         frameConv = float(self.yFrame[0])
+        DinFrameUnits = None
+        RinFrameUnits = None
         if D and R:
             Dtransition = trunc(floor(self.solution[0]))
             Rtransition = trunc(floor(self.solution[1]))
 
+            DinFrameUnits = Dtransition * self.framesPerEntry() + frameConv
+            RinFrameUnits = Rtransition * self.framesPerEntry() + frameConv
+
             if subframe:
                 solMsg = ('D: %d  R: %d  D(subframe): %0.4f  R(subframe): %0.4f' %
                           (Dtransition, Rtransition, D, R))
+
                 solMsg2 = ('D: %d  R: %d  D(subframe): %0.3f  R(subframe): '
                            '%0.3f' %
-                           (Dtransition * self.framesPerEntry() + frameConv,
-                            Rtransition * self.framesPerEntry() + frameConv,
+                           (DinFrameUnits,
+                            RinFrameUnits,
                             D * self.framesPerEntry() + frameConv, R * self.framesPerEntry() + frameConv))
             else:
                 solMsg = ('D: %d  R: %d' % (D, R))
@@ -2110,10 +2119,12 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 self.showMsg('in frameNum units: ' + solMsg2, bold=True)
         elif D:
             Dtransition = trunc(floor(self.solution[0]))
+            DinFrameUnits = Dtransition * self.framesPerEntry() + frameConv
+
             if subframe:
                 solMsg = ('D: %d  D(subframe): %0.2f' % (Dtransition, D))
                 solMsg2 = ('D: %d  D(subframe): %0.2f' %
-                           (Dtransition + frameConv, D + frameConv))
+                           (DinFrameUnits, D * self.framesPerEntry() + frameConv))
             else:
                 solMsg = ('D: %d' % D)
             self.showMsg('in entryNum units: ' + solMsg)
@@ -2121,16 +2132,32 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 self.showMsg('in frameNum units: ' + solMsg2, bold=True)
         else:
             Rtransition = trunc(floor(self.solution[1]))
+            RinFrameUnits = Rtransition * self.framesPerEntry() + frameConv
+
             if subframe:
                 solMsg = ('R: %d  R(subframe): %0.2f' % (Rtransition, R))
                 solMsg2 = ('R: %d  R(subframe): %0.2f' %
-                           (Rtransition + frameConv, R + frameConv))
+                           (RinFrameUnits, R * self.framesPerEntry() + frameConv))
             else:
                 solMsg = ('R: %d' % R)
 
             self.showMsg('in entryNum units: ' + solMsg)
             if solMsg2:
                 self.showMsg('in frameNum units: ' + solMsg2, bold=True)
+
+        # This function is called twice: once without a subframe calculation and then again with
+        # subframe calculations enabled.  We only want to display D and/or R frames at the end
+        # of the second pass
+        if subframe:
+            if self.pathToVideo:
+                if DinFrameUnits:
+                    self.showAnnotatedFrame(int(DinFrameUnits), "D edge:")
+
+                if RinFrameUnits:
+                    self.showAnnotatedFrame(int(RinFrameUnits), 'R edge:')
+
+                return True
+        return False
 
     def update_noise_parameters_from_solution(self):
         D, R = self.solution
@@ -2317,6 +2344,9 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                       'the initial noise analysis.')
 
     def findEvent(self):
+
+        need_to_invite_user_to_verify_timestamps = False
+
         if self.DandR.isChecked():
             self.eventType = 'DandR'
             self.showMsg('Locate a "D and R" event triggered')
@@ -2486,7 +2516,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 'sigB:%.2f  sigA:%.2f B:%.2f A:%.2f' %
                 (self.sigmaB, self.sigmaA, new_b, new_a),
                 blankLine=False)
-            self.displaySolution()  # Adjusted solution
+
+            need_to_invite_user_to_verify_timestamps = self.displaySolution()  # Adjusted solution
 
             self.B = new_b
             self.A = new_a
@@ -2565,6 +2596,15 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.reDrawMainPlot()
 
         self.calcErrBars.setEnabled(True)
+
+        if need_to_invite_user_to_verify_timestamps:
+            self.showInfo(f'The timing of the event found depends on the correctness '
+                          f'of the timestamp assigned to the D and R frames.  Since '
+                          f'OCR may have produced incorrect values, the relevant video frames have been found '
+                          f'and displayed for your inspection.\n\n'
+                          f'Please verify visually that the timestamp values are correct.\n\n'
+                          f'If they are wrong, note the correct values and use manual timestamp entry '
+                          f'to "rescue" the observation.')
         
     def fillTableViewOfData(self):
 
@@ -2723,6 +2763,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                                         self.showMsg(
                                             f'Attempt to read .avi file gave errmg: {ans["errmsg"]}',
                                             color='red', bold=True)
+                                        self.pathToVideo = None
                                     else:
                                         self.showMsg(f'fourcc code of avi: {ans["fourcc"]}', blankLine=False)
                                         self.showMsg(f'fps: {ans["fps"]}', blankLine=False)
@@ -2735,6 +2776,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                                         self.showMsg(
                                             f'Attempt to read .ser file gave errmg: {ans["errmsg"]}',
                                             color='red', bold=True)
+                                        self.pathToVideo = None
                                     else:
                                         # Enable frame view controls
                                         self.enableDisableFrameViewControls(state_to_set=True)
@@ -2744,6 +2786,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                                         self.showMsg(
                                             f'Attempt to read FITS folder gave errmg: {ans["errmsg"]}',
                                             color='red', bold=True)
+                                        self.pathToVideo = None
                                     else:
                                         # Enable frame view controls
                                         self.showMsg(f'{ans["num_frames"]} .fits files were found in FITS folder')

@@ -136,6 +136,12 @@ def find_best_event_from_min_max_size(
         # Initialize the 'best' values
         if not_started:
             max_metric = metric
+            d_best = d
+            r_best = r
+            b_best = b
+            a_best = a
+            sigma_b_best = sigma_b
+            sigma_a_best = sigma_a
             not_started = False
 
         if metric >= max_metric and b > a:
