@@ -11,7 +11,10 @@ import sys
 import platform
 
 from math import trunc, floor
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('Qt5Agg')
+
 
 from pyoteapp.showVideoFrames import readAviFile
 from pyoteapp.showVideoFrames import readSerFile
@@ -51,6 +54,7 @@ from pyoteapp.iterative_logl_functions import locate_event_from_d_and_r_ranges
 from pyoteapp.iterative_logl_functions import find_best_event_from_min_max_size
 from pyoteapp.iterative_logl_functions import find_best_r_only_from_min_max_size
 from pyoteapp.iterative_logl_functions import find_best_d_only_from_min_max_size
+from pyoteapp.subframe_timing_utilities import demo
 
 cursorAlert = pyqtSignal()
 
@@ -153,6 +157,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
         # This is an externally supplied csv file path (probably from PyMovie)
         self.externalCsvFilePath = csv_file
+
+        self.homeDir = os.path.split(__file__)[0]
 
         # Change pyqtgraph plots to be black on white
         pg.setConfigOption('background', (255, 255, 255))  # Do before any widgets drawn
@@ -266,8 +272,15 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.flipYaxisCheckBox.installEventFilter(self)
         self.flipXaxisCheckBox.installEventFilter(self)
 
-        # self.frameNumSpinBox.valueChanged.connect(self.viewFrame)
-        
+        # Underlying lightcurve controls
+        self.showTimingCorrectionCurvesButton.installEventFilter(self)
+        self.showTimingCorrectionCurvesButton.clicked.connect(self.demoUnderlyingLightcurves)
+        self.asteroidDistanceLabel.installEventFilter(self)
+        self.shadowSpeedLabel.installEventFilter(self)
+        self.starDiameterLabel.installEventFilter(self)
+        self.dLimbAngleLabel.installEventFilter(self)
+        self.rLimbAngleLabel.installEventFilter(self)
+
         # Button: Write error bar plot to file
         self.writeBarPlots.clicked.connect(self.exportBarPlots)
         self.writeBarPlots.installEventFilter(self)
@@ -299,7 +312,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                                    viewBox=CustomViewBox(border=(255, 255, 255)),
                                    enableMenu=False)
         self.mainPlot.setObjectName("mainPlot")
-        self.horizontalLayout_13.addWidget(self.mainPlot, stretch=1)
+        self.horizontalLayout_15.addWidget(self.mainPlot, stretch=1)
 
         oldMainPlot.setParent(None)
 
@@ -342,6 +355,9 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
         self.fieldMode = False
 
+        self.d_underlying_lightcurve = None
+        self.r_underlying_lightcurve = None
+
         self.checkForNewVersion()
 
         self.copy_desktop_icon_file_to_home_directory()
@@ -357,6 +373,15 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             else:
                 self.showMsg(f'Could not find csv file specified: {self.externalCsvFilePath}')
                 self.externalCsvFilePath = None
+
+    def demoUnderlyingLightcurves(self):
+        # self.showMsg(f'Not yet implemented')
+        print(plt.get_backend())
+        diff_table_name = f'diffraction-table.p'
+        diff_table_name = os.path.join(self.homeDir, diff_table_name)
+        self.d_underlying_lightcurve, self.r_underlying_lightcurve = demo(diff_table_name)
+        self.d_underlying_lightcurve.show()
+        self.r_underlying_lightcurve.show()
 
     def findTimestampFromFrameNumber(self, frame):
         # Currently PyMovie uses nn.00 for frame number
@@ -1414,6 +1439,12 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.settings.setValue('size', self.size())
         self.settings.setValue('pos', self.pos())
         self.helperThing.close()
+
+        if self.d_underlying_lightcurve:
+            matplotlib.pyplot.close(self.d_underlying_lightcurve)
+
+        if self.r_underlying_lightcurve:
+            matplotlib.pyplot.close(self.r_underlying_lightcurve)
 
         for frame_view in self.frameViews:
             if frame_view:

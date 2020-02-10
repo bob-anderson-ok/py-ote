@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1392</width>
-    <height>960</height>
+    <width>1481</width>
+    <height>1136</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,12 +16,12 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout_3">
     <item row="0" column="0">
-     <widget class="QSplitter" name="splitter">
+     <widget class="QSplitter" name="splitter_2">
       <property name="orientation">
        <enum>Qt::Vertical</enum>
       </property>
-      <widget class="QWidget" name="layoutWidget">
-       <layout class="QHBoxLayout" name="horizontalLayout_13">
+      <widget class="QWidget" name="">
+       <layout class="QHBoxLayout" name="horizontalLayout_15">
         <item>
          <layout class="QVBoxLayout" name="verticalLayout">
           <item>
@@ -707,13 +707,205 @@
            </layout>
           </item>
           <item>
+           <widget class="Line" name="line">
+            <property name="frameShadow">
+             <enum>QFrame::Raised</enum>
+            </property>
+            <property name="lineWidth">
+             <number>4</number>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_13">
+            <property name="spacing">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QPushButton" name="showTimingCorrectionCurvesButton">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If values have been entered in the two boxes to the right (Ast dist, and speed), it is possible to compute the diffraction lightcurve (based on a straight-edge model) that will 'seen' by the camera.&lt;/p&gt;&lt;p&gt;We refer to this as the 'underlying lightcurve': it is the theoretical intensity of the light diffracted at the occulting edge (assumed straight) as a function of time, i.e. as the shadow of the occulting body passes the observation position.&lt;/p&gt;&lt;p&gt;Diffraction intensity has a wavelength dependence. In PyOTE, we compute a generic diffraction curve composed of light in the 400nm to 600nm range (using 5 nm steps) with equal intensities at each included wavelength. The region of the diffraction curve that is of most interest to us is +/- 1 Fresnel unit on either side of the geometrical shadow point. Fortunately, in that region, there is very little difference between a narrow bandpass and a wide bandpass of light wavelengths, so there is no practical need to specify a more realistic bandpass in terms of either shape or extent. The primary effect of a wide bandpass is to greatly reduce the oscillations seen in a single wavelength diffraction curve (i.e., the one that is most frequently used to show diffraction effects).&lt;/p&gt;&lt;p&gt;If the star has a finite disk, the effect on the underlying lightcurve is usually very significant and apparent, 'integrating' away most of the characteristic diffraction curve shape and moving toward what is often referred to as a penumbral shape. It also moves the value of the intensity at the geometrical shadow point from 25% of full scale to something close to 50% of full scale.&lt;/p&gt;&lt;p&gt;Clicking this button brings up a display of the underlying light curve shape. Note that the effect of the camera exposure time, which integrates the underlying light curve to produce what we refer to as the camera response, is not shown in the plots if a camera exposure time has not yet been established, otherwise, the plots will show the effect of the camera exposure time on the underlying lightcurve.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>Underlying lightcurve</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="asteroidDistanceLabel">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter the distance to the asteroid/occulting body.&lt;/p&gt;&lt;p&gt;For distance units, use AU (Astronomical units)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>Ast dist(AU):</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="asteroidDistanceEdit">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>60</width>
+                <height>16777215</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="shadowSpeedLabel">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter the speed of the occulting body in kilometers per second.&lt;/p&gt;&lt;p&gt;This is used as the speed of the occultation shadow projected on the earth.&lt;/p&gt;&lt;p&gt;This value is used to convert the diffraction pattern, which is calculated as a function of Fresnel units, to a function of time.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>    speed(km/sec):</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="shadowSpeedEdit">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>60</width>
+                <height>16777215</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_14">
+            <property name="spacing">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="starDiameterLabel">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If the star being occulted is not point-like but rather has a finite disk, enter its diameter in milli-arcseconds (mas) in this box.&lt;/p&gt;&lt;p&gt;This value is used, in conjunction with the value entered in the Ast dist(AU) box, to calculate the projected outline of the star on the earth.  This is convolved with the diffraction light curve to get the underlying light curve (instantaneous values).&lt;/p&gt;&lt;p&gt;The underlying lightcurve is what is seen and integrated during the camera exposure time to get the camera response.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>Star diam(mas):</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="starDiameterEdit">
+              <property name="maximumSize">
+               <size>
+                <width>60</width>
+                <height>16777215</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="dLimbAngleLabel">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When the star has a perceptible disk, the angle of the asteroid limb with respect to the direction of motion changes the time duration during which the projected star image passes your observation position and therefore modifies the underlying light curve at that limb edge.&lt;/p&gt;&lt;p&gt;Angles are entered in degrees with 90 degrees used to reflect a head-on no-graze configuration.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>D limb angle:</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="dLimbAngleEdit">
+              <property name="maximumSize">
+               <size>
+                <width>60</width>
+                <height>16777215</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="rLimbAngleLabel">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When the star has a perceptible disk, the angle of the asteroid limb with respect to the direction of motion changes the time duration during which the projected star image passes your observation position and therefore modifies the underlying light curve at that limb edge.&lt;/p&gt;&lt;p&gt;Angles are entered in degrees with 90 degrees used to reflect a head-on no-graze configuration.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>R limb angle:</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="rLimbAngleEdit">
+              <property name="maximumSize">
+               <size>
+                <width>60</width>
+                <height>16777215</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="Line" name="line_2">
+            <property name="frameShadow">
+             <enum>QFrame::Raised</enum>
+            </property>
+            <property name="lineWidth">
+             <number>4</number>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
            <spacer name="verticalSpacer">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>452</width>
+              <width>500</width>
               <height>13</height>
              </size>
             </property>
@@ -808,7 +1000,7 @@
         </item>
        </layout>
       </widget>
-      <widget class="QSplitter" name="splitterOne">
+      <widget class="QSplitter" name="splitter">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
