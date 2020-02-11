@@ -54,7 +54,7 @@ from pyoteapp.iterative_logl_functions import locate_event_from_d_and_r_ranges
 from pyoteapp.iterative_logl_functions import find_best_event_from_min_max_size
 from pyoteapp.iterative_logl_functions import find_best_r_only_from_min_max_size
 from pyoteapp.iterative_logl_functions import find_best_d_only_from_min_max_size
-from pyoteapp.subframe_timing_utilities import demo
+# from pyoteapp.subframe_timing_utilities import demo
 
 cursorAlert = pyqtSignal()
 
@@ -374,14 +374,111 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 self.showMsg(f'Could not find csv file specified: {self.externalCsvFilePath}')
                 self.externalCsvFilePath = None
 
+    def validateLightcurveDataInput(self):
+        ans = {'success': True}
+
+        # Process ast_dist entry
+        try:
+            ast_dist_str = self.asteroidDistanceEdit.text().strip()
+            if not ast_dist_str:
+                ans.update({'ast_dist': None})
+            else:
+                ast_dist = float(ast_dist_str)
+                if ast_dist > 0.0:
+                    ans.update({'ast_dist': ast_dist})
+                else:
+                    self.showMsg(f'ast_dist must be > 0.0', bold=True)
+                    ans.update({'ast_dist': None})
+                    ans.update({'success': False})
+        except ValueError as e:
+            self.showMsg(f'{e}', bold=True)
+            ans.update({'ast_dist': None})
+            ans.update({'success': False})
+
+        # Process shadow_speed entry
+        try:
+            shadow_speed_str = self.shadowSpeedEdit.text().strip()
+            if not shadow_speed_str:
+                ans.update({'shadow_speed': None})
+            else:
+                shadow_speed = float(shadow_speed_str)
+                if shadow_speed > 0.0:
+                    ans.update({'shadow_speed': shadow_speed})
+                else:
+                    self.showMsg(f'shadow speed must be > 0.0', bold=True)
+                    ans.update({'shadow_speed': None})
+                    ans.update({'success': False})
+        except ValueError as e:
+            self.showMsg(f'{e}', bold=True)
+            ans.update({'shadow_speed': None})
+            ans.update({'success': False})
+
+        # Process star diam entry
+        try:
+            star_diam_str = self.starDiameterEdit.text().strip()
+            if not star_diam_str:
+                ans.update({'star_diam': None})
+            else:
+                star_diam = float(star_diam_str)
+                if star_diam > 0.0:
+                    ans.update({'star_diam': star_diam})
+                else:
+                    self.showMsg(f'star diameter must be > 0.0 or missing', bold=True)
+                    ans.update({'star_diam': None})
+                    ans.update({'success': False})
+        except ValueError as e:
+            self.showMsg(f'{e}', bold=True)
+            ans.update({'star_diam': None})
+            ans.update({'success': False})
+
+        # Process D limb angle entry
+        try:
+            d_angle_str = self.dLimbAngleEdit.text().strip()
+            if not d_angle_str:
+                ans.update({'d_angle': None})
+            else:
+                d_angle = float(d_angle_str)
+                if 0.0 < d_angle <= 90.0:
+                    ans.update({'d_angle': d_angle})
+                else:
+                    self.showMsg(f'D limb angle not in range (0.0, 90.0] degrees', bold=True)
+                    ans.update({'d_angle': None})
+                    ans.update({'success': False})
+        except ValueError as e:
+            self.showMsg(f'{e}', bold=True)
+            ans.update({'d_angle': None})
+            ans.update({'success': False})
+
+        # Process R limb angle entry
+        try:
+            r_angle_str = self.rLimbAngleEdit.text().strip()
+            if not r_angle_str:
+                ans.update({'r_angle': None})
+            else:
+                r_angle = float(r_angle_str)
+                if 0.0 < r_angle <= 90.0:
+                    ans.update({'r_angle': r_angle})
+                else:
+                    self.showMsg(f'R limb angle not in range (0.0, 90.0] degrees', bold=True)
+                    ans.update({'r_angle': None})
+                    ans.update({'success': False})
+        except ValueError as e:
+            self.showMsg(f'{e}', bold=True)
+            ans.update({'r_angle': None})
+            ans.update({'success': False})
+
+        return ans
+
     def demoUnderlyingLightcurves(self):
-        # self.showMsg(f'Not yet implemented')
-        print(plt.get_backend())
-        diff_table_name = f'diffraction-table.p'
-        diff_table_name = os.path.join(self.homeDir, diff_table_name)
-        self.d_underlying_lightcurve, self.r_underlying_lightcurve = demo(diff_table_name)
-        self.d_underlying_lightcurve.show()
-        self.r_underlying_lightcurve.show()
+        # diff_table_name = f'diffraction-table.p'
+        # diff_table_name = os.path.join(self.homeDir, diff_table_name)
+
+        ans = self.validateLightcurveDataInput()
+        print(ans)
+
+        # self.d_underlying_lightcurve, self.r_underlying_lightcurve = demo(diff_table_name)
+        # self.d_underlying_lightcurve.show()
+        # self.r_underlying_lightcurve.show()
 
     def findTimestampFromFrameNumber(self, frame):
         # Currently PyMovie uses nn.00 for frame number
