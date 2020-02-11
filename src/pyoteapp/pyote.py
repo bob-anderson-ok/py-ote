@@ -273,8 +273,9 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.flipXaxisCheckBox.installEventFilter(self)
 
         # Underlying lightcurve controls
-        self.showTimingCorrectionCurvesButton.installEventFilter(self)
-        self.showTimingCorrectionCurvesButton.clicked.connect(self.demoUnderlyingLightcurves)
+        self.demoUnderlyingLighturvesButton.installEventFilter(self)
+        self.demoUnderlyingLighturvesButton.clicked.connect(self.demoUnderlyingLightcurves)
+        self.exposureTimeLabel.installEventFilter(self)
         self.asteroidDistanceLabel.installEventFilter(self)
         self.shadowSpeedLabel.installEventFilter(self)
         self.starDiameterLabel.installEventFilter(self)
@@ -378,6 +379,24 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
     def validateLightcurveDataInput(self):
         ans = {'success': True}
 
+        # Process exp dur entry
+        try:
+            exp_dur_str = self.expDurEdit.text().strip()
+            if not exp_dur_str:
+                ans.update({'exp_dur': None})
+            else:
+                exp_dur = float(exp_dur_str)
+                if exp_dur > 0.0:
+                    ans.update({'exp_dur': exp_dur})
+                else:
+                    self.showMsg(f'exposure duration must be > 0.0', bold=True)
+                    ans.update({'exp_dur': None})
+                    ans.update({'success': False})
+        except ValueError as e:
+            self.showMsg(f'{e}', bold=True)
+            ans.update({'exp_dur': None})
+            ans.update({'success': False})
+
         # Process ast_dist entry
         try:
             ast_dist_str = self.asteroidDistanceEdit.text().strip()
@@ -478,7 +497,10 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         print(ans)
 
         if self.timeDelta is None or self.timeDelta < 0.001:
-            frame_time = 0.001
+            if ans['exp_dur'] is not None:
+                frame_time = ans['exp_dur']
+            else:
+                frame_time = 0.001
         else:
             frame_time = self.timeDelta
 
