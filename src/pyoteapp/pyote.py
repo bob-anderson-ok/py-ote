@@ -54,7 +54,7 @@ from pyoteapp.iterative_logl_functions import locate_event_from_d_and_r_ranges
 from pyoteapp.iterative_logl_functions import find_best_event_from_min_max_size
 from pyoteapp.iterative_logl_functions import find_best_r_only_from_min_max_size
 from pyoteapp.iterative_logl_functions import find_best_d_only_from_min_max_size
-# from pyoteapp.subframe_timing_utilities import demo
+from pyoteapp.subframe_timing_utilities import generate_underlying_lightcurve_plots
 
 cursorAlert = pyqtSignal()
 
@@ -342,6 +342,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.move(self.settings.value('pos', QPoint(50, 50)))
      
         self.outliers = []
+        self.timeDelta = None
         self.logFile = ''
         self.left = None
         self.right = None
@@ -470,15 +471,39 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         return ans
 
     def demoUnderlyingLightcurves(self):
-        # diff_table_name = f'diffraction-table.p'
-        # diff_table_name = os.path.join(self.homeDir, diff_table_name)
+        diff_table_name = f'diffraction-table.p'
+        diff_table_path = os.path.join(self.homeDir, diff_table_name)
 
         ans = self.validateLightcurveDataInput()
         print(ans)
 
-        # self.d_underlying_lightcurve, self.r_underlying_lightcurve = demo(diff_table_name)
-        # self.d_underlying_lightcurve.show()
-        # self.r_underlying_lightcurve.show()
+        if self.timeDelta is None or self.timeDelta < 0.001:
+            frame_time = 0.001
+        else:
+            frame_time = self.timeDelta
+
+        if ans['ast_dist'] is None or ans['shadow_speed'] is None:
+            self.showMsg(f'Cannot compute diffraction curve without both ast distance and shadow speed!', bold=True)
+            return
+
+        if ans['star_diam'] is None or ans['d_angle'] is None or ans['r_angle'] is None:
+            ans.update({'star_diam': None})
+            self.showMsg(f'An incomplete set of star parameters was entered --- setting star_diam to None!', bold=True)
+
+        self.d_underlying_lightcurve, self.r_underlying_lightcurve = generate_underlying_lightcurve_plots(
+            diff_table_path=diff_table_path,
+            b_value=100.0,
+            a_value=0.0,
+            frame_time=frame_time,
+            ast_dist=ans['ast_dist'],
+            shadow_speed=ans['shadow_speed'],
+            star_diam=ans['star_diam'],
+            d_angle=ans['d_angle'],
+            r_angle=ans['r_angle'],
+            title_addon=''
+        )
+        self.d_underlying_lightcurve.show()
+        self.r_underlying_lightcurve.show()
 
     def findTimestampFromFrameNumber(self, frame):
         # Currently PyMovie uses nn.00 for frame number

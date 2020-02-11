@@ -167,7 +167,7 @@ def generate_transition_point_time_correction_look_up_tables(
             # We have to do that separately for each limb because the limb angle could be different.
             star_chords_d, star_chords_r = get_star_chord_samples(
                 star_diameter_mas, asteroid_distance_AU,
-                fresnel_length, u_values[1] - u_values[0], d_limb_angle_degrees)
+                fresnel_length, u_values[1] - u_values[0], d_limb_angle_degrees, r_limb_angle_degrees)
             # Convolve sample against lightcurve to compute the effect of camera frame-time integration.
             d_values = lightcurve_convolve(sample=star_chords_d, lightcurve=d_values,
                                            shift_needed=len(star_chords_d) // 2)
@@ -367,7 +367,10 @@ def generate_underlying_lightcurve_plots(
 ):
     mid = (b_value + a_value) / 2
 
-    data_summary = f'\nframe time(sec): {frame_time:0.4f} '
+    if frame_time > 0.001:
+        data_summary = f'\nframe time(sec): {frame_time:0.4f} '
+    else:
+        data_summary = '\n'
     if ast_dist is not None:
         data_summary += f'  asteroid distance(AU): {ast_dist:0.2f}'
     if shadow_speed is not None:
@@ -393,7 +396,8 @@ def generate_underlying_lightcurve_plots(
     else:
         star_comment = ''
     ax.set_title(extra_title + 'D underlying lightcurve info' + data_summary + star_comment)
-    ax.plot(ans['time deltas'], ans['D curve'], label='camera response')
+    if frame_time > 0.001:
+        ax.plot(ans['time deltas'], ans['D curve'], label='camera response')
     if ans['star_chords_d'] is not None:
         star_chords_d = ans['star_chords_d']
         rescaled_star_chords_d = star_chords_d * (b_value + a_value) / max(star_chords_d) / 2
@@ -401,8 +405,9 @@ def generate_underlying_lightcurve_plots(
         n_star_chords = len(rescaled_star_chords_d)
         ax.plot(ans['time deltas'][:n_star_chords], rescaled_star_chords_d, label='star chords')
     ax.axvline(0.0, linestyle='--', label='geometrical shadow')
-    offset = ans['time deltas'][-1] / 2
-    ax.plot([offset, offset + frame_time], [mid, mid], label='camera exp time example')
+    if frame_time > 0.001:
+        offset = ans['time deltas'][-1] / 2
+        ax.plot([offset, offset + frame_time], [mid, mid], label='camera exp time example')
     if ans['star D'] is None:
         ax.plot(ans['time deltas'], ans['raw D'], label='underlying lightcurve')
     else:
@@ -420,7 +425,8 @@ def generate_underlying_lightcurve_plots(
     else:
         star_comment = ''
     ax.set_title(extra_title + 'R underlying lightcurve info' + data_summary + star_comment)
-    ax.plot(ans['time deltas'], ans['R curve'], label='camera response')
+    if frame_time > 0.001:
+        ax.plot(ans['time deltas'], ans['R curve'], label='camera response')
     if ans['star_chords_r'] is not None:
         star_chords_r = ans['star_chords_r']
         rescaled_star_chords_r = star_chords_r * (b_value + a_value) / max(star_chords_r) / 2
@@ -428,8 +434,9 @@ def generate_underlying_lightcurve_plots(
         n_star_chords = len(rescaled_star_chords_r)
         ax.plot(ans['time deltas'][:n_star_chords], rescaled_star_chords_r, label='star chords')
     ax.axvline(0.0, linestyle='--', label='geometrical shadow')
-    offset = ans['time deltas'][-1] / 2
-    ax.plot([offset, offset + frame_time], [mid, mid], label='camera exp time example')
+    if frame_time > 0.001:
+        offset = ans['time deltas'][-1] / 2
+        ax.plot([offset, offset + frame_time], [mid, mid], label='camera exp time example')
     if ans['star R'] is None:
         ax.plot(ans['time deltas'], ans['raw R'], label='underlying lightcurve')
     else:
