@@ -735,12 +735,28 @@
              </widget>
             </item>
             <item>
-             <widget class="QLabel" name="exposureTimeLabel">
+             <widget class="QCheckBox" name="enableDiffractionCalculationBox">
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter the effective camera exposure time (shutter time) in seconds, taking into account camera integration of frames if that was employed in this observation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This checkbox enables the application of diffraction effects to the underlying lightcurve. Usually, you will want to use diffraction effects for the underlying lightcurve, so this box is checked by default.&lt;/p&gt;&lt;p&gt;But sometimes you may want to use a pure penumbral curve when the star has a finite disk. In that case, uncheck this box.&lt;/p&gt;&lt;p&gt;This is also useful as learning/demonstration tool when exploring what effects the underlying lightcurve.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="layoutDirection">
+               <enum>Qt::RightToLeft</enum>
               </property>
               <property name="text">
-               <string>   exp dur:</string>
+               <string>  use diff  </string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="exposureTimeLabel">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter the effective camera exposure time (shutter time) in seconds, taking into account camera integration of frames if that was employed in this observation.&lt;/p&gt;&lt;p&gt;This box will normally be filled automatically when a file is read that has timing information included.&lt;/p&gt;&lt;p&gt;The value in this box will also be updated whenever and integration operation changes the frame duration.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>   exp:</string>
               </property>
              </widget>
             </item>
@@ -754,7 +770,7 @@
               </property>
               <property name="maximumSize">
                <size>
-                <width>60</width>
+                <width>90</width>
                 <height>16777215</height>
                </size>
               </property>
@@ -772,7 +788,7 @@
                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter the distance to the asteroid/occulting body.&lt;/p&gt;&lt;p&gt;For distance units, use AU (Astronomical units)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
-               <string>  Ast dist(AU):</string>
+               <string>  dist(AU):</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -931,7 +947,7 @@
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>497</width>
+              <width>494</width>
               <height>13</height>
              </size>
             </property>

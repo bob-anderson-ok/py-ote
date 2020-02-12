@@ -54,7 +54,8 @@ from pyoteapp.iterative_logl_functions import locate_event_from_d_and_r_ranges
 from pyoteapp.iterative_logl_functions import find_best_event_from_min_max_size
 from pyoteapp.iterative_logl_functions import find_best_r_only_from_min_max_size
 from pyoteapp.iterative_logl_functions import find_best_d_only_from_min_max_size
-from pyoteapp.subframe_timing_utilities import generate_underlying_lightcurve_plots
+from pyoteapp.subframe_timing_utilities import generate_underlying_lightcurve_plots, fresnel_length_km
+from pyoteapp.subframe_timing_utilities import time_correction
 
 cursorAlert = pyqtSignal()
 
@@ -273,6 +274,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.flipXaxisCheckBox.installEventFilter(self)
 
         # Underlying lightcurve controls
+        self.enableDiffractionCalculationBox.installEventFilter(self)
         self.demoUnderlyingLighturvesButton.installEventFilter(self)
         self.demoUnderlyingLighturvesButton.clicked.connect(self.demoUnderlyingLightcurves)
         self.exposureTimeLabel.installEventFilter(self)
@@ -489,12 +491,20 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
         return ans
 
-    def demoUnderlyingLightcurves(self):
+    def demoUnderlyingLightcurves(self, baseline=None, event=None, plots_wanted=None):
+
+        if not baseline:
+            baseline = 100.0
+        if not event:
+            event = 0.0
+        if plots_wanted is None:
+            plots_wanted = True
+
         diff_table_name = f'diffraction-table.p'
         diff_table_path = os.path.join(self.homeDir, diff_table_name)
 
         ans = self.validateLightcurveDataInput()
-        print(ans)
+        # print(ans)
 
         if self.timeDelta is None or self.timeDelta < 0.001:
             if ans['exp_dur'] is not None:
@@ -504,28 +514,46 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         else:
             frame_time = self.timeDelta
 
-        if ans['ast_dist'] is None or ans['shadow_speed'] is None:
-            self.showMsg(f'Cannot compute diffraction curve without both ast distance and shadow speed!', bold=True)
-            return
+        if ans['exp_dur'] is not None and ans['ast_dist'] is None and ans['shadow_speed'] is None:
+            pass   # User wants to ignore diffraction effects
+        else:
+            if self.enableDiffractionCalculationBox.isChecked() and \
+                    (ans['ast_dist'] is None or ans['shadow_speed'] is None):
+                self.showMsg(f'Cannot compute diffraction curve without both ast distance and shadow speed!', bold=True)
+                return
 
-        if ans['star_diam'] is None or ans['d_angle'] is None or ans['r_angle'] is None:
+        if ans['ast_dist'] is not None:
+            fresnel_length_at_500nm = fresnel_length_km(distance_AU=ans['ast_dist'], wavelength_nm=500.0)
+            self.showMsg(f'Fresnel length @ 500nm: {fresnel_length_at_500nm:.4f} km', bold=True, color='green')
+
+        if ans['star_diam'] is not None and (ans['d_angle'] is None or ans['r_angle'] is None):
             ans.update({'star_diam': None})
-            self.showMsg(f'An incomplete set of star parameters was entered --- setting star_diam to None!', bold=True)
+            self.showMsg(f'An incomplete set of star parameters was entered --- treating star_diam as None!', bold=True)
+        elif ans['star_diam'] is not None and (ans['ast_dist'] is None or ans['shadow_speed'] is None):
+            ans.update({'star_diam': None})
+            self.showMsg(f'Need dist and shadow speed to utilize star diam --- treating star_diam as None!', bold=True)
 
-        self.d_underlying_lightcurve, self.r_underlying_lightcurve = generate_underlying_lightcurve_plots(
+        self.d_underlying_lightcurve, self.r_underlying_lightcurve, ans = generate_underlying_lightcurve_plots(
             diff_table_path=diff_table_path,
-            b_value=100.0,
-            a_value=0.0,
+            b_value=baseline,
+            a_value=event,
             frame_time=frame_time,
             ast_dist=ans['ast_dist'],
             shadow_speed=ans['shadow_speed'],
             star_diam=ans['star_diam'],
             d_angle=ans['d_angle'],
             r_angle=ans['r_angle'],
+            suppress_diffraction=not self.enableDiffractionCalculationBox.isChecked(),
             title_addon=''
         )
-        self.d_underlying_lightcurve.show()
-        self.r_underlying_lightcurve.show()
+        if plots_wanted:
+            self.d_underlying_lightcurve.show()
+            self.r_underlying_lightcurve.show()
+        else:
+            matplotlib.pyplot.close(self.d_underlying_lightcurve)
+            matplotlib.pyplot.close(self.r_underlying_lightcurve)
+
+        return ans
 
     def findTimestampFromFrameNumber(self, frame):
         # Currently PyMovie uses nn.00 for frame number
@@ -1529,6 +1557,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.timeDelta, self.outliers, self.errRate = getTimeStepAndOutliers(self.yTimes)
         self.showMsg('timeDelta: ' + fp.to_precision(self.timeDelta, 6) + ' seconds per block', blankLine=False)
         self.showMsg('timestamp error rate: ' + fp.to_precision(100 * self.errRate, 2) + '%')
+
+        self.expDurEdit.setText(fp.to_precision(self.timeDelta, 6))
 
         self.illustrateTimestampOutliers()
         
@@ -2684,6 +2714,29 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 sigmaB=self.sigmaB, sigmaA=self.sigmaA, yValues=self.yValues,
                 left=self.left, right=self.right)
 
+            # Ultimately, here we will apply the correction from our computed underlying lightcurves.
+            # But, for now we just invode the calculation with full display.
+            ans = self.demoUnderlyingLightcurves(baseline=new_b, event=new_a, plots_wanted=False)
+            print(ans)
+            D = int(subDandR[0])
+            R = int(subDandR[1])
+            print(f'D: {D}  intensity(D): {self.yValues[D]}')
+            print(f'R: {R}  intensity(R): {self.yValues[R]}')
+
+            if (self.eventType == 'Donly' or self.eventType == 'DandR') and not D == subDandR[0]:
+                d_time_corr = time_correction(correction_dict=ans,
+                                              transition_point_intensity=self.yValues[D], edge_type='D')
+                d_delta = d_time_corr / self.timeDelta
+                d_adj = D + d_delta
+                self.showMsg(f'd_time_correction: {d_time_corr}  new D: {d_adj}')
+
+            if (self.eventType == 'Ronly' or self.eventType == 'DandR') and not R == subDandR[1]:
+                r_time_corr = time_correction(correction_dict=ans,
+                                              transition_point_intensity=self.yValues[R], edge_type='R')
+                r_delta = r_time_corr / self.timeDelta
+                r_adj = R + r_delta
+                self.showMsg(f'r_time_correction: {r_time_corr}  new R: {r_adj}')
+
             self.solution = subDandR
 
             self.showMsg('Subframe adjusted solution...', blankLine=False)
@@ -2850,6 +2903,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                     self.yTimes = manualTime[:]
                     self.timeDelta, self.outliers, self.errRate = getTimeStepAndOutliers(
                         self.yTimes)
+                    self.expDurEdit.setText(fp.to_precision(self.timeDelta, 6))
+
                     self.fillTableViewOfData()
                     self.reDrawMainPlot()
                     self.showMsg(
@@ -3073,6 +3128,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 self.fillTableViewOfData()
 
                 self.timeDelta, self.outliers, self.errRate = getTimeStepAndOutliers(self.yTimes)
+                self.expDurEdit.setText(fp.to_precision(self.timeDelta, 6))
 
                 self.showMsg('timeDelta: ' + fp.to_precision(self.timeDelta, 6) + ' seconds per reading', blankLine=False)
                 self.showMsg('timestamp error rate: ' + fp.to_precision(100 *
@@ -3323,6 +3379,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
         self.dataLen = len(self.yTimes)
         self.timeDelta, self.outliers, self.errRate = getTimeStepAndOutliers(self.yTimes)
+        self.expDurEdit.setText(fp.to_precision(self.timeDelta, 6))
+
         self.fillTableViewOfData()
         
         if len(self.yRefStar) > 0:

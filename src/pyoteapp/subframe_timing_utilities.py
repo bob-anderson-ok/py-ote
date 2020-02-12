@@ -29,6 +29,7 @@ def generate_transition_point_time_correction_look_up_tables(
         star_diameter_mas: float = None,
         d_limb_angle_degrees: float = 90.0,
         r_limb_angle_degrees: float = 90.0,
+        suppress_diffraction: bool = True,
         diff_table_path=''
 ) -> Dict[str, np.ndarray]:
     """
@@ -43,6 +44,7 @@ def generate_transition_point_time_correction_look_up_tables(
     :param star_diameter_mas: diameter of star disk (mas - milliarcseconds)
     :param d_limb_angle_degrees: limb angle at disappearance edge (degrees - 90 degrees is head-on)
     :param r_limb_angle_degrees: limb angle at re-appearance edge (degrees - 90 degrees is head-on)
+    :param suppress_diffraction: set this Fale if you want to see diffraction effect
     :param diff_table_path: path to generic diffraction table
     :return:
     """
@@ -106,8 +108,8 @@ def generate_transition_point_time_correction_look_up_tables(
         print(f'fresnel length: {fresnel_length}')
         fresnel_unit_time = fresnel_length / shadow_speed_km_per_sec
         print(f'fresnel_unit_time: {fresnel_unit_time}')
-        time_for_20_fresnel_units = 20.0 * fresnel_unit_time
-        print(f'time_for_20_fresnel_units: {time_for_20_fresnel_units}')
+        time_for_10_fresnel_units = 10.0 * fresnel_unit_time
+        print(f'time_for_10_fresnel_units: {time_for_10_fresnel_units}')
 
         pickle_file = open(diff_table_path, 'rb')
         table = pickle.load(pickle_file)
@@ -116,6 +118,19 @@ def generate_transition_point_time_correction_look_up_tables(
         r_values = table['R'] * (baseline_intensity - event_intensity)
         d_values += event_intensity
         r_values += event_intensity
+
+        if suppress_diffraction:
+            for i in range(d_values.size):
+                if u_values[i] <= 0.0:
+                    d_values[i] = baseline_intensity
+                else:
+                    d_values[i] = event_intensity
+
+            for i in range(r_values.size):
+                if u_values[i] <= 0.0:
+                    r_values[i] = event_intensity
+                else:
+                    r_values[i] = baseline_intensity
 
         if star_diameter_mas is None:
             time_needed_for_good_curve = 4.0 * frame_time_sec
@@ -135,9 +150,9 @@ def generate_transition_point_time_correction_look_up_tables(
             else:
                 time_needed_for_good_curve = 4.0 * frame_time_sec
 
-        if time_for_20_fresnel_units < time_needed_for_good_curve:
+        if time_for_10_fresnel_units < time_needed_for_good_curve:
             # We need to extend the arrays loaded from the pickle_file
-            time_extension_needed = time_needed_for_good_curve - time_for_20_fresnel_units
+            time_extension_needed = time_needed_for_good_curve - time_for_10_fresnel_units
             extended_curves = time_extend_lightcurves(
                 time_extension_needed, fresnel_unit_time, u_values, d_values, r_values
             )
@@ -363,6 +378,7 @@ def generate_underlying_lightcurve_plots(
         star_diam=None,
         d_angle=None,
         r_angle=None,
+        suppress_diffraction=True,
         title_addon=''
 ):
     mid = (b_value + a_value) / 2
@@ -386,6 +402,7 @@ def generate_underlying_lightcurve_plots(
         star_diameter_mas=star_diam,
         d_limb_angle_degrees=d_angle,
         r_limb_angle_degrees=r_angle,
+        suppress_diffraction=suppress_diffraction,
         diff_table_path=diff_table_path
     )
     fig = plt.figure('Dplot', figsize=(10, 6))
@@ -446,7 +463,7 @@ def generate_underlying_lightcurve_plots(
     ax.legend()
     r_fig = fig
 
-    return d_fig, r_fig
+    return d_fig, r_fig, ans
 
 
 def demo(diff_table_path):
