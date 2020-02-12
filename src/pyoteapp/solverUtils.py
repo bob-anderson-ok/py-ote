@@ -375,7 +375,7 @@ def subFrameAdjusted(*, eventType=None, cand=None, B=None, A=None,
                     sigmaA=sigmaA) == yValues[D]:
                 adjD = adjustD()
         # else (point at D categorizes as A) --- nothing to do
-        return (adjD, adjR), B, A
+        return [adjD, adjR], B, A
 
     elif eventType == 'Ronly':
         if aicModelValue(obsValue=yValues[R], B=B, A=A, sigmaB=sigmaB, sigmaA=sigmaA) == yValues[R]:
@@ -392,7 +392,7 @@ def subFrameAdjusted(*, eventType=None, cand=None, B=None, A=None,
                     sigmaA=sigmaA) == yValues[R]:
                 adjR = adjustR()
         # else (point at R categorizes as B) --- nothing to do
-        return (adjD, adjR), B, A
+        return [adjD, adjR], B, A
 
     elif eventType == 'DandR':
         if aicModelValue(
@@ -443,7 +443,7 @@ def subFrameAdjusted(*, eventType=None, cand=None, B=None, A=None,
             adjR = adjustR()
             B, A = calcBandA(yValues=yValues, left=left, right=right,
                              cand=(D, R))
-        return (adjD, adjR), B, A
+        return [adjD, adjR], B, A
 
     else:
         raise Exception('Unrecognized event type')

@@ -274,9 +274,10 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.flipXaxisCheckBox.installEventFilter(self)
 
         # Underlying lightcurve controls
+        self.underlyingLightcurveLabel.installEventFilter(self)
         self.enableDiffractionCalculationBox.installEventFilter(self)
         self.demoUnderlyingLighturvesButton.installEventFilter(self)
-        self.demoUnderlyingLighturvesButton.clicked.connect(self.demoUnderlyingLightcurves)
+        self.demoUnderlyingLighturvesButton.clicked.connect(self.demoClickedUnderlyingLightcurves)
         self.exposureTimeLabel.installEventFilter(self)
         self.asteroidDistanceLabel.installEventFilter(self)
         self.shadowSpeedLabel.installEventFilter(self)
@@ -491,14 +492,21 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
         return ans
 
-    def demoUnderlyingLightcurves(self, baseline=None, event=None, plots_wanted=None):
+    # This method is needed because you cannot pass parameters from a clicked-connect
+    def demoClickedUnderlyingLightcurves(self):
+        if self.B is None:
+            self.demoUnderlyingLightcurves(baseline=100.0, event=0.0, plots_wanted=True)
+        else:
+            self.demoUnderlyingLightcurves(baseline=self.B, event=self.A, plots_wanted=True)
 
-        if not baseline:
-            baseline = 100.0
-        if not event:
-            event = 0.0
-        if plots_wanted is None:
-            plots_wanted = True
+    def demoUnderlyingLightcurves(self, baseline=None, event=None, plots_wanted=False):
+
+        # if not baseline:
+        #     baseline = 100.0
+        # if not event:
+        #     event = 0.0
+        # if plots_wanted is None:
+        #     plots_wanted = True
 
         diff_table_name = f'diffraction-table.p'
         diff_table_path = os.path.join(self.homeDir, diff_table_name)
@@ -520,7 +528,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             if self.enableDiffractionCalculationBox.isChecked() and \
                     (ans['ast_dist'] is None or ans['shadow_speed'] is None):
                 self.showMsg(f'Cannot compute diffraction curve without both ast distance and shadow speed!', bold=True)
-                return
+                return None
 
         if ans['ast_dist'] is not None:
             fresnel_length_at_500nm = fresnel_length_km(distance_AU=ans['ast_dist'], wavelength_nm=500.0)
@@ -2620,7 +2628,6 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 ' (using D/R region selections)')
 
         self.runSolver = True
-        # solverGen = None
         self.calcErrBars.setEnabled(False)
 
         if self.runSolver:
@@ -2714,14 +2721,20 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 sigmaB=self.sigmaB, sigmaA=self.sigmaA, yValues=self.yValues,
                 left=self.left, right=self.right)
 
-            # Ultimately, here we will apply the correction from our computed underlying lightcurves.
-            # But, for now we just invode the calculation with full display.
+            # Here we apply the correction from our computed underlying lightcurves.
             ans = self.demoUnderlyingLightcurves(baseline=new_b, event=new_a, plots_wanted=False)
-            print(ans)
+
+            # If an error in data entry has occurred, ans will be None
+            if ans is None:
+                self.showMsg(f'An error in the underlying lightcurve parameters has occurred.', bold=True, color='red')
+                return
+
+            # print(ans)
             D = int(subDandR[0])
             R = int(subDandR[1])
-            print(f'D: {D}  intensity(D): {self.yValues[D]}')
-            print(f'R: {R}  intensity(R): {self.yValues[R]}')
+            self.showMsg(f'old D(subframe): {subDandR[0]:0.4f}  old R(subframe): {subDandR[1]:0.4f}')
+            # print(f'D: {D}  intensity(D): {self.yValues[D]}')
+            # print(f'R: {R}  intensity(R): {self.yValues[R]}')
 
             if (self.eventType == 'Donly' or self.eventType == 'DandR') and not D == subDandR[0]:
                 d_time_corr = time_correction(correction_dict=ans,
@@ -2729,6 +2742,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 d_delta = d_time_corr / self.timeDelta
                 d_adj = D + d_delta
                 self.showMsg(f'd_time_correction: {d_time_corr}  new D: {d_adj}')
+                subDandR[0] = d_adj
 
             if (self.eventType == 'Ronly' or self.eventType == 'DandR') and not R == subDandR[1]:
                 r_time_corr = time_correction(correction_dict=ans,
@@ -2736,6 +2750,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 r_delta = r_time_corr / self.timeDelta
                 r_adj = R + r_delta
                 self.showMsg(f'r_time_correction: {r_time_corr}  new R: {r_adj}')
+                subDandR[1] = r_adj
 
             self.solution = subDandR
 

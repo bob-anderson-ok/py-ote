@@ -41,8 +41,11 @@ def getCorCoefs(x, y):
     combo = list(zip(x, y))
     combo.sort()
     yvalsConcat = np.array([item[1] for item in combo])
-    trend = savgolTrendLine(yvalsConcat, window=301, degree=1)
-    residuals = yvalsConcat - trend
+    try:
+        trend = savgolTrendLine(yvalsConcat, window=301, degree=1)
+        residuals = yvalsConcat - trend
+    except ValueError:
+        return np.array([1.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]), len(x), 0.0
 
     # We only compute correlation coefficients if there at least 14 data points
     if len(residuals) < 14:
