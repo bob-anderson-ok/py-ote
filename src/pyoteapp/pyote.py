@@ -213,6 +213,10 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         # QSpinBox: secondarySelector
         self.secondarySelector.installEventFilter(self)
 
+        # plotHelpButton
+        self.plotHelpButton.clicked.connect(self.plotHelpButtonClicked)
+        self.plotHelpButton.installEventFilter(self)
+
         # Button: Trim/Select data points
         self.setDataLimits.clicked.connect(self.doTrim)
         self.setDataLimits.installEventFilter(self)
@@ -458,15 +462,17 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         try:
             d_angle_str = self.dLimbAngleEdit.text().strip()
             if not d_angle_str:
-                ans.update({'d_angle': None})
+                self.dLimbAngleEdit.setText(f'{90.0}')
+                ans.update({'d_angle': 90.0})
             else:
                 d_angle = float(d_angle_str)
                 if 0.0 < d_angle <= 90.0:
                     ans.update({'d_angle': d_angle})
                 else:
-                    self.showMsg(f'D limb angle not in range (0.0, 90.0] degrees', bold=True)
-                    ans.update({'d_angle': None})
-                    ans.update({'success': False})
+                    self.showMsg(f'D limb angle not in range (0.0, 90.0] degrees --- setting to 90.0', bold=True)
+                    self.dLimbAngleEdit.setText(f'{90.0}')
+                    ans.update({'d_angle': 90.0})
+                    # ans.update({'success': False})
         except ValueError as e:
             self.showMsg(f'{e}', bold=True)
             ans.update({'d_angle': None})
@@ -476,15 +482,17 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         try:
             r_angle_str = self.rLimbAngleEdit.text().strip()
             if not r_angle_str:
-                ans.update({'r_angle': None})
+                self.rLimbAngleEdit.setText(f'{90.0}')
+                ans.update({'r_angle': 90.0})
             else:
                 r_angle = float(r_angle_str)
                 if 0.0 < r_angle <= 90.0:
                     ans.update({'r_angle': r_angle})
                 else:
-                    self.showMsg(f'R limb angle not in range (0.0, 90.0] degrees', bold=True)
-                    ans.update({'r_angle': None})
-                    ans.update({'success': False})
+                    self.showMsg(f'R limb angle not in range (0.0, 90.0] degrees --- setting to 90.0', bold=True)
+                    self.rLimbAngleEdit.setText(f'{90.0}')
+                    ans.update({'r_angle': 90.0})
+                    # ans.update({'success': False})
         except ValueError as e:
             self.showMsg(f'{e}', bold=True)
             ans.update({'r_angle': None})
@@ -667,6 +675,9 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
     def helpButtonClicked(self):
         self.showHelp(self.helpButton)
+
+    def plotHelpButtonClicked(self):
+        self.showHelp(self.plotHelpButton)
 
     def showHelp(self, obj):
 
@@ -1031,7 +1042,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.selectedPoints = {}   # Clear/declare 'selected points' dictionary
         self.baselineXvals = []
         self.baselineYvals = []
-        # self.blockSize = 1  # Contains the number of points used in block integration
+        self.underlyingLightcurveAns = None
         self.solution = None
         self.firstPassSolution = None
         self.secondPassSolution = None
@@ -2320,8 +2331,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 solMsg = ('D: %d  R: %d  D(subframe): %0.4f  R(subframe): %0.4f' %
                           (Dtransition, Rtransition, D, R))
 
-                solMsg2 = ('D: %d  R: %d  D(subframe): %0.3f  R(subframe): '
-                           '%0.3f' %
+                solMsg2 = ('D: %d  R: %d  D(subframe): %0.4f  R(subframe): '
+                           '%0.4f' %
                            (DinFrameUnits,
                             RinFrameUnits,
                             D * self.framesPerEntry() + frameConv, R * self.framesPerEntry() + frameConv))
@@ -2335,8 +2346,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             DinFrameUnits = Dtransition * self.framesPerEntry() + frameConv
 
             if subframe:
-                solMsg = ('D: %d  D(subframe): %0.2f' % (Dtransition, D))
-                solMsg2 = ('D: %d  D(subframe): %0.2f' %
+                solMsg = ('D: %d  D(subframe): %0.4f' % (Dtransition, D))
+                solMsg2 = ('D: %d  D(subframe): %0.4f' %
                            (DinFrameUnits, D * self.framesPerEntry() + frameConv))
             else:
                 solMsg = ('D: %d' % D)
@@ -2348,8 +2359,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             RinFrameUnits = Rtransition * self.framesPerEntry() + frameConv
 
             if subframe:
-                solMsg = ('R: %d  R(subframe): %0.2f' % (Rtransition, R))
-                solMsg2 = ('R: %d  R(subframe): %0.2f' %
+                solMsg = ('R: %d  R(subframe): %0.4f' % (Rtransition, R))
+                solMsg2 = ('R: %d  R(subframe): %0.4f' %
                            (RinFrameUnits, R * self.framesPerEntry() + frameConv))
             else:
                 solMsg = ('R: %d' % R)
@@ -2722,22 +2733,27 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 left=self.left, right=self.right)
 
             # Here we apply the correction from our computed underlying lightcurves.
-            ans = self.demoUnderlyingLightcurves(baseline=new_b, event=new_a, plots_wanted=False)
+            self.underlyingLightcurveAns = self.demoUnderlyingLightcurves(baseline=new_b, event=new_a, plots_wanted=False)
 
             # If an error in data entry has occurred, ans will be None
-            if ans is None:
+            if self.underlyingLightcurveAns is None:
                 self.showMsg(f'An error in the underlying lightcurve parameters has occurred.', bold=True, color='red')
                 return
 
             # print(ans)
-            D = int(subDandR[0])
-            R = int(subDandR[1])
-            self.showMsg(f'old D(subframe): {subDandR[0]:0.4f}  old R(subframe): {subDandR[1]:0.4f}')
+            D = R = 0
+            if self.eventType == 'Donly' or self.eventType == 'DandR':
+                D = int(subDandR[0])
+                self.showMsg(f'old D(subframe): {D:0.4f}')
+            if self.eventType == 'Ronly' or self.eventType == 'DandR':
+                R = int(subDandR[1])
+                self.showMsg(f'old R(subframe): {R:0.4f}')
+
             # print(f'D: {D}  intensity(D): {self.yValues[D]}')
             # print(f'R: {R}  intensity(R): {self.yValues[R]}')
 
             if (self.eventType == 'Donly' or self.eventType == 'DandR') and not D == subDandR[0]:
-                d_time_corr = time_correction(correction_dict=ans,
+                d_time_corr = time_correction(correction_dict=self.underlyingLightcurveAns,
                                               transition_point_intensity=self.yValues[D], edge_type='D')
                 d_delta = d_time_corr / self.timeDelta
                 d_adj = D + d_delta
@@ -2745,7 +2761,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 subDandR[0] = d_adj
 
             if (self.eventType == 'Ronly' or self.eventType == 'DandR') and not R == subDandR[1]:
-                r_time_corr = time_correction(correction_dict=ans,
+                r_time_corr = time_correction(correction_dict=self.underlyingLightcurveAns,
                                               transition_point_intensity=self.yValues[R], edge_type='R')
                 r_delta = r_time_corr / self.timeDelta
                 r_adj = R + r_delta
@@ -2785,16 +2801,6 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                         (self.sigmaB, self.sigmaA, self.B, self.A),
                         blankLine=False)
                     self.displaySolution()
-                    # self.firstPassSolution = deepcopy(self.solution)
-                    # # Now we will use the solution for D and/or R to update
-                    # # noise calculation and then make a second pass.
-                    # self.update_noise_parameters_from_solution()
-                    # self.showMsg('Second pass solution using updated noise '
-                    #              'parameters =====', color='red', bold=True)
-                    # self.solution = (None, None)
-                    # self.try_to_get_solution()
-                    # if self.solution:
-                    #     self.displaySolution()
                     self.dRegion = None
                     self.rRegion = None
                     self.dLimits = None
@@ -3432,35 +3438,85 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.showMsg('*' * 20 + ' starting over ' + '*' * 20, color='blue')
 
     def drawSolution(self):
-        def plot(x, y):
-            self.mainPlot.plot(x, y, pen=pg.mkPen((150, 100, 100), width=3), symbol=None)
-        
-        B = self.B
-        A = self.A
+        def plot(x, y, pen):
+            self.mainPlot.plot(x, y, pen=pen, symbol=None)
+
+        def plotDcurve():
+            # The units of self.timeDelta are seconds per entry, so the conversion in the next line
+            # gets us x_values[] converted to entryNum units.
+            x_values = self.underlyingLightcurveAns['time deltas'] / self.timeDelta
+            x_values += D
+            y_values = self.underlyingLightcurveAns['D curve']
+            if self.underlyingLightcurveAns['star D'] is not None:
+                z_values = self.underlyingLightcurveAns['star D']
+            else:
+                z_values = self.underlyingLightcurveAns['raw D']
+            x_trimmed = []
+            y_trimmed = []
+            z_trimmed = []
+            for i in range(x_values.size):
+                if self.left <= x_values[i] <= max_x:
+                    x_trimmed.append(x_values[i])
+                    y_trimmed.append(y_values[i])
+                    z_trimmed.append(z_values[i])
+            plot(x_trimmed, y_trimmed, pen=pg.mkPen((0, 0, 255), width=3))
+            # (150, 100, 100) is the brownish color we use to show the underlying lightcurve
+            plot(x_trimmed, z_trimmed, pen=pg.mkPen((150, 100, 100), width=3))
+
+        def plotRcurve():
+            # The units of self.timeDelta are seconds per entry, so the conversion in the next line
+            # gets us x_values[] converted to entryNum units.
+            x_values = self.underlyingLightcurveAns['time deltas'] / self.timeDelta
+            x_values += R
+            y_values = self.underlyingLightcurveAns['R curve']
+            if self.underlyingLightcurveAns['star R'] is not None:
+                z_values = self.underlyingLightcurveAns['star R']
+            else:
+                z_values = self.underlyingLightcurveAns['raw R']
+            x_trimmed = []
+            y_trimmed = []
+            z_trimmed = []
+            for i in range(x_values.size):
+                if min_y <= x_values[i] <= self.right:
+                    x_trimmed.append(x_values[i])
+                    y_trimmed.append(y_values[i])
+                    z_trimmed.append(z_values[i])
+            plot(x_trimmed, y_trimmed, pen=pg.mkPen((0, 0, 255), width=3))
+            # (150, 100, 100) is the brownish color we use to show the underlying lightcurve
+            plot(x_trimmed, z_trimmed, pen=pg.mkPen((150, 100, 100), width=3))
+
+        def plotGeometricShadowAtD():
+            pen = pg.mkPen(color=(255, 0, 0), style=QtCore.Qt.DashLine, width=5)
+            self.mainPlot.plot([D, D], [lo_int, hi_int], pen=pen, symbol=None)
+
+        def plotGeometricShadowAtR():
+            pen = pg.mkPen(color=(0, 200, 0), style=QtCore.Qt.DashLine, width=5)
+            self.mainPlot.plot([R, R], [lo_int, hi_int], pen=pen, symbol=None)
+
+        hi_int = max(self.yValues[self.left:self.right])
+        lo_int = min(self.yValues[self.left:self.right])
         
         if self.eventType == 'DandR':
-            # D = self.solution[0] - self.Doffset
-            # R = self.solution[1] - self.Roffset
             D = self.solution[0]
             R = self.solution[1]
-        
-            plot([self.left, D], [B, B])
-            plot([D, D], [B, A])
-            plot([D, R], [A, A])
-            plot([R, R], [A, B])
-            plot([R, self.right], [B, B])
+
+            max_x = min_y = (D + R) / 2.0
+
+            plotDcurve()
+            plotGeometricShadowAtD()
+            plotRcurve()
+            plotGeometricShadowAtR()
+
         elif self.eventType == 'Donly':
-            # D = self.solution[0] - self.Doffset
             D = self.solution[0]
-            plot([self.left, D], [B, B])
-            plot([D, D], [B, A])
-            plot([D, self.right], [A, A])
+            max_x = self.right
+            plotDcurve()
+            plotGeometricShadowAtD()
         elif self.eventType == 'Ronly':
-            # R = self.solution[1] - self.Roffset
             R = self.solution[1]
-            plot([self.left, R], [A, A])
-            plot([R, R], [A, B])
-            plot([R, self.right], [B, B])
+            min_y = self.left
+            plotRcurve()
+            plotGeometricShadowAtR()
         else:
             raise Exception('Unrecognized event type')
 
@@ -3484,55 +3540,71 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             self.nApts = 1
 
     def drawEnvelope(self):
-        def plot(x, y):
-            self.mainPlot.plot(x, y, pen=pg.mkPen((150, 100, 100), width=2), symbol=None)
+        # (150, 100, 100) is the brownish color we use to show the underlying lightcurve
+        # def plot(x, y):
+        #     self.mainPlot.plot(x, y, pen=pg.mkPen((150, 100, 100), width=2), symbol=None)
+
+        def plotGeometricShadowAtD(d):
+            pen = pg.mkPen(color=(255, 0, 0), style=QtCore.Qt.DotLine, width=4)
+            self.mainPlot.plot([d, d], [lo_int, hi_int], pen=pen, symbol=None)
+
+        def plotGeometricShadowAtR(r):
+            pen = pg.mkPen(color=(0, 200, 0), style=QtCore.Qt.DotLine, width=4)
+            self.mainPlot.plot([r, r], [lo_int, hi_int], pen=pen, symbol=None)
         
         if self.solution is None:
             return
 
-        self.calcNumBandApoints()
+        # Make shortened geometric shadow markers to distinguish the error bar versions from the central value
+        hi_int = max(self.yValues[self.left:self.right])
+        lo_int = min(self.yValues[self.left:self.right])
+        delta_int = (hi_int - lo_int) * 0.1
+        hi_int -= delta_int
+        lo_int += delta_int
+
+        # self.calcNumBandApoints()
 
         if self.eventType == 'Donly':
-            # D = self.solution[0] - self.Doffset
             D = self.solution[0]
             Dright = D + self.plusD
             Dleft = D - self.minusD
-            Bup = self.B + 2 * self.sigmaB / np.sqrt(self.nBpts)
-            Bdown = self.B - 2 * self.sigmaB / np.sqrt(self.nBpts)
-            Aup = self.A + 2 * self.sigmaA / np.sqrt(self.nApts)
-            Adown = self.A - 2 * self.sigmaA / np.sqrt(self.nApts)
-            
-            plot([self.left, Dright], [Bup, Bup])
-            plot([Dright, Dright], [Bup, Aup])
-            plot([Dright, self.right], [Aup, Aup])
-            
-            plot([self.left, Dleft], [Bdown, Bdown])
-            plot([Dleft, Dleft], [Bdown, Adown])
-            plot([Dleft, self.right], [Adown, Adown])
+            plotGeometricShadowAtD(Dright)
+            plotGeometricShadowAtD(Dleft)
+            # Bup = self.B + 2 * self.sigmaB / np.sqrt(self.nBpts)
+            # Bdown = self.B - 2 * self.sigmaB / np.sqrt(self.nBpts)
+            # Aup = self.A + 2 * self.sigmaA / np.sqrt(self.nApts)
+            # Adown = self.A - 2 * self.sigmaA / np.sqrt(self.nApts)
+            #
+            # plot([self.left, Dright], [Bup, Bup])
+            # plot([Dright, Dright], [Bup, Aup])
+            # plot([Dright, self.right], [Aup, Aup])
+            #
+            # plot([self.left, Dleft], [Bdown, Bdown])
+            # plot([Dleft, Dleft], [Bdown, Adown])
+            # plot([Dleft, self.right], [Adown, Adown])
             return
             
         if self.eventType == 'Ronly':
-            # R = self.solution[1] - self.Roffset
             R = self.solution[1]
             Rright = R + self.plusR
             Rleft = R - self.minusR
-            Bup = self.B + 2 * self.sigmaB / np.sqrt(self.nBpts)
-            Bdown = self.B - 2 * self.sigmaB / np.sqrt(self.nBpts)
-            Aup = self.A + 2 * self.sigmaA / np.sqrt(self.nApts)
-            Adown = self.A - 2 * self.sigmaA / np.sqrt(self.nApts)
-            
-            plot([self.left, Rleft], [Aup, Aup])
-            plot([Rleft, Rleft], [Aup, Bup])
-            plot([Rleft, self.right], [Bup, Bup])
-            
-            plot([self.left, Rright], [Adown, Adown])
-            plot([Rright, Rright], [Adown, Bdown])
-            plot([Rright, self.right], [Bdown, Bdown])
+            plotGeometricShadowAtR(Rright)
+            plotGeometricShadowAtR(Rleft)
+            # Bup = self.B + 2 * self.sigmaB / np.sqrt(self.nBpts)
+            # Bdown = self.B - 2 * self.sigmaB / np.sqrt(self.nBpts)
+            # Aup = self.A + 2 * self.sigmaA / np.sqrt(self.nApts)
+            # Adown = self.A - 2 * self.sigmaA / np.sqrt(self.nApts)
+            #
+            # plot([self.left, Rleft], [Aup, Aup])
+            # plot([Rleft, Rleft], [Aup, Bup])
+            # plot([Rleft, self.right], [Bup, Bup])
+            #
+            # plot([self.left, Rright], [Adown, Adown])
+            # plot([Rright, Rright], [Adown, Bdown])
+            # plot([Rright, self.right], [Bdown, Bdown])
             return
         
         if self.eventType == 'DandR':
-            # R = self.solution[1] - self.Roffset
-            # D = self.solution[0] - self.Doffset
             R = self.solution[1]
             D = self.solution[0]
 
@@ -3540,22 +3612,26 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             Rleft = R - self.minusR
             Dright = D + self.plusD
             Dleft = D - self.minusD
-            Bup = self.B + 2 * self.sigmaB / np.sqrt(self.nBpts)
-            Bdown = self.B - 2 * self.sigmaB / np.sqrt(self.nBpts)
-            Aup = self.A + 2 * self.sigmaA / np.sqrt(self.nApts)
-            Adown = self.A - 2 * self.sigmaA / np.sqrt(self.nApts)
-            
-            plot([self.left, Dright], [Bup, Bup])
-            plot([Dright, Dright], [Bup, Aup])
-            plot([Dright, Rleft], [Aup, Aup])
-            plot([Rleft, Rleft], [Aup, Bup])
-            plot([Rleft, self.right], [Bup, Bup])
-            
-            plot([self.left, Dleft], [Bdown, Bdown])
-            plot([Dleft, Dleft], [Bdown, Adown])
-            plot([Dleft, Rright], [Adown, Adown])
-            plot([Rright, Rright], [Adown, Bdown])
-            plot([Rright, self.right], [Bdown, Bdown])
+            plotGeometricShadowAtR(Rright)
+            plotGeometricShadowAtR(Rleft)
+            plotGeometricShadowAtD(Dright)
+            plotGeometricShadowAtD(Dleft)
+            # Bup = self.B + 2 * self.sigmaB / np.sqrt(self.nBpts)
+            # Bdown = self.B - 2 * self.sigmaB / np.sqrt(self.nBpts)
+            # Aup = self.A + 2 * self.sigmaA / np.sqrt(self.nApts)
+            # Adown = self.A - 2 * self.sigmaA / np.sqrt(self.nApts)
+            #
+            # plot([self.left, Dright], [Bup, Bup])
+            # plot([Dright, Dright], [Bup, Aup])
+            # plot([Dright, Rleft], [Aup, Aup])
+            # plot([Rleft, Rleft], [Aup, Bup])
+            # plot([Rleft, self.right], [Bup, Bup])
+            #
+            # plot([self.left, Dleft], [Bdown, Bdown])
+            # plot([Dleft, Dleft], [Bdown, Adown])
+            # plot([Dleft, Rright], [Adown, Adown])
+            # plot([Rright, Rright], [Adown, Bdown])
+            # plot([Rright, self.right], [Bdown, Bdown])
             return
     
     def reDrawMainPlot(self):

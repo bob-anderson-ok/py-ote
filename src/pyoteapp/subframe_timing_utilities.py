@@ -105,11 +105,11 @@ def generate_transition_point_time_correction_look_up_tables(
         # This code group calculates an integrated diffraction curve. We know that both asteroid_distance_AU and
         # shadow_speed_km_per_sec are both available.
         fresnel_length = fresnel_length_km(distance_AU=asteroid_distance_AU)
-        print(f'fresnel length: {fresnel_length}')
+        # print(f'fresnel length: {fresnel_length}')
         fresnel_unit_time = fresnel_length / shadow_speed_km_per_sec
-        print(f'fresnel_unit_time: {fresnel_unit_time}')
+        # print(f'fresnel_unit_time: {fresnel_unit_time}')
         time_for_10_fresnel_units = 10.0 * fresnel_unit_time
-        print(f'time_for_10_fresnel_units: {time_for_10_fresnel_units}')
+        # print(f'time_for_10_fresnel_units: {time_for_10_fresnel_units}')
 
         pickle_file = open(diff_table_path, 'rb')
         table = pickle.load(pickle_file)
@@ -140,11 +140,11 @@ def generate_transition_point_time_correction_look_up_tables(
             min_limb_angle_degrees = min(d_limb_angle_degrees, r_limb_angle_degrees)
             star_diameter_radians = star_diameter_mas * 4.84814e-9
             distance_to_asteroid_km = asteroid_distance_AU * 149.6e6
-            print(star_diameter_radians, np.tan(star_diameter_radians), np.sin(star_diameter_radians))
+            # print(star_diameter_radians, np.tan(star_diameter_radians), np.sin(star_diameter_radians))
             star_projection_km = np.tan(star_diameter_radians) * distance_to_asteroid_km
             star_projection_time_sec = star_projection_km / \
                 shadow_speed_km_per_sec / sin_degrees(min_limb_angle_degrees)
-            print(f'frame_time: {frame_time_sec}   star_time: {star_projection_time_sec}')
+            # print(f'frame_time: {frame_time_sec}   star_time: {star_projection_time_sec}')
             if star_projection_time_sec > frame_time_sec:
                 time_needed_for_good_curve = 4.0 * star_projection_time_sec
             else:
@@ -172,7 +172,7 @@ def generate_transition_point_time_correction_look_up_tables(
         n_sample_points = max(n_sample_points, 1)
         sample = np.repeat(1.0 / n_sample_points, n_sample_points)
 
-        print(f'n_sample: {len(sample)}  n_lightcurve: {len(d_values)}')
+        # print(f'n_sample: {len(sample)}  n_lightcurve: {len(d_values)}')
 
         star_d_values = None
         star_r_values = None
@@ -183,7 +183,7 @@ def generate_transition_point_time_correction_look_up_tables(
             star_chords_d, star_chords_r = get_star_chord_samples(
                 star_diameter_mas, asteroid_distance_AU,
                 fresnel_length, u_values[1] - u_values[0], d_limb_angle_degrees, r_limb_angle_degrees)
-            # Convolve sample against lightcurve to compute the effect of camera frame-time integration.
+            # Convolve sample against lightcurve to compute the effect of star chord integration.
             d_values = lightcurve_convolve(sample=star_chords_d, lightcurve=d_values,
                                            shift_needed=len(star_chords_d) // 2)
             r_values = lightcurve_convolve(sample=star_chords_r, lightcurve=r_values,
@@ -204,7 +204,7 @@ def generate_transition_point_time_correction_look_up_tables(
 def time_extend_lightcurves(time_extension, fresnel_unit_time, u_values, d_values, r_values):
     fresnel_extension_needed = time_extension / fresnel_unit_time
     n_increments = int(100 * round(fresnel_extension_needed / 2.0))
-    print(f'n_increments type: {type(n_increments)}')
+    # print(f'n_increments type: {type(n_increments)}')
     delta_u = u_values[1] - u_values[0]
     left_u_ext = np.linspace(-(n_increments + 1) * delta_u, -delta_u, num=n_increments + 1)
     left_u_ext += u_values[0]
@@ -288,7 +288,7 @@ def get_star_chord_samples(
     n_r_limb_chords = int(n_star_chords / sin_degrees(r_limb_angle_degrees))
     n_d_limb_chords = int(n_star_chords / sin_degrees(d_limb_angle_degrees))
 
-    print(f'n_d_limb_chords: {n_d_limb_chords}  n_r_limb_chords: {n_r_limb_chords}')
+    # print(f'n_d_limb_chords: {n_d_limb_chords}  n_r_limb_chords: {n_r_limb_chords}')
 
     radius_u = star_diameter_u / 2
     r2 = radius_u * radius_u
@@ -417,7 +417,7 @@ def generate_underlying_lightcurve_plots(
         ax.plot(ans['time deltas'], ans['D curve'], label='camera response')
     if ans['star_chords_d'] is not None:
         star_chords_d = ans['star_chords_d']
-        rescaled_star_chords_d = star_chords_d * (b_value + a_value) / max(star_chords_d) / 2
+        rescaled_star_chords_d = star_chords_d * (b_value - a_value) / max(star_chords_d) / 2
         rescaled_star_chords_d += a_value
         n_star_chords = len(rescaled_star_chords_d)
         ax.plot(ans['time deltas'][:n_star_chords], rescaled_star_chords_d, label='star chords')
@@ -446,7 +446,7 @@ def generate_underlying_lightcurve_plots(
         ax.plot(ans['time deltas'], ans['R curve'], label='camera response')
     if ans['star_chords_r'] is not None:
         star_chords_r = ans['star_chords_r']
-        rescaled_star_chords_r = star_chords_r * (b_value + a_value) / max(star_chords_r) / 2
+        rescaled_star_chords_r = star_chords_r * (b_value - a_value) / max(star_chords_r) / 2
         rescaled_star_chords_r += a_value
         n_star_chords = len(rescaled_star_chords_r)
         ax.plot(ans['time deltas'][:n_star_chords], rescaled_star_chords_r, label='star chords')
