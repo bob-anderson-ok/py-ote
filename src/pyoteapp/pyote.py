@@ -1685,7 +1685,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 fileObject.write('\n')
             fileObject.close()
 
-    def reportSpecialProceduredUsed(self):
+    def reportSpecialProcedureUsed(self):
         if self.blockSize == 1:
             self.showMsg('This light curve has not been block integrated.',
                          color='blue', bold=True, blankLine=False)
@@ -1701,6 +1701,40 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
         if not (self.left == 0 and self.right == self.dataLen - 1):
             self.showMsg('This light curve has been trimmed.',
+                         color='blue', bold=True, blankLine=False)
+
+        self.showMsg('', blankLine=False)
+
+        ans = self.validateLightcurveDataInput()
+        if ans['success']:
+            self.showMsg(f'The following lightcurve parameters were utilized:',
+                         color='blue', bold=True, blankLine=False)
+
+            if self.enableDiffractionCalculationBox.isChecked():
+                self.showMsg(f"==== use diff: is checked", bold=True, blankLine=False)
+            else:
+                self.showMsg(f"==== use diff: is NOT checked", bold=True, blankLine=False)
+
+            if ans['exp_dur'] is not None:
+                self.showMsg(f"==== exp: {ans['exp_dur']:0.6f}", bold=True, blankLine=False)
+
+            if ans['ast_dist'] is not None:
+                self.showMsg(f"==== dist(AU): {ans['ast_dist']:0.4f}", bold=True, blankLine=False)
+
+            if ans['shadow_speed'] is not None:
+                self.showMsg(f"==== speed(km/sec): {ans['shadow_speed']:0.4f}", bold=True, blankLine=False)
+
+            if ans['star_diam'] is not None:
+                self.showMsg(f"==== Star diam(mas): {ans['star_diam']:0.4f}", bold=True, blankLine=False)
+
+            if ans['d_angle'] is not None:
+                self.showMsg(f"==== D limb angle: {ans['d_angle']:0.1f}", bold=True, blankLine=False)
+
+            if ans['r_angle'] is not None:
+                self.showMsg(f"==== R limb angle: {ans['r_angle']:0.1f}", bold=True, blankLine=False)
+
+        else:
+            self.showMsg(f'Some invalid entries were found in the lightcurve parameters panel',
                          color='blue', bold=True, blankLine=False)
 
         self.showMsg('', blankLine=False)
@@ -1882,7 +1916,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
         self.showMsg('=============== Summary report for Excel file =====================')
 
-        self.reportSpecialProceduredUsed()
+        self.reportSpecialProcedureUsed()  # This includes use of asteroid distance/speed and star diameter
 
         if false_positive:
             self.showMsg(f"This event has a {false_probability:0.4f} probability of being a false positive!!",
@@ -2569,6 +2603,10 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
     def findEvent(self):
 
+        if self.timeDelta == 0.0:
+            self.showInfo(f'time per reading (timeDelta) has an invalid value of 0.0\n\nCannot proceed.')
+            return
+
         need_to_invite_user_to_verify_timestamps = False
 
         if self.DandR.isChecked():
@@ -2744,10 +2782,10 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             D = R = 0
             if self.eventType == 'Donly' or self.eventType == 'DandR':
                 D = int(subDandR[0])
-                self.showMsg(f'old D(subframe): {D:0.4f}')
+                self.showMsg(f'old D(subframe): {subDandR[0]:0.4f}')
             if self.eventType == 'Ronly' or self.eventType == 'DandR':
                 R = int(subDandR[1])
-                self.showMsg(f'old R(subframe): {R:0.4f}')
+                self.showMsg(f'old R(subframe): {subDandR[1]:0.4f}')
 
             # print(f'D: {D}  intensity(D): {self.yValues[D]}')
             # print(f'R: {R}  intensity(R): {self.yValues[R]}')
@@ -2757,7 +2795,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                                               transition_point_intensity=self.yValues[D], edge_type='D')
                 d_delta = d_time_corr / self.timeDelta
                 d_adj = D + d_delta
-                self.showMsg(f'd_time_correction: {d_time_corr}  new D: {d_adj}')
+                self.showMsg(f'd_time_correction: {d_time_corr:0.4f}  new D: {d_adj:0.4f}')
                 subDandR[0] = d_adj
 
             if (self.eventType == 'Ronly' or self.eventType == 'DandR') and not R == subDandR[1]:
@@ -2765,7 +2803,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                                               transition_point_intensity=self.yValues[R], edge_type='R')
                 r_delta = r_time_corr / self.timeDelta
                 r_adj = R + r_delta
-                self.showMsg(f'r_time_correction: {r_time_corr}  new R: {r_adj}')
+                self.showMsg(f'r_time_correction: {r_time_corr:0.4f}  new R: {r_adj:0.4f}')
                 subDandR[1] = r_adj
 
             self.solution = subDandR
@@ -3089,15 +3127,16 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                     # reason to show info box.
                     if not self.manualTimestampCheckBox.isChecked():
                         self.showInfo('This file does not contain timestamp '
-                                      'entries so manual entry of either two '
-                                      'timestamps OR one timestamp and a frame '
-                                      'delta time is required.'
+                                      'entries --- manual entry of two '
+                                      'timestamps is required.'
                                       '\n\nEnter the timestamp '
                                       'values that the avi '
                                       'processing software (Limovie, Tangra, '
                                       'etc) would have produced '
-                                      'had the OCR process not failed.  By doing '
-                                      'it in this manner, you can continue '
+                                      'had the OCR process not failed using the '
+                                      'View frame button to display the frames '
+                                      'you want to use for timestamp purposes.\n\n'
+                                      'By working in this manner, you can continue '
                                       'processing the file as though OCR had '
                                       'succeeded and then follow the standard '
                                       'procedure for reporting results through '
@@ -3459,9 +3498,17 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                     x_trimmed.append(x_values[i])
                     y_trimmed.append(y_values[i])
                     z_trimmed.append(z_values[i])
-            plot(x_trimmed, y_trimmed, pen=pg.mkPen((0, 0, 255), width=3))
+
             # (150, 100, 100) is the brownish color we use to show the underlying lightcurve
             plot(x_trimmed, z_trimmed, pen=pg.mkPen((150, 100, 100), width=3))
+
+            # Now overplot with the blue camera response curve
+            plot(x_trimmed, y_trimmed, pen=pg.mkPen((0, 0, 255), width=3))
+            # Extend camera response to the left and right if necessary...
+            if x_trimmed[0] > self.left:
+                plot([self.left, x_trimmed[0]], [y_trimmed[0], y_trimmed[0]], pen=pg.mkPen((0, 0, 255), width=3))
+            if x_trimmed[-1] < max_x:
+                plot([x_trimmed[-1], max_x], [y_trimmed[-1], y_trimmed[-1]], pen=pg.mkPen((0, 0, 255), width=3))
 
         def plotRcurve():
             # The units of self.timeDelta are seconds per entry, so the conversion in the next line
@@ -3477,13 +3524,21 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             y_trimmed = []
             z_trimmed = []
             for i in range(x_values.size):
-                if min_y <= x_values[i] <= self.right:
+                if min_x <= x_values[i] <= self.right:
                     x_trimmed.append(x_values[i])
                     y_trimmed.append(y_values[i])
                     z_trimmed.append(z_values[i])
-            plot(x_trimmed, y_trimmed, pen=pg.mkPen((0, 0, 255), width=3))
+
             # (150, 100, 100) is the brownish color we use to show the underlying lightcurve
             plot(x_trimmed, z_trimmed, pen=pg.mkPen((150, 100, 100), width=3))
+
+            # Now overplot with the blue camera response curve
+            plot(x_trimmed, y_trimmed, pen=pg.mkPen((0, 0, 255), width=3))
+            # Extend camera response to the left and right if necessary...
+            if x_trimmed[0] > min_x:
+                plot([min_x, x_trimmed[0]], [y_trimmed[0], y_trimmed[0]], pen=pg.mkPen((0, 0, 255), width=3))
+            if x_trimmed[-1] < self.right:
+                plot([x_trimmed[-1], self.right], [y_trimmed[-1], y_trimmed[-1]], pen=pg.mkPen((0, 0, 255), width=3))
 
         def plotGeometricShadowAtD():
             pen = pg.mkPen(color=(255, 0, 0), style=QtCore.Qt.DashLine, width=5)
@@ -3500,7 +3555,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             D = self.solution[0]
             R = self.solution[1]
 
-            max_x = min_y = (D + R) / 2.0
+            max_x = min_x = (D + R) / 2.0
 
             plotDcurve()
             plotGeometricShadowAtD()
@@ -3514,7 +3569,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             plotGeometricShadowAtD()
         elif self.eventType == 'Ronly':
             R = self.solution[1]
-            min_y = self.left
+            min_x = self.left
             plotRcurve()
             plotGeometricShadowAtR()
         else:
