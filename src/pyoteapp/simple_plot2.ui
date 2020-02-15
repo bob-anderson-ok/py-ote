@@ -287,9 +287,32 @@
                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Timestamp errors are indicated by red lines that show where a time step is not within +/- 10% of the expected value.&lt;/p&gt;&lt;p&gt;Sometimes there are so many red lines that is becomes hard to see the plot. In that case, uncheck this box to suppress the red line display.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
-               <string>Show timestamp errors</string>
+               <string>Show timestamp errors     </string>
               </property>
              </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="showUnderlyingLightcurveCheckBox">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If you want to see the underlying lightcurve (the instantaneous theoretical lightcurve that the camera 'sees'), set this box to 'checked'.&lt;/p&gt;&lt;p&gt;The solution plot gets a bit cluttered when the camera response curve, the 'solution', and the underlying lightcurve are all being displayed at once.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>Show underlying lightcurve</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_2">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
             </item>
            </layout>
           </item>
@@ -608,6 +631,25 @@
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_4">
             <item>
+             <widget class="QCheckBox" name="penumbralFitCheckBox">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>120</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If an occultation involves a star that is not point-like (has a detectable disk), the observation lightcurve will often have a gradual transition and take more than one or two readings for the disappearance and/or reappearance to occur. To extract timing data from such an observation, an underlying lightcurve model that incorporates star diameter (mas) and limb angles must be used.&lt;/p&gt;&lt;p&gt;This checkbox will be enabled whenever a star diameter is entered below AND the &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Demo&lt;/span&gt; button has been clicked.&lt;/p&gt;&lt;p&gt;Once this checkbox is checked, the &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Find event, then ...&lt;/span&gt; button will invoke a different 'find event' methodology. When the 'penumbral fit' methodology is active, the user is expected to:&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;1.&lt;/span&gt; Carefully locate the D and or R regions so that the penumbral transition regions are precisely enclosed.&lt;/p&gt;&lt;p&gt;This allows PyOTE to identify/assume the points to the left and right of the D and/or R regions are proper baseline points so as to compute a correct baseline intensity and associated noise. This also allows the points between the D and/or R regions to be used for the computation of the correct event intensity and associated noise.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;2.&lt;/span&gt; Repeatedly click the &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Find event, then ...&lt;/span&gt; button, evalute the 'fit' visually, and change the limb angles until satisfied, then&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;3.&lt;/span&gt; Click the &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;... write report&lt;/span&gt; button.&lt;/p&gt;&lt;p&gt;The D and/or R regions will remain active during step 2. They will be removed when &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;... write report&lt;/span&gt; is clicked.&lt;/p&gt;&lt;p&gt;The D and/or R edge times will not change significantly during the step 2 iterations; they are only performed to get an estimate of the D and/or R limb angles, so a good visual fit should be adequate.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>Penumbral fit   </string>
+              </property>
+             </widget>
+            </item>
+            <item>
              <widget class="QPushButton" name="locateEvent">
               <property name="enabled">
                <bool>false</bool>
@@ -873,7 +915,7 @@
             <item>
              <widget class="QLabel" name="starDiameterLabel">
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If the star being occulted is not point-like but rather has a finite disk, enter its diameter in milli-arcseconds (mas) in this box.&lt;/p&gt;&lt;p&gt;This value is used, in conjunction with the value entered in the Ast dist(AU) box, to calculate the projected outline of the star on the earth.  This is convolved with the diffraction light curve to get the underlying light curve (instantaneous values).&lt;/p&gt;&lt;p&gt;The underlying lightcurve is what is seen and integrated during the camera exposure time to get the camera response.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If the star being occulted is not point-like but rather has a finite disk, enter its diameter in milli-arcseconds (mas) in this box.&lt;/p&gt;&lt;p&gt;This value is used, in conjunction with the values entered in the &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;dist(AU)&lt;/span&gt; box and the &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;speed(km/sec)&lt;/span&gt; box, to calculate the apparent size of the star at the asteroid distance as a function of time. This is convolved with the diffraction light curve to get the underlying light curve (instantaneous values).&lt;/p&gt;&lt;p&gt;The underlying lightcurve is what is seen and integrated during the camera exposure time to get the camera response.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>Star diam(mas):</string>
@@ -920,6 +962,9 @@
                 <height>16777215</height>
                </size>
               </property>
+              <property name="text">
+               <string/>
+              </property>
              </widget>
             </item>
             <item>
@@ -949,6 +994,9 @@
                 <height>16777215</height>
                </size>
               </property>
+              <property name="text">
+               <string/>
+              </property>
              </widget>
             </item>
            </layout>
@@ -973,7 +1021,7 @@
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>494</width>
+              <width>555</width>
               <height>13</height>
              </size>
             </property>

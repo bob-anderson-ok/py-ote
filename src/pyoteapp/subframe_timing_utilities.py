@@ -201,6 +201,30 @@ def generate_transition_point_time_correction_look_up_tables(
                 'star D': star_d_values, 'star R': star_r_values, 'B': baseline_intensity, 'A': event_intensity}
 
 
+def intensity_at_time(data, time, edge_type):
+    assert edge_type in ['D', 'R']
+
+    if edge_type == 'D':
+        if time <= data['time deltas'][0]:
+            return data['D curve'][0]
+        if time >= data['time deltas'][-1]:
+            return data['D curve'][-1]
+        for i, t in enumerate(data['time deltas']):
+            if t >= time:
+                return data['D curve'][i]
+        return None  # This should never happen
+
+    else:
+        if time < data['time deltas'][0]:
+            return data['R curve'][0]
+        if time > data['time deltas'][-1]:
+            return data['R curve'][-1]
+        for i, t in enumerate(data['time deltas']):
+            if t >= time:
+                return data['R curve'][i]
+        return None  # This should never happen
+
+
 def time_extend_lightcurves(time_extension, fresnel_unit_time, u_values, d_values, r_values):
     fresnel_extension_needed = time_extension / fresnel_unit_time
     n_increments = int(100 * round(fresnel_extension_needed / 2.0))
@@ -520,7 +544,7 @@ def demo(diff_table_path):
         shadow_speed = 4.55   # Felicia
         title_addon = '(Felicia 01062020 Watec)  '
 
-        d_figure, r_figure = generate_underlying_lightcurve_plots(
+        d_figure, r_figure, _ = generate_underlying_lightcurve_plots(
             diff_table_path=diff_table_path,
             b_value=100.0,
             a_value=0.0,

@@ -55,7 +55,7 @@ from pyoteapp.iterative_logl_functions import find_best_event_from_min_max_size
 from pyoteapp.iterative_logl_functions import find_best_r_only_from_min_max_size
 from pyoteapp.iterative_logl_functions import find_best_d_only_from_min_max_size
 from pyoteapp.subframe_timing_utilities import generate_underlying_lightcurve_plots, fresnel_length_km
-from pyoteapp.subframe_timing_utilities import time_correction
+from pyoteapp.subframe_timing_utilities import time_correction, intensity_at_time
 
 cursorAlert = pyqtSignal()
 
@@ -202,6 +202,10 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.showTimestampErrors.clicked.connect(self.toggleDisplayOfTimestampErrors)
         self.showTimestampErrors.installEventFilter(self)
 
+        # Checkbox: Show underlying lightcurve
+        self.showUnderlyingLightcurveCheckBox.installEventFilter(self)
+        self.showUnderlyingLightcurveCheckBox.clicked.connect(self.reDrawMainPlot)
+
         # QSpinBox
         self.secondarySelector.valueChanged.connect(self.changeSecondary)
 
@@ -261,6 +265,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
         # Button: Locate event
         self.locateEvent.clicked.connect(self.findEvent)
+        self.penumbralFitCheckBox.installEventFilter(self)
         
         # Button: Cancel operation
         self.cancelButton.clicked.connect(self.requestCancel)
@@ -348,7 +353,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         # Use 'sticky' settings to size and position the main screen
         self.resize(self.settings.value('size', QSize(800, 800)))
         self.move(self.settings.value('pos', QPoint(50, 50)))
-     
+
+        self.yValues = None
         self.outliers = []
         self.timeDelta = None
         self.logFile = ''
@@ -366,6 +372,13 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
         self.d_underlying_lightcurve = None
         self.r_underlying_lightcurve = None
+
+        self.d_candidates = None
+        self.d_candidate_entry_nums = None
+        self.r_candidates = None
+        self.r_candidate_entry_nums = None
+        self.b_intensity = None
+        self.a_intensity = None
 
         self.checkForNewVersion()
 
@@ -445,18 +458,25 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             star_diam_str = self.starDiameterEdit.text().strip()
             if not star_diam_str:
                 ans.update({'star_diam': None})
+                self.penumbralFitCheckBox.setChecked(False)
+                self.penumbralFitCheckBox.setEnabled(False)
             else:
                 star_diam = float(star_diam_str)
                 if star_diam > 0.0:
                     ans.update({'star_diam': star_diam})
+                    self.penumbralFitCheckBox.setEnabled(True)
                 else:
                     self.showMsg(f'star diameter must be > 0.0 or missing', bold=True)
                     ans.update({'star_diam': None})
                     ans.update({'success': False})
+                    self.penumbralFitCheckBox.setChecked(False)
+                    self.penumbralFitCheckBox.setEnabled(False)
         except ValueError as e:
             self.showMsg(f'{e}', bold=True)
             ans.update({'star_diam': None})
             ans.update({'success': False})
+            self.penumbralFitCheckBox.setChecked(False)
+            self.penumbralFitCheckBox.setEnabled(False)
 
         # Process D limb angle entry
         try:
@@ -503,18 +523,11 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
     # This method is needed because you cannot pass parameters from a clicked-connect
     def demoClickedUnderlyingLightcurves(self):
         if self.B is None:
-            self.demoUnderlyingLightcurves(baseline=100.0, event=0.0, plots_wanted=True)
+            self.demoUnderlyingLightcurves(baseline=100.0, event=0.0, plots_wanted=True, ignore_timedelta=True)
         else:
-            self.demoUnderlyingLightcurves(baseline=self.B, event=self.A, plots_wanted=True)
+            self.demoUnderlyingLightcurves(baseline=self.B, event=self.A, plots_wanted=True, ignore_timedelta=True)
 
-    def demoUnderlyingLightcurves(self, baseline=None, event=None, plots_wanted=False):
-
-        # if not baseline:
-        #     baseline = 100.0
-        # if not event:
-        #     event = 0.0
-        # if plots_wanted is None:
-        #     plots_wanted = True
+    def demoUnderlyingLightcurves(self, baseline=None, event=None, plots_wanted=False, ignore_timedelta=False):
 
         diff_table_name = f'diffraction-table.p'
         diff_table_path = os.path.join(self.homeDir, diff_table_name)
@@ -522,13 +535,19 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         ans = self.validateLightcurveDataInput()
         # print(ans)
 
-        if self.timeDelta is None or self.timeDelta < 0.001:
+        if not ignore_timedelta:
+            if self.timeDelta is None or self.timeDelta < 0.001:
+                if ans['exp_dur'] is not None:
+                    frame_time = ans['exp_dur']
+                else:
+                    frame_time = 0.001
+            else:
+                frame_time = self.timeDelta
+        else:
             if ans['exp_dur'] is not None:
                 frame_time = ans['exp_dur']
             else:
                 frame_time = 0.001
-        else:
-            frame_time = self.timeDelta
 
         if ans['exp_dur'] is not None and ans['ast_dist'] is None and ans['shadow_speed'] is None:
             pass   # User wants to ignore diffraction effects
@@ -540,7 +559,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
         if ans['ast_dist'] is not None:
             fresnel_length_at_500nm = fresnel_length_km(distance_AU=ans['ast_dist'], wavelength_nm=500.0)
-            self.showMsg(f'Fresnel length @ 500nm: {fresnel_length_at_500nm:.4f} km', bold=True, color='green')
+            if plots_wanted:
+                self.showMsg(f'Fresnel length @ 500nm: {fresnel_length_at_500nm:.4f} km', bold=True, color='green')
 
         if ans['star_diam'] is not None and (ans['d_angle'] is None or ans['r_angle'] is None):
             ans.update({'star_diam': None})
@@ -1035,6 +1055,9 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.left = None    # Used during block integration
         self.right = None   # "
         self.selPts = []    # "
+
+        self.penumbralFitCheckBox.setEnabled(False)
+        self.penumbralFitCheckBox.setChecked(False)
 
         self.flashEdges = []
         self.normalized = False
@@ -1863,6 +1886,10 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             self.showMsg(
                 'maximum magDrop: NA because Amin is negative')
 
+    def finalReportPenumbral(self):
+        self.showMsg(f'Final report for a penumbral fit not yet implemented.', bold=True, color='red')
+        return
+
     def finalReport(self, false_positive, false_probability):
         self.writeDefaultGraphicsPlots()
 
@@ -1935,8 +1962,6 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                          'Noise has therefore been treated as being '
                          'uncorrelated.',
                          bold=True, color='red')
-
-        # self.magdropReport(numSigmas=2)
 
         if self.A > 0:
             self.showMsg('nominal magDrop: %0.2f' % ((np.log10(self.B) - np.log10(self.A)) * 2.5))
@@ -2085,6 +2110,10 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                          color='red')
         
     def computeErrorBars(self):
+
+        if self.penumbralFitCheckBox.isChecked():
+            self.finalReportPenumbral()
+            return
 
         if self.sigmaB == 0.0:
             self.sigmaB = MIN_SIGMA
@@ -2601,10 +2630,245 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                       'this second pass to more accurately select points for '
                       'the initial noise analysis.')
 
+    def extractBaselineAndEventData(self):
+        if self.dLimits and self.rLimits:
+            left_baseline_pts = self.yValues[self.left:self.dLimits[0]]
+            right_baseline_pts = self.yValues[self.rLimits[1]+1:self.right + 1]
+            baseline_pts = np.concatenate((left_baseline_pts, right_baseline_pts))
+            event_pts = self.yValues[self.dLimits[1]+1:self.rLimits[0]]
+            # self.showMsg(f'num left baseline pts: {len(left_baseline_pts)}')
+            # self.showMsg(f'num right baseline pts: {len(right_baseline_pts)}')
+            # self.showMsg(f'num baseline pts: {len(baseline_pts)}')
+            # self.showMsg(f'mean baseline: {np.mean(baseline_pts)}  std baseline: {np.std(baseline_pts)}')
+            # self.showMsg(f'num event pts: {len(event_pts)}')
+            # self.showMsg(f'mean event: {np.mean(event_pts)}  std event: {np.std(event_pts)}')
+        elif self.dLimits:
+            baseline_pts = self.yValues[self.left:self.dLimits[0]]
+            event_pts = self.yValues[self.dLimits[1] + 1:self.right + 1]
+            # self.showMsg(f'num baseline pts: {len(baseline_pts)}')
+            # self.showMsg(f'mean baseline: {np.mean(baseline_pts)}  std baseline: {np.std(baseline_pts)}')
+            # self.showMsg(f'num event pts: {len(event_pts)}')
+            # self.showMsg(f'mean event: {np.mean(event_pts)}  std event: {np.std(event_pts)}')
+        elif self.rLimits:
+            baseline_pts = self.yValues[self.rLimits[1] + 1:self.right + 1]
+            event_pts = self.yValues[self.left:self.rLimits[0]]
+            # self.showMsg(f'num baseline pts: {len(baseline_pts)}')
+            # self.showMsg(f'mean baseline: {np.mean(baseline_pts)}  std baseline: {np.std(baseline_pts)}')
+            # self.showMsg(f'num event pts: {len(event_pts)}')
+            # self.showMsg(f'mean event: {np.mean(event_pts)}  std event: {np.std(event_pts)}')
+        else:
+            self.showInfo(f'No D or R region has been marked!')
+            return None, None, None, None
+
+        B = np.mean(baseline_pts)
+        Bnoise = np.std(baseline_pts)
+        A = np.mean(event_pts)
+        Anoise = np.std(event_pts)
+
+        return B, Bnoise, A, Anoise
+
+    def doPenumbralFit(self):
+
+        if self.firstPassPenumbralFit:
+            self.firstPassPenumbralFit = False
+            self.penumbralFitIterationNumber = 1
+            b_intensity, b_noise, a_intensity, a_noise = self.extractBaselineAndEventData()
+
+            if b_intensity is None:
+                return  # An info message will have already been raised.  No need to do anything else
+
+            self.showMsg(f'B: {b_intensity:0.2f}  A: {a_intensity:0.2f}   B noise: {b_noise:0.3f}  A noise: {a_noise:0.3f}')
+
+            lo = a_intensity + 3.0 * a_noise
+            hi = b_intensity - 3.0 * b_noise
+            d_candidates = []
+            r_candidates = []
+            d_candidate_entry_nums = []
+            r_candidate_entry_nums = []
+
+            if self.dLimits:
+                self.eventType = 'Donly'
+                d_region_intensities = self.yValues[self.dLimits[0]:self.dLimits[1] + 1]
+                d_region_entry_nums = range(self.dLimits[0], self.dLimits[1] + 1)
+                d_candidates = [val for val in d_region_intensities if lo <= val <= hi]
+                d_candidate_entry_nums = [d_region_entry_nums[i] for i, val in enumerate(d_region_intensities)
+                                          if lo <= val <= hi]
+                if not d_candidates:
+                    self.showMsg('No solution possible at D because of the noise level.', bold=True, color='red')
+                print("d_candidates", d_candidates)
+                print("D entry nums", d_candidate_entry_nums)
+
+            if self.rLimits:
+                self.eventType = 'Ronly'
+                r_region_intensities = self.yValues[self.rLimits[0]:self.rLimits[1] + 1]
+                r_region_entry_nums = range(self.rLimits[0], self.rLimits[1] + 1)
+                r_candidates = [val for val in r_region_intensities if lo <= val <= hi]
+                r_candidate_entry_nums = [r_region_entry_nums[i] for i, val in enumerate(r_region_intensities)
+                                          if lo <= val <= hi]
+                if not r_candidates:
+                    self.showMsg('No solution possible at R because of the noise level.', bold=True, color='red')
+                print("r_candidates", r_candidates)
+                print("R entry nums", r_candidate_entry_nums)
+
+            if self.dLimits and self.rLimits:
+                self.eventType = 'DandR'
+
+            self.dRegion = None  # Erases the coloring of the D region (when self.reDrawMainPlot is called)
+            self.rRegion = None  # Erases the coloring of the R region (when self.reDrawMainPlot is called)
+
+            # Preserve these for possible next pass
+            self.d_candidates = d_candidates
+            self.d_candidate_entry_nums = d_candidate_entry_nums
+            self.r_candidates = r_candidates
+            self.r_candidate_entry_nums = r_candidate_entry_nums
+            self.b_intensity = b_intensity
+            self.a_intensity = a_intensity
+
+        # Get current underlying lightcurve
+        self.underlyingLightcurveAns = self.demoUnderlyingLightcurves(baseline=self.b_intensity, event=self.a_intensity,
+                                                                      plots_wanted=False)
+
+        # If an error in data entry has occurred, ans will be None
+        if self.underlyingLightcurveAns is None:
+            self.showMsg(f'An error in the underlying lightcurve parameters has occurred.', bold=True, color='red')
+            return
+
+        if self.d_candidates and self.r_candidates:
+            self.eventType = 'DandR'
+        elif self.d_candidates:
+            self.eventType = 'Donly'
+        else:
+            self.eventType = 'Ronly'
+
+        if self.eventType in ['Donly', 'DandR']:
+            d_list = []
+            for i in range(len(self.d_candidates)):
+                newD = self.dEdgeCorrected(self.d_candidates[i], self.d_candidate_entry_nums[i])
+                d_list.append(newD)
+            d_mean = np.mean(d_list)
+            print(d_list, d_mean)
+        else:
+            d_mean = None
+
+        if self.eventType in ['Ronly', 'DandR']:
+            r_list = []
+            for i in range(len(self.r_candidates)):
+                newR = self.rEdgeCorrected(self.r_candidates[i], self.r_candidate_entry_nums[i])
+                r_list.append(newR)
+            r_mean = np.mean(r_list)
+            print(r_list, r_mean)
+        else:
+            r_mean = None
+
+        self.solution = [None, None]  # Convert from tuple so that next line will be accepted
+        self.solution[0] = d_mean
+        self.solution[1] = r_mean
+
+        self.reDrawMainPlot()
+        self.drawSolution()
+        self.calcErrBars.setEnabled(True)
+
+        self.doPenumbralFitIterationReport()
+
+        d_metric, r_metric = self.calculatePenumbralMetrics(d_mean, r_mean)
+        self.showMsg(f'D fit metric: {d_metric:0.1f}', blankLine=False)
+        self.showMsg(f'R fit metric: {r_metric:0.1f}')
+
+        self.penumbralFitIterationNumber += 1
+
+        print(self.getUnderlyingLightCurveTimeRanges())
+
+        return
+
+    def calculatePenumbralMetrics(self, D=None, R=None):
+        d_metric = r_metric = None
+        time_ranges = self.getUnderlyingLightCurveTimeRanges()
+        if D is not None:
+            time_ranges[0] += D
+            time_ranges[1] += D
+            d_metric = 0.0
+            print('\nd participants in metric')
+            for i in range(int(np.ceil(time_ranges[0])), int(np.ceil(time_ranges[1]))):
+                print(i, self.yValues[i], i - D, intensity_at_time(self.underlyingLightcurveAns, i - D, 'D'))
+            for i in range(int(np.ceil(time_ranges[0])), int(np.ceil(time_ranges[1]))):
+                lightcurve_intensity = intensity_at_time(self.underlyingLightcurveAns, i - D, 'D')
+                d_metric += (self.yValues[i] - lightcurve_intensity)**2
+
+        if R is not None:
+            time_ranges[2] += R
+            time_ranges[3] += R
+            r_metric = 0.0
+            print('\nr participants in metric')
+            for i in range(int(np.ceil(time_ranges[2])), int(np.ceil(time_ranges[3]))):
+                print(i, self.yValues[i], i - R, intensity_at_time(self.underlyingLightcurveAns, i - R, 'R'))
+            for i in range(int(np.ceil(time_ranges[2])), int(np.ceil(time_ranges[3]))):
+                lightcurve_intensity = intensity_at_time(self.underlyingLightcurveAns, i - R, 'R')
+                r_metric += (self.yValues[i] - lightcurve_intensity)**2
+
+        return d_metric, r_metric
+
+    def doPenumbralFitIterationReport(self):
+        self.showMsg(f'Penumbral fit iteration {self.penumbralFitIterationNumber}:', bold=True, color='green')
+        if self.eventType == 'DandR':
+            self.showMsg(f'(in entryNum units) D: {self.solution[0]:0.4f}  R: {self.solution[1]:0.4f}')
+        elif self.eventType == 'Donly':
+            self.showMsg(f'(in entryNum units) D: {self.solution[0]:0.4f}')
+        else:  # Ronly
+            self.showMsg(f'(in entryNum units) R: {self.solution[1]:0.4f}')
+        self.doLightcurveParameterReport()
+        return
+
+    def doLightcurveParameterReport(self):
+        if self.enableDiffractionCalculationBox.isChecked():
+            self.showMsg(f'Diffraction effects included', blankLine=False)
+        else:
+            self.showMsg(f'Diffraction effects suppressed', blankLine=False)
+        self.showMsg(f'dist(AU): {self.asteroidDistanceEdit.text()}', blankLine=False)
+        self.showMsg(f'speed(km/sec): {self.shadowSpeedEdit.text()}', blankLine=False)
+        self.showMsg(f'Star diam(mas): {self.starDiameterEdit.text()}', blankLine=False)
+        self.showMsg(f'D limb angle: {self.dLimbAngleEdit.text()}', blankLine=False)
+        self.showMsg(f'R limb angle: {self.rLimbAngleEdit.text()}')
+        return
+
+    def rEdgeCorrected(self, r_best_value, r_best_value_index):
+        r_time_corr = time_correction(correction_dict=self.underlyingLightcurveAns,
+                                      transition_point_intensity=r_best_value, edge_type='R')
+        r_delta = r_time_corr / self.timeDelta
+        r_adj = r_best_value_index + r_delta
+        return r_adj
+
+    def dEdgeCorrected(self, d_best_value, d_best_value_index):
+        d_time_corr = time_correction(correction_dict=self.underlyingLightcurveAns,
+                                      transition_point_intensity=d_best_value, edge_type='D')
+        d_delta = d_time_corr / self.timeDelta
+        d_adj = d_best_value_index + d_delta
+        return d_adj
+
+    def getUnderlyingLightCurveTimeRanges(self):
+        # We use this routine to find the 'range' of times that are covered by the underlying lightcurve.
+        # The times returned are relative to the geometric edge (i.e., time = 0.00)
+        B = self.underlyingLightcurveAns['B']
+        A = self.underlyingLightcurveAns['A']
+        hi_intensity = B - 0.05 * (B - A)
+        lo_intensity = A + 0.05 * (B - A)
+        d_early_time = - time_correction(correction_dict=self.underlyingLightcurveAns,
+                                         transition_point_intensity=hi_intensity, edge_type='D')
+        d_late_time = - time_correction(correction_dict=self.underlyingLightcurveAns,
+                                        transition_point_intensity=lo_intensity, edge_type='D')
+        r_early_time = - time_correction(correction_dict=self.underlyingLightcurveAns,
+                                         transition_point_intensity=lo_intensity, edge_type='R')
+        r_late_time = - time_correction(correction_dict=self.underlyingLightcurveAns,
+                                        transition_point_intensity=hi_intensity, edge_type='R')
+        return [d_early_time, d_late_time, r_early_time, r_late_time]
+
     def findEvent(self):
 
         if self.timeDelta == 0.0:
             self.showInfo(f'time per reading (timeDelta) has an invalid value of 0.0\n\nCannot proceed.')
+            return
+
+        if self.penumbralFitCheckBox.isChecked():
+            self.doPenumbralFit()
             return
 
         need_to_invite_user_to_verify_timestamps = False
@@ -3183,6 +3447,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 self.maxEventEdit.setEnabled(True)
                 self.locateEvent.setEnabled(True)
 
+                self.firstPassPenumbralFit = True
+
                 self.doBlockIntegration.setEnabled(True)
                 self.startOver.setEnabled(True)
                 self.fillTableViewOfData()
@@ -3430,6 +3696,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.flashEdges = savedFlashEdges
         self.disableAllButtons()
 
+        self.firstPassPenumbralFit = True
+
         self.lightCurveNumberLabel.setEnabled(True)
         self.curveToAnalyzeSpinBox.setEnabled(True)
         self.normLabel.setEnabled(True)
@@ -3500,7 +3768,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                     z_trimmed.append(z_values[i])
 
             # (150, 100, 100) is the brownish color we use to show the underlying lightcurve
-            plot(x_trimmed, z_trimmed, pen=pg.mkPen((150, 100, 100), width=3))
+            if self.showUnderlyingLightcurveCheckBox.isChecked():
+                plot(x_trimmed, z_trimmed, pen=pg.mkPen((150, 100, 100), width=3))
 
             # Now overplot with the blue camera response curve
             plot(x_trimmed, y_trimmed, pen=pg.mkPen((0, 0, 255), width=3))
@@ -3530,7 +3799,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                     z_trimmed.append(z_values[i])
 
             # (150, 100, 100) is the brownish color we use to show the underlying lightcurve
-            plot(x_trimmed, z_trimmed, pen=pg.mkPen((150, 100, 100), width=3))
+            if self.showUnderlyingLightcurveCheckBox.isChecked():
+                plot(x_trimmed, z_trimmed, pen=pg.mkPen((150, 100, 100), width=3))
 
             # Now overplot with the blue camera response curve
             plot(x_trimmed, y_trimmed, pen=pg.mkPen((0, 0, 255), width=3))
@@ -3573,7 +3843,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             plotRcurve()
             plotGeometricShadowAtR()
         else:
-            raise Exception('Unrecognized event type')
+            raise Exception('Unrecognized event type of |' + self.eventType + '|')
 
     def calcNumBandApoints(self):
         if self.eventType == 'Donly':
@@ -3691,6 +3961,9 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
     
     def reDrawMainPlot(self):
         self.mainPlot.clear()
+
+        if self.yValues is None:
+            return
 
         if self.showTimestampErrors.checkState():
             self.illustrateTimestampOutliers()
