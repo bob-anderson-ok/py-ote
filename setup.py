@@ -40,7 +40,15 @@ CLASSIFIERS = [
 # in use, and that has PyQt5 already installed.  Adding PyQt5 in this list also works, but adds about
 # 100Mb to the normal install download of about 10Mb
 
-INSTALL_REQUIRES = ['pyqtgraph', 'numba', 'opencv-python']
+# INSTALL_REQUIRES = ['pyqtgraph', 'numba', 'opencv-python']
+
+# This is borrowed from pymovie so that an install of pyote following a new Anaconda3 install
+# makes no complaints about what pymovie needs, that way the order if intalling pymovie and pyote won't matter
+INSTALL_REQUIRES = ['pyqtgraph', 'opencv-python', 'astroquery', 'resource',
+                    'scikit-image(>=0.15.0)',
+                    'winshell;platform_system=="Windows"',
+                    'pypiwin32;platform_system=="Windows"', 'matplotlib', 'numpy', 'astropy', 'scikit-image',
+                    'scipy', 'numba>=0.41.0']
 
 ###################################################################
 

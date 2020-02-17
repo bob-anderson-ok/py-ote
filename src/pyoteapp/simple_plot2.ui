@@ -184,6 +184,29 @@
               </property>
              </spacer>
             </item>
+            <item>
+             <widget class="QLabel" name="lineWidthLabel">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This spinner sets the line width (in pixels) of the error bar lines, the geometric edge lines, and the lightcurve lines.  Adjust this to show these lines according to your taste and the resolution of your screen.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>line width</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSpinBox" name="lineWidthSpinner">
+              <property name="minimum">
+               <number>1</number>
+              </property>
+              <property name="maximum">
+               <number>9</number>
+              </property>
+              <property name="value">
+               <number>2</number>
+              </property>
+             </widget>
+            </item>
            </layout>
           </item>
           <item>

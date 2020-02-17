@@ -77,6 +77,8 @@ BASELINE = 2  # green
 INCLUDED = 1  # blue
 EXCLUDED = 0  # no dot
 
+LINESIZE = 2
+
 acfCoefThreshold = 0.05  # To match what is being done in R-OTE 4.5.4+
 
 # There is a bug in pyqtgraph ImageExpoter, probably caused by new versions of PyQt5 returning
@@ -227,6 +229,10 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
         # QSpinBox: secondarySelector
         self.secondarySelector.installEventFilter(self)
+
+        # line size
+        self.lineWidthLabel.installEventFilter(self)
+        self.lineWidthSpinner.valueChanged.connect(self.reDrawMainPlot)
 
         # plotHelpButton
         self.plotHelpButton.clicked.connect(self.plotHelpButtonClicked)
@@ -3911,16 +3917,16 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
             # (150, 100, 100) is the brownish color we use to show the underlying lightcurve
             if self.showUnderlyingLightcurveCheckBox.isChecked():
-                plot(x_trimmed, z_trimmed, pen=pg.mkPen((150, 100, 100), width=3))
+                plot(x_trimmed, z_trimmed, pen=pg.mkPen((150, 100, 100), width=self.lineWidthSpinner.value()))
 
             # Now overplot with the blue camera response curve
-            plot(x_trimmed, y_trimmed, pen=pg.mkPen((0, 0, 255), width=3))
+            plot(x_trimmed, y_trimmed, pen=pg.mkPen((0, 0, 255), width=self.lineWidthSpinner.value()))
             # Extend camera response to the left and right if necessary...
             if x_trimmed:
                 if x_trimmed[0] > self.left:
-                    plot([self.left, x_trimmed[0]], [y_trimmed[0], y_trimmed[0]], pen=pg.mkPen((0, 0, 255), width=3))
+                    plot([self.left, x_trimmed[0]], [y_trimmed[0], y_trimmed[0]], pen=pg.mkPen((0, 0, 255), width=self.lineWidthSpinner.value()))
                 if x_trimmed[-1] < max_x:
-                    plot([x_trimmed[-1], max_x], [y_trimmed[-1], y_trimmed[-1]], pen=pg.mkPen((0, 0, 255), width=3))
+                    plot([x_trimmed[-1], max_x], [y_trimmed[-1], y_trimmed[-1]], pen=pg.mkPen((0, 0, 255), width=self.lineWidthSpinner.value()))
 
         def plotRcurve():
             # The units of self.timeDelta are seconds per entry, so the conversion in the next line
@@ -3943,25 +3949,25 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
             # (150, 100, 100) is the brownish color we use to show the underlying lightcurve
             if self.showUnderlyingLightcurveCheckBox.isChecked():
-                plot(x_trimmed, z_trimmed, pen=pg.mkPen((150, 100, 100), width=3))
+                plot(x_trimmed, z_trimmed, pen=pg.mkPen((150, 100, 100), width=self.lineWidthSpinner.value()))
 
             # Now overplot with the blue camera response curve
-            plot(x_trimmed, y_trimmed, pen=pg.mkPen((0, 0, 255), width=3))
+            plot(x_trimmed, y_trimmed, pen=pg.mkPen((0, 0, 255), width=self.lineWidthSpinner.value()))
             # Extend camera response to the left and right if necessary...
             if x_trimmed:
                 if x_trimmed[0] > min_x:
-                    plot([min_x, x_trimmed[0]], [y_trimmed[0], y_trimmed[0]], pen=pg.mkPen((0, 0, 255), width=3))
+                    plot([min_x, x_trimmed[0]], [y_trimmed[0], y_trimmed[0]], pen=pg.mkPen((0, 0, 255), width=self.lineWidthSpinner.value()))
                 if x_trimmed[-1] < self.right:
-                    plot([x_trimmed[-1], self.right], [y_trimmed[-1], y_trimmed[-1]], pen=pg.mkPen((0, 0, 255), width=3))
+                    plot([x_trimmed[-1], self.right], [y_trimmed[-1], y_trimmed[-1]], pen=pg.mkPen((0, 0, 255), width=self.lineWidthSpinner.value()))
 
         def plotGeometricShadowAtD():
             if self.showEdgesCheckBox.isChecked():
-                pen = pg.mkPen(color=(255, 0, 0), style=QtCore.Qt.DashLine, width=3)
+                pen = pg.mkPen(color=(255, 0, 0), style=QtCore.Qt.DashLine, width=self.lineWidthSpinner.value())
                 self.mainPlot.plot([D, D], [lo_int, hi_int], pen=pen, symbol=None)
 
         def plotGeometricShadowAtR():
             if self.showEdgesCheckBox.isChecked():
-                pen = pg.mkPen(color=(0, 200, 0), style=QtCore.Qt.DashLine, width=3)
+                pen = pg.mkPen(color=(0, 200, 0), style=QtCore.Qt.DashLine, width=self.lineWidthSpinner.value())
                 self.mainPlot.plot([R, R], [lo_int, hi_int], pen=pen, symbol=None)
 
         hi_int = max(self.yValues[self.left:self.right])
@@ -4017,12 +4023,12 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
         def plotGeometricShadowAtD(d):
             if self.showErrBarsCheckBox.isChecked():
-                pen = pg.mkPen(color=(255, 0, 0), style=QtCore.Qt.DotLine, width=3)
+                pen = pg.mkPen(color=(255, 0, 0), style=QtCore.Qt.DotLine, width=self.lineWidthSpinner.value())
                 self.mainPlot.plot([d, d], [lo_int, hi_int], pen=pen, symbol=None)
 
         def plotGeometricShadowAtR(r):
             if self.showErrBarsCheckBox.isChecked():
-                pen = pg.mkPen(color=(0, 200, 0), style=QtCore.Qt.DotLine, width=3)
+                pen = pg.mkPen(color=(0, 200, 0), style=QtCore.Qt.DotLine, width=self.lineWidthSpinner.value())
                 self.mainPlot.plot([r, r], [lo_int, hi_int], pen=pen, symbol=None)
         
         if self.solution is None:
