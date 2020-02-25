@@ -73,7 +73,7 @@ def generate_transition_point_time_correction_look_up_tables(
 
         time_range_seconds = np.ceil(frame_time_sec) + 1.0
 
-        n_points = time_range_seconds / RESOLUTION
+        n_points = int(time_range_seconds / RESOLUTION)
         time_values = np.linspace(-time_range_seconds, time_range_seconds, 2 * n_points + 1)
         d_values = np.ndarray(time_values.size)
         r_values = np.ndarray(time_values.size)
