@@ -361,6 +361,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.mainPlot.hideButtons()
         self.mainPlot.showGrid(y=True, alpha=1.0)
 
+        self.extra = []
+        self.aperture_names = []
         self.initializeTableView()  # Mostly just establishes column headers
         
         # Open (or create) file for holding 'sticky' stuff
@@ -851,8 +853,13 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 self.curveToAnalyzeSpinBox.setValue(norm - 1)
 
         selText = self.secondarySelector.text()
-        self.showMsg('Secondary reference ' + selText + ' selected.')
         refNum = int(selText)
+
+        if self.aperture_names:
+            self.showMsg('Secondary reference ' + selText + ' selected.  PyMovie aperture name: ' +
+                         self.aperture_names[refNum - 1])
+        else:
+            self.showMsg('Secondary reference ' + selText + ' selected.')
 
         if refNum == 1:
             self.yRefStar = self.LC1
@@ -862,6 +869,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             self.yRefStar = self.LC3
         if refNum == 4:
             self.yRefStar = self.LC4
+        if refNum > 4:
+            self.yRefStar = self.extra[refNum - 4 - 1]
 
         self.smoothSecondary = []
         self.reDrawMainPlot()
@@ -878,8 +887,13 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 self.secondarySelector.setValue(prim - 1)
 
         selText = self.curveToAnalyzeSpinBox.text()
-        self.showMsg('Analyze light curve ' + selText + ' selected.')
         refNum = int(selText)
+
+        if self.aperture_names:
+            self.showMsg('Analyze light curve ' + selText + ' selected.  PyMovie aperture name: ' +
+                         self.aperture_names[refNum - 1])
+        else:
+            self.showMsg('Analyze light curve ' + selText + ' selected.')
 
         if refNum == 1:
             self.yValues = self.LC1
@@ -889,6 +903,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             self.yValues = self.LC3
         if refNum == 4:
             self.yValues = self.LC4
+        if refNum > 4:
+            self.yValues = self.extra[refNum - 4 - 1]
 
         self.solution = None
         self.reDrawMainPlot()
@@ -1635,9 +1651,15 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         
     def initializeTableView(self):
         self.table.clear()
-        self.table.setColumnCount(6)
+        if self.extra:
+            self.table.setColumnCount(6 + len(self.extra))
+        else:
+            self.table.setColumnCount(6)
         self.table.setRowCount(3)
         colLabels = ['Frame num', 'Timestamp', 'LC1', 'LC2', 'LC3', 'LC4']
+        if self.extra:
+            for i in range(len(self.extra)):
+                colLabels.append(f'LC{i+5}')
         self.table.setHorizontalHeaderLabels(colLabels)
         
     def closeEvent(self, event):
@@ -3343,6 +3365,11 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 neatStr = fp.to_precision(self.LC4[i], 6)
                 newitem = QtGui.QTableWidgetItem(str(neatStr))
                 self.table.setItem(i, 5, newitem)
+            if self.extra:
+                for k, lightcurve in enumerate(self.extra):
+                    neatStr = fp.to_precision(lightcurve[i], 6)
+                    newitem = QtGui.QTableWidgetItem(str(neatStr))
+                    self.table.setItem(i, 6 + k, newitem)
 
         self.table.resizeColumnsToContents()
         self.writeCSVButton.setEnabled(True)
@@ -3437,8 +3464,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
             try:
                 self.outliers = []
-                frame, time, value, self.secondary, self.ref2, self.ref3, \
-                    self.headers = readLightCurve(self.filename)
+                frame, time, value, self.secondary, self.ref2, self.ref3, self.extra, \
+                    self.aperture_names, self.headers = readLightCurve(self.filename)
                 values = [float(item) for item in value]
                 self.yValues = np.array(values)  # yValues = curve to analyze
                 self.dataLen = len(self.yValues)
@@ -3492,6 +3519,10 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                                         # Enable frame view controls
                                         self.showMsg(f'{ans["num_frames"]} .fits files were found in FITS folder')
                                         self.enableDisableFrameViewControls(state_to_set=True)
+                                elif ext == '.adv':
+                                    # For now we assume that .adv files have embedded timestamps and
+                                    # so there is no need to display frames for visual OCR verification
+                                    self.pathToVideo = None
                                 else:
                                     self.showMsg(f'Unexpected file type of {ext} found.')
 
@@ -3510,6 +3541,15 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 vals = [float(item) for item in self.ref3]
                 self.LC4 = np.array(vals)
 
+                # A pymovie csv file can have more than 4 lightcurves.  The 'extra' lightcurves beyond
+                # the standard max of 4 are placed in self.extra which is an array of lightcurves
+                if self.extra:
+                    for i, light_curve in enumerate(self.extra):
+                        vals = [float(item) for item in light_curve]
+                        self.extra[i] = vals[:]
+
+                self.initializeTableView()
+
                 self.secondarySelector.setValue(1)
                 self.curveToAnalyzeSpinBox.setMaximum(1)
                 if self.secondary:
@@ -3527,6 +3567,9 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                         if self.ref3:
                             self.secondarySelector.setMaximum(4)
                             self.curveToAnalyzeSpinBox.setMaximum(4)
+                            if self.extra:
+                                self.secondarySelector.setMaximum(4 + len(self.extra))
+                                self.curveToAnalyzeSpinBox.setMaximum(4 + len(self.extra))
 
                 self.lightCurveNumberLabel.setEnabled(True)
                 self.curveToAnalyzeSpinBox.setEnabled(True)

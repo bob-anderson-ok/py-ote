@@ -20,9 +20,9 @@ def readLightCurve(filepath):
     """
     if fileCanBeOpened(filepath):
         
-        readOk, errMsg, frame, time, value, ref1, ref2, ref3, headers = readAs(filepath)
+        readOk, errMsg, frame, time, value, ref1, ref2, ref3, extra, aperture_names, headers = readAs(filepath)
         if readOk:
-            return frame, time, value, ref1, ref2, ref3, headers
+            return frame, time, value, ref1, ref2, ref3, extra, aperture_names, headers
         else:
             raise Exception(errMsg)
             
@@ -52,7 +52,8 @@ def getFileKind(file):
             return '???'
 
 
-def tangraParser(line, frame, time, value, ref1, ref2, ref3):
+# noinspection PyUnusedLocal
+def tangraParser(line, frame, time, value, ref1, ref2, ref3, extra):
     """
     We only accept Tangra files that have been formatted
     according to the AOTA default which is ---
@@ -99,7 +100,7 @@ def tangraParser(line, frame, time, value, ref1, ref2, ref3):
 
 
 # noinspection PyUnusedLocal
-def limovieParser(line, frame, time, value, ref1, ref2, ref3):
+def limovieParser(line, frame, time, value, ref1, ref2, ref3, extra):
     """
     Limovie sample line ---
         3.5,21381195,21381200,22,27,43.0000,,,,,2737.8,3897.32 ...
@@ -115,7 +116,7 @@ def limovieParser(line, frame, time, value, ref1, ref2, ref3):
 
 
 # noinspection PyUnusedLocal
-def roteParser(line, frame, time, value, ref1, ref2, ref3):
+def roteParser(line, frame, time, value, ref1, ref2, ref3, extra):
     """
     R-OTE sample line ---
         1.00,[17:25:39.3415],2737.8,3897.32,675.3,892.12
@@ -136,7 +137,7 @@ def roteParser(line, frame, time, value, ref1, ref2, ref3):
 
 
 # noinspection PyUnusedLocal
-def pymovieParser(line, frame, time, value, ref1, ref2, ref3):
+def pymovieParser(line, frame, time, value, ref1, ref2, ref3, extra):
     """
     R-OTE sample line ---
         1.00,[17:25:39.3415],2737.8,3897.32,675.3,892.12
@@ -154,6 +155,10 @@ def pymovieParser(line, frame, time, value, ref1, ref2, ref3):
     if len(part) >= 6 and pymovieSignalColumnCount >= 4:
         if part[5]:
             ref3.append(part[5])
+    if pymovieSignalColumnCount > 4:
+        for i in range(6, pymovieSignalColumnCount + 2):
+            if len(part) > i and part[i]:
+                extra[i-6].append(part[i])
 
 
 # noinspection PyUnusedLocal
@@ -168,13 +173,15 @@ def readAs(file):
     kind = getFileKind(file)
     
     fileobject = open(file)
-    headers = []
-    time = []
     frame = []
+    time = []
     value = []
     ref1 = []
     ref2 = []
     ref3 = []
+    extra = []
+    headers = []
+    aperture_names = []
     
     if kind == 'Tangra':
         colHeaderKey = 'FrameNo'
@@ -193,8 +200,8 @@ def readAs(file):
         colHeaderKey = 'RAW'
         parser = rawParser
     else:
-        return False, 'invalid file "kind"', [], [], [], [], [], [], []
-        
+        return False, 'invalid file "kind"', frame, time, value, ref1, ref2, ref3, extra, aperture_names, headers
+
     with fileobject:
         while True:
             line = fileobject.readline()
@@ -214,20 +221,24 @@ def readAs(file):
                         for part in parts:
                             if part.startswith('signal'):
                                 pymovieSignalColumnCount += 1
+                                aperture_names.append(part.split('-')[1])
+                            # If there are more than 4 columns of 'signals', we need to setup
+                            # extra to hold those columns
+                        for i in range(5, pymovieSignalColumnCount+1):
+                            extra.append([])
 
                     while True:
                         line = fileobject.readline()
                         if line:
                             # noinspection PyBroadException
                             try:
-                                parser(line, frame, time, value, ref1, ref2, ref3)
+                                parser(line, frame, time, value, ref1, ref2, ref3, extra)
                             except Exception as e:
                                 return False, str(e), frame, time, value, \
-                                       ref1, \
-                                       ref2, ref3, headers
+                                       ref1, ref2, ref3, extra, aperture_names, headers
                         else:
-                            return True, kind, frame, time, value, ref1, ref2, ref3, headers
+                            return True, kind, frame, time, value, ref1, ref2, ref3, extra, aperture_names, headers
                 headers.append(line)
             else:
                 return (False, colHeaderKey + ' not found as first column header', 
-                        [], [], [], [], [], [], headers)
+                        [], [], [], [], [], [], [], aperture_names, headers)
