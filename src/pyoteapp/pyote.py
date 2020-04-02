@@ -372,6 +372,10 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         # Use 'sticky' settings to size and position the main screen
         self.resize(self.settings.value('size', QSize(800, 800)))
         self.move(self.settings.value('pos', QPoint(50, 50)))
+        usediff = self.settings.value('usediff', 'true') == 'true'
+        self.enableDiffractionCalculationBox.setChecked(usediff)
+        doOCRcheck = self.settings.value('doOCRcheck', 'true') == 'true'
+        self.showOCRcheckFramesCheckBox.setChecked(doOCRcheck)
 
         self.yValues = None
         self.outliers = []
@@ -1391,8 +1395,11 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         else:
             self.secondarySelector.setEnabled(False)
 
-        self.reDrawMainPlot()
-        self.mainPlot.autoRange()
+        if self.showSecondaryCheckBox.isChecked():
+            self.changeSecondary()
+        else:
+            self.reDrawMainPlot()
+            self.mainPlot.autoRange()
         
     def showInfo(self, stuffToSay):
         QMessageBox.information(self, 'General information', stuffToSay)
@@ -1421,6 +1428,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             self.yValues = self.LC3
         elif primary == 4:
             self.yValues = self.LC4
+        else:
+            self.yValues = self.extra[primary - 5]
 
         if primary == reference:
             if reference == 1:
@@ -1431,6 +1440,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 self.yRefStar = self.LC3
             elif reference == 4:
                 self.yRefStar = self.LC4
+            else:
+                self.yRefStar = self.extra[reference - 5]
 
         # noinspection PyUnusedLocal
         self.yStatus = [1 for _i in range(self.dataLen)]
@@ -1535,6 +1546,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         newLC2 = []
         newLC3 = []
         newLC4 = []
+        newExtra = [[] for _ in range(len(self.extra))]
 
         if not self.blockSize % 2 == 0:
             self.showInfo(f'Blocksize is {self.blockSize}\n\nAn odd number for blocksize is likely an error!')
@@ -1555,6 +1567,11 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             if len(self.LC4) > 0:
                 avg = np.mean(self.LC4[p:(p+span)])
                 newLC4.insert(0, avg)
+
+            if len(newExtra) > 0:
+                for k, lc in enumerate(self.extra):
+                    avg = np.mean(lc[p:(p+span)])
+                    newExtra[k].insert(0, avg)
 
             newFrame.insert(0, self.yFrame[p])
             newTime.insert(0, self.yTimes[p])
@@ -1577,6 +1594,11 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 avg = np.mean(self.LC4[p:(p + span)])
                 newLC4.append(avg)
 
+            if len(newExtra) > 0:
+                for k, lc in enumerate(self.extra):
+                    avg = np.mean(lc[p:(p + span)])
+                    newExtra[k].append(avg)
+
             newFrame.append(self.yFrame[p])
             newTime.append(self.yTimes[p])
             p = p + span
@@ -1587,6 +1609,9 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.LC2 = np.array(newLC2)
         self.LC3 = np.array(newLC3)
         self.LC4 = np.array(newLC4)
+        if len(newExtra) > 0:
+            for k in range(len(newExtra)):
+                self.extra[k] = np.array(newExtra[k])
 
         # auto-select all points
         self.left = 0
@@ -1612,6 +1637,10 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         
         self.doBlockIntegration.setEnabled(False)
         self.acceptBlockIntegration.setEnabled(False)
+
+        if self.showSecondaryCheckBox.isChecked():
+            self.changeSecondary()
+
         self.reDrawMainPlot()
         self.mainPlot.autoRange()
 
@@ -1651,13 +1680,13 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         
     def initializeTableView(self):
         self.table.clear()
-        if self.extra:
+        if len(self.extra) > 0:
             self.table.setColumnCount(6 + len(self.extra))
         else:
             self.table.setColumnCount(6)
         self.table.setRowCount(3)
         colLabels = ['Frame num', 'Timestamp', 'LC1', 'LC2', 'LC3', 'LC4']
-        if self.extra:
+        if len(self.extra) > 0:
             for i in range(len(self.extra)):
                 colLabels.append(f'LC{i+5}')
         self.table.setHorizontalHeaderLabels(colLabels)
@@ -1666,6 +1695,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         # Capture the close request and update 'sticky' settings
         self.settings.setValue('size', self.size())
         self.settings.setValue('pos', self.pos())
+        self.settings.setValue('usediff', self.enableDiffractionCalculationBox.isChecked())
+        self.settings.setValue('doOCRcheck', self.showOCRcheckFramesCheckBox.isChecked())
         self.helperThing.close()
 
         if self.d_underlying_lightcurve:
@@ -3365,7 +3396,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 neatStr = fp.to_precision(self.LC4[i], 6)
                 newitem = QtGui.QTableWidgetItem(str(neatStr))
                 self.table.setItem(i, 5, newitem)
-            if self.extra:
+            if len(self.extra) > 0:
                 for k, lightcurve in enumerate(self.extra):
                     neatStr = fp.to_precision(lightcurve[i], 6)
                     newitem = QtGui.QTableWidgetItem(str(neatStr))

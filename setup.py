@@ -24,14 +24,13 @@ for pkg in PACKAGES:
 
 KEYWORDS = ["desktop app", "asteroid occultation timing extraction"]
 CLASSIFIERS = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Science/Research",
     "Natural Language :: English",
     "License :: OSI Approved :: MIT License",
     "Operating System :: MacOS :: MacOS X",
     "Operating System :: Microsoft :: Windows",
     "Programming Language :: Python :: 3.7",
-    "Programming Language :: Cython",
     "Programming Language :: Python :: Implementation :: CPython",
     "Topic :: Scientific/Engineering",
 ]
