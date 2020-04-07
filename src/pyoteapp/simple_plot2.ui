@@ -20,7 +20,7 @@
       <property name="orientation">
        <enum>Qt::Vertical</enum>
       </property>
-      <widget class="QWidget" name="">
+      <widget class="QWidget" name="layoutWidget">
        <layout class="QHBoxLayout" name="horizontalLayout_15">
         <item>
          <layout class="QVBoxLayout" name="verticalLayout">
@@ -902,7 +902,7 @@
                </sizepolicy>
               </property>
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter the distance to the asteroid/occulting body.&lt;/p&gt;&lt;p&gt;For distance units, use AU (Astronomical units)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter the distance to the asteroid/occulting body.&lt;/p&gt;&lt;p&gt;For distance units, use AU (Astronomical units)&lt;/p&gt;&lt;p&gt;Note: If parallax (in arc seconds) to the asteroid is available instead of distance in AU, the distance to the asteroid can be calculated with the equation:&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:18pt; font-weight:600;&quot;&gt;distance(AU) = 8.7882 / parallax(arc seconds)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>  dist(AU):</string>

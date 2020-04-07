@@ -19,6 +19,7 @@ matplotlib.use('Qt5Agg')
 from pyoteapp.showVideoFrames import readAviFile
 from pyoteapp.showVideoFrames import readSerFile
 from pyoteapp.showVideoFrames import readFitsFile
+from pyoteapp.showVideoFrames import readAavFile
 
 from pyoteapp.false_positive import compute_drops
 import numpy as np
@@ -625,6 +626,11 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         elif ext == '':
             # We assume its a FITS folder that we have been given
             ans = readFitsFile(frame_number, full_file_path=self.pathToVideo)
+            if not ans['success']:
+                self.showMsg(f'Attempt to view frame returned errmsg: {ans["errmsg"]}')
+                return
+        elif ext == '.aav':
+            ans = readAavFile(frame_number, full_file_path=self.pathToVideo)
             if not ans['success']:
                 self.showMsg(f'Attempt to view frame returned errmsg: {ans["errmsg"]}')
                 return
@@ -3554,6 +3560,16 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                                     # For now we assume that .adv files have embedded timestamps and
                                     # so there is no need to display frames for visual OCR verification
                                     self.pathToVideo = None
+                                elif ext == '.aav':
+                                    ans = readAavFile(0, self.pathToVideo)
+                                    if not ans['success']:
+                                        self.showMsg(
+                                            f'Attempt to read .aav file gave errmg: {ans["errmsg"]}',
+                                            color='red', bold=True)
+                                        self.pathToVideo = None
+                                    else:
+                                        # Enable frame view controls
+                                        self.enableDisableFrameViewControls(state_to_set=True)
                                 else:
                                     self.showMsg(f'Unexpected file type of {ext} found.')
 

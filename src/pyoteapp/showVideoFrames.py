@@ -5,6 +5,36 @@ import cv2
 import pyoteapp.SER
 import glob
 import astropy.io.fits as pyfits  # Used for reading/writing FITS files
+from Adv2.Adv2File import Adv2reader
+from Adv2.AdvError import AdvLibException
+
+
+# def readAavFile(frame_to_read=0, full_file_path=None):
+#     try:
+#         rdr = Adv2reader(full_file_path)
+#     except AdvLibException as adverr:
+#         return repr(adverr), None
+#     except IOError as ioerr:
+#         return repr(ioerr), None
+#
+#     rdr.closeFile()
+#     return 'ok', None
+
+
+def readAavFile(frame_to_read=0, full_file_path=None):
+    try:
+        rdr = Adv2reader(full_file_path)
+    except AdvLibException as adverr:
+        return {"success": False, "image": None, "errmsg": repr(adverr)}
+    except IOError as ioerr:
+        return {"success": False, "image": None, "errmsg": repr(ioerr)}
+
+    err, image, _, _ = rdr.getMainImageAndStatusData(frameNumber=frame_to_read)
+    rdr.closeFile()
+    if not err:
+        return {"success": True, "image": image, "errmsg": ""}
+    else:
+        return {"success": False, "image": None, "errmsg": err}
 
 
 def readAviFile(frame_to_read=0, full_file_path=None):
