@@ -1932,6 +1932,21 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             self.showMsg('Duration (R - D): %.4f {+%.4f,-%.4f} seconds' %
                          (Rtime - Dtime, plusDur, minusDur))
 
+    def magDropString(self, B, A):
+        stdA = self.sigmaA / np.sqrt(self.nApts)
+        if not B > 0:
+            return 'NA because B is not greater than 0'
+        if A > B:
+            return 'NA because A is greater than B'
+        if A < stdA:  # We're in limiting magDrop region when A is less than stdA
+            if stdA > B:
+                return 'NA because std(A) is greater than B'
+            else:
+                return f'> {(np.log10(B) - np.log10(stdA)) * 2.5:0.2f}'
+        else:
+            # This is normal return stdA < A < B > 0
+            return f'{(np.log10(B) - np.log10(A)) * 2.5:0.2f}'
+
     def magdropReport(self, numSigmas):
         Adelta = numSigmas * self.sigmaA / np.sqrt(self.nApts)
         Amin = self.A - Adelta
@@ -1942,26 +1957,11 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         Bnom = self.B
         Bmax = self.B + Bdelta
 
-        if 0 < Amax <= Bmin:
-            self.showMsg('minimum magDrop: %0.2f' % (
-                        (np.log10(Bmin) - np.log10(Amax)) * 2.5))
-        else:
-            self.showMsg(
-                'minimum magDrop: NA because Amax is negative or Bmin less than Amax')
+        self.showMsg(f'minimum magDrop: {self.magDropString(Bmin, Amax)}')
 
-        if Anom > 0:
-            self.showMsg('nominal magDrop: %0.2f' % (
-                        (np.log10(Bnom) - np.log10(Anom)) * 2.5))
-        else:
-            self.showMsg(
-                'nominal magDrop: NA because Anom is negative')
+        self.showMsg(f'nominal magDrop: {self.magDropString(Bnom, Anom)}')
 
-        if Amin > 0:
-            self.showMsg('maximum magDrop: %0.2f' % (
-                        (np.log10(Bmax) - np.log10(Amin)) * 2.5))
-        else:
-            self.showMsg(
-                'maximum magDrop: NA because Amin is negative')
+        self.showMsg(f'maximum magDrop: {self.magDropString(Bmax, Amin)}')
 
     def finalReportPenumbral(self):
 
@@ -2030,10 +2030,11 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             self.showMsg("Times are invalid due to corrupted timestamps!",
                          color='red', bold=True)
 
-        if self.A > 0:
-            self.showMsg('nominal magDrop: %0.2f' % ((np.log10(self.B) - np.log10(self.A)) * 2.5))
-        else:
-            self.showMsg('magDrop calculation not possible because A is negative')
+        # if self.A > 0:
+        #     self.showMsg('nominal magDrop: %0.2f' % ((np.log10(self.B) - np.log10(self.A)) * 2.5))
+        # else:
+        #     self.showMsg('magDrop calculation not possible because A is negative')
+        self.showMsg(f'nominal magDrop: {self.magDropString(self.B, self.A)}')
 
         self.showMsg('snr: %0.2f' % self.snrB)
 
@@ -2123,10 +2124,11 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                          'uncorrelated.',
                          bold=True, color='red')
 
-        if self.A > 0:
-            self.showMsg('nominal magDrop: %0.2f' % ((np.log10(self.B) - np.log10(self.A)) * 2.5))
-        else:
-            self.showMsg('magDrop calculation not possible because A is negative')
+        # if self.A > 0:
+        #     self.showMsg('nominal magDrop: %0.2f' % ((np.log10(self.B) - np.log10(self.A)) * 2.5))
+        # else:
+        #     self.showMsg('magDrop calculation not possible because A is negative')
+        self.showMsg(f'nominal magDrop: {self.magDropString(self.B, self.A)}')
 
         self.showMsg('snr: %0.2f' % self.snrB)
 
