@@ -2107,11 +2107,18 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.reportSpecialProcedureUsed()  # This includes use of asteroid distance/speed and star diameter
 
         if false_positive:
-            self.showMsg(f"This event has a {false_probability:0.4f} probability of being a false positive!!",
-                         color='red', bold=True)
+            self.showMsg(f"This 'drop' has a {false_probability:0.4f} probability of being an artifact of noise.",
+                         bold=True, color='red', blankLine=False)
         else:
-            self.showMsg(f"This event  has a {false_probability:0.4f} probability of being a false positive.",
-                         color='green', bold=True)
+            self.showMsg(f"This 'drop' has a {false_probability:0.4f} probability of being an artifact of noise.",
+                         bold=True, color='green', blankLine=False)
+
+        self.showMsg(f">>>> probability > 0.0000 indicates the 'drop' may be spurious (a noise artifact)."
+                     f" Consult with an IOTA Regional Coordinator.", color='blue', blankLine=False)
+        self.showMsg(f">>>> probability = 0.0000 indicates the 'drop' is unlikely to be a noise artifact, but"
+                     f" does not prove that the 'drop' is due to an occultation", color='blue', blankLine=False)
+        self.showMsg(f">>>> Consider 'drop' shape, timing, mag drop, duration and other positive observer"
+                     f" chords before reporting the 'drop' as a positive.", color='blue')
 
         if not self.timesAreValid:
             self.showMsg("Times are invalid due to corrupted timestamps!",
