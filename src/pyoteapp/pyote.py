@@ -758,29 +758,36 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
         if self.csvFile:
             with open(self.csvFile, 'w') as fileObject:
-                fileObject.write('# ' + 'PYOTE ' + version.version() + '\n')
+                if not self.aperture_names:
+                    fileObject.write('# ' + 'PYOTE ' + version.version() + '\n')
+                else:
+                    fileObject.write('# PyMovie file written by ' + 'PYOTE ' + version.version() + '\n')
+
                 for hdr in self.headers:
                     fileObject.write('# ' + hdr)
-                columnHeadings = 'FrameNum,timeInfo,primaryData'
-                if len(self.LC2) > 0:
-                    columnHeadings += ',LC2'
-                if len(self.LC3) > 0:
-                    columnHeadings += ',LC3'
-                if len(self.LC4) > 0:
-                    columnHeadings += ',LC4'
+                if not self.aperture_names:
+                    # Handle non-PyMovie csv file
+                    columnHeadings = 'FrameNum,timeInfo,primaryData'
+                    if len(self.LC2) > 0:
+                        columnHeadings += ',LC2'
+                    if len(self.LC3) > 0:
+                        columnHeadings += ',LC3'
+                    if len(self.LC4) > 0:
+                        columnHeadings += ',LC4'
+                else:
+                    columnHeadings = 'FrameNum,timeInfo'
+                    for column_name in self.aperture_names:
+                        columnHeadings += f',signal-{column_name}'
                 fileObject.write(columnHeadings + '\n')
 
                 for i in range(self.table.rowCount()):
-                    line = self.table.item(i, 0).text() + ','
-                    line += self.table.item(i, 1).text() + ','
-                    line += self.table.item(i, 2).text()
-                    if len(self.LC2) > 0:
-                        line += ',' + self.table.item(i, 3).text()
-                    if len(self.LC3) > 0:
-                        line += ',' + self.table.item(i, 4).text()
-                    if len(self.LC4) > 0:
-                        line += ',' + self.table.item(i, 5).text()
-                    fileObject.write(line + '\n')
+                    if self.left <= i <= self.right:
+                        line = self.table.item(i, 0).text()
+                        for j in range(1, self.table.columnCount()):
+                            # Deal with empty columns
+                            if self.table.item(i, j) is not None:
+                                line += ',' + self.table.item(i, j).text()
+                        fileObject.write(line + '\n')
 
     @staticmethod
     def copy_desktop_icon_file_to_home_directory():
@@ -1332,12 +1339,14 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         # Reminder: the smoothSecondary[] only cover self.left to self.right inclusive,
         # hence the index manipulation in the following code
         ref = self.smoothSecondary[int(index)-self.left]
-        
+
         for i in range(self.left, self.right+1):
             try:
                 self.yValues[i] = (ref * self.yValues[i]) / self.smoothSecondary[i-self.left]
             except Exception as e:
                 self.showMsg(str(e))
+
+        self.fillTableViewOfData()  # This should capture/write the effects of the normalization to the table
 
         self.showMsg('Light curve normalized to secondary around point ' + str(index))
         self.normalized = True
@@ -1686,15 +1695,19 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         
     def initializeTableView(self):
         self.table.clear()
-        if len(self.extra) > 0:
-            self.table.setColumnCount(6 + len(self.extra))
-        else:
-            self.table.setColumnCount(6)
         self.table.setRowCount(3)
-        colLabels = ['Frame num', 'Timestamp', 'LC1', 'LC2', 'LC3', 'LC4']
-        if len(self.extra) > 0:
-            for i in range(len(self.extra)):
-                colLabels.append(f'LC{i+5}')
+        if not self.aperture_names:
+            # Handle non-PyMovie csv file
+            colLabels = ['FrameNum', 'timeInfo', 'LC1', 'LC2', 'LC3', 'LC4']
+            self.table.setColumnCount(6)
+        else:
+            self.table.setColumnCount(2 + len(self.aperture_names))
+            colLabels = ['FrameNum', 'timeInfo']
+            for column_name in self.aperture_names:
+                colLabels.append(column_name)
+        # if len(self.extra) > 0:
+        #     for i in range(len(self.extra)):
+        #         colLabels.append(f'LC{i+5}')
         self.table.setHorizontalHeaderLabels(colLabels)
         
     def closeEvent(self, event):
@@ -2119,6 +2132,15 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                      f" does not prove that the 'drop' is due to an occultation", color='blue', blankLine=False)
         self.showMsg(f">>>> Consider 'drop' shape, timing, mag drop, duration and other positive observer"
                      f" chords before reporting the 'drop' as a positive.", color='blue')
+
+        self.showMsg("All timestamps are treated as being start-of-exposure times!",
+                     color='red', bold=True)
+        self.showMsg("All times are calculated/reported based on the assumption that timestamps are "
+                     "start-of-exposure times.",
+                     color='blue', bold=True, blankLine=False)
+        self.showMsg("It is critical that you make appropriate time adjustments when timestamps are "
+                     "NOT start-of-exposure times!",
+                     color='red', bold=True)
 
         if not self.timesAreValid:
             self.showMsg("Times are invalid due to corrupted timestamps!",

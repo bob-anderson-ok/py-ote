@@ -217,6 +217,7 @@ def readAs(file):
                     if kind == 'PyMovie':
                         # We need to count the number of times 'signal" starts
                         # a column header
+                        line = line.rstrip()  # Get rid of possible trailing new line \n
                         parts = line.split(',')
                         for part in parts:
                             if part.startswith('signal'):
