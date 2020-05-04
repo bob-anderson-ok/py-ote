@@ -2133,13 +2133,21 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.showMsg(f">>>> Consider 'drop' shape, timing, mag drop, duration and other positive observer"
                      f" chords before reporting the 'drop' as a positive.", color='blue')
 
-        self.showMsg("All timestamps are treated as being start-of-exposure times!",
+        self.showMsg("All timestamps are treated as being start-of-exposure times.",
                      color='red', bold=True)
         self.showMsg("All times are calculated/reported based on the assumption that timestamps are "
                      "start-of-exposure times.",
-                     color='blue', bold=True, blankLine=False)
+                     color='blue', bold=True)
         self.showMsg("It is critical that you make appropriate time adjustments when timestamps are "
-                     "NOT start-of-exposure times!",
+                     "NOT start-of-exposure times.", color='red', bold=True, blankLine=False)
+        self.showMsg("If you use the North American Excel Spreadsheet report, all times will be properly corrected",
+                     color='red', bold=True, blankLine=False)
+        self.showMsg("for camera delay and reported start-of-exposure times.",
+                     color='red', bold=True, blankLine=False)
+        self.showMsg("For other users worldwide, use the appropriate corrections documented in the North American "
+                     "Spreadsheet report form - use",
+                     color='red', bold=True, blankLine=False)
+        self.showMsg("the documentation shown on the Corrections Tables tab.",
                      color='red', bold=True)
 
         if not self.timesAreValid:
