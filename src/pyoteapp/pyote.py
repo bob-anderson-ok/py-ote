@@ -248,7 +248,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.smoothSecondaryButton.installEventFilter(self)
 
         # QLineEdit: window size for secondary smoothing
-        self.numSmoothPointsEdit.editingFinished.connect(self.smoothRefStar)
+        # self.numSmoothPointsEdit.editingFinished.connect(self.smoothRefStar)
         self.numSmoothPointsEdit.installEventFilter(self)
 
         # Button: Normalize around selected point
@@ -1388,16 +1388,27 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             if window % 2 == 0:
                 window -= 1
 
+            # We do a double pass with a third order savgol filter
             filteredY = scipy.signal.savgol_filter(np.array(y), window, 3)
             self.smoothSecondary = scipy.signal.savgol_filter(filteredY, window, 3)
+
+            # New in version 3.7.2: we remove the extrapolated points at each end of self.smoothSecondary
+            self.extra_point_count = window // 2
+            self.selectedPoints = {self.left + self.extra_point_count: 3,
+                                   self.right - self.extra_point_count: 3}
+            saved_smoothSecondary = self.smoothSecondary
+            self.doTrim()
+            self.smoothSecondary = saved_smoothSecondary
+            self.smoothSecondary = self.smoothSecondary[self.extra_point_count:-self.extra_point_count]
+
+            # self.left += self.extra_point_count
+            # self.right -= self.extra_point_count
             self.reDrawMainPlot()
         except Exception as e:
             self.showMsg(str(e))
 
         self.showMsg('Smoothing of secondary star light curve performed with window size: %i' % window)
 
-        # self.smoothSecondaryButton.setEnabled(False)
-        # self.numSmoothPointsEdit.setEnabled(False)
         self.normalizeButton.setEnabled(True)
 
     def toggleDisplayOfTimestampErrors(self):
@@ -4250,7 +4261,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             self.mainPlot.plot(x, y, pen=None, symbol='o', 
                                symbolBrush=(0, 255, 0), symbolSize=6)
             if len(self.smoothSecondary) > 0:
-                self.mainPlot.plot(x, self.smoothSecondary, 
+                self.mainPlot.plot(x, self.smoothSecondary,
                                    pen=pg.mkPen((100, 100, 100), width=4), symbol=None)
                  
         if self.dRegion is not None:
