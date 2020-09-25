@@ -3701,7 +3701,6 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 self.showMsg('=' * 20 + ' end header lines ' + '=' * 20, bold=True)
 
                 self.yTimes = time[:]
-                # self.yTimesCopy = time[:]
                 self.yValues = np.array(values)
                 self.yValCopy = np.ndarray(shape=(len(self.yValues),))
                 np.copyto(self.yValCopy, self.yValues)

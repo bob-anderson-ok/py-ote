@@ -239,7 +239,7 @@ def readAs(file):
                                        ref1, ref2, ref3, extra, aperture_names, headers
                         else:
                             return True, kind, frame, time, value, ref1, ref2, ref3, extra, aperture_names, headers
-                headers.append(line)
+                headers.append(line[:-1])
             else:
                 return (False, colHeaderKey + ' not found as first column header', 
                         [], [], [], [], [], [], [], aperture_names, headers)
