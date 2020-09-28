@@ -34,11 +34,11 @@ def getMostRecentVersionOfPyote():
         return True, versionFound
 
 
-def upgradePyote():
+def upgradePyote(pyoteversion):
 
     import subprocess
 
-    resp = subprocess.run(['python', '-m', 'pip', 'install', '--user', '--upgrade', 'pyote'],
+    resp = subprocess.run(['python', '-m', 'pip', 'install', '--user', '--upgrade', pyoteversion],
                           stderr=subprocess.PIPE, stdout=subprocess.PIPE)
 
     ans = resp.stderr.decode("utf-8").split('\n')

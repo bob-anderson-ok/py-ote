@@ -927,8 +927,9 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.reDrawMainPlot()
         self.mainPlot.autoRange()
 
-    def installLatestVersion(self):
-        pipResult = upgradePyote()
+    def installLatestVersion(self, pyoteversion):
+        self.showMsg(f'Asking to upgrade to: {pyoteversion}')
+        pipResult = upgradePyote(pyoteversion)
         for line in pipResult:
             self.showMsg(line, blankLine=False)
 
@@ -940,23 +941,24 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         gotVersion, latestVersion = getMostRecentVersionOfPyote()
         if gotVersion:
             if latestVersion <= version.version():
-                self.showMsg('You are running the most recent version of pyote', color='red', bold=True)
+                self.showMsg(f'Found the latest version is: {latestVersion}')
+                self.showMsg('You are running the most recent version of PyOTE', color='red', bold=True)
             else:
                 self.showMsg('Version ' + latestVersion + ' is available', color='red', bold=True)
                 if self.queryWhetherNewVersionShouldBeInstalled() == QMessageBox.Yes:
-                    self.showMsg('You have opted to install latest version of PYOTE')
-                    self.installLatestVersion()
+                    self.showMsg('You have opted to install latest version of PyOTE')
+                    self.installLatestVersion(f'pyote=={latestVersion}')
                 else:
-                    self.showMsg('You have declined the opportunity to install latest PYOTE')
+                    self.showMsg('You have declined the opportunity to install latest PyOTE')
         else:
-            self.showMsg(latestVersion, color='red', bold=True)
+            self.showMsg(f'latestVersion found: {latestVersion}')
 
     @staticmethod
     def queryWhetherNewVersionShouldBeInstalled():
         msg = QMessageBox()
         msg.setIcon(QMessageBox.Question)
-        msg.setText('A newer version of PYOTE is available. Do you wish to install it?')
-        msg.setWindowTitle('Get latest version of PYOTE query')
+        msg.setText('A newer version of PyOTE is available. Do you wish to install it?')
+        msg.setWindowTitle('Get latest version of PyOTE query')
         msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
         retval = msg.exec_()
         return retval
