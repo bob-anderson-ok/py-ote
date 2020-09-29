@@ -921,7 +921,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         if refNum == 4:
             self.yValues = self.LC4
         if refNum > 4:
-            self.yValues = self.extra[refNum - 4 - 1]
+            self.yValues = self.extra[refNum - 4 - 1].copy()
 
         self.solution = None
         self.reDrawMainPlot()
@@ -3645,7 +3645,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 if self.extra:
                     for i, light_curve in enumerate(self.extra):
                         vals = [float(item) for item in light_curve]
-                        self.extra[i] = vals[:]
+                        self.extra[i] = np.array(vals[:])
 
                 self.initializeTableView()
 
