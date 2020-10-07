@@ -1358,8 +1358,9 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.smoothSecondaryButton.setEnabled(False)
         self.numSmoothPointsEdit.setEnabled(False)
         self.setDataLimits.setEnabled(False)
+        self.showSecondaryCheckBox.setChecked(False)
         self.reDrawMainPlot()
-        
+
     def smoothRefStar(self):
         if (self.right - self.left) < 4:
             self.showInfo('The smoothing algorithm requires a minimum selection of 5 points')
