@@ -3536,6 +3536,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                     "Csv files (*.csv)")
         else:
             self.filename = self.externalCsvFilePath
+            self.externalCsvFilePath = None
 
         if self.filename:
             self.setWindowTitle('PYOTE Version: ' + version.version() + '  File being processed: ' + self.filename)
