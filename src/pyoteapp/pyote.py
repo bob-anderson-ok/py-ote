@@ -2998,9 +2998,12 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             d_list = []
             for i in range(len(self.d_candidates)):
                 newD = self.dEdgeCorrected(self.d_candidates[i], self.d_candidate_entry_nums[i])
-                d_list.append(newD)
+                if newD is not None:
+                    d_list.append(newD)
+                else:
+                    print('newD came back as None')
             d_mean = np.mean(d_list)
-            print(d_list, d_mean)
+            # print(d_list, d_mean)
         else:
             d_mean = None
 
@@ -3008,9 +3011,12 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             r_list = []
             for i in range(len(self.r_candidates)):
                 newR = self.rEdgeCorrected(self.r_candidates[i], self.r_candidate_entry_nums[i])
-                r_list.append(newR)
+                if newR is not None:
+                    r_list.append(newR)
+                else:
+                    print('newR came back as None')
             r_mean = np.mean(r_list)
-            print(r_list, r_mean)
+            # print(r_list, r_mean)
         else:
             r_mean = None
 
@@ -3089,27 +3095,36 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
     def calculatePenumbralMetrics(self, D=None, R=None):
         d_metric = r_metric = None
         time_ranges = self.getUnderlyingLightCurveTimeRanges()
+
         if D is not None:
-            time_ranges[0] += D
-            time_ranges[1] += D
+            time_ranges[0] = time_ranges[0] / self.timeDelta + D
+            time_ranges[1] = time_ranges[1] / self.timeDelta + D
             d_metric = 0.0
-            print('\nd participants in metric')
+            # print('\nd participants in metric')
+            # for i in range(int(np.ceil(time_ranges[0])), int(np.ceil(time_ranges[1]))):
+            #     print(i, self.yValues[i], i - D,
+            #           intensity_at_time(self.underlyingLightcurveAns, (i - D) * self.timeDelta, 'D'))
+            n_vals_in_metric = 0
             for i in range(int(np.ceil(time_ranges[0])), int(np.ceil(time_ranges[1]))):
-                print(i, self.yValues[i], i - D, intensity_at_time(self.underlyingLightcurveAns, i - D, 'D'))
-            for i in range(int(np.ceil(time_ranges[0])), int(np.ceil(time_ranges[1]))):
-                lightcurve_intensity = intensity_at_time(self.underlyingLightcurveAns, i - D, 'D')
+                lightcurve_intensity = intensity_at_time(self.underlyingLightcurveAns, (i - D) * self.timeDelta, 'D')
                 d_metric += (self.yValues[i] - lightcurve_intensity)**2
+                n_vals_in_metric += 1
+            d_metric = d_metric / n_vals_in_metric
 
         if R is not None:
-            time_ranges[2] += R
-            time_ranges[3] += R
+            time_ranges[2] = time_ranges[2] / self.timeDelta + R
+            time_ranges[3] = time_ranges[3] / self.timeDelta + R
             r_metric = 0.0
-            print('\nr participants in metric')
+            # print('\nr participants in metric')
+            # for i in range(int(np.ceil(time_ranges[2])), int(np.ceil(time_ranges[3]))):
+            #     print(i, self.yValues[i], i - R,
+            #           intensity_at_time(self.underlyingLightcurveAns, (i - R) * self.timeDelta, 'R'))
+            n_vals_in_metric = 0
             for i in range(int(np.ceil(time_ranges[2])), int(np.ceil(time_ranges[3]))):
-                print(i, self.yValues[i], i - R, intensity_at_time(self.underlyingLightcurveAns, i - R, 'R'))
-            for i in range(int(np.ceil(time_ranges[2])), int(np.ceil(time_ranges[3]))):
-                lightcurve_intensity = intensity_at_time(self.underlyingLightcurveAns, i - R, 'R')
+                lightcurve_intensity = intensity_at_time(self.underlyingLightcurveAns, (i - R) * self.timeDelta, 'R')
                 r_metric += (self.yValues[i] - lightcurve_intensity)**2
+                n_vals_in_metric += 1
+            r_metric = r_metric / n_vals_in_metric
 
         return d_metric, r_metric
 
@@ -3139,16 +3154,22 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
     def rEdgeCorrected(self, r_best_value, r_best_value_index):
         r_time_corr = time_correction(correction_dict=self.underlyingLightcurveAns,
                                       transition_point_intensity=r_best_value, edge_type='R')
-        r_delta = r_time_corr / self.timeDelta
-        r_adj = r_best_value_index + r_delta
-        return r_adj
+        if r_time_corr is not None:
+            r_delta = r_time_corr / self.timeDelta
+            r_adj = r_best_value_index + r_delta
+            return r_adj
+        else:
+            return None
 
     def dEdgeCorrected(self, d_best_value, d_best_value_index):
         d_time_corr = time_correction(correction_dict=self.underlyingLightcurveAns,
                                       transition_point_intensity=d_best_value, edge_type='D')
-        d_delta = d_time_corr / self.timeDelta
-        d_adj = d_best_value_index + d_delta
-        return d_adj
+        if d_time_corr is not None:
+            d_delta = d_time_corr / self.timeDelta
+            d_adj = d_best_value_index + d_delta
+            return d_adj
+        else:
+            return None
 
     def getUnderlyingLightCurveTimeRanges(self):
         # We use this routine to find the 'range' of times that are covered by the underlying lightcurve.
