@@ -704,10 +704,10 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
     def showHelp(self, obj):
 
         if obj.toolTip():
-            self.helperThing.textEdit.clear()
-            self.helperThing.textEdit.insertHtml(obj.toolTip())
             self.helperThing.raise_()
             self.helperThing.show()
+            self.helperThing.textEdit.clear()
+            self.helperThing.textEdit.insertHtml(obj.toolTip())
 
     @staticmethod
     def processKeystroke(event):
@@ -725,10 +725,10 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         if event.type() == QtCore.QEvent.MouseButtonPress:
             if event.button() == QtCore.Qt.RightButton:
                 if obj.toolTip():
-                    self.helperThing.textEdit.clear()
-                    self.helperThing.textEdit.insertHtml(obj.toolTip())
                     self.helperThing.raise_()
                     self.helperThing.show()
+                    self.helperThing.textEdit.clear()
+                    self.helperThing.textEdit.insertHtml(obj.toolTip())
                     return True
             return super(SimplePlot, self).eventFilter(obj, event)
             # return False
@@ -2870,6 +2870,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
     def doPenumbralFit(self):
 
         if self.firstPassPenumbralFit:
+
             self.firstPassPenumbralFit = False
             self.lastDmetric = self.lastRmetric = 0.0
             self.penumbralFitIterationNumber = 1
@@ -2878,10 +2879,14 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             if b_intensity is None:
                 return  # An info message will have already been raised.  No need to do anything else.
 
+            # Get current underlying lightcurve
+            self.underlyingLightcurveAns = self.demoUnderlyingLightcurves(baseline=b_intensity, event=a_intensity,
+                                                                          plots_wanted=False)
+            # Adjust b_intensity and a_intensity to match the underlying lightcurve table
+            b_intensity = self.underlyingLightcurveAns['B']
+            a_intensity = self.underlyingLightcurveAns['A']
             self.showMsg(f'B: {b_intensity:0.2f}  A: {a_intensity:0.2f}   B noise: {b_noise:0.3f}  A noise: {a_noise:0.3f}')
 
-            lo = a_intensity + 3.0 * a_noise
-            hi = b_intensity - 3.0 * b_noise
             d_candidates = []
             r_candidates = []
             d_candidate_entry_nums = []
@@ -2891,11 +2896,32 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 self.eventType = 'Donly'
                 d_region_intensities = self.yValues[self.dLimits[0]:self.dLimits[1] + 1]
                 d_region_entry_nums = range(self.dLimits[0], self.dLimits[1] + 1)
-                d_candidates = [val for val in d_region_intensities if lo <= val <= hi]
-                d_candidate_entry_nums = [d_region_entry_nums[i] for i, val in enumerate(d_region_intensities)
-                                          if lo <= val <= hi]
+
+                middle = len(d_region_intensities) // 2
+                i = middle
+                while d_region_intensities[i] > a_intensity:
+                    d_candidates.append(d_region_intensities[i])
+                    d_candidate_entry_nums.append(d_region_entry_nums[i])
+                    i += 1
+                    if i == len(d_region_intensities):
+                        break
+                i = middle - 1
+                while d_region_intensities[i] < b_intensity:
+                    d_candidates.append(d_region_intensities[i])
+                    d_candidate_entry_nums.append(d_region_entry_nums[i])
+                    i -= 1
+                    if i < 0:
+                        break
+
                 if not d_candidates:
-                    self.showMsg('No solution possible at D because of the noise level.', bold=True, color='red')
+                    self.showMsg('No valid transition points found in designated D region.', bold=True, color='red')
+                    return
+
+                # Sort the parallel lists into ascending entry number order
+                zipped_lists = zip(d_candidate_entry_nums, d_candidates)
+                sorted_pairs = sorted(zipped_lists)
+                tuples = zip(*sorted_pairs)
+                d_candidate_entry_nums, d_candidates = [list(item) for item in tuples]
                 print("d_candidates", d_candidates)
                 print("D entry nums", d_candidate_entry_nums)
 
@@ -2903,11 +2929,31 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 self.eventType = 'Ronly'
                 r_region_intensities = self.yValues[self.rLimits[0]:self.rLimits[1] + 1]
                 r_region_entry_nums = range(self.rLimits[0], self.rLimits[1] + 1)
-                r_candidates = [val for val in r_region_intensities if lo <= val <= hi]
-                r_candidate_entry_nums = [r_region_entry_nums[i] for i, val in enumerate(r_region_intensities)
-                                          if lo <= val <= hi]
+
+                middle = len(r_region_intensities) // 2
+                i = middle
+                while r_region_intensities[i] < b_intensity:
+                    r_candidates.append(r_region_intensities[i])
+                    r_candidate_entry_nums.append(r_region_entry_nums[i])
+                    i += 1
+                    if i == len(r_region_intensities):
+                        break
+                i = middle - 1
+                while r_region_intensities[i] > a_intensity:
+                    r_candidates.append(r_region_intensities[i])
+                    r_candidate_entry_nums.append(r_region_entry_nums[i])
+                    i -= 1
+                    if i < 0:
+                        break
+
                 if not r_candidates:
-                    self.showMsg('No solution possible at R because of the noise level.', bold=True, color='red')
+                    self.showMsg('No valid transition points found in designated R region.', bold=True, color='red')
+
+                # Sort the parallel lists into ascending entry number order
+                zipped_lists = zip(r_candidate_entry_nums, r_candidates)
+                sorted_pairs = sorted(zipped_lists)
+                tuples = zip(*sorted_pairs)
+                r_candidate_entry_nums, r_candidates = [list(item) for item in tuples]
                 print("r_candidates", r_candidates)
                 print("R entry nums", r_candidate_entry_nums)
 
@@ -2941,9 +2987,9 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             self.showMsg(f'An error in the underlying lightcurve parameters has occurred.', bold=True, color='red')
             return
 
-        if self.d_candidates and self.r_candidates:
+        if len(self.d_candidates) > 0 and len(self.r_candidates) > 0:
             self.eventType = 'DandR'
-        elif self.d_candidates:
+        elif len(self.d_candidates) > 0:
             self.eventType = 'Donly'
         else:
             self.eventType = 'Ronly'
