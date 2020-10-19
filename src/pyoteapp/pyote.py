@@ -3,6 +3,8 @@ Created on Sat May 20 15:32:13 2017
 
 @author: Bob Anderson
 """
+import subprocess
+
 MIN_SIGMA = 0.1
 
 import datetime
@@ -484,36 +486,42 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                     sheet[Comment].value = self.xlsxDict['Comment']
 
                 if 'Derr68' in self.xlsxDict:
-                    sheet[Derr68].value = f'{self.xlsxDict["Derr68"]:0.2f}'
+                    # sheet[Derr68].value = f'{self.xlsxDict["Derr68"]:0.2f}'
+                    sheet[Derr68].value = self.xlsxDict["Derr68"]
 
                 if 'Derr95' in self.xlsxDict:
-                    sheet[Derr95].value = f'{self.xlsxDict["Derr95"]:0.2f}'
+                    # sheet[Derr95].value = f'{self.xlsxDict["Derr95"]:0.2f}'
+                    sheet[Derr95].value = self.xlsxDict["Derr95"]
 
                 if 'Derr99' in self.xlsxDict:
-                    sheet[Derr99].value = f'{self.xlsxDict["Derr99"]:0.2f}'
+                    # sheet[Derr99].value = f'{self.xlsxDict["Derr99"]:0.2f}'
+                    sheet[Derr99].value = self.xlsxDict["Derr99"]
 
                 if 'Rerr68' in self.xlsxDict:
-                    sheet[Rerr68].value = f'{self.xlsxDict["Rerr68"]:0.2f}'
+                    # sheet[Rerr68].value = f'{self.xlsxDict["Rerr68"]:0.2f}'
+                    sheet[Rerr68].value = self.xlsxDict["Rerr68"]
 
                 if 'Rerr95' in self.xlsxDict:
-                    sheet[Rerr95].value = f'{self.xlsxDict["Rerr95"]:0.2f}'
+                    # sheet[Rerr95].value = f'{self.xlsxDict["Rerr95"]:0.2f}'
+                    sheet[Rerr95].value = self.xlsxDict["Rerr95"]
 
                 if 'Rerr99' in self.xlsxDict:
-                    sheet[Rerr99].value = f'{self.xlsxDict["Rerr99"]:0.2f}'
+                    # sheet[Rerr99].value = f'{self.xlsxDict["Rerr99"]:0.2f}'
+                    sheet[Rerr99].value = self.xlsxDict["Rerr99"]
 
                 if 'Dhour' in self.xlsxDict:
-                    sheet[Dhour] = self.xlsxDict['Dhour']
+                    sheet[Dhour] = int(self.xlsxDict['Dhour'])
                 if 'Dmin' in self.xlsxDict:
-                    sheet[Dmin] = self.xlsxDict['Dmin']
+                    sheet[Dmin] = int(self.xlsxDict['Dmin'])
                 if 'Dsec' in self.xlsxDict:
-                    sheet[Dsec] = self.xlsxDict['Dsec']
+                    sheet[Dsec] = float(self.xlsxDict['Dsec'])
 
                 if 'Rhour' in self.xlsxDict:
-                    sheet[Rhour] = self.xlsxDict['Rhour']
+                    sheet[Rhour] = int(self.xlsxDict['Rhour'])
                 if 'Rmin' in self.xlsxDict:
-                    sheet[Rmin] = self.xlsxDict['Rmin']
+                    sheet[Rmin] = int(self.xlsxDict['Rmin'])
                 if 'Rsec' in self.xlsxDict:
-                    sheet[Rsec] = self.xlsxDict['Rsec']
+                    sheet[Rsec] = float(self.xlsxDict['Rsec'])
 
                 # Overwriting the original file !!!
                 wb.save(xlsxfilepath)
@@ -521,9 +529,11 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             except Exception as e:
                 self.showMsg(repr(e))
                 self.showMsg(f'FAILED to fill Asteroid Occultation Report Form', color='red', bold=True)
+                self.showMsg(f'Is it possible that you have the file already open somewjere?', color='red', bold=True)
                 return
 
             self.showMsg(f'Excel spreadsheet Asteroid Report Form entries made successfully.')
+            subprocess.check_call(['open', xlsxfilepath])
 
             # Fill with our current values
         else:
