@@ -10,6 +10,8 @@ import os
 import sys
 import platform
 
+from openpyxl import load_workbook
+
 from math import trunc, floor
 import matplotlib.pyplot as plt
 import matplotlib
@@ -292,6 +294,10 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.calcErrBars.clicked.connect(self.computeErrorBars)
         self.calcErrBars.installEventFilter(self)
 
+        # Button: Copy results to Asteroid Occultation Report Form (... fill Excel report)
+        self.fillExcelReportButton.installEventFilter(self)
+        self.fillExcelReportButton.clicked.connect(self.fillExcelReport)
+
         # Button: View frame
         self.viewFrameButton.clicked.connect(self.viewFrame)
         self.viewFrameButton.installEventFilter(self)
@@ -409,6 +415,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.lastDmetric = 0.0
         self.lastRmetric = 0.0
 
+        self.xlsxDict = {}
+
         self.checkForNewVersion()
 
         self.copy_desktop_icon_file_to_home_directory()
@@ -424,6 +432,102 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             else:
                 self.showMsg(f'Could not find csv file specified: {self.externalCsvFilePath}')
                 self.externalCsvFilePath = None
+
+    def fillExcelReport(self):
+        # Open a file select dialog
+        xlsxfilepath, _ = QFileDialog.getOpenFileName(
+            self,  # parent
+            "Select Asteroid Occultation Report form",  # title for dialog
+            self.settings.value('lightcurvedir', ""),  # starting directory
+            "Excel files (*.xlsx)")
+
+        if xlsxfilepath:
+            # noinspection PyBroadException
+            wb = load_workbook(xlsxfilepath)
+
+            try:
+                sheet = wb['DATA']
+
+                # Validate that a proper Asteroid Occultation Report Form was selected by reading the report header
+                if not sheet['G1'].value == 'Asteroid Occultation Report Form':
+                    self.showMsg(f'The xlsx file selected does not appear to be an Asteroid Occultation Report Form')
+                    return
+
+                # We're going to ignore the named cell info and reference all the cells of interest by
+                # their col/row coordinates (not all the cells of interest had names)
+
+                Derr68 = 'L33'
+                Derr95 = 'M33'
+                Derr99 = 'N33'
+
+                Rerr68 = 'L35'
+                Rerr95 = 'M35'
+                Rerr99 = 'N35'
+
+                Dhour = 'F32'
+                Dmin = 'H32'
+                Dsec = 'J32'
+
+                Rhour = 'F36'
+                Rmin = 'H36'
+                Rsec = 'J36'
+
+                # Exposure = 'P25'
+                OTA = 'O23'
+                SNR = 'W40'
+                Comment = 'D43'
+
+                sheet[OTA].value = 'PYOTE'
+                sheet[SNR].value = f'{self.snrB:0.2f}'
+
+                if 'Comment' in self.xlsxDict:
+                    sheet[Comment].value = self.xlsxDict['Comment']
+
+                if 'Derr68' in self.xlsxDict:
+                    sheet[Derr68].value = f'{self.xlsxDict["Derr68"]:0.4f}'
+
+                if 'Derr95' in self.xlsxDict:
+                    sheet[Derr95].value = f'{self.xlsxDict["Derr95"]:0.4f}'
+
+                if 'Derr99' in self.xlsxDict:
+                    sheet[Derr99].value = f'{self.xlsxDict["Derr99"]:0.4f}'
+
+                if 'Rerr68' in self.xlsxDict:
+                    sheet[Rerr68].value = f'{self.xlsxDict["Rerr68"]:0.4f}'
+
+                if 'Rerr95' in self.xlsxDict:
+                    sheet[Rerr95].value = f'{self.xlsxDict["Rerr95"]:0.4f}'
+
+                if 'Rerr99' in self.xlsxDict:
+                    sheet[Rerr99].value = f'{self.xlsxDict["Rerr99"]:0.4f}'
+
+                if 'Dhour' in self.xlsxDict:
+                    sheet[Dhour] = self.xlsxDict['Dhour']
+                if 'Dmin' in self.xlsxDict:
+                    sheet[Dmin] = self.xlsxDict['Dmin']
+                if 'Dsec' in self.xlsxDict:
+                    sheet[Dsec] = self.xlsxDict['Dsec']
+
+                if 'Rhour' in self.xlsxDict:
+                    sheet[Rhour] = self.xlsxDict['Rhour']
+                if 'Rmin' in self.xlsxDict:
+                    sheet[Rmin] = self.xlsxDict['Rmin']
+                if 'Rsec' in self.xlsxDict:
+                    sheet[Rsec] = self.xlsxDict['Rsec']
+
+                # Overwriting the original file !!!
+                wb.save(xlsxfilepath)
+
+            except Exception as e:
+                self.showMsg(repr(e))
+                self.showMsg(f'FAILED to fill Asteroid Occultation Report Form', color='red', bold=True)
+                return
+
+            self.showMsg(f'Excel spreadsheet Asteroid Report Form entries made successfully.')
+
+            # Fill with our current values
+        else:
+            return
 
     def validateLightcurveDataInput(self):
         ans = {'success': True}
@@ -2057,11 +2161,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             self.showMsg("Times are invalid due to corrupted timestamps!",
                          color='red', bold=True)
 
-        # if self.A > 0:
-        #     self.showMsg('nominal magDrop: %0.2f' % ((np.log10(self.B) - np.log10(self.A)) * 2.5))
-        # else:
-        #     self.showMsg('magDrop calculation not possible because A is negative')
         self.showMsg(f'nominal magDrop: {self.magDropString(self.B, self.A)}')
+        self.xlsxDict['Comment'] = f'Nominal measured mag drop = {self.magDropString(self.B, self.A)}'
 
         self.showMsg('snr: %0.2f' % self.snrB)
 
@@ -2079,6 +2180,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         return
 
     def finalReport(self, false_positive, false_probability):
+
+        self.xlsxDict = {}
         self.writeDefaultGraphicsPlots()
 
         # Grab the D and R values found and apply our timing convention
@@ -2175,10 +2278,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                          'uncorrelated.',
                          bold=True, color='red')
 
-        # if self.A > 0:
-        #     self.showMsg('nominal magDrop: %0.2f' % ((np.log10(self.B) - np.log10(self.A)) * 2.5))
-        # else:
-        #     self.showMsg('magDrop calculation not possible because A is negative')
+        self.xlsxDict['Comment'] = f'Nominal measured mag drop = {self.magDropString(self.B, self.A)}'
         self.showMsg(f'nominal magDrop: {self.magDropString(self.B, self.A)}')
 
         self.showMsg('snr: %0.2f' % self.snrB)
@@ -2248,32 +2348,52 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         if self.eventType == 'DandR' or self.eventType == 'Donly':
             D, _ = self.solution
             ts = self.yTimes[int(D)]
+
             time = convertTimeStringToTime(ts)
             adjTime = time + (D - int(D)) * self.timeDelta
             self.Dtime = adjTime  # This is needed for the duration report (assumed to follow!!!)
             ts = convertTimeToTimeString(adjTime)
+
+            tsParts = ts[1:-1].split(':')
+            self.xlsxDict['Dhour'] = tsParts[0]
+            self.xlsxDict['Dmin'] = tsParts[1]
+            self.xlsxDict['Dsec'] = tsParts[2]
+
             self.showMsg('D time: %s' % ts, blankLine=False)
             errBar = max(abs(self.deltaDlo68), abs(self.deltaDhi68)) * self.timeDelta
+            self.xlsxDict['Derr68'] = errBar
             self.showMsg('D: 0.6800 confidence intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar), blankLine=False)
             errBar = max(abs(self.deltaDlo95), abs(self.deltaDhi95)) * self.timeDelta
+            self.xlsxDict['Derr95'] = errBar
             self.showMsg('D: 0.9500 confidence intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar), blankLine=False)
             errBar = max(abs(self.deltaDlo99), abs(self.deltaDhi99)) * self.timeDelta
+            self.xlsxDict['Derr99'] = errBar
             self.showMsg('D: 0.9973 confidence intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar))
 
     def doRtimeReport(self):
         if self.eventType == 'DandR' or self.eventType == 'Ronly':
             _, R = self.solution
             ts = self.yTimes[int(R)]
+
             time = convertTimeStringToTime(ts)
             adjTime = time + (R - int(R)) * self.timeDelta
             self.Rtime = adjTime  # This is needed for the duration report (assumed to follow!!!)
             ts = convertTimeToTimeString(adjTime)
+
+            tsParts = ts[1:-1].split(':')
+            self.xlsxDict['Rhour'] = tsParts[0]
+            self.xlsxDict['Rmin'] = tsParts[1]
+            self.xlsxDict['Rsec'] = tsParts[2]
+
             self.showMsg('R time: %s' % ts, blankLine=False)
             errBar = max(abs(self.deltaRlo68), abs(self.deltaRhi68)) * self.timeDelta
+            self.xlsxDict['Rerr68'] = errBar
             self.showMsg('R: 0.6800 confidence intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar), blankLine=False)
             errBar = max(abs(self.deltaRlo95), abs(self.deltaRhi95)) * self.timeDelta
+            self.xlsxDict['Rerr95'] = errBar
             self.showMsg('R: 0.9500 confidence intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar), blankLine=False)
             errBar = max(abs(self.deltaRlo99), abs(self.deltaRhi99)) * self.timeDelta
+            self.xlsxDict['Rerr99'] = errBar
             self.showMsg('R: 0.9973 confidence intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar))
 
     def doDurTimeReport(self):
@@ -2532,6 +2652,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             self.showMsg('Cannot produce final report because timestamps are missing.', bold=True, color='red')
         else:
             self.finalReport(false_positive, false_probability)
+            self.fillExcelReportButton.setEnabled(True)
 
         self.reDrawMainPlot()  # To add envelope to solution
 
@@ -3269,6 +3390,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
         self.runSolver = True
         self.calcErrBars.setEnabled(False)
+        self.fillExcelReportButton.setEnabled(False)
 
         if self.runSolver:
             if self.eventType == 'DandR':
@@ -4037,6 +4159,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.doBlockIntegration.setEnabled(False)    
         self.locateEvent.setEnabled(False)
         self.calcErrBars.setEnabled(False)
+        self.fillExcelReportButton.setEnabled(False)
         self.startOver.setEnabled(False)
         self.markDzone.setEnabled(False)
         self.markRzone.setEnabled(False)
