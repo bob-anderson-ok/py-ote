@@ -484,22 +484,22 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                     sheet[Comment].value = self.xlsxDict['Comment']
 
                 if 'Derr68' in self.xlsxDict:
-                    sheet[Derr68].value = f'{self.xlsxDict["Derr68"]:0.4f}'
+                    sheet[Derr68].value = f'{self.xlsxDict["Derr68"]:0.2f}'
 
                 if 'Derr95' in self.xlsxDict:
-                    sheet[Derr95].value = f'{self.xlsxDict["Derr95"]:0.4f}'
+                    sheet[Derr95].value = f'{self.xlsxDict["Derr95"]:0.2f}'
 
                 if 'Derr99' in self.xlsxDict:
-                    sheet[Derr99].value = f'{self.xlsxDict["Derr99"]:0.4f}'
+                    sheet[Derr99].value = f'{self.xlsxDict["Derr99"]:0.2f}'
 
                 if 'Rerr68' in self.xlsxDict:
-                    sheet[Rerr68].value = f'{self.xlsxDict["Rerr68"]:0.4f}'
+                    sheet[Rerr68].value = f'{self.xlsxDict["Rerr68"]:0.2f}'
 
                 if 'Rerr95' in self.xlsxDict:
-                    sheet[Rerr95].value = f'{self.xlsxDict["Rerr95"]:0.4f}'
+                    sheet[Rerr95].value = f'{self.xlsxDict["Rerr95"]:0.2f}'
 
                 if 'Rerr99' in self.xlsxDict:
-                    sheet[Rerr99].value = f'{self.xlsxDict["Rerr99"]:0.4f}'
+                    sheet[Rerr99].value = f'{self.xlsxDict["Rerr99"]:0.2f}'
 
                 if 'Dhour' in self.xlsxDict:
                     sheet[Dhour] = self.xlsxDict['Dhour']
