@@ -533,7 +533,12 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                 return
 
             self.showMsg(f'Excel spreadsheet Asteroid Report Form entries made successfully.')
-            subprocess.check_call(['open', xlsxfilepath])
+
+            OS = sys.platform
+            if OS == 'darwin' or OS == 'linux':
+                subprocess.check_call(['open', xlsxfilepath])
+            else:
+                subprocess.check_call(['start', xlsxfilepath])
 
             # Fill with our current values
         else:
