@@ -534,11 +534,23 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
             self.showMsg(f'Excel spreadsheet Asteroid Report Form entries made successfully.')
 
-            OS = sys.platform
-            if OS == 'darwin' or OS == 'linux':
-                subprocess.check_call(['open', xlsxfilepath])
-            else:
-                subprocess.check_call(['start', xlsxfilepath])
+            # noinspection PyBroadException
+            try:
+                if platform.system() == 'Darwin':
+                    subprocess.call(['open', xlsxfilepath])
+                elif platform.system() == 'Windows':
+                    os.startfile(xlsxfilepath)
+                else:
+                    subprocess.call(['xdg-open', xlsxfilepath])
+            except Exception as e:
+                self.showMsg('Attempt to get host OS to open xlsx file failed.', color='red', bold=True)
+                self.showMsg(repr(e))
+
+            # OS = sys.platform
+            # if OS == 'darwin' or OS == 'linux':
+            #     subprocess.check_call(['open', xlsxfilepath])
+            # else:
+            #     subprocess.check_call(['start', xlsxfilepath])
 
             # Fill with our current values
         else:
@@ -2505,7 +2517,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                                  'Proceeding by '
                                  'treating noise as being uncorrelated.',
                                  bold=True, color='red')
-                self.progressBar.setValue(dist * 100)
+                self.progressBar.setValue(int(dist * 100))
                 QtGui.QApplication.processEvents()
                 if self.cancelRequested:
                     self.cancelRequested = False
@@ -3458,7 +3470,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             for item in solverGen:
                 # if item[0] == 'fractionDone':
                 if item[0] == 1.0:
-                    self.progressBar.setValue(item[1] * 100)
+                    self.progressBar.setValue(int(item[1] * 100))
                     QtGui.QApplication.processEvents()
                     if self.cancelRequested:
                         self.cancelRequested = False
