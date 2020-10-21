@@ -126,7 +126,6 @@ def find_best_event_from_min_max_size(
     num_candidates = calcNumCandidatesFromEventSize(eventType="DandR",
                                                     left=left, right=right, minSize=min_event, maxSize=max_event)
 
-    # clump_size = np.ceil(num_candidates / 50)
     solution_counter = 0
 
     for event in range(min_event, max_event + 1):
@@ -155,13 +154,12 @@ def find_best_event_from_min_max_size(
 
         solution_counter += sol_count
 
-        # if solution_counter % clump_size == 0:
         # yield 'fractionDone', solution_counter / num_candidates
         yield 1.0, solution_counter / num_candidates, 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0
 
     # Here we test for solution being better than straight line
     if not solution_is_better_than_straight_line(
-            y, left, right, d_best, r_best, b_best, a_best, sigma_b, sigma_a):
+            y, left, right, d_best, r_best, b_best, a_best, sigma_b_best, sigma_a_best):
         # yield 'no event present', solution_counter / num_candidates
         yield -1.0, solution_counter / num_candidates, 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0
 
@@ -619,7 +617,8 @@ def solution_is_better_than_straight_line(y, left=-1, right=-1, d=-1, r=-1, b=0.
 
     solution_logl = cum_loglikelihood(y, m, sigma, left, right)
 
-    lineScore = logLikelihoodLine(y, sigmaB=big_sigma, left=left, right=right)
+    # lineScore = logLikelihoodLine(y, sigmaB=big_sigma, left=left, right=right)
+    lineScore = logLikelihoodLine(y, sigmaB=np.sqrt(np.var(y)), left=left, right=right)
 
     aiccSol = aicc(solution_logl, right - left + 1, k)
     aiccLine = aicc(lineScore, right - left + 1, 1)

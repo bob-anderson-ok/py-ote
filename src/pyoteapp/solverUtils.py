@@ -494,7 +494,8 @@ def solver(*, eventType=None, yValues=None,
     else:
         k = 3
         
-    lineScore = logLikelihoodLine(yValues, sigmaB=sigmaB, left=left, right=right)
+    # lineScore = logLikelihoodLine(yValues, sigmaB=sigmaB, left=left, right=right)
+    lineScore = logLikelihoodLine(yValues, sigmaB=np.sqrt(np.var(yValues)), left=left, right=right)
     aiccSol = aicc(bestScore, right-left+1, k)
     aiccLine = aicc(lineScore, right-left+1, 1)
     if aiccSol < aiccLine:

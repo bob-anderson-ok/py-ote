@@ -275,6 +275,19 @@
              </widget>
             </item>
             <item>
+             <widget class="QLabel" name="helpLabelForFalsePositive">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Advisory ===============================================&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Assuming that you have been diligent in removing common lightcurve artifacts (dips caused by something other than an occultation, like clouds, or a contrail, or ...) using the normalization function, please be aware that:&lt;/p&gt;&lt;p&gt;A non-zero False Positive probabilty (red bar to left of black bar) is usually sufficient reason to report a 'miss' (but see note below).&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;However&lt;/span&gt;, a False Positive probabilty of zero should &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;NEVER&lt;/span&gt; be accepted as a sole sufficient reason to report a 'positive'.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;If you get a zero False Positive probability &lt;span style=&quot; text-decoration: underline;&quot;&gt;and this is the only available chord&lt;/span&gt;, look at the False Positive drop distribution plot and only consider reporting a 'positive' if the measured drop is well to the right of the black bar that shows the biggest drop found during the simulation run. 'Well to the right' is rather vague, so consult with your area coordination whenever you are uncertain.&lt;/p&gt;&lt;p&gt;Note: if your 'drop' (red bar) is near the black bar (on either side!) AND there are nearby chords reporting 'positives', there may be value in your observation in spite of the False Positive probability calculation; your observation may increase confidence in the event recorded by the nearby chords.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
+            </item>
+            <item>
              <spacer name="horizontalSpacer_4">
               <property name="orientation">
                <enum>Qt::Horizontal</enum>

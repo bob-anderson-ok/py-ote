@@ -2320,6 +2320,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
         self.showMsg("Solution 'envelope' in the main plot drawn using 0.95 confidence interval error bars")
 
+        self.showHelp(self.helpLabelForFalsePositive)
+
     def doDframeReport(self):
         if self.eventType == 'DandR' or self.eventType == 'Donly':
             D, _ = self.solution
@@ -3791,57 +3793,61 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                                     self.pathToVideo = line.replace('"FileName :', '', 1).strip()
                                     self.pathToVideo = self.pathToVideo.strip('"')
 
-                                _, ext = os.path.splitext(self.pathToVideo)
-                                if ext == '.avi':
-                                    ans = readAviFile(0, self.pathToVideo)
-                                    if not ans['success']:
-                                        self.showMsg(
-                                            f'Attempt to read .avi file gave errmg: {ans["errmsg"]}',
-                                            color='red', bold=True)
+                                if os.path.isfile(self.pathToVideo):
+                                    _, ext = os.path.splitext(self.pathToVideo)
+                                    if ext == '.avi':
+                                        ans = readAviFile(0, self.pathToVideo)
+                                        if not ans['success']:
+                                            self.showMsg(
+                                                f'Attempt to read .avi file gave errmg: {ans["errmsg"]}',
+                                                color='red', bold=True)
+                                            self.pathToVideo = None
+                                        else:
+                                            self.showMsg(f'fourcc code of avi: {ans["fourcc"]}', blankLine=False)
+                                            self.showMsg(f'fps: {ans["fps"]}', blankLine=False)
+                                            self.showMsg(f'avi contains {ans["num_frames"]} frames')
+                                            # Enable frame view controls
+                                            self.enableDisableFrameViewControls(state_to_set=True)
+                                    elif ext == '.ser':
+                                        ans = readSerFile(0, self.pathToVideo)
+                                        if not ans['success']:
+                                            self.showMsg(
+                                                f'Attempt to read .ser file gave errmg: {ans["errmsg"]}',
+                                                color='red', bold=True)
+                                            self.pathToVideo = None
+                                        else:
+                                            # Enable frame view controls
+                                            self.enableDisableFrameViewControls(state_to_set=True)
+                                    elif ext == '':
+                                        ans = readFitsFile(0, self.pathToVideo)
+                                        if not ans['success']:
+                                            self.showMsg(
+                                                f'Attempt to read FITS folder gave errmg: {ans["errmsg"]}',
+                                                color='red', bold=True)
+                                            self.pathToVideo = None
+                                        else:
+                                            # Enable frame view controls
+                                            self.showMsg(f'{ans["num_frames"]} .fits files were found in FITS folder')
+                                            self.enableDisableFrameViewControls(state_to_set=True)
+                                    elif ext == '.adv':
+                                        # For now we assume that .adv files have embedded timestamps and
+                                        # so there is no need to display frames for visual OCR verification
                                         self.pathToVideo = None
+                                    elif ext == '.aav':
+                                        ans = readAavFile(0, self.pathToVideo)
+                                        if not ans['success']:
+                                            self.showMsg(
+                                                f'Attempt to read .aav file gave errmg: {ans["errmsg"]}',
+                                                color='red', bold=True)
+                                            self.pathToVideo = None
+                                        else:
+                                            # Enable frame view controls
+                                            self.enableDisableFrameViewControls(state_to_set=True)
                                     else:
-                                        self.showMsg(f'fourcc code of avi: {ans["fourcc"]}', blankLine=False)
-                                        self.showMsg(f'fps: {ans["fps"]}', blankLine=False)
-                                        self.showMsg(f'avi contains {ans["num_frames"]} frames')
-                                        # Enable frame view controls
-                                        self.enableDisableFrameViewControls(state_to_set=True)
-                                elif ext == '.ser':
-                                    ans = readSerFile(0, self.pathToVideo)
-                                    if not ans['success']:
-                                        self.showMsg(
-                                            f'Attempt to read .ser file gave errmg: {ans["errmsg"]}',
-                                            color='red', bold=True)
-                                        self.pathToVideo = None
-                                    else:
-                                        # Enable frame view controls
-                                        self.enableDisableFrameViewControls(state_to_set=True)
-                                elif ext == '':
-                                    ans = readFitsFile(0, self.pathToVideo)
-                                    if not ans['success']:
-                                        self.showMsg(
-                                            f'Attempt to read FITS folder gave errmg: {ans["errmsg"]}',
-                                            color='red', bold=True)
-                                        self.pathToVideo = None
-                                    else:
-                                        # Enable frame view controls
-                                        self.showMsg(f'{ans["num_frames"]} .fits files were found in FITS folder')
-                                        self.enableDisableFrameViewControls(state_to_set=True)
-                                elif ext == '.adv':
-                                    # For now we assume that .adv files have embedded timestamps and
-                                    # so there is no need to display frames for visual OCR verification
-                                    self.pathToVideo = None
-                                elif ext == '.aav':
-                                    ans = readAavFile(0, self.pathToVideo)
-                                    if not ans['success']:
-                                        self.showMsg(
-                                            f'Attempt to read .aav file gave errmg: {ans["errmsg"]}',
-                                            color='red', bold=True)
-                                        self.pathToVideo = None
-                                    else:
-                                        # Enable frame view controls
-                                        self.enableDisableFrameViewControls(state_to_set=True)
+                                        self.showMsg(f'Unexpected file type of {ext} found.')
                                 else:
-                                    self.showMsg(f'Unexpected file type of {ext} found.')
+                                    self.showMsg(f'video source file {self.pathToVideo} could not be found.')
+                                    self.pathToVideo = None
 
                 # Automatically select all points
                 # noinspection PyUnusedLocal
