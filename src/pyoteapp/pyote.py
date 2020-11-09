@@ -661,7 +661,6 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         diff_table_path = os.path.join(self.homeDir, diff_table_name)
 
         ans = self.validateLightcurveDataInput()
-        # print(ans)
 
         if not ignore_timedelta:
             if self.timeDelta is None or self.timeDelta < 0.001:
@@ -696,6 +695,13 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         elif ans['star_diam'] is not None and (ans['ast_dist'] is None or ans['shadow_speed'] is None):
             ans.update({'star_diam': None})
             self.showMsg(f'Need dist and shadow speed to utilize star diam --- treating star_diam as None!', bold=True)
+
+        # noinspection PyBroadException
+        try:
+            matplotlib.pyplot.close(self.d_underlying_lightcurve)
+            matplotlib.pyplot.close(self.r_underlying_lightcurve)
+        except Exception:
+            pass
 
         self.d_underlying_lightcurve, self.r_underlying_lightcurve, ans = generate_underlying_lightcurve_plots(
             diff_table_path=diff_table_path,

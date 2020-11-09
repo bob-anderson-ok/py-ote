@@ -443,14 +443,17 @@ def generate_underlying_lightcurve_plots(
         ax.plot(ans['time deltas'], ans['D curve'], label='camera response')
     if ans['star_chords_d'] is not None:
         star_chords_d = ans['star_chords_d']
+        star_chords_d[0] = 0.0
+        star_chords_d[-1] = 0.0
         rescaled_star_chords_d = star_chords_d * (b_value - a_value) / max(star_chords_d) / 2
         rescaled_star_chords_d += a_value
         n_star_chords = len(rescaled_star_chords_d)
-        ax.plot(ans['time deltas'][:n_star_chords], rescaled_star_chords_d, label='star chords')
+        ax.plot(ans['time deltas'][:n_star_chords], rescaled_star_chords_d, label='star disk function')
     ax.axvline(0.0, linestyle='--', label='geometrical shadow')
     if frame_time > 0.001:
         offset = ans['time deltas'][-1] / 2
-        ax.plot([offset, offset + frame_time], [mid, mid], label='camera exp time example')
+        ax.plot([offset, offset, offset + frame_time, offset + frame_time],
+                [a_value, mid, mid, a_value], label='camera exposure function')
     if ans['star D'] is None:
         ax.plot(ans['time deltas'], ans['raw D'], label='underlying lightcurve')
     else:
@@ -472,14 +475,18 @@ def generate_underlying_lightcurve_plots(
         ax.plot(ans['time deltas'], ans['R curve'], label='camera response')
     if ans['star_chords_r'] is not None:
         star_chords_r = ans['star_chords_r']
+        star_chords_r[0] = 0.0
+        star_chords_r[-1] = 0.0
         rescaled_star_chords_r = star_chords_r * (b_value - a_value) / max(star_chords_r) / 2
         rescaled_star_chords_r += a_value
         n_star_chords = len(rescaled_star_chords_r)
-        ax.plot(ans['time deltas'][:n_star_chords], rescaled_star_chords_r, label='star chords')
+        ax.plot(ans['time deltas'][:n_star_chords], rescaled_star_chords_r, label='star disk function')
     ax.axvline(0.0, linestyle='--', label='geometrical shadow')
+    ax.axhline(a_value, linestyle='dotted', label='baseline intensity')
     if frame_time > 0.001:
         offset = ans['time deltas'][-1] / 2
-        ax.plot([offset, offset + frame_time], [mid, mid], label='camera exp time example')
+        ax.plot([offset, offset, offset + frame_time, offset + frame_time],
+                [a_value, mid, mid, a_value], label='camera exposure function')
     if ans['star R'] is None:
         ax.plot(ans['time deltas'], ans['raw R'], label='underlying lightcurve')
     else:
