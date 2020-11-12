@@ -3987,7 +3987,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
                 if self.timeDelta == 0.0 and not self.manualTimestampCheckBox.isChecked():
                     self.showInfo("Analysis of timestamp fields resulted in "
-                                  "an invalid timeDelta of 0.0\n\nSuggestion: Enable manual timestamp entry (checkbox at top left)"
+                                  "an invalid timeDelta of 0.0\n\nSuggestion: Enable manual timestamp entry (checkbox at top center)"
                                   ", then press the now active 'Manual timestamp entry' button."
                                   "\n\nThis will give you a chance to "
                                   "manually correct the timestamps using "
