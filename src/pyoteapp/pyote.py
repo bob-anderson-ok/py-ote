@@ -30,7 +30,7 @@ import numpy as np
 import pyqtgraph as pg
 import pyqtgraph.exporters as pex
 import scipy.signal
-from PyQt5 import QtCore
+from PyQt5 import QtCore, QtWidgets
 from PyQt5 import QtGui
 from PyQt5.QtCore import QSettings, QPoint, QSize
 from PyQt5.QtCore import pyqtSignal
@@ -316,6 +316,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.exposureTimeLabel.installEventFilter(self)
         self.asteroidDistanceLabel.installEventFilter(self)
         self.shadowSpeedLabel.installEventFilter(self)
+        self.asteroidSizeLabel.installEventFilter(self)
+        self.pathOffsetLabel.installEventFilter(self)
         self.starDiameterLabel.installEventFilter(self)
         self.dLimbAngleLabel.installEventFilter(self)
         self.rLimbAngleLabel.installEventFilter(self)
@@ -347,11 +349,17 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         # as does horizontalLayout_?
 
         oldMainPlot = self.mainPlot
-        self.mainPlot = PlotWidget(self.centralwidget,
+        self.mainPlot = PlotWidget(self.splitter_2,
                                    viewBox=CustomViewBox(border=(255, 255, 255)),
-                                   enableMenu=False)
+                                   enableMenu=False, stretch=1)
+        # self.mainPlot.setMinimumSize(QtCore.QSize(800, 0))
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(1)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.mainPlot.sizePolicy().hasHeightForWidth())
+        self.mainPlot.setSizePolicy(sizePolicy)
         self.mainPlot.setObjectName("mainPlot")
-        self.horizontalLayout_15.addWidget(self.mainPlot, stretch=1)
+        self.splitter_2.addWidget(self.mainPlot)
 
         oldMainPlot.setParent(None)
 
@@ -613,6 +621,47 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             ans.update({'shadow_speed': None})
             ans.update({'success': False})
 
+        # Process asteroid diameter
+        try:
+            ast_diam_str = self.astSizeEdit.text().strip()
+            if not ast_diam_str:
+                ans.update({'ast_diam': None})
+            else:
+                ast_diam = float(ast_diam_str)
+                if ast_diam > 0.0:
+                    ans.update({'ast_diam': ast_diam})
+                else:
+                    self.showMsg(f'asteroid diameter must be > 0.0 or missing', bold=True)
+                    ans.update({'ast_diam': None})
+                    ans.update({'success': False})
+        except ValueError as e:
+            self.showMsg(f'{e}', bold=True)
+            ans.update({'ast_diam': None})
+            ans.update({'success': False})
+
+        # Process centerline offset
+        try:
+            centerline_offset_str = self.pathOffsetEdit.text().strip()
+            if not centerline_offset_str:
+                ans.update({'centerline_offset': None})
+            else:
+                if ans['ast_diam'] is None:
+                    ans.update({'centerline_offset': None})
+                    ans.update({'success': False})
+                    self.showMsg(f'centerline offset requires an asteroid diameter to be specified', bold=True)
+                else:
+                    centerline_offset = float(centerline_offset_str)
+                    if 0.0 < centerline_offset < ans['ast_diam'] / 2:
+                        ans.update({'centerline_offset': centerline_offset})
+                    else:
+                        self.showMsg(f'centerline offset must be positive and less than the asteroid radius', bold=True)
+                        ans.update({'centerline_offset': None})
+                        ans.update({'success': False})
+        except ValueError as e:
+            self.showMsg(f'{e}', bold=True)
+            ans.update({'centerline_offset': None})
+            ans.update({'success': False})
+
         # Process star diam entry
         try:
             star_diam_str = self.starDiameterEdit.text().strip()
@@ -662,6 +711,10 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
 
         ans = self.validateLightcurveDataInput()
 
+        if not ans['success']:
+            self.showInfo('There is a problem with the data entry.\n\nCheck log for details.')
+            return
+
         if not ignore_timedelta:
             if self.timeDelta is None or self.timeDelta < 0.001:
                 if ans['exp_dur'] is not None:
@@ -710,6 +763,8 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
             frame_time=frame_time,
             ast_dist=ans['ast_dist'],
             shadow_speed=ans['shadow_speed'],
+            ast_diam=ans['ast_diam'],
+            centerline_offset=ans['centerline_offset'],
             star_diam=ans['star_diam'],
             d_angle=ans['d_angle'],
             r_angle=ans['r_angle'],

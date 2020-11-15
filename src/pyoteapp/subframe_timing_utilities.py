@@ -4,6 +4,7 @@ import matplotlib
 import pickle
 matplotlib.use('Qt5Agg')
 import matplotlib.pyplot as plt
+from scipy import interpolate
 
 
 def fresnel_length_km(distance_AU: float, wavelength_nm: float = 500.0) -> float:
@@ -26,6 +27,8 @@ def generate_transition_point_time_correction_look_up_tables(
         baseline_intensity: float, event_intensity: float, frame_time_sec: float,
         asteroid_distance_AU: float = None,
         shadow_speed_km_per_sec: float = None,
+        ast_diam=None,
+        centerline_offset=None,
         star_diameter_mas: float = None,
         d_limb_angle_degrees: float = 90.0,
         r_limb_angle_degrees: float = 90.0,
@@ -41,6 +44,8 @@ def generate_transition_point_time_correction_look_up_tables(
     :param frame_time_sec: light accumulation (integration setting) of camera (seconds)
     :param asteroid_distance_AU: distance to the asteroid/occulting body (in Astronomical Units)
     :param shadow_speed_km_per_sec: speed of the shadow projected at the observing site (km / second)
+    :param ast_diam: asteroid diameter in km
+    :param centerline_offset: distance of observation point from centerline of asteroid path (km)
     :param star_diameter_mas: diameter of star disk (mas - milliarcseconds)
     :param d_limb_angle_degrees: limb angle at disappearance edge (degrees - 90 degrees is head-on)
     :param r_limb_angle_degrees: limb angle at re-appearance edge (degrees - 90 degrees is head-on)
@@ -54,14 +59,8 @@ def generate_transition_point_time_correction_look_up_tables(
     star_chords_r = None
     star_chords_d = None
 
-    # These dummy substitution statements are just to satisfy PyCharm's PEP8 obsession
-    # # with 'all variables must be used' while we're designing this function in outline form.
-    _ = star_diameter_mas
-    _ = d_limb_angle_degrees
-    _ = r_limb_angle_degrees
-
-    # Use dummy_answer to satisfy MyPy during the design phase.
-    # dummy_answer = {'time deltas': [1.0], 'D curve': [1.0], 'R curve': [1.0]}
+    d_graze_values = None
+    r_graze_values = None
 
     if asteroid_distance_AU is None:
         # We cannot calculate a diffraction model lightcurve due to insufficient information,
@@ -98,19 +97,18 @@ def generate_transition_point_time_correction_look_up_tables(
 
         return {'time deltas': time_values, 'D curve': d_values, 'R curve': r_values,
                 'star_chords_d': star_chords_d, 'star_chords_r': star_chords_r,
-                'raw D': raw_d_values, 'raw R': raw_r_values, 'star D': None, 'star R': None,
+                'raw D': raw_d_values, 'raw R': raw_r_values, 'graze D': d_graze_values, 'graze R': r_graze_values,
+                'star D': None, 'star R': None,
                 'B': baseline_intensity, 'A': event_intensity}
 
     elif shadow_speed_km_per_sec is not None:
-        # This code group calculates an integrated diffraction curve. We know that both asteroid_distance_AU and
-        # shadow_speed_km_per_sec are both available.
+        # This code group utilizes a pre-computed integrated diffraction curve. We know that both asteroid_distance_AU
+        # and shadow_speed_km_per_sec are both available.
         fresnel_length = fresnel_length_km(distance_AU=asteroid_distance_AU)
-        # print(f'fresnel length: {fresnel_length}')
         fresnel_unit_time = fresnel_length / shadow_speed_km_per_sec
-        # print(f'fresnel_unit_time: {fresnel_unit_time}')
         time_for_10_fresnel_units = 10.0 * fresnel_unit_time
-        # print(f'time_for_10_fresnel_units: {time_for_10_fresnel_units}')
 
+        # Fetch the pre-computed integrated (multi-wavelength) diffraction curve
         pickle_file = open(diff_table_path, 'rb')
         table = pickle.load(pickle_file)
         u_values = table['u']
@@ -160,8 +158,30 @@ def generate_transition_point_time_correction_look_up_tables(
             d_values = extended_curves['d_values']
             r_values = extended_curves['r_values']
 
-        raw_d_values = d_values[:]
-        raw_r_values = r_values[:]
+        raw_d_values = np.copy(d_values)
+        raw_r_values = np.copy(r_values)
+
+        if ast_diam is not None:
+            d_graze_values = np.ndarray([len(u_values)])
+            r_graze_values = np.ndarray([len(u_values)])
+            # We need to adjust the diffraction light curves for a possible
+            # off centerline observation. First we create two interpolation functions:
+            d_interp_func = interpolate.interp1d(
+                u_values, d_values, kind='quadratic',
+                bounds_error=False, fill_value=(d_values[0], d_values[-1]))
+            r_interp_func = interpolate.interp1d(
+                u_values, r_values, kind='quadratic',
+                bounds_error=False, fill_value=(r_values[0], r_values[-1]))
+
+            r_ast = ast_diam / 2.0 / fresnel_length
+            g = centerline_offset / fresnel_length
+            for i in range(len(u_values)):
+                r = np.sqrt(r_ast ** 2 + u_values[i] ** 2 + 2 * r_ast * np.abs(u_values[i]) * np.sqrt(
+                    1.0 - (g ** 2 / r_ast ** 2)))
+                d_graze_values[i] = d_interp_func(np.sign(u_values[i]) * (r - r_ast))
+                r_graze_values[i] = r_interp_func(np.sign(u_values[i]) * (r - r_ast))
+            d_values = d_graze_values
+            r_values = r_graze_values
 
         time_values = u_values * fresnel_unit_time
 
@@ -188,8 +208,8 @@ def generate_transition_point_time_correction_look_up_tables(
                                            shift_needed=len(star_chords_d) // 2)
             r_values = lightcurve_convolve(sample=star_chords_r, lightcurve=r_values,
                                            shift_needed=len(star_chords_r) // 2)
-            star_d_values = d_values[:]
-            star_r_values = r_values[:]
+            star_d_values = np.copy(d_values)
+            star_r_values =np.copy(r_values)
 
         # Convolve sample against lightcurve to compute the effect of camera frame-time integration.
         d_values = lightcurve_convolve(sample=sample, lightcurve=d_values, shift_needed=len(sample) - 1)
@@ -197,7 +217,7 @@ def generate_transition_point_time_correction_look_up_tables(
 
         return {'time deltas': time_values, 'D curve': d_values, 'R curve': r_values,
                 'star_chords_d': star_chords_d, 'star_chords_r': star_chords_r,
-                'raw D': raw_d_values, 'raw R': raw_r_values,
+                'raw D': raw_d_values, 'raw R': raw_r_values, 'graze D': d_graze_values, 'graze R': r_graze_values,
                 'star D': star_d_values, 'star R': star_r_values, 'B': baseline_intensity, 'A': event_intensity}
 
 
@@ -401,6 +421,8 @@ def generate_underlying_lightcurve_plots(
         frame_time=None,
         ast_dist=None,
         shadow_speed=None,
+        ast_diam=None,
+        centerline_offset=None,
         star_diam=None,
         d_angle=None,
         r_angle=None,
@@ -425,20 +447,26 @@ def generate_underlying_lightcurve_plots(
         frame_time_sec=frame_time,
         asteroid_distance_AU=ast_dist,
         shadow_speed_km_per_sec=shadow_speed,
+        ast_diam=ast_diam,
+        centerline_offset=centerline_offset,
         star_diameter_mas=star_diam,
         d_limb_angle_degrees=d_angle,
         r_limb_angle_degrees=r_angle,
         suppress_diffraction=suppress_diffraction,
         diff_table_path=diff_table_path
     )
-    fig = plt.figure('Dplot', figsize=(10, 6))
+    fig = plt.figure('Dplot', figsize=(10, 6), tight_layout=True)
     ax = fig.add_subplot(111)
     ax.set(xlabel='seconds', ylabel='Intensity')
     if star_diam is not None:
         star_comment = f'\nstar diam(mas): {star_diam:0.2f}  limb angle: {d_angle:0.1f}'
     else:
         star_comment = ''
-    ax.set_title(extra_title + 'D underlying lightcurve info' + data_summary + star_comment)
+    if ast_diam is not None:
+        graze_comment = f'\nast diam(km): {ast_diam:0.2f} centerline offset(km): {centerline_offset:0.2f}'
+    else:
+        graze_comment = ''
+    ax.set_title(extra_title + 'D underlying lightcurve info' + data_summary + star_comment + graze_comment)
     if frame_time > 0.001:
         ax.plot(ans['time deltas'], ans['D curve'], label='camera response')
     if ans['star_chords_d'] is not None:
@@ -454,6 +482,8 @@ def generate_underlying_lightcurve_plots(
         offset = ans['time deltas'][-1] / 2
         ax.plot([offset, offset, offset + frame_time, offset + frame_time],
                 [a_value, mid, mid, a_value], label='camera exposure function')
+    if ans['graze D'] is not None:
+        ax.plot(ans['time deltas'], ans['graze D'], label='graze D')
     if ans['star D'] is None:
         ax.plot(ans['time deltas'], ans['raw D'], label='underlying lightcurve')
     else:
@@ -463,14 +493,10 @@ def generate_underlying_lightcurve_plots(
     ax.legend()
     d_fig = fig
 
-    fig = plt.figure('Rplot', figsize=(10, 6))
+    fig = plt.figure('Rplot', figsize=(10, 6), tight_layout=True)
     ax = fig.add_subplot(111)
     ax.set(xlabel='seconds', ylabel='Intensity')
-    if star_diam is not None:
-        star_comment = f'\nstar diam(mas): {star_diam:0.2f}  limb angle: {r_angle:0.1f}'
-    else:
-        star_comment = ''
-    ax.set_title(extra_title + 'R underlying lightcurve info' + data_summary + star_comment)
+    ax.set_title(extra_title + 'R underlying lightcurve info' + data_summary + star_comment + graze_comment)
     if frame_time > 0.001:
         ax.plot(ans['time deltas'], ans['R curve'], label='camera response')
     if ans['star_chords_r'] is not None:
@@ -487,6 +513,8 @@ def generate_underlying_lightcurve_plots(
         offset = ans['time deltas'][-1] / 2
         ax.plot([offset, offset, offset + frame_time, offset + frame_time],
                 [a_value, mid, mid, a_value], label='camera exposure function')
+    if ans['graze R'] is not None:
+        ax.plot(ans['time deltas'], ans['graze R'], label='graze R')
     if ans['star R'] is None:
         ax.plot(ans['time deltas'], ans['raw R'], label='underlying lightcurve')
     else:
