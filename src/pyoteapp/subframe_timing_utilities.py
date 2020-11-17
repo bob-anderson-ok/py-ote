@@ -496,6 +496,7 @@ def generate_underlying_lightcurve_plots(
     fig = plt.figure('Rplot', figsize=(10, 6), tight_layout=True)
     ax = fig.add_subplot(111)
     ax.set(xlabel='seconds', ylabel='Intensity')
+    star_comment = f'\nstar diam(mas): {star_diam:0.2f}  limb angle: {r_angle:0.1f}'
     ax.set_title(extra_title + 'R underlying lightcurve info' + data_summary + star_comment + graze_comment)
     if frame_time > 0.001:
         ax.plot(ans['time deltas'], ans['R curve'], label='camera response')
