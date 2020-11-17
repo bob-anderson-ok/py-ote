@@ -651,7 +651,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
                     self.showMsg(f'centerline offset requires an asteroid diameter to be specified', bold=True)
                 else:
                     centerline_offset = float(centerline_offset_str)
-                    if 0.0 < centerline_offset < ans['ast_diam'] / 2:
+                    if 0.0 <= centerline_offset < ans['ast_diam'] / 2:
                         ans.update({'centerline_offset': centerline_offset})
                     else:
                         self.showMsg(f'centerline offset must be positive and less than the asteroid radius', bold=True)

@@ -161,7 +161,7 @@ def generate_transition_point_time_correction_look_up_tables(
         raw_d_values = np.copy(d_values)
         raw_r_values = np.copy(r_values)
 
-        if ast_diam is not None:
+        if ast_diam is not None and centerline_offset is not None:
             d_graze_values = np.ndarray([len(u_values)])
             r_graze_values = np.ndarray([len(u_values)])
             # We need to adjust the diffraction light curves for a possible
@@ -209,7 +209,7 @@ def generate_transition_point_time_correction_look_up_tables(
             r_values = lightcurve_convolve(sample=star_chords_r, lightcurve=r_values,
                                            shift_needed=len(star_chords_r) // 2)
             star_d_values = np.copy(d_values)
-            star_r_values =np.copy(r_values)
+            star_r_values = np.copy(r_values)
 
         # Convolve sample against lightcurve to compute the effect of camera frame-time integration.
         d_values = lightcurve_convolve(sample=sample, lightcurve=d_values, shift_needed=len(sample) - 1)
@@ -462,7 +462,7 @@ def generate_underlying_lightcurve_plots(
         star_comment = f'\nstar diam(mas): {star_diam:0.2f}  limb angle: {d_angle:0.1f}'
     else:
         star_comment = ''
-    if ast_diam is not None:
+    if ast_diam is not None and centerline_offset is not None:
         graze_comment = f'\nast diam(km): {ast_diam:0.2f} centerline offset(km): {centerline_offset:0.2f}'
     else:
         graze_comment = ''
