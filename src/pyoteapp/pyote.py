@@ -4607,6 +4607,8 @@ def main(csv_file_path=None):
 
     # csv_file_path gets filled in by PyMovie
 
+    os.environ['QT_MAC_WANTS_LAYER'] = '1'  # This line needed when Mac updated to Big Sur
+
     import traceback
     QtGui.QApplication.setStyle('fusion')
     app = QtGui.QApplication(sys.argv)
