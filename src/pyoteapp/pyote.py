@@ -3830,6 +3830,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         
             # Make the directory 'sticky'
             self.settings.setValue('lightcurvedir', dirpath)
+            self.settings.sync()
             self.showMsg('filename: ' + self.filename, bold=True, color="red")
 
             try:
