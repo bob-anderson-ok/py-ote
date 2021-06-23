@@ -65,7 +65,7 @@ from pyoteapp.subframe_timing_utilities import time_correction, intensity_at_tim
 cursorAlert = pyqtSignal()
 
 # The gui module was created by typing
-#    !pyuic5 simple_plot2.ui -o gui.py
+#    !pyuic5 simple_plot2.ui -o gui.py  OR !pyuic5 simple_plot2Scrollable.ui -o gui.py
 # in the IPython console while in pyoteapp directory
 
 # The timestampDialog module was created by typing
