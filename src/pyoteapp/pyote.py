@@ -42,7 +42,7 @@ from pyoteapp import fixedPrecision as fp
 from pyoteapp import gui
 from pyoteapp import timestampDialog
 from pyoteapp import helpDialog
-from pyoteapp.checkForNewerVersion import getMostRecentVersionOfPyote
+from pyoteapp.checkForNewerVersion import getMostRecentVersionOfPyOTEViaJson
 from pyoteapp.checkForNewerVersion import upgradePyote
 from pyoteapp.csvreader import readLightCurve
 from pyoteapp.errorBarUtils import ciBars
@@ -1130,7 +1130,7 @@ class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
         self.showMsg('Close and reopen pyote to start the new version running.', color='red', bold=True)
 
     def checkForNewVersion(self):
-        gotVersion, latestVersion = getMostRecentVersionOfPyote()
+        gotVersion, latestVersion = getMostRecentVersionOfPyOTEViaJson()
         if gotVersion:
             if latestVersion <= version.version():
                 self.showMsg(f'Found the latest version is: {latestVersion}')
