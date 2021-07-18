@@ -30,6 +30,7 @@ import numpy as np
 import pyqtgraph as pg
 import pyqtgraph.exporters as pex
 import scipy.signal
+import PyQt5
 from PyQt5 import QtCore, QtWidgets
 from PyQt5 import QtGui
 from PyQt5.QtCore import QSettings, QPoint, QSize
@@ -159,7 +160,8 @@ class HelpDialog(QDialog, helpDialog.Ui_Dialog):
         self.setupUi(self)
 
 
-class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
+# class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
+class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
     def __init__(self, csv_file):
         super(SimplePlot, self).__init__()
 
@@ -4611,8 +4613,10 @@ def main(csv_file_path=None):
     os.environ['QT_MAC_WANTS_LAYER'] = '1'  # This line needed when Mac updated to Big Sur
 
     import traceback
-    QtGui.QApplication.setStyle('fusion')
-    app = QtGui.QApplication(sys.argv)
+    # QtGui.QApplication.setStyle('fusion')
+    PyQt5.QtWidgets.QApplication.setStyle('fusion')
+    # app = QtGui.QApplication(sys.argv)
+    app = PyQt5.QtWidgets.QApplication(sys.argv)
 
     if sys.platform == 'linux':
         print(f'os: Linux')
