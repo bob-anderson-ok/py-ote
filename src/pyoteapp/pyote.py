@@ -129,6 +129,19 @@ class Signal:
 mouseSignal = Signal()
 
 
+class TimestampAxis(pg.AxisItem):
+
+    def tickStrings(self, values, scale, spacing):
+        strns = []
+        for val in values:
+            # strns.append(f'{0}:{1}.234')
+            strns.append(self.getTimestampString(val))
+        return strns
+
+    def setFetcher(self, timestampFetch):
+        self.getTimestampString = timestampFetch
+
+
 class CustomViewBox(pg.ViewBox):
     def __init__(self, *args, **kwds):
         pg.ViewBox.__init__(self, *args, **kwds)
@@ -164,6 +177,9 @@ class HelpDialog(QDialog, helpDialog.Ui_Dialog):
 class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
     def __init__(self, csv_file):
         super(SimplePlot, self).__init__()
+
+        self.yTimes = []
+
 
         # This is an externally supplied csv file path (probably from PyMovie)
         self.externalCsvFilePath = csv_file
@@ -350,11 +366,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         # to get this right after a re-layout !!!!  self.widget changes sometimes
         # as does horizontalLayout_?
 
+        timeAxis = TimestampAxis(orientation='bottom')
+        timeAxis.setFetcher(self.getTimestampFromRdgNum)
+
         oldMainPlot = self.mainPlot
         self.mainPlot = PlotWidget(self.splitter_2,
                                    viewBox=CustomViewBox(border=(255, 255, 255)),
+                                   axisItems={'bottom': timeAxis},
                                    enableMenu=False, stretch=1)
-        # self.mainPlot.setMinimumSize(QtCore.QSize(800, 0))
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(1)
         sizePolicy.setVerticalStretch(0)
@@ -444,6 +463,17 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             else:
                 self.showMsg(f'Could not find csv file specified: {self.externalCsvFilePath}')
                 self.externalCsvFilePath = None
+
+    def getTimestampFromRdgNum(self, rdgNum):
+        readingNumber = int(rdgNum)
+        if readingNumber >= 0:
+            if readingNumber < len(self.yTimes):
+                tString = self.yTimes[readingNumber]
+                if tString == '[]' or tString == '':
+                    return f'{readingNumber}'
+                else:
+                    return self.yTimes[readingNumber]
+        return '???'
 
     def fillExcelReport(self):
         # Open a file select dialog
