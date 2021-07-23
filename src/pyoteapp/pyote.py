@@ -180,7 +180,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.yTimes = []
 
-
         # This is an externally supplied csv file path (probably from PyMovie)
         self.externalCsvFilePath = csv_file
 
@@ -365,14 +364,20 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         # Re-instantiate mainPlot             Note: examine gui.py
         # to get this right after a re-layout !!!!  self.widget changes sometimes
         # as does horizontalLayout_?
+        axesPen = pg.mkPen((0, 0, 0), width=3)
 
-        timeAxis = TimestampAxis(orientation='bottom')
+        timeAxis = TimestampAxis(orientation='bottom', pen=axesPen)
         timeAxis.setFetcher(self.getTimestampFromRdgNum)
+
+        toptimeAxis = TimestampAxis(orientation='top', pen=axesPen)
+        toptimeAxis.setFetcher(self.getTimestampFromRdgNum)
+
+        leftAxis = pg.AxisItem(orientation='left', pen=axesPen)
 
         oldMainPlot = self.mainPlot
         self.mainPlot = PlotWidget(self.splitter_2,
                                    viewBox=CustomViewBox(border=(255, 255, 255)),
-                                   axisItems={'bottom': timeAxis},
+                                   axisItems={'bottom': timeAxis, 'top': toptimeAxis, 'left': leftAxis},
                                    enableMenu=False, stretch=1)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(1)
@@ -380,6 +385,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         sizePolicy.setHeightForWidth(self.mainPlot.sizePolicy().hasHeightForWidth())
         self.mainPlot.setSizePolicy(sizePolicy)
         self.mainPlot.setObjectName("mainPlot")
+        self.mainPlot.getPlotItem().showAxis('bottom', True)
+        self.mainPlot.getPlotItem().showAxis('top', True)
+        self.mainPlot.getPlotItem().showAxis('left', True)
         self.splitter_2.addWidget(self.mainPlot)
 
         oldMainPlot.setParent(None)
@@ -397,7 +405,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.mainPlotViewBox.rbScaleBox.setPen(pg.mkPen((255, 0, 0), width=2))
         self.mainPlotViewBox.rbScaleBox.setBrush(pg.mkBrush(None))
         self.mainPlot.hideButtons()
-        self.mainPlot.showGrid(y=True, alpha=1.0)
+        self.mainPlot.showGrid(y=True, alpha=.5)
 
         self.extra = []
         self.aperture_names = []
@@ -4547,6 +4555,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.mainPlot.addItem(self.verticalCursor)
 
         self.mainPlot.plot(self.yValues)
+        self.mainPlot.getPlotItem().showAxis('bottom')
+        self.mainPlot.getPlotItem().showAxis('left')
 
         try:
             x = [i for i in range(self.dataLen) if self.yStatus[i] == INCLUDED]
