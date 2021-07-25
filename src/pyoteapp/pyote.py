@@ -207,14 +207,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.userDeterminedBaselineStats = False
         self.userTrimInEffect = False
 
-        self.markBgdRegionButton.clicked.connect(self.markBackgroundRegion)
-        self.markBgdRegionButton.installEventFilter(self)
+        self.markBaselineRegionButton.clicked.connect(self.markBaselineRegion)
+        self.markBaselineRegionButton.installEventFilter(self)
 
-        self.clearBkgndsButton.clicked.connect(self.clearBackgroundRegions)
-        self.clearBkgndsButton.installEventFilter(self)
+        self.clearBaselineRegionsButton.clicked.connect(self.clearBaselineRegions)
+        self.clearBaselineRegionsButton.installEventFilter(self)
 
-        self.calcBgndFromRegionsButton.clicked.connect(self.calcBaselineStatisticsFromMarkedRegions)
-        self.calcBgndFromRegionsButton.installEventFilter(self)
+        self.calcStatsFromBaselineRegionsButton.clicked.connect(self.calcBaselineStatisticsFromMarkedRegions)
+        self.calcStatsFromBaselineRegionsButton.installEventFilter(self)
 
         # Checkbox: Use manual timestamp entry
         self.manualTimestampCheckBox.clicked.connect(self.toggleManualEntryButton)
@@ -487,17 +487,17 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.showMsg(f'Could not find csv file specified: {self.externalCsvFilePath}')
                 self.externalCsvFilePath = None
 
-    def clearBackgroundRegions(self):
+    def clearBaselineRegions(self):
         self.bkgndRegionLimits = []
-        self.clearBkgndsButton.setEnabled(False)
-        self.calcBgndFromRegionsButton.setEnabled(False)
+        self.clearBaselineRegionsButton.setEnabled(False)
+        self.calcStatsFromBaselineRegionsButton.setEnabled(False)
         self.showMsg('Background regions cleared.')
         x = [i for i in range(self.dataLen) if self.yStatus[i] == BASELINE]
         for i in x:
             self.yStatus[i] = INCLUDED
         self.reDrawMainPlot()
 
-    def markBackgroundRegion(self):
+    def markBaselineRegion(self):
         # If the user has not selected any points, we ignore the request
         if len(self.selectedPoints) == 0:
             self.showInfo('No points were selected. Exactly two are required')
@@ -507,8 +507,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.showInfo('Exactly two points must be selected for this operation.')
             return
 
-        self.clearBkgndsButton.setEnabled(True)
-        self.calcBgndFromRegionsButton.setEnabled(True)
+        self.clearBaselineRegionsButton.setEnabled(True)
+        self.calcStatsFromBaselineRegionsButton.setEnabled(True)
 
         selIndices = [key for key, _ in self.selectedPoints.items()]
         selIndices.sort()
@@ -821,7 +821,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     # This method is needed because you cannot pass parameters from a clicked-connect
     def demoClickedUnderlyingLightcurves(self):
-        if self.B is None:
+        if self.B is None or self.A is None:
             self.demoUnderlyingLightcurves(baseline=100.0, event=0.0, plots_wanted=True, ignore_timedelta=True)
         else:
             self.demoUnderlyingLightcurves(baseline=self.B, event=self.A, plots_wanted=True, ignore_timedelta=True)
@@ -4409,6 +4409,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.userDeterminedBaselineStats = False
         self.userTrimInEffect = False
 
+        self.selectedPoints = {}
+
         savedFlashEdges = self.flashEdges
         self.initializeVariablesThatDontDependOnAfile()
         self.flashEdges = savedFlashEdges
@@ -4445,8 +4447,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.minEventEdit.setEnabled(True)
         self.maxEventEdit.setEnabled(True)
 
-        self.clearBkgndsButton.setEnabled(False)
-        self.calcBgndFromRegionsButton.setEnabled(False)
+        self.clearBaselineRegionsButton.setEnabled(False)
+        self.calcStatsFromBaselineRegionsButton.setEnabled(False)
 
         # Reset the data plot so that all points are visible
         self.mainPlot.autoRange()
@@ -4674,7 +4676,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             x = [i for i in range(self.dataLen) if self.yStatus[i] == BASELINE]
             y = [self.yValues[i] for i in range(self.dataLen) if self.yStatus[i] == BASELINE]
             self.mainPlot.plot(x, y, pen=None, symbol='o',
-                               symbolBrush=(0, 100, 0), symbolSize=6)
+                               symbolBrush=(255, 150, 100), symbolSize=6)
 
             x = [i for i in range(self.dataLen) if self.yStatus[i] == SELECTED]
             y = [self.yValues[i] for i in range(self.dataLen) if self.yStatus[i] == SELECTED]

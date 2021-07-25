@@ -25,7 +25,7 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>4598</width>
+         <width>4634</width>
          <height>999</height>
         </rect>
        </property>
@@ -1184,30 +1184,30 @@
                 <number>0</number>
                </property>
                <item>
-                <widget class="QPushButton" name="markBgdRegionButton">
+                <widget class="QPushButton" name="markBaselineRegionButton">
                  <property name="toolTip">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;This tool is primarily intended to be used with observations that have employed a 'GPS Flasher' to provide timing for the video observation.&amp;nbsp;A side effect of having an LED light up at the entrance of your telescope is that it will affect the background values of the target star (and others) and so make it more difficult to extract the best possible baseline statistics (mean and noise-sigma and noise-correlation-coefficients) which benefit from having more points involved in the calculation.&amp;nbsp;This tool allows the user to tell PyOTE where the background values are reliable (unaffected by flashes,&amp;nbsp;or wind gusts,&amp;nbsp;or telescope jostling, etc) enough to be used during baseline statistics calculation.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;By repeatedly selecting pairs of points on the light curve being analyzed and clicking this button,&amp;nbsp;the regions of 'reliable baseline data' can be designated.&amp;nbsp;They will be shown as darkish green points instead of the normal blue color.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; color:#0000ff;&quot;&gt;NOTE:&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt; Background regions marked on one curve are automatically applied to all curves. &lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;In general,&amp;nbsp;normalization against a reference star should be performed first,&amp;nbsp;then this operation.&amp;nbsp;That will remove any 'trends' that would affect the mean and noise-sigma.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;The procedure is simple: Click on two points,&amp;nbsp;then this button.&amp;nbsp;Rinse and repeat.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; color:#0000ff;&quot;&gt;FYI:&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt; One can also use this feature to calculate statistics on some set of points of interest (like a statistics in the event bottom) or for reference stars or ...&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;This tool is primarily intended to be used with observations that have employed a 'GPS Flasher' to provide timing for the video observation.&amp;nbsp;A side effect of having an LED light up at the entrance of your telescope is that it will affect the baseline values of the target star (and others) and so make it more difficult to extract the best possible baseline statistics (mean and noise-sigma and noise-correlation-coefficients) which benefit from having more points involved in the calculation.&amp;nbsp;This tool allows the user to tell PyOTE where the baseline values are reliable enough(unaffected by flashes,&amp;nbsp;or wind gusts,&amp;nbsp;or telescope jostling,&amp;nbsp;etc)  to be used during baseline statistics calculation.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;By repeatedly selecting pairs of points on the light curve being analyzed and clicking this button,&amp;nbsp;the regions of 'reliable baseline data' can be designated.&amp;nbsp;They will be shown as orangish points instead of the normal blue color.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; color:#0000ff;&quot;&gt;NOTE:&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt; Baseline regions marked on one curve are automatically applied to all curves. &lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;In general,&amp;nbsp;normalization against a reference star should be performed first,&amp;nbsp;then this operation.&amp;nbsp;That will remove any 'trends' that would affect the mean and noise-sigma.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;The procedure is simple:&amp;nbsp;Click on two points,&amp;nbsp;then this button.&amp;nbsp;Rinse and repeat.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; color:#0000ff;&quot;&gt;FYI:&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt; One can also use this feature to calculate statistics on some set of points of interest (like a statistics in the event bottom) or for reference stars or ...&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                  </property>
                  <property name="text">
-                  <string>Mark bkgnd region</string>
+                  <string>Mark baseline region</string>
                  </property>
                 </widget>
                </item>
                <item>
-                <widget class="QPushButton" name="clearBkgndsButton">
+                <widget class="QPushButton" name="clearBaselineRegionsButton">
                  <property name="enabled">
                   <bool>false</bool>
                  </property>
                  <property name="toolTip">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Clicking this button clears all 'background' regions and any baseline statistics that may have been extracted by clicking on the &lt;/span&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; color:#0000ff;&quot;&gt;Calc baseline mean/sigma/corr coeffs&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt; button.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Clear all marked baseline regions and any baseline statistics that may have been extracted by clicking on this button: &lt;/span&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; color:#0000ff;&quot;&gt;Calc baseline mean/sigma/corr coeffs&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt; &lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                  </property>
                  <property name="text">
-                  <string>Clear</string>
+                  <string>Clear baseline regions</string>
                  </property>
                 </widget>
                </item>
                <item>
-                <widget class="QPushButton" name="calcBgndFromRegionsButton">
+                <widget class="QPushButton" name="calcStatsFromBaselineRegionsButton">
                  <property name="enabled">
                   <bool>false</bool>
                  </property>
