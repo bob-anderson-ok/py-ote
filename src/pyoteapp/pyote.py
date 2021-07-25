@@ -201,6 +201,21 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.helpButton.clicked.connect(self.helpButtonClicked)
         self.helpButton.installEventFilter(self)
 
+        self.bkgndRegionLimits = []
+        self.bkgndRegions = []
+
+        self.userDeterminedBaselineStats = False
+        self.userTrimInEffect = False
+
+        self.markBgdRegionButton.clicked.connect(self.markBackgroundRegion)
+        self.markBgdRegionButton.installEventFilter(self)
+
+        self.clearBkgndsButton.clicked.connect(self.clearBackgroundRegions)
+        self.clearBkgndsButton.installEventFilter(self)
+
+        self.calcBgndFromRegionsButton.clicked.connect(self.calcBaselineStatisticsFromMarkedRegions)
+        self.calcBgndFromRegionsButton.installEventFilter(self)
+
         # Checkbox: Use manual timestamp entry
         self.manualTimestampCheckBox.clicked.connect(self.toggleManualEntryButton)
         self.manualTimestampCheckBox.installEventFilter(self)
@@ -471,6 +486,73 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             else:
                 self.showMsg(f'Could not find csv file specified: {self.externalCsvFilePath}')
                 self.externalCsvFilePath = None
+
+    def clearBackgroundRegions(self):
+        self.bkgndRegionLimits = []
+        self.clearBkgndsButton.setEnabled(False)
+        self.calcBgndFromRegionsButton.setEnabled(False)
+        self.showMsg('Background regions cleared.')
+        x = [i for i in range(self.dataLen) if self.yStatus[i] == BASELINE]
+        for i in x:
+            self.yStatus[i] = INCLUDED
+        self.reDrawMainPlot()
+
+    def markBackgroundRegion(self):
+        # If the user has not selected any points, we ignore the request
+        if len(self.selectedPoints) == 0:
+            self.showInfo('No points were selected. Exactly two are required')
+            return
+
+        if len(self.selectedPoints) != 2:
+            self.showInfo('Exactly two points must be selected for this operation.')
+            return
+
+        self.clearBkgndsButton.setEnabled(True)
+        self.calcBgndFromRegionsButton.setEnabled(True)
+
+        selIndices = [key for key, _ in self.selectedPoints.items()]
+        selIndices.sort()
+
+        leftEdge = int(min(selIndices))
+        rightEdge = int(max(selIndices))
+
+        self.bkgndRegionLimits.append([leftEdge, rightEdge])
+
+        # The following loop removes the 2 red points because they get overwritten by the BASELINE color
+        self.selectedPoints = {}
+        for i in range(leftEdge, rightEdge+1):
+            self.yStatus[i] = BASELINE
+
+        self.showMsg('Background region selected: ' + str([leftEdge, rightEdge]))
+        self.reDrawMainPlot()
+
+    def calcBaselineStatisticsFromMarkedRegions(self):
+        xIndices = [i for i in range(self.dataLen) if self.yStatus[i] == BASELINE]
+        y = [self.yValues[i] for i in range(self.dataLen) if self.yStatus[i] == BASELINE]
+        mean = np.mean(y)
+        self.B = mean
+        baselineXvals = []
+        baselineYvals = []
+        for i in xIndices:
+            baselineXvals.append(i)
+            baselineYvals.append(self.yValues[i])
+
+        # Note: the getCorCoefs() routine uses a savgol linear filter of window 301 to remove trends during
+        # the calculation of sigB
+        self.newCorCoefs, self.numNApts, sigB = getCorCoefs(baselineXvals,
+                                                            baselineYvals)
+        self.showMsg('Baseline noise analysis done using ' + str(self.numNApts) +
+                     ' baseline points')
+        self.corCoefs = np.ndarray(shape=(len(self.newCorCoefs),))
+        np.copyto(self.corCoefs, self.newCorCoefs)
+        self.numPtsInCorCoefs = self.numNApts
+        self.sigmaB = sigB
+
+        self.userDeterminedBaselineStats = True
+
+        self.prettyPrintCorCoefs()
+
+        self.showMsg(f'mean baseline = {mean:0.2f}')
 
     def getTimestampFromRdgNum(self, rdgNum):
         readingNumber = int(rdgNum)
@@ -2136,8 +2218,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         D, R = self.solution
 
-        self.showMsg('B: %0.2f  {+/- %0.2f}' % (self.B, numSigmas * self.sigmaB / np.sqrt(self.nBpts)))
-        self.showMsg('A: %0.2f  {+/- %0.2f}' % (self.A, numSigmas * self.sigmaA / np.sqrt(self.nApts)))
+        self.showMsg('B: %0.2f  {+/- %0.2f}  sigmaB: %0.2f' %
+                     (self.B, numSigmas * self.sigmaB / np.sqrt(self.nBpts), self.sigmaB))
+        self.showMsg('A: %0.2f  {+/- %0.2f}  sigmaA: %0.2f' %
+                     (self.A, numSigmas * self.sigmaA / np.sqrt(self.nApts), self.sigmaA))
 
         self.magdropReport(numSigmas)
 
@@ -2909,65 +2993,65 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     return True
         return False
 
-    def update_noise_parameters_from_solution(self):
-        D, R = self.solution
-        # D and R are floats and may be fractional because of sub-frame timing.
-        # Here we remove the effects of sub-frame timing to calulate the D and
-        # and R transition points as integers.
-        if D:
-            D = trunc(floor(D))
-        if R:
-            R = trunc(floor(R))
-
-        self.showMsg('Recalculating noise parameters to include all points '
-                     'based on first pass solution ====',
-                     color='red', bold=True)
-        if D and R:
-            self.sigmaA = None
-            self.corCoefs = []
-            self.selectedPoints = {}
-
-            self.togglePointSelected(self.left)
-            self.togglePointSelected(D-1)
-            self.processBaselineNoise(secondPass=True)
-
-            self.selectedPoints = {}
-            self.togglePointSelected(R+1)
-            self.togglePointSelected(self.right)
-            self.processBaselineNoise(secondPass=True)
-
-            self.selectedPoints = {}
-            self.togglePointSelected(D+1)
-            self.togglePointSelected(R-1)
-            self.processEventNoise(secondPass=True)
-        elif D:
-            self.sigmaA = None
-            self.corCoefs = []
-            self.selectedPoints = {}
-
-            self.togglePointSelected(self.left)
-            self.togglePointSelected(D - 1)
-            self.processBaselineNoise(secondPass=True)
-
-            self.selectedPoints = {}
-            self.togglePointSelected(D + 1)
-            self.togglePointSelected(self.right)
-            self.processEventNoise(secondPass=True)
-        else:
-            self.sigmaA = None
-            self.corCoefs = []
-            self.selectedPoints = {}
-
-            self.togglePointSelected(R + 1)
-            self.togglePointSelected(self.right)
-            self.processBaselineNoise(secondPass=True)
-
-            self.selectedPoints = {}
-            self.togglePointSelected(self.left)
-            self.togglePointSelected(R - 1)
-            self.processEventNoise(secondPass=True)
-
-        return
+    # def update_noise_parameters_from_solution(self):
+    #     D, R = self.solution
+    #     # D and R are floats and may be fractional because of sub-frame timing.
+    #     # Here we remove the effects of sub-frame timing to calulate the D and
+    #     # and R transition points as integers.
+    #     if D:
+    #         D = trunc(floor(D))
+    #     if R:
+    #         R = trunc(floor(R))
+    #
+    #     self.showMsg('Recalculating noise parameters to include all points '
+    #                  'based on first pass solution ====',
+    #                  color='red', bold=True)
+    #     if D and R:
+    #         self.sigmaA = None
+    #         self.corCoefs = []
+    #         self.selectedPoints = {}
+    #
+    #         self.togglePointSelected(self.left)
+    #         self.togglePointSelected(D-1)
+    #         self.processBaselineNoise(secondPass=True)
+    #
+    #         self.selectedPoints = {}
+    #         self.togglePointSelected(R+1)
+    #         self.togglePointSelected(self.right)
+    #         self.processBaselineNoise(secondPass=True)
+    #
+    #         self.selectedPoints = {}
+    #         self.togglePointSelected(D+1)
+    #         self.togglePointSelected(R-1)
+    #         self.processEventNoise(secondPass=True)
+    #     elif D:
+    #         self.sigmaA = None
+    #         self.corCoefs = []
+    #         self.selectedPoints = {}
+    #
+    #         self.togglePointSelected(self.left)
+    #         self.togglePointSelected(D - 1)
+    #         self.processBaselineNoise(secondPass=True)
+    #
+    #         self.selectedPoints = {}
+    #         self.togglePointSelected(D + 1)
+    #         self.togglePointSelected(self.right)
+    #         self.processEventNoise(secondPass=True)
+    #     else:
+    #         self.sigmaA = None
+    #         self.corCoefs = []
+    #         self.selectedPoints = {}
+    #
+    #         self.togglePointSelected(R + 1)
+    #         self.togglePointSelected(self.right)
+    #         self.processBaselineNoise(secondPass=True)
+    #
+    #         self.selectedPoints = {}
+    #         self.togglePointSelected(self.left)
+    #         self.togglePointSelected(R - 1)
+    #         self.processEventNoise(secondPass=True)
+    #
+    #     return
 
     def extract_noise_parameters_from_iterative_solution(self):
 
@@ -2980,9 +3064,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         if R:
             R = trunc(floor(R))
 
+        if not self.userDeterminedBaselineStats:
+            self.corCoefs = []
+
         if D and R:
             self.sigmaA = None
-            self.corCoefs = []
+            # self.corCoefs = []
 
             self.processBaselineNoiseFromIterativeSolution(self.left, D - 1)
 
@@ -3014,7 +3101,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.sigmaA = self.sigmaB
         elif D:
             self.sigmaA = None
-            self.corCoefs = []
+            # self.corCoefs = []
 
             self.processBaselineNoiseFromIterativeSolution(self.left, D - 1)
 
@@ -3023,7 +3110,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.sigmaA = self.sigmaB
         else:  # R only
             self.sigmaA = None
-            self.corCoefs = []
+            # self.corCoefs = []
 
             self.processBaselineNoiseFromIterativeSolution(R + 1, self.right)
 
@@ -3065,7 +3152,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             else:
                 # self.progressBar.setValue(0)
                 self.solution = item[0]
-                self.B = item[1]
+                if not self.userDeterminedBaselineStats:
+                    self.B = item[1]
+                if self.userTrimInEffect:
+                    self.B = item[1]
                 self.A = item[2]
 
     def compareFirstAndSecondPassResults(self):
@@ -3221,11 +3311,15 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.r_candidate_entry_nums = r_candidate_entry_nums
             self.penumbral_noise = (b_noise + a_noise) / 2.0
             self.A = a_intensity
-            self.B = b_intensity
             self.nBpts = num_b_pts
             self.nApts = num_a_pts
             self.sigmaA = a_noise
-            self.sigmaB = b_noise
+            if not self.userDeterminedBaselineStats:
+                self.sigmaB = b_noise
+                self.B = b_intensity
+            if self.userTrimInEffect:
+                self.B = b_intensity
+
             self.snrA = (self.B - self.A) / self.sigmaA
             self.snrB = (self.B - self.A) / self.sigmaB
 
@@ -3659,7 +3753,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
             need_to_invite_user_to_verify_timestamps = self.displaySolution()  # Adjusted solution
 
-            self.B = new_b
+            if not self.userDeterminedBaselineStats:
+                self.B = new_b
+            if self.userTrimInEffect:
+                self.B = new_b
             self.A = new_a
 
             # Activate this code if not using old solver following this.
@@ -4110,7 +4207,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             outStr = outStr + fp.to_precision(posCoefs[i], 3) + ', '
         outStr = outStr + fp.to_precision(posCoefs[-1], 3)
         outStr = outStr + ']  (based on ' + str(self.numPtsInCorCoefs) + ' points)'
-        outStr = outStr + '  sigmaB: ' + fp.to_precision(self.sigmaB, 4)
+        # outStr = outStr + '  sigmaB: ' + fp.to_precision(self.sigmaB, 4)
+        outStr = outStr + '  sigmaB: ' + f'{self.sigmaB:.2f}'
         self.showMsg(outStr)
     
     def processEventNoise(self, secondPass=False):
@@ -4259,21 +4357,22 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.baselineXvals.append(i)
             self.baselineYvals.append(self.yValues[i])
 
-        self.newCorCoefs, self.numNApts, sigB = getCorCoefs(self.baselineXvals,
-                                                            self.baselineYvals)
+        if not self.userDeterminedBaselineStats:
+            self.newCorCoefs, self.numNApts, sigB = getCorCoefs(self.baselineXvals,
+                                                                self.baselineYvals)
 
-        if len(self.corCoefs) == 0:
-            self.corCoefs = np.ndarray(shape=(len(self.newCorCoefs),))
-            np.copyto(self.corCoefs, self.newCorCoefs)
-            self.numPtsInCorCoefs = self.numNApts
-            self.sigmaB = sigB
-        else:
-            totalPoints = self.numNApts + self.numPtsInCorCoefs
-            self.corCoefs = (self.corCoefs * self.numPtsInCorCoefs +
-                             self.newCorCoefs * self.numNApts) / totalPoints
-            self.sigmaB = (self.sigmaB * self.numPtsInCorCoefs +
-                           sigB * self.numNApts) / totalPoints
-            self.numPtsInCorCoefs = totalPoints
+            if len(self.corCoefs) == 0:
+                self.corCoefs = np.ndarray(shape=(len(self.newCorCoefs),))
+                np.copyto(self.corCoefs, self.newCorCoefs)
+                self.numPtsInCorCoefs = self.numNApts
+                self.sigmaB = sigB
+            else:
+                totalPoints = self.numNApts + self.numPtsInCorCoefs
+                self.corCoefs = (self.corCoefs * self.numPtsInCorCoefs +
+                                 self.newCorCoefs * self.numNApts) / totalPoints
+                self.sigmaB = (self.sigmaB * self.numPtsInCorCoefs +
+                               sigB * self.numNApts) / totalPoints
+                self.numPtsInCorCoefs = totalPoints
 
     def removePointSelections(self):
         for i, oldStatus in self.selectedPoints.items():
@@ -4306,6 +4405,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     # noinspection PyUnusedLocal
     def restart(self):
+
+        self.userDeterminedBaselineStats = False
+        self.userTrimInEffect = False
 
         savedFlashEdges = self.flashEdges
         self.initializeVariablesThatDontDependOnAfile()
@@ -4343,6 +4445,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.minEventEdit.setEnabled(True)
         self.maxEventEdit.setEnabled(True)
 
+        self.clearBkgndsButton.setEnabled(False)
+        self.calcBgndFromRegionsButton.setEnabled(False)
+
         # Reset the data plot so that all points are visible
         self.mainPlot.autoRange()
         
@@ -4355,7 +4460,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         
         self.minEventEdit.clear()
         self.maxEventEdit.clear()
-        
+
+        self.bkgndRegionLimits = []
+
         self.reDrawMainPlot()
         self.mainPlot.autoRange()
         self.showMsg('*' * 20 + ' starting over ' + '*' * 20, color='blue')
@@ -4567,7 +4674,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             x = [i for i in range(self.dataLen) if self.yStatus[i] == BASELINE]
             y = [self.yValues[i] for i in range(self.dataLen) if self.yStatus[i] == BASELINE]
             self.mainPlot.plot(x, y, pen=None, symbol='o',
-                               symbolBrush=(0, 200, 200), symbolSize=6)
+                               symbolBrush=(0, 100, 0), symbolSize=6)
 
             x = [i for i in range(self.dataLen) if self.yStatus[i] == SELECTED]
             y = [self.yValues[i] for i in range(self.dataLen) if self.yStatus[i] == SELECTED]
@@ -4598,6 +4705,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.mainPlot.addItem(self.dRegion)
         if self.rRegion is not None:
             self.mainPlot.addItem(self.rRegion)
+        if self.bkgndRegions is not []:
+            for region in self.bkgndRegions:
+                self.mainPlot.addItem(region)
 
         if self.solution:
             self.drawSolution()
@@ -4621,6 +4731,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             selPts.sort()
             self.left = selPts[0]
             self.right = selPts[1]
+            self.userTrimInEffect = True
         else:
             # self.showInfo('All points will be selected (because no trim points specified)')
             self.showMsg('All data points were selected')

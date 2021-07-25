@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1427</width>
-    <height>956</height>
+    <width>1447</width>
+    <height>1061</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -26,7 +26,7 @@
          <x>0</x>
          <y>0</y>
          <width>4598</width>
-         <height>931</height>
+         <height>999</height>
         </rect>
        </property>
        <layout class="QHBoxLayout" name="horizontalLayout_17">
@@ -47,6 +47,9 @@
            </property>
            <widget class="QWidget" name="layoutWidget">
             <layout class="QVBoxLayout" name="verticalLayout_2">
+             <property name="spacing">
+              <number>-1</number>
+             </property>
              <item>
               <layout class="QHBoxLayout" name="horizontalLayout_11">
                <item>
@@ -1176,6 +1179,49 @@
               </widget>
              </item>
              <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_20">
+               <property name="spacing">
+                <number>0</number>
+               </property>
+               <item>
+                <widget class="QPushButton" name="markBgdRegionButton">
+                 <property name="toolTip">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;This tool is primarily intended to be used with observations that have employed a 'GPS Flasher' to provide timing for the video observation.&amp;nbsp;A side effect of having an LED light up at the entrance of your telescope is that it will affect the background values of the target star (and others) and so make it more difficult to extract the best possible baseline statistics (mean and noise-sigma and noise-correlation-coefficients) which benefit from having more points involved in the calculation.&amp;nbsp;This tool allows the user to tell PyOTE where the background values are reliable (unaffected by flashes,&amp;nbsp;or wind gusts,&amp;nbsp;or telescope jostling, etc) enough to be used during baseline statistics calculation.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;By repeatedly selecting pairs of points on the light curve being analyzed and clicking this button,&amp;nbsp;the regions of 'reliable baseline data' can be designated.&amp;nbsp;They will be shown as darkish green points instead of the normal blue color.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; color:#0000ff;&quot;&gt;NOTE:&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt; Background regions marked on one curve are automatically applied to all curves. &lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;In general,&amp;nbsp;normalization against a reference star should be performed first,&amp;nbsp;then this operation.&amp;nbsp;That will remove any 'trends' that would affect the mean and noise-sigma.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;The procedure is simple: Click on two points,&amp;nbsp;then this button.&amp;nbsp;Rinse and repeat.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; color:#0000ff;&quot;&gt;FYI:&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt; One can also use this feature to calculate statistics on some set of points of interest (like a statistics in the event bottom) or for reference stars or ...&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <property name="text">
+                  <string>Mark bkgnd region</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="clearBkgndsButton">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="toolTip">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Clicking this button clears all 'background' regions and any baseline statistics that may have been extracted by clicking on the &lt;/span&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; color:#0000ff;&quot;&gt;Calc baseline mean/sigma/corr coeffs&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt; button.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <property name="text">
+                  <string>Clear</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="calcBgndFromRegionsButton">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="toolTip">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;When this button is clicked,&amp;nbsp;all the points included in the marked 'background' regions will be collected and used to calculate the baseline mean,&amp;nbsp;noise-sigma,&amp;nbsp;and the noise-correlation coefficients.&amp;nbsp;Unless a 'trim' is performed,&amp;nbsp;these values will be used during error bar estimations and 'false-positive' estimation.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;If a 'trim' is performed,&amp;nbsp;the baseline mean will be determind from the trimmed data,&amp;nbsp;but the noise-sigma and noise-correlation coefficients extracted from the marked 'background' regions will continue to override those obtained from the trimmed light-curve.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <property name="text">
+                  <string>Calc baseline mean/sigma/corr coeffs</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
               <spacer name="verticalSpacer">
                <property name="orientation">
                 <enum>Qt::Vertical</enum>
@@ -1190,6 +1236,19 @@
              </item>
              <item>
               <layout class="QHBoxLayout" name="horizontalLayout_16">
+               <property name="spacing">
+                <number>0</number>
+               </property>
+               <item>
+                <widget class="QPushButton" name="startOver">
+                 <property name="toolTip">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;This button removes any trim that is in effect, clears a solution that may have been found, removes a smoothed reference curve, and removes any D or R region that is showing.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;It does &lt;/span&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; font-style:italic; color:#fc0107;&quot;&gt;not&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt; undo block integration or light curve normalization -- you must reload the light curve file to recover from those procedures.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <property name="text">
+                  <string>Start over</string>
+                 </property>
+                </widget>
+               </item>
                <item>
                 <widget class="QPushButton" name="writePlot">
                  <property name="enabled">
@@ -1230,19 +1289,6 @@
                 </widget>
                </item>
               </layout>
-             </item>
-             <item>
-              <widget class="QPushButton" name="startOver">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
-               <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This button removes any trim that is in effect, clears a solution that may have been found, removes a smoothed reference curve, and removes any D or R region that is showing.&lt;/p&gt;&lt;p&gt;It does &lt;span style=&quot; font-weight:600; font-style:italic; color:#fc0107;&quot;&gt;not&lt;/span&gt; undo block integration or light curve normalization -- you must reload the light curve file to recover from those procedures.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-               </property>
-               <property name="text">
-                <string>Start over</string>
-               </property>
-              </widget>
              </item>
              <item>
               <widget class="QLabel" name="helpLabelForDataGrid">
