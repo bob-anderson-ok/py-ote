@@ -95,6 +95,25 @@
              </item>
              <item>
               <layout class="QGridLayout" name="gridLayout">
+               <item row="0" column="3">
+                <widget class="QPushButton" name="readData">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Ignored" vsizetype="Maximum">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="toolTip">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;PYOTE reads Limovie, R-OTE, and Tangra files and includes up to four light curves from those file types.  For PyMovie files, PYOTE will read an unlimited number of light curves.&lt;/p&gt;&lt;p&gt;Normally (but not required) object1 is the occulted star; other (optional) objects are reference stars to be used for normalizing the occulted star light curve or flash curves from an LED timer.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;Mouse button functions within the light curve plot:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#ff0000;&quot;&gt;Left click&lt;/span&gt;: selects/deselects points on the primary (dark blue) light curve that intersect with the vertical hairline (the mouse cursor is disabled).&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#ff0000;&quot;&gt;Left click and drag&lt;/span&gt;: rectangular zoom is available to more clearly see points for selection (but point selection can also be accomplished through clicks in the tabular data display at the lower left)&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Note! The shift key will toggle the mouse cursor on/off in the light curve plot.&lt;/span&gt; This enables the starting corner for the zoom to be seen. (But points cannot be selected/deselected while the mouse cursor is visible. A right click will always 'blank' the mouse cursor.) &lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#ff0000;&quot;&gt;Right click&lt;/span&gt;: undo zoom&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#996633;&quot;&gt;Timestamp errors are shown with vertical red hairlines when a file is first read. These will disappear after the first point is selected so that the working view is as clear as possible. The red hairlines will re-appear permanently after the error bars have been calculated and the final report written to the log.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <property name="toolTipDuration">
+                  <number>-1</number>
+                 </property>
+                 <property name="text">
+                  <string>Read light curve</string>
+                 </property>
+                </widget>
+               </item>
                <item row="0" column="0">
                 <widget class="QPushButton" name="infoButton">
                  <property name="sizePolicy">
@@ -117,25 +136,6 @@
                  </property>
                 </widget>
                </item>
-               <item row="0" column="2">
-                <widget class="QPushButton" name="readData">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Ignored" vsizetype="Maximum">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
-                 </property>
-                 <property name="toolTip">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;PYOTE reads Limovie, R-OTE, and Tangra files and includes up to four light curves from those file types.  For PyMovie files, PYOTE will read an unlimited number of light curves.&lt;/p&gt;&lt;p&gt;Normally (but not required) object1 is the occulted star; other (optional) objects are reference stars to be used for normalizing the occulted star light curve or flash curves from an LED timer.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;Mouse button functions within the light curve plot:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#ff0000;&quot;&gt;Left click&lt;/span&gt;: selects/deselects points on the primary (dark blue) light curve that intersect with the vertical hairline (the mouse cursor is disabled).&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#ff0000;&quot;&gt;Left click and drag&lt;/span&gt;: rectangular zoom is available to more clearly see points for selection (but point selection can also be accomplished through clicks in the tabular data display at the lower left)&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Note! The shift key will toggle the mouse cursor on/off in the light curve plot.&lt;/span&gt; This enables the starting corner for the zoom to be seen. (But points cannot be selected/deselected while the mouse cursor is visible. A right click will always 'blank' the mouse cursor.) &lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#ff0000;&quot;&gt;Right click&lt;/span&gt;: undo zoom&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#996633;&quot;&gt;Timestamp errors are shown with vertical red hairlines when a file is first read. These will disappear after the first point is selected so that the working view is as clear as possible. The red hairlines will re-appear permanently after the error bars have been calculated and the final report written to the log.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                 </property>
-                 <property name="toolTipDuration">
-                  <number>-1</number>
-                 </property>
-                 <property name="text">
-                  <string>Read light curve</string>
-                 </property>
-                </widget>
-               </item>
                <item row="0" column="1">
                 <widget class="QPushButton" name="helpButton">
                  <property name="sizePolicy">
@@ -149,6 +149,22 @@
                  </property>
                  <property name="text">
                   <string>Help</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="2">
+                <widget class="QPushButton" name="tutorialButton">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="toolTip">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Tip: right-click on buttons and labels.&amp;nbsp;An explanation (help screen) will usually appear.&amp;nbsp;Use that technique to learn about features that are not covered in this basic tutorial/recipe.&lt;br/&gt;&lt;/p&gt;&lt;p&gt;1. Start by clicking the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Read light curve button &lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;2. If timestamp errors have been detected during the loading of the csv file,&amp;nbsp;the affected points will be bracketed by vertical redlines and the &lt;/span&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Show time err&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; checkbox will have been set by the program.&amp;nbsp;Those red lines will likely have served their purpose and should be turned off so that a clear view of the light-curve is presented.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;3. If the csv file contained multiple light-curves (it usually will),&amp;nbsp;you may need to click the &lt;/span&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Light curve to analyze&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; spinner to advance to the light-curve that contains the event.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;4. The next step is to give the 'event finder' information that can speed up the search. &lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;4a. If the event has a wide enough bottom,&amp;nbsp;the quickest way to provide speed-up information is mark the D and R regions.&amp;nbsp;Right-click on those buttons for a how-to.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;4b. If the event is so small that it is hard or impossible to mark D and R regions,&amp;nbsp;the speed-up information is then best supplied by placing the smallest event duration in the &lt;/span&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;min event duration&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; edit box and the maximum event duration in the &lt;/span&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;max event duration&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; edit box.&amp;nbsp;The 'finder' will then search for all events in the range of durations given, located anywhere in the light-curve.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;5. Next,&amp;nbsp;click the &lt;/span&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Find event, then ...&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; button to initiate the search.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;6. Assuming the search was successful,&amp;nbsp;the final step is to click the &lt;/span&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;... write report&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; button.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;Every step you took is recorded in a log file in the directory where the light-curve was read from.&amp;nbsp;This is important information to provide to anyone that you might go to for assistance.&amp;nbsp;Give them the csv file and the log file and they will be able to reproduce your session.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <property name="text">
+                  <string>Tutorial</string>
                  </property>
                 </widget>
                </item>
@@ -540,7 +556,7 @@
                   </sizepolicy>
                  </property>
                  <property name="toolTip">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; color:#222222;&quot;&gt;Select two points in the primary (dark blue) light curve, one on each side of where the star ‘disappears’, then click this button to create a D search area.&lt;/span&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; color:#222222;&quot;&gt;If no points are selected, a search for a D transition will not be performed --- this becomes an 'R only' event.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; color:#222222;&quot;&gt;Select two points in the primary (dark blue) light curve,&amp;nbsp;one on each side of where the star ‘disappears’,&amp;nbsp;then click this button to create a D search area.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; color:#222222;&quot;&gt;If no points are selected,&amp;nbsp;a search for a D transition will not be performed --- this becomes an 'R only' event.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; color:#222222;&quot;&gt;If the event duration is so short that it is difficult to place D and R regions,&amp;nbsp;you should use the min event duration edit box and the max event duration edit box to give guidance to the 'finder'.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                  </property>
                  <property name="text">
                   <string>Mark D region</string>
@@ -559,7 +575,7 @@
                   </sizepolicy>
                  </property>
                  <property name="toolTip">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; color:#222222;&quot;&gt;Select two points in the primary (dark blue) light curve, one on each side of where the star ‘reappears’, then click this button to create an R search area.&lt;/span&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; color:#222222;&quot;&gt;If no points are selected, a search for an R transition will not be performed --- this becomes a 'D only' event.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; color:#222222;&quot;&gt;Select two points in the primary (dark blue) light curve,&amp;nbsp;one on each side of where the star ‘reappears’,&amp;nbsp;then click this button to create an R search area.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; color:#222222;&quot;&gt;If no points are selected,&amp;nbsp;a search for an R transition will not be performed --- this becomes a 'D only' event.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; color:#222222;&quot;&gt;If the event duration is so short that it is difficult to place D and R regions,&amp;nbsp;you should use the min event duration edit box and the max event duration edit box to give guidance to the 'finder'.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                  </property>
                  <property name="text">
                   <string>Mark R region</string>
@@ -597,8 +613,11 @@
                    <height>0</height>
                   </size>
                  </property>
+                 <property name="toolTip">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this entry to tell the 'finder' the smallest event duration (in points) to look for.&amp;nbsp;It's okay to set this to 1 but if the smallest possible duration is clearly a much bigger number,&amp;nbsp;you will save time during the solution search phase to use a more realistic number.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
                  <property name="text">
-                  <string>min event:</string>
+                  <string>min event duration:</string>
                  </property>
                  <property name="alignment">
                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -647,8 +666,11 @@
                    <height>16777215</height>
                   </size>
                  </property>
+                 <property name="toolTip">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this entry to tell the 'finder' the largest event duration (in points) to look for.&amp;nbsp;It's okay to set this to a large number,&amp;nbsp;but if the largest possible duration is clearly a much smaller number,&amp;nbsp;you will save time during the solution search phase to use a more realistic number.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
                  <property name="text">
-                  <string>max event:</string>
+                  <string>max event duration:</string>
                  </property>
                  <property name="alignment">
                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>

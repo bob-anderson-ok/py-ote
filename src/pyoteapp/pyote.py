@@ -201,6 +201,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.helpButton.clicked.connect(self.helpButtonClicked)
         self.helpButton.installEventFilter(self)
 
+        self.tutorialButton.clicked.connect(self.tutorialButtonClicked)
+        self.tutorialButton.installEventFilter(self)
+
+        self.minEventLabel.installEventFilter(self)
+        self.maxEventLabel.installEventFilter(self)
+
         self.bkgndRegionLimits = []
         self.bkgndRegions = []
 
@@ -1011,6 +1017,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     def helpButtonClicked(self):
         self.showHelp(self.helpButton)
+
+    def tutorialButtonClicked(self):
+        self.showHelp(self.tutorialButton)
 
     def plotHelpButtonClicked(self):
         self.showHelp(self.plotHelpButton)
