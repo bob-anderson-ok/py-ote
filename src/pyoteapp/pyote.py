@@ -134,7 +134,6 @@ class TimestampAxis(pg.AxisItem):
     def tickStrings(self, values, scale, spacing):
         strns = []
         for val in values:
-            # strns.append(f'{0}:{1}.234')
             strns.append(self.getTimestampString(val))
         return strns
 
@@ -246,6 +245,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         # Checkbox: Show timestamp errors
         self.showTimestampErrors.clicked.connect(self.toggleDisplayOfTimestampErrors)
         self.showTimestampErrors.installEventFilter(self)
+
+        self.showTimestampsCheckBox.installEventFilter(self)
 
         # Checkbox: Show underlying lightcurve
         self.showUnderlyingLightcurveCheckBox.installEventFilter(self)
@@ -443,6 +444,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.enableDiffractionCalculationBox.setChecked(usediff)
         doOCRcheck = self.settings.value('doOCRcheck', 'true') == 'true'
         self.showOCRcheckFramesCheckBox.setChecked(doOCRcheck)
+        showTimestamps = self.settings.value('showTimestamps', 'true') == 'true'
+        self.showTimestampsCheckBox.setChecked(showTimestamps)
 
         self.yValues = None
         self.outliers = []
@@ -565,7 +568,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         if readingNumber >= 0:
             if readingNumber < len(self.yTimes):
                 tString = self.yTimes[readingNumber]
-                if tString == '[]' or tString == '':
+                if tString == '[]' or tString == '' or not self.showTimestampsCheckBox.isChecked():
                     return f'{readingNumber}'
                 else:
                     return self.yTimes[readingNumber]
@@ -2053,6 +2056,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.settings.setValue('pos', self.pos())
         self.settings.setValue('usediff', self.enableDiffractionCalculationBox.isChecked())
         self.settings.setValue('doOCRcheck', self.showOCRcheckFramesCheckBox.isChecked())
+        self.settings.setValue('showTimestamps', self.showTimestampsCheckBox.isChecked())
         self.helperThing.close()
 
         if self.d_underlying_lightcurve:
@@ -2222,6 +2226,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                      )
         return adjTime
 
+    # noinspection PyStringFormat
     def confidenceIntervalReport(self, numSigmas, deltaDurhi, deltaDurlo, deltaDhi, deltaDlo,
                                  deltaRhi, deltaRlo):
 
@@ -2254,6 +2259,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.showMsg('Duration (R - D): %.4f {+%.4f,-%.4f} seconds' %
                          (Rtime - Dtime, plusDur, minusDur))
 
+    # noinspection PyStringFormat
     def penumbralConfidenceIntervalReport(self, numSigmas, deltaDurhi, deltaDurlo, deltaDhi, deltaDlo,
                                           deltaRhi, deltaRlo):
 
@@ -2315,6 +2321,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.showMsg(f'maximum magDrop: {self.magDropString(Bmax, Amin)}')
 
+    # noinspection PyStringFormat
     def finalReportPenumbral(self):
 
         self.displaySolution(True)
@@ -2502,6 +2509,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.xlsxDict['Comment'] = f'Nominal measured mag drop = {self.magDropString(self.B, self.A)}'
         self.showMsg(f'nominal magDrop: {self.magDropString(self.B, self.A)}')
 
+        # noinspection PyStringFormat
         self.showMsg('snr: %0.2f' % self.snrB)
 
         self.doDtimeReport()
@@ -2693,6 +2701,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 break
             posCoefs.append(entry)
 
+        # noinspection PyTypeChecker
         distGen = edgeDistributionGenerator(
                 ntrials=100000, numPts=numPts, D=D, acfcoeffs=posCoefs,
                 B=self.B, A=self.A, sigmaB=self.sigmaB, sigmaA=self.sigmaA)

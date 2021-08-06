@@ -161,7 +161,7 @@
                   </sizepolicy>
                  </property>
                  <property name="toolTip">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Tip: right-click on buttons and labels.&amp;nbsp;An explanation (help screen) will usually appear.&amp;nbsp;Use that technique to learn about features that are not covered in this basic tutorial/recipe.&lt;br/&gt;&lt;/p&gt;&lt;p&gt;1. Start by clicking the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Read light curve button &lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;2. If timestamp errors have been detected during the loading of the csv file,&amp;nbsp;the affected points will be bracketed by vertical redlines and the &lt;/span&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Show time err&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; checkbox will have been set by the program.&amp;nbsp;Those red lines will likely have served their purpose and should be turned off so that a clear view of the light-curve is presented.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;3. If the csv file contained multiple light-curves (it usually will),&amp;nbsp;you may need to click the &lt;/span&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Light curve to analyze&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; spinner to advance to the light-curve that contains the event.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;4. The next step is to give the 'event finder' information that can speed up the search. &lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;4a. If the event has a wide enough bottom,&amp;nbsp;the quickest way to provide speed-up information is mark the D and R regions.&amp;nbsp;Right-click on those buttons for a how-to.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;4b. If the event is so small that it is hard or impossible to mark D and R regions,&amp;nbsp;the speed-up information is then best supplied by placing the smallest event duration in the &lt;/span&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;min event duration&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; edit box and the maximum event duration in the &lt;/span&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;max event duration&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; edit box.&amp;nbsp;The 'finder' will then search for all events in the range of durations given, located anywhere in the light-curve.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;5. Next,&amp;nbsp;click the &lt;/span&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Find event, then ...&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; button to initiate the search.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;6. Assuming the search was successful,&amp;nbsp;the final step is to click the &lt;/span&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;... write report&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; button.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;Every step you took is recorded in a log file in the directory where the light-curve was read from.&amp;nbsp;This is important information to provide to anyone that you might go to for assistance.&amp;nbsp;Give them the csv file and the log file and they will be able to reproduce your session.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Tip: right-click on buttons and labels.&amp;nbsp;An explanation (help screen) will usually appear.&amp;nbsp;Use that technique to learn about features that are not covered in this basic tutorial/recipe.&lt;/p&gt;&lt;p&gt;1. Start by clicking the&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt; Read light curve&lt;/span&gt; button.&amp;nbsp;(Usually,&amp;nbsp;the camera exposure value will be read from the csv file and automatically inserted in the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;exp:&lt;/span&gt; edit box in the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;parameters&lt;/span&gt; panel.&amp;nbsp;If that did not happen,&amp;nbsp;you will need to manually fill in that value in before trying to find an event fit.)&lt;/p&gt;&lt;p&gt;2. If timestamp errors have been detected during the loading of the csv file,&amp;nbsp;the affected points will be bracketed by vertical redlines and the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Show time err&lt;/span&gt; checkbox will have been set by the program.&amp;nbsp;Those red lines will likely have served their purpose and can/should be turned off so that a clear view of the light-curve is presented.&lt;/p&gt;&lt;p&gt;3. If the csv file contained multiple light-curves (it usually will),&amp;nbsp;you may need to click the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Light curve to analyze&lt;/span&gt; spinner to advance to the light-curve that contains the event.&lt;/p&gt;&lt;p&gt;4. The next step is to give the 'event finder' information that can speed up the search. &lt;/p&gt;&lt;p&gt;4a. If the event has a wide enough bottom,&amp;nbsp;the quickest way to provide speed-up information is mark the D and R regions.&amp;nbsp;Right-click on those buttons for a how-to.&lt;/p&gt;&lt;p&gt;4b. If the event is so small that it is hard or impossible to mark D and R regions,&amp;nbsp;the speed-up information is then best supplied by placing the smallest event duration in the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;min event duration&lt;/span&gt; edit box and the maximum event duration in the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;max event duration&lt;/span&gt; edit box.&amp;nbsp;The 'finder' will then search for all events in the range of durations given,&amp;nbsp;located anywhere in the light-curve.&lt;/p&gt;&lt;p&gt;5. Next,&amp;nbsp;click the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Find event, then ...&lt;/span&gt; button to initiate the search.&lt;/p&gt;&lt;p&gt;6. Assuming the search was successful,&amp;nbsp;the final step is to click the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;... write report&lt;/span&gt; button.&lt;/p&gt;&lt;p&gt;Every step you took is recorded in a log file in the directory where the light-curve was read from.&amp;nbsp;This is important information to provide to anyone that you might go to for assistance.&amp;nbsp;Give them the csv file and the log file and they will be able to reproduce your session.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                  </property>
                  <property name="text">
                   <string>Tutorial</string>
@@ -362,30 +362,30 @@
                   <bool>false</bool>
                  </property>
                  <property name="toolTip">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Timestamp errors are indicated by red lines that show where a time step is not within +/- 10% of the expected value.&lt;/p&gt;&lt;p&gt;Sometimes there are so many red lines that is becomes hard to see the plot. In that case, uncheck this box to suppress the red line display.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Timestamp errors are indicated by red lines that show where a time step is not within +/- 10% of the expected value.&lt;/p&gt;&lt;p&gt;Sometimes there are so many red lines that is becomes hard to see the plot. In that case,&amp;nbsp;uncheck this box to suppress the red line display.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                  </property>
                  <property name="text">
-                  <string>Show time err </string>
+                  <string>time err </string>
                  </property>
                 </widget>
                </item>
                <item>
                 <widget class="QCheckBox" name="showUnderlyingLightcurveCheckBox">
                  <property name="toolTip">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If you want to see the underlying lightcurve (the instantaneous theoretical lightcurve that the camera 'sees'), set this box to 'checked'.&lt;/p&gt;&lt;p&gt;The solution plot gets a bit cluttered when the camera response curve, the 'solution', and the underlying lightcurve are all being displayed at once.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If you want to see the underlying lightcurve (the instantaneous theoretical lightcurve that the camera 'sees'),&amp;nbsp;set this box to 'checked'.&lt;/p&gt;&lt;p&gt;The solution plot gets a bit cluttered when the camera response curve,&amp;nbsp;the 'solution',&amp;nbsp;and the underlying lightcurve are all being displayed at once.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                  </property>
                  <property name="text">
-                  <string>Show raw light</string>
+                  <string>raw light</string>
                  </property>
                 </widget>
                </item>
                <item>
                 <widget class="QCheckBox" name="showErrBarsCheckBox">
                  <property name="toolTip">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If you do not want to see the vertical dashed lines that show the 95% confidence interval error bars for D and/or R, uncheck this box.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If you do not want to see the vertical dashed lines that show the 95% confidence interval error bars for D and/or R,&amp;nbsp;uncheck this box.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                  </property>
                  <property name="text">
-                  <string>Show err bars</string>
+                  <string>err bars</string>
                  </property>
                  <property name="checked">
                   <bool>true</bool>
@@ -395,10 +395,10 @@
                <item>
                 <widget class="QCheckBox" name="showEdgesCheckBox">
                  <property name="toolTip">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If you do not want to see the D and/or R edges marked with a vertical dashed line on the 'solution', uncheck this box.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If you do not want to see the D and/or R edges marked with a vertical dashed line on the 'solution',&amp;nbsp;uncheck this box.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                  </property>
                  <property name="text">
-                  <string>Show edges</string>
+                  <string>edges</string>
                  </property>
                  <property name="checked">
                   <bool>true</bool>
@@ -408,10 +408,23 @@
                <item>
                 <widget class="QCheckBox" name="showOCRcheckFramesCheckBox">
                  <property name="toolTip">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Uncheck this box if you do not need to see the D and/or R frames from the video automatically displayed to verify that timestamp OCR was correct.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Background:&lt;/span&gt; if the video that produced the csv being analyzed is still in its original location, PyOTE will access that video whenever an event has been found and the critical frames that determine the reported times will be displayed. The timing data used for the report is displayed in the title of each displayed frame, allowing a user to visually confirm that the OCR timestamp extraction was correct.&lt;/p&gt;&lt;p&gt;NOTE: timestamps are ALWAY treated as start-of-exposure times.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Uncheck this box if you do not need to see the D and/or R frames from the video automatically displayed to verify that timestamp OCR was correct.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Background:&lt;/span&gt; if the video that produced the csv being analyzed is still in its original location,&amp;nbsp;PyOTE will access that video whenever an event has been found and the critical frames that determine the reported times will be displayed. The timing data used for the report is displayed in the title of each displayed frame,&amp;nbsp;allowing a user to visually confirm that the OCR timestamp extraction was correct.&lt;/p&gt;&lt;p&gt;NOTE: timestamps are ALWAY treated as start-of-exposure times.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                  </property>
                  <property name="text">
                   <string>Do OCR check</string>
+                 </property>
+                 <property name="checked">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QCheckBox" name="showTimestampsCheckBox">
+                 <property name="toolTip">
+                  <string>If you want frame numbers used on the x-xaxis, uncheck this box. Otherwise, if timestamps are available, they will be used to annotate the x-axis.</string>
+                 </property>
+                 <property name="text">
+                  <string>timestamps</string>
                  </property>
                  <property name="checked">
                   <bool>true</bool>
