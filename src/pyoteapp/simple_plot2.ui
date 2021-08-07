@@ -6,14 +6,38 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>2503</width>
-    <height>1051</height>
+    <width>4095</width>
+    <height>1156</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>16777215</width>
+    <height>16777215</height>
+   </size>
   </property>
   <property name="windowTitle">
    <string>PY-OTE</string>
   </property>
   <widget class="QWidget" name="centralwidget">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>16777215</width>
+     <height>16777215</height>
+    </size>
+   </property>
    <layout class="QGridLayout" name="gridLayout_3">
     <item row="0" column="0">
      <widget class="QSplitter" name="splitter_3">
@@ -93,7 +117,7 @@
              </property>
             </widget>
            </item>
-           <item row="0" column="2">
+           <item row="0" column="3">
             <widget class="QPushButton" name="readData">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Ignored" vsizetype="Maximum">
@@ -125,6 +149,22 @@
              </property>
              <property name="text">
               <string>Help</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="2">
+            <widget class="QPushButton" name="tutorialButton">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Tip:&amp;nbsp;right-click on buttons and labels.&amp;nbsp;An explanation (help screen) will usually appear.&amp;nbsp;Use that technique to learn about features that are not covered in this basic tutorial/recipe.&lt;/p&gt;&lt;p&gt;1. Start by clicking the&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt; Read light curve&lt;/span&gt; button.&amp;nbsp;(Usually,&amp;nbsp;the camera exposure value will be read from the csv file and automatically inserted in the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;exp:&lt;/span&gt; edit box in the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;parameters&lt;/span&gt; panel.&amp;nbsp;If that did not happen,&amp;nbsp;you will need to manually fill in that value in before trying to find an event fit.)&lt;/p&gt;&lt;p&gt;2. If timestamp errors have been detected during the loading of the csv file,&amp;nbsp;the affected points will be bracketed by vertical redlines and the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Show time err&lt;/span&gt; checkbox will have been set by the program.&amp;nbsp;Those red lines will likely have served their purpose and can/should be turned off so that a clear view of the light-curve is presented.&lt;/p&gt;&lt;p&gt;3. If the csv file contained multiple light-curves (it usually will),&amp;nbsp;you may need to click the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Light curve to analyze&lt;/span&gt; spinner to advance to the light-curve that contains the event.&lt;/p&gt;&lt;p&gt;4. The next step is to give the 'event finder' information that can speed up the search. &lt;/p&gt;&lt;p&gt;4a. If the event has a wide enough bottom,&amp;nbsp;the quickest way to provide speed-up information is mark the D and R regions.&amp;nbsp;Right-click on those buttons for a how-to.&lt;/p&gt;&lt;p&gt;4b. If the event is so small that it is hard or impossible to mark D and R regions,&amp;nbsp;the speed-up information is then best supplied by placing the smallest event duration in the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;min event duration&lt;/span&gt; edit box and the maximum event duration in the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;max event duration&lt;/span&gt; edit box.&amp;nbsp;The 'finder' will then search for all events in the range of durations given,&amp;nbsp;located anywhere in the light-curve.&lt;/p&gt;&lt;p&gt;5. Next,&amp;nbsp;click the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Find event, then ...&lt;/span&gt; button to initiate the search.&lt;/p&gt;&lt;p&gt;6. Assuming the search was successful,&amp;nbsp;the final step is to click the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;... write report&lt;/span&gt; button.&lt;/p&gt;&lt;p&gt;Every step you took is recorded in a log file in the directory where the light-curve was read from.&amp;nbsp;This is important information to provide to anyone that you might go to for assistance.&amp;nbsp;Give them the csv file and the log file and they will be able to reproduce your session.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="text">
+              <string>Tutorial</string>
              </property>
             </widget>
            </item>
@@ -170,6 +210,13 @@
              </property>
              <property name="maximum">
               <number>4</number>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="lightCurveNameEdit">
+             <property name="readOnly">
+              <bool>true</bool>
              </property>
             </widget>
            </item>
@@ -325,7 +372,7 @@
               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Timestamp errors are indicated by red lines that show where a time step is not within +/- 10% of the expected value.&lt;/p&gt;&lt;p&gt;Sometimes there are so many red lines that is becomes hard to see the plot. In that case, uncheck this box to suppress the red line display.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
-              <string>Show time err </string>
+              <string>time err </string>
              </property>
             </widget>
            </item>
@@ -335,7 +382,7 @@
               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If you want to see the underlying lightcurve (the instantaneous theoretical lightcurve that the camera 'sees'), set this box to 'checked'.&lt;/p&gt;&lt;p&gt;The solution plot gets a bit cluttered when the camera response curve, the 'solution', and the underlying lightcurve are all being displayed at once.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
-              <string>Show raw light</string>
+              <string>raw light</string>
              </property>
             </widget>
            </item>
@@ -345,7 +392,7 @@
               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If you do not want to see the vertical dashed lines that show the 95% confidence interval error bars for D and/or R, uncheck this box.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
-              <string>Show err bars</string>
+              <string>err bars</string>
              </property>
              <property name="checked">
               <bool>true</bool>
@@ -358,7 +405,7 @@
               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If you do not want to see the D and/or R edges marked with a vertical dashed line on the 'solution', uncheck this box.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
-              <string>Show edges</string>
+              <string>edges</string>
              </property>
              <property name="checked">
               <bool>true</bool>
@@ -375,6 +422,16 @@
              </property>
              <property name="checked">
               <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="showTimestampsCheckBox">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If you want frame numbers used on the x-xaxis,&amp;nbsp;uncheck this box.&amp;nbsp;Otherwise,&amp;nbsp;if timestamps are available,&amp;nbsp;they will be used to annotate the x-axis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="text">
+              <string>timestamps</string>
              </property>
             </widget>
            </item>
@@ -1153,6 +1210,31 @@
             <enum>Qt::Horizontal</enum>
            </property>
           </widget>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_16">
+           <item>
+            <widget class="QPushButton" name="markBaselineRegionButton">
+             <property name="text">
+              <string>Mark baseline region</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="clearBaselineRegionsButton">
+             <property name="text">
+              <string>Clear baseline regions</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="calcStatsFromBaselineRegionsButton">
+             <property name="text">
+              <string>Calc baseline mean/sigma/corr coeffs</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </item>
          <item>
           <spacer name="verticalSpacer">

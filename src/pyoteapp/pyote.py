@@ -1233,6 +1233,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         refNum = int(selText)
 
         if self.aperture_names:
+            self.lightCurveNameEdit.setText(self.aperture_names[refNum - 1])
             self.showMsg('Analyze light curve ' + selText + ' selected.  PyMovie aperture name: ' +
                          self.aperture_names[refNum - 1])
         else:
@@ -4190,6 +4191,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.showMsg('timestamp error rate: ' + fp.to_precision(100 *
                                                                         self.errRate, 3) + '%')
 
+                self.changePrimary()  # Done only to fill in the light name box
+
                 if self.outliers:
                     self.showTimestampErrors.setEnabled(True)
                     self.showTimestampErrors.setChecked(True)
@@ -4788,6 +4791,8 @@ def main(csv_file_path=None):
     PyQt5.QtWidgets.QApplication.setStyle('fusion')
     # app = QtGui.QApplication(sys.argv)
     app = PyQt5.QtWidgets.QApplication(sys.argv)
+
+    print(f'PyOTE Version: {version.version()}')
 
     if sys.platform == 'linux':
         print(f'os: Linux')
