@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>4095</width>
-    <height>1156</height>
+    <height>1159</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -309,6 +309,9 @@
               <number>4</number>
              </property>
             </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="normalizationLightCurveNameEdit"/>
            </item>
            <item>
             <widget class="QLabel" name="normLabel">

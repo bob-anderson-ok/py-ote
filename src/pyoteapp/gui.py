@@ -13,7 +13,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(4095, 1156)
+        MainWindow.resize(4095, 1159)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.MinimumExpanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -152,6 +152,9 @@ class Ui_MainWindow(object):
         self.secondarySelector.setMaximum(4)
         self.secondarySelector.setObjectName("secondarySelector")
         self.horizontalLayout_6.addWidget(self.secondarySelector)
+        self.normalizationLightCurveNameEdit = QtWidgets.QLineEdit(self.layoutWidget)
+        self.normalizationLightCurveNameEdit.setObjectName("normalizationLightCurveNameEdit")
+        self.horizontalLayout_6.addWidget(self.normalizationLightCurveNameEdit)
         self.normLabel = QtWidgets.QLabel(self.layoutWidget)
         self.normLabel.setEnabled(False)
         self.normLabel.setObjectName("normLabel")

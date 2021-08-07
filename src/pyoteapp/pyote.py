@@ -1196,24 +1196,29 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.curveToAnalyzeSpinBox.setValue(norm - 1)
 
         selText = self.secondarySelector.text()
+        normNum = int(selText)
+
+        selText = self.curveToAnalyzeSpinBox.text()
         refNum = int(selText)
 
         if self.aperture_names:
+            self.lightCurveNameEdit.setText(self.aperture_names[refNum - 1])
+            self.normalizationLightCurveNameEdit.setText(self.aperture_names[normNum - 1])
             self.showMsg('Secondary reference ' + selText + ' selected.  PyMovie aperture name: ' +
-                         self.aperture_names[refNum - 1])
+                         self.aperture_names[normNum - 1])
         else:
             self.showMsg('Secondary reference ' + selText + ' selected.')
 
-        if refNum == 1:
+        if normNum == 1:
             self.yRefStar = self.LC1
-        if refNum == 2:
+        if normNum == 2:
             self.yRefStar = self.LC2
-        if refNum == 3:
+        if normNum == 3:
             self.yRefStar = self.LC3
-        if refNum == 4:
+        if normNum == 4:
             self.yRefStar = self.LC4
-        if refNum > 4:
-            self.yRefStar = self.extra[refNum - 4 - 1]
+        if normNum > 4:
+            self.yRefStar = self.extra[normNum - 4 - 1]
 
         self.smoothSecondary = []
         self.reDrawMainPlot()
@@ -1232,8 +1237,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         selText = self.curveToAnalyzeSpinBox.text()
         refNum = int(selText)
 
+        selText = self.secondarySelector.text()
+        normNum = int(selText)
+
         if self.aperture_names:
             self.lightCurveNameEdit.setText(self.aperture_names[refNum - 1])
+            self.normalizationLightCurveNameEdit.setText(self.aperture_names[normNum - 1])
             self.showMsg('Analyze light curve ' + selText + ' selected.  PyMovie aperture name: ' +
                          self.aperture_names[refNum - 1])
         else:
@@ -4191,7 +4200,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.showMsg('timestamp error rate: ' + fp.to_precision(100 *
                                                                         self.errRate, 3) + '%')
 
-                self.changePrimary()  # Done only to fill in the light name box
+                self.changePrimary()  # Done only to fill in the light-curve name boxes
 
                 if self.outliers:
                     self.showTimestampErrors.setEnabled(True)
