@@ -1828,7 +1828,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 ans = mean_std_versus_offset(k, self.yValues)
                 progress += 1
                 self.progressBar.setValue((progress / len(integrationSizes)) * 100)
-                QtGui.QApplication.processEvents()
+                # QtGui.QApplication.processEvents()
+                QtWidgets.QApplication.processEvents()
                 offsetList.append(np.argmin(ans))
                 median = np.median(ans)
                 notch = np.min(ans) / median
@@ -1838,10 +1839,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 for item in ans:
                     s = s + '%0.1f, ' % item
                 self.showMsg(s[:-2] + ']', blankLine=False)
-                QtGui.QApplication.processEvents()
+                # QtGui.QApplication.processEvents()
+                QtWidgets.QApplication.processEvents()
 
             self.progressBar.setValue(0)
-            QtGui.QApplication.processEvents()
+            # QtGui.QApplication.processEvents()
+            QtWidgets.QApplication.processEvents()
 
             best = int(np.argmin(notchList))
             blockSize = kList[best]
@@ -2733,7 +2736,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                                  'treating noise as being uncorrelated.',
                                  bold=True, color='red')
                 self.progressBar.setValue(int(dist * 100))
-                QtGui.QApplication.processEvents()
+                # QtGui.QApplication.processEvents()
+                QtWidgets.QApplication.processEvents()
                 if self.cancelRequested:
                     self.cancelRequested = False
                     self.showMsg('Error bar calculation was cancelled')
@@ -3696,7 +3700,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 # if item[0] == 'fractionDone':
                 if item[0] == 1.0:
                     self.progressBar.setValue(int(item[1] * 100))
-                    QtGui.QApplication.processEvents()
+                    # QtGui.QApplication.processEvents()
+                    QtWidgets.QApplication.processEvents()
                     if self.cancelRequested:
                         self.cancelRequested = False
                         self.runSolver = False
@@ -3878,31 +3883,38 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             # newitem = QtGui.QTableWidgetItem(str(i))
             # self.table.setItem(i, 0, newitem)
             neatStr = fp.to_precision(self.yValues[i], 6)
-            newitem = QtGui.QTableWidgetItem(str(neatStr))
+            # newitem = QtGui.QTableWidgetItem(str(neatStr))
+            newitem = QtWidgets.QTableWidgetItem(str(neatStr))
             self.table.setItem(i, 2, newitem)
-            newitem = QtGui.QTableWidgetItem(str(self.yTimes[i]))
+            # newitem = QtGui.QTableWidgetItem(str(self.yTimes[i]))
+            newitem = QtWidgets.QTableWidgetItem(str(self.yTimes[i]))
             self.table.setItem(i, 1, newitem)
             frameNum = float(self.yFrame[i])
             if not np.ceil(frameNum) == np.floor(frameNum):
                 self.fieldMode = True
-            newitem = QtGui.QTableWidgetItem(str(self.yFrame[i]))
+            # newitem = QtGui.QTableWidgetItem(str(self.yFrame[i]))
+            newitem = QtWidgets.QTableWidgetItem(str(self.yFrame[i]))
             self.table.setItem(i, 0, newitem)
             if len(self.LC2) > 0:
                 neatStr = fp.to_precision(self.LC2[i], 6)
-                newitem = QtGui.QTableWidgetItem(str(neatStr))
+                # newitem = QtGui.QTableWidgetItem(str(neatStr))
+                newitem = QtWidgets.QTableWidgetItem(str(neatStr))
                 self.table.setItem(i, 3, newitem)
             if len(self.LC3) > 0:
                 neatStr = fp.to_precision(self.LC3[i], 6)
-                newitem = QtGui.QTableWidgetItem(str(neatStr))
+                # newitem = QtGui.QTableWidgetItem(str(neatStr))
+                newitem = QtWidgets.QTableWidgetItem(str(neatStr))
                 self.table.setItem(i, 4, newitem)
             if len(self.LC4) > 0:
                 neatStr = fp.to_precision(self.LC4[i], 6)
-                newitem = QtGui.QTableWidgetItem(str(neatStr))
+                # newitem = QtGui.QTableWidgetItem(str(neatStr))
+                newitem = QtWidgets.QTableWidgetItem(str(neatStr))
                 self.table.setItem(i, 5, newitem)
             if len(self.extra) > 0:
                 for k, lightcurve in enumerate(self.extra):
                     neatStr = fp.to_precision(lightcurve[i], 6)
-                    newitem = QtGui.QTableWidgetItem(str(neatStr))
+                    # newitem = QtGui.QTableWidgetItem(str(neatStr))
+                    newitem = QtWidgets.QTableWidgetItem(str(neatStr))
                     self.table.setItem(i, 6 + k, newitem)
 
         self.table.resizeColumnsToContents()

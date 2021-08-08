@@ -311,7 +311,11 @@
             </widget>
            </item>
            <item>
-            <widget class="QLineEdit" name="normalizationLightCurveNameEdit"/>
+            <widget class="QLineEdit" name="normalizationLightCurveNameEdit">
+             <property name="readOnly">
+              <bool>true</bool>
+             </property>
+            </widget>
            </item>
            <item>
             <widget class="QLabel" name="normLabel">
