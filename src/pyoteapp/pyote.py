@@ -979,7 +979,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.cascadePosition += self.cascadeDelta
 
         self.frameViews[-1].resize(1000, 600)
-        layout = QtGui.QGridLayout()
+        layout = QtWidgets.QGridLayout()
         self.frameViews[-1].setLayout(layout)
         imv = pg.ImageView()
         layout.addWidget(imv, 0, 0)
@@ -2781,7 +2781,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.errBarWin = pg.GraphicsWindow(
             title='Solution distributions with confidence intervals marked --- false positive distribution')
         self.errBarWin.resize(1200, 1000)
-        layout = QtGui.QGridLayout()
+        layout = QtWidgets.QGridLayout()
         self.errBarWin.setLayout(layout)
         
         pw = PlotWidget(viewBox=CustomViewBox(border=(0, 0, 0)),

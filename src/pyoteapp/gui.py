@@ -153,6 +153,7 @@ class Ui_MainWindow(object):
         self.secondarySelector.setObjectName("secondarySelector")
         self.horizontalLayout_6.addWidget(self.secondarySelector)
         self.normalizationLightCurveNameEdit = QtWidgets.QLineEdit(self.layoutWidget)
+        self.normalizationLightCurveNameEdit.setReadOnly(True)
         self.normalizationLightCurveNameEdit.setObjectName("normalizationLightCurveNameEdit")
         self.horizontalLayout_6.addWidget(self.normalizationLightCurveNameEdit)
         self.normLabel = QtWidgets.QLabel(self.layoutWidget)
