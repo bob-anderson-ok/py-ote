@@ -1202,10 +1202,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         refNum = int(selText)
 
         if self.aperture_names:
-            self.lightCurveNameEdit.setText(self.aperture_names[refNum - 1])
-            self.normalizationLightCurveNameEdit.setText(self.aperture_names[normNum - 1])
-            self.showMsg('Secondary reference ' + selText + ' selected.  PyMovie aperture name: ' +
-                         self.aperture_names[normNum - 1])
+            if (refNum - 1) < len(self.aperture_names):
+                self.lightCurveNameEdit.setText(self.aperture_names[refNum - 1])
+            if (normNum - 1) < len(self.aperture_names):
+                self.normalizationLightCurveNameEdit.setText(self.aperture_names[normNum - 1])
+                self.showMsg('Secondary reference ' + selText + ' selected.  PyMovie aperture name: ' +
+                             self.aperture_names[normNum - 1])
         else:
             self.showMsg('Secondary reference ' + selText + ' selected.')
 
@@ -1237,14 +1239,16 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         selText = self.curveToAnalyzeSpinBox.text()
         refNum = int(selText)
 
-        selText = self.secondarySelector.text()
-        normNum = int(selText)
+        selText2 = self.secondarySelector.text()
+        normNum = int(selText2)
 
         if self.aperture_names:
-            self.lightCurveNameEdit.setText(self.aperture_names[refNum - 1])
-            self.normalizationLightCurveNameEdit.setText(self.aperture_names[normNum - 1])
-            self.showMsg('Analyze light curve ' + selText + ' selected.  PyMovie aperture name: ' +
-                         self.aperture_names[refNum - 1])
+            if (refNum - 1) < len(self.aperture_names):
+                self.lightCurveNameEdit.setText(self.aperture_names[refNum - 1])
+                self.showMsg('Analyze light curve ' + selText + ' selected.  PyMovie aperture name: ' +
+                             self.aperture_names[refNum - 1])
+            if (normNum - 1) < len(self.aperture_names):
+                self.normalizationLightCurveNameEdit.setText(self.aperture_names[normNum - 1])
         else:
             self.showMsg('Analyze light curve ' + selText + ' selected.')
 
