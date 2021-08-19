@@ -206,10 +206,10 @@
               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this spinner to select which light curve to analyze for an occultation event or as a source for 'flash timing' edges.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="minimum">
-              <number>1</number>
+              <number>0</number>
              </property>
              <property name="maximum">
-              <number>4</number>
+              <number>12</number>
              </property>
             </widget>
            </item>
@@ -303,10 +303,13 @@
               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If there are multiple reference stars in the file, this spinner will activate to allow the choice of which one to display/use.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="minimum">
-              <number>1</number>
+              <number>0</number>
              </property>
              <property name="maximum">
-              <number>4</number>
+              <number>12</number>
+             </property>
+             <property name="value">
+              <number>0</number>
              </property>
             </widget>
            </item>

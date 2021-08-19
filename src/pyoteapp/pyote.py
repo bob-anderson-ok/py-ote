@@ -1189,28 +1189,36 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         # Resolve curve-to-analyze and normalization-curve being the same
         prim = self.curveToAnalyzeSpinBox.value()
         norm = self.secondarySelector.value()
-        if prim == norm:
-            if prim == 1:
-                self.curveToAnalyzeSpinBox.setValue(2)
-            else:
-                self.curveToAnalyzeSpinBox.setValue(norm - 1)
+        if prim == norm and norm > 0:
+            # Just get out of the way
+            self.curveToAnalyzeSpinBox.setValue(0)
+            self.lightCurveNameEdit.setText('')
 
-        selText = self.secondarySelector.text()
-        normNum = int(selText)
+        secondarySelText = self.secondarySelector.text()
+        normNum = int(secondarySelText)
 
-        selText = self.curveToAnalyzeSpinBox.text()
-        refNum = int(selText)
+        primarySelText = self.curveToAnalyzeSpinBox.text()
+        refNum = int(primarySelText)
 
         if self.aperture_names:
-            if (refNum - 1) < len(self.aperture_names):
-                self.lightCurveNameEdit.setText(self.aperture_names[refNum - 1])
-            if (normNum - 1) < len(self.aperture_names):
+            if not refNum == 0:
+                if (refNum - 1) < len(self.aperture_names):
+                    self.lightCurveNameEdit.setText(self.aperture_names[refNum - 1])
+            if normNum == 0:
+                self.showMsg('There is no secondary reference selected.')
+            elif (normNum - 1) < len(self.aperture_names):
                 self.normalizationLightCurveNameEdit.setText(self.aperture_names[normNum - 1])
-                self.showMsg('Secondary reference ' + selText + ' selected.  PyMovie aperture name: ' +
+                self.showMsg('Secondary reference ' + secondarySelText + ' selected.  PyMovie aperture name: ' +
                              self.aperture_names[normNum - 1])
         else:
-            self.showMsg('Secondary reference ' + selText + ' selected.')
+            if not normNum == 0:
+                self.showMsg('Secondary reference ' + secondarySelText + ' selected.')
+            else:
+                self.showMsg('There is no secondary reference selected.')
 
+        if normNum == 0:
+            self.yRefStar = []
+            self.normalizationLightCurveNameEdit.setText('')
         if normNum == 1:
             self.yRefStar = self.LC1
         if normNum == 2:
@@ -1230,11 +1238,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         # Resolve curve-to-analyze and normalization-curve being the same
         prim = self.curveToAnalyzeSpinBox.value()
         norm = self.secondarySelector.value()
-        if prim == norm:
-            if norm == 1:
-                self.secondarySelector.setValue(2)
-            else:
-                self.secondarySelector.setValue(prim - 1)
+        if prim == norm and not prim == 0:
+            self.secondarySelector.setValue(0)
+            self.normalizationLightCurveNameEdit.setText('')
 
         selText = self.curveToAnalyzeSpinBox.text()
         refNum = int(selText)
@@ -1243,15 +1249,25 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         normNum = int(selText2)
 
         if self.aperture_names:
-            if (refNum - 1) < len(self.aperture_names):
+            if refNum == 0:
+                self.showMsg('There is no curve selected for analysis.')
+            elif (refNum - 1) < len(self.aperture_names):
                 self.lightCurveNameEdit.setText(self.aperture_names[refNum - 1])
                 self.showMsg('Analyze light curve ' + selText + ' selected.  PyMovie aperture name: ' +
                              self.aperture_names[refNum - 1])
-            if (normNum - 1) < len(self.aperture_names):
-                self.normalizationLightCurveNameEdit.setText(self.aperture_names[normNum - 1])
+            if not normNum == 0:
+                if (normNum - 1) < len(self.aperture_names):
+                    self.normalizationLightCurveNameEdit.setText(self.aperture_names[normNum - 1])
         else:
-            self.showMsg('Analyze light curve ' + selText + ' selected.')
+            if not refNum == 0:
+                self.showMsg('Analyze light curve ' + selText + ' selected.')
+            else:
+                self.showMsg('There is no curve selected for analysis.')
 
+
+        if refNum == 0:
+            self.yValues = []
+            self.lightCurveNameEdit.setText('')
         if refNum == 1:
             self.yValues = self.LC1
         if refNum == 2:
@@ -4116,13 +4132,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
                 self.initializeTableView()
 
-                self.secondarySelector.setValue(1)
+                # self.secondarySelector.setValue(1)
                 self.curveToAnalyzeSpinBox.setMaximum(1)
+                self.curveToAnalyzeSpinBox.setValue(1)
                 if self.secondary:
                     self.secondarySelector.setEnabled(True)
                     self.normLabel.setEnabled(True)
-                    self.secondarySelector.setMaximum(2)
-                    self.secondarySelector.setValue(2)
+                    # self.secondarySelector.setMaximum(2)
+                    # self.secondarySelector.setValue(2)
                     self.showSecondaryCheckBox.setEnabled(True)
                     self.showSecondaryCheckBox.setChecked(False)
                     self.curveToAnalyzeSpinBox.setMaximum(2)
