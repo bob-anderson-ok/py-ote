@@ -235,7 +235,7 @@ def calcBandA(*, yValues=None, left=None, right=None, cand=None):
     else:
         assert((D >= left) and (R <= right) and (R > D))
         # We have a 'DandR' candidate
-        leftBvals = yValues[left:D]  # Smallest D will 1
+        leftBvals = yValues[left:D]  # Smallest D will be 1
         if R == right:
             rightBvals = yValues[right]
         else:
@@ -395,6 +395,8 @@ def subFrameAdjusted(*, eventType=None, cand=None, B=None, A=None,
         return [adjD, adjR], B, A
 
     elif eventType == 'DandR':
+        if not R - D > 2:
+            return [D, R], B, A
         if aicModelValue(
                 obsValue=yValues[D], B=B, A=A, sigmaB=sigmaB, sigmaA=sigmaA) == yValues[D]:
             # The point at D categorizes as M, do sub-frame adjustment; this
