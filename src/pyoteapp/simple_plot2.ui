@@ -1296,7 +1296,7 @@
               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this button to write the contents of the data table below to a csv file.&lt;/p&gt;&lt;p&gt;The comment lines from the original input file are preserved.&lt;/p&gt;&lt;p&gt;The most common use for this function is to capture the result of a successful Manual Timestamp Entry for later use (without the need to again go through the manual timestamp entry procedure). It will also reflect any Block Integration that was applied.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
-              <string>Write csv file</string>
+              <string>Save current light-curve</string>
              </property>
             </widget>
            </item>

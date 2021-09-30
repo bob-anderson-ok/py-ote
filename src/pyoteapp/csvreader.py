@@ -162,9 +162,12 @@ def pymovieParser(line, frame, time, value, ref1, ref2, ref3, extra):
 
 
 # noinspection PyUnusedLocal
-def rawParser(line, frame, time, value, secondary):
-    value.append(line)
-    
+def rawParser(line, frame, time, value, secondary, ref2, ref3, extra):
+    part = part = line.split(',')
+    frame.append(part[0])
+    time.append(part[1])
+    value.append(part[2])
+
 
 def readAs(file):
     global tangraNeedsBackgroundSubtraction
