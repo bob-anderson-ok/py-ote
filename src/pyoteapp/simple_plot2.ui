@@ -1225,6 +1225,9 @@
           <layout class="QHBoxLayout" name="horizontalLayout_16">
            <item>
             <widget class="QPushButton" name="markBaselineRegionButton">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;This tool is primarily intended to be used with observations that have employed a 'GPS Flasher' to provide timing for the video observation.&amp;nbsp;A side effect of having an LED light up at the entrance of your telescope is that it will affect the baseline values of the target star (and others) and so make it more difficult to extract the best possible baseline statistics (mean and noise-sigma and noise-correlation-coefficients) which benefit from having more points involved in the calculation.&amp;nbsp;This tool allows the user to tell PyOTE where the baseline values are reliable enough(unaffected by flashes,&amp;nbsp;or wind gusts,&amp;nbsp;or telescope jostling,&amp;nbsp;etc)  to be used during baseline statistics calculation.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;By repeatedly selecting pairs of points on the light curve being analyzed and clicking this button,&amp;nbsp;the regions of 'reliable baseline data' can be designated.&amp;nbsp;They will be shown as orangish points instead of the normal blue color.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; color:#0000ff;&quot;&gt;NOTE:&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt; Baseline regions marked on one curve are automatically applied to all curves. &lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;In general,&amp;nbsp;normalization against a reference star should be performed first,&amp;nbsp;then this operation.&amp;nbsp;That will remove any 'trends' that would affect the mean and noise-sigma.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;The procedure is simple:&amp;nbsp;Click on two points,&amp;nbsp;then this button.&amp;nbsp;Rinse and repeat.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; color:#0000ff;&quot;&gt;FYI:&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt; One can also use this feature to calculate statistics on some set of points of interest (like a statistics in the event bottom) or for reference stars or ...&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
              <property name="text">
               <string>Mark baseline region</string>
              </property>
@@ -1232,6 +1235,9 @@
            </item>
            <item>
             <widget class="QPushButton" name="clearBaselineRegionsButton">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Clear all marked baseline regions and any baseline statistics that may have been extracted by clicking on this button: &lt;/span&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; color:#0000ff;&quot;&gt;Calc baseline mean/sigma/corr coeffs&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt; &lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
              <property name="text">
               <string>Clear baseline regions</string>
              </property>
@@ -1239,6 +1245,9 @@
            </item>
            <item>
             <widget class="QPushButton" name="calcStatsFromBaselineRegionsButton">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;When this button is clicked,&amp;nbsp;all the points included in the marked 'baseline' regions will be collected and used to calculate the baseline mean,&amp;nbsp;noise-sigma,&amp;nbsp;and the noise-correlation coefficients.&amp;nbsp;Unless a 'trim' is performed,&amp;nbsp;these values will be used during error bar estimations and 'false-positive' estimation.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; color:#0000ff;&quot;&gt;NOTE:&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt; If a 'trim' is performed,&amp;nbsp;&lt;/span&gt;&lt;span style=&quot; font-size:18pt; font-weight:600;&quot;&gt;the baseline mean will be determined from the 'fit' to the trimmed data,&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;&amp;nbsp;but the noise-sigma and noise-correlation coefficients extracted from the marked 'background' regions will continue to override those obtained from the trimmed light-curve.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;This is done so that if the mean baseline level on either side of the event appears to be a little different than the overall baseline,&amp;nbsp;one can get improved baseline noise stats by using points from the entire light-curve,&amp;nbsp;yet trim the light-curve around the event and allow the 'finder/fitter' to calculate a baseline mean from the immediately adjacent points.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
              <property name="text">
               <string>Calc baseline mean/sigma/corr coeffs</string>
              </property>
