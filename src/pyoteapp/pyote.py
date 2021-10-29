@@ -1165,6 +1165,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.showMsg('Location of pyote information file: ' + helpFilePath, bold=True, color='blue')
 
     def mouseEvent(self):
+        # TODO comment out the following line
+        self.showMsg('Mouse event')
+
         if not self.blankCursor:
             # self.showMsg('Mouse event')
             self.blankCursor = True
@@ -2928,7 +2931,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.reDrawMainPlot()  # To add envelope to solution
 
-    def calcDetectability(self, noiseCoef=None):
+    # TODO Remove the following methods
+    # def testLower(self):
+    #     self.showMsg(f'lower value: {self.hLineLower.value():0.2f}')
+    #
+    # def testUpper(self):
+    #     self.showMsg(f'upper value: {self.hLineUpper.value():0.2f}')
+
+    def calcDetectability(self):
         if not self.userDeterminedBaselineStats:
             self.showInfo(f'Baseline statistics have been extracted yet.')
             return
@@ -2936,12 +2946,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         posCoefs = self.newCorCoefs
         durText = self.detectabilityDurationEdit.text()
         if durText == '':
-            self.showInfo(f'You need to fill in a duration (in readings) for this operation.')
+            self.showInfo(f'You need to fill in a duration (in seconds) for this operation.')
             return
         try:
-            event_duration = int(durText)
+            event_duration_secs = float(durText)
+            event_duration = int(np.ceil(event_duration_secs / self.timeDelta))
         except ValueError:
-            self.showInfo(f'{durText} is invalid as a duration in readings value')
+            self.showInfo(f'{durText} is invalid as a duration in seconds value')
             return
 
         magDropText = self.detectabilityMagDropEdit.text()
@@ -2965,33 +2976,61 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         drops = compute_drops(event_duration=event_duration, observation_size=observation_size,
                               noise_sigma=sigma, corr_array=np.array(posCoefs), num_trials=num_trials)
 
+        title = (f'Distribution of drops found in correlated noise:'
+                 f'Event duration(readings): {event_duration}   '
+                 f'Event duration(seconds): {event_duration_secs:0.2f}')
+
         pw = PlotWidget(viewBox=CustomViewBox(border=(0, 0, 0)),
                         enableMenu=False,
-                        title=f'Distribution of drops found in correlated noise for event duration: {event_duration}',
-                        labels={'bottom': 'drop size', 'left': 'number of times noise produced drop'})
+                        title=title,
+                        labels={'bottom': 'drop size (ADU)', 'left': 'number of times noise produced drop'})
         pw.hideButtons()
 
         y, x = np.histogram(drops, bins=50)
 
         pw.plot(x, y, stepMode=True, fillLevel=0, brush=(0, 0, 255, 150))
-        pw.plot(x=[observed_drop, observed_drop], y=[0, 1.5 * np.max(y)], pen=pg.mkPen([255, 0, 0], width=6))
-        pw.plot(x=[np.max(x), np.max(x)], y=[0, 0.25 * np.max(y)], pen=pg.mkPen([0, 0, 0], width=6))
+        pw.plot(x=[observed_drop, observed_drop], y=[0, 1.5 * np.max(y)], pen=pg.mkPen([255, 0, 0], width=4))
+        pw.plot(x=[np.max(x), np.max(x)], y=[0, 0.25 * np.max(y)], pen=pg.mkPen([0, 0, 0], width=4))
 
+        # TODO remove this experimental code
+        # mid = 1000
+        # lowMax = mid - 5
+        # upperMin = mid + 5
+        # upperMax = np.max(y)
+        # self.hLineLower = pg.InfiniteLine(pos=lowMax, angle=0, bounds=[0, lowMax],
+        #                                   movable=True, pen=pg.mkPen([0, 0, 255], width=3))
+        # pw.addItem(self.hLineLower)
+        # self.hLineLower.sigPositionChangeFinished.connect(self.testLower)
+        # self.hLineUpper = pg.InfiniteLine(pos=upperMin, angle=0, bounds=[upperMin, upperMax],
+        #                                   movable=True, pen=pg.mkPen([0, 255, 0], width=3))
+        #
+        # pw.addItem(self.hLineUpper)
+        # self.hLineUpper.sigPositionChangeFinished.connect(self.testUpper)
+        # TODO experimental code
+
+        blackDrop = np.max(x)
+        redDrop = observed_drop
+        redMinusBlack = redDrop - blackDrop
         pw.addLegend()
-        pw.plot(name=f'red line: the drop calculated using magDrop {event_magDrop}')
-        pw.plot(name=f'B: {self.B:0.2f}  A: {self.A:0.2f} (calculated from the given event magDrop)')
-        pw.plot(name=f'black line: max drop found in {num_trials} trials against pure noise')
-        pw.plot(name='If the red line is to the right of the black line, false positive prob = 0')
-
-        # self.falsePositivePlotItem = pw3.getPlotItem()
-        pw.getPlotItem()
-
-        self.errBarWin = pg.GraphicsWindow(
-            title='Detectability test: False positive distribution')
-        self.errBarWin.resize(1200, 700)
+        pw.plot(name=f'red line @ {redDrop:0.2f} = location of a {event_magDrop} magDrop event in histogram of all detected events due to noise')
+        pw.plot(name=f'black line @ {blackDrop:0.2f} = max drop found in {num_trials} trials with correlated noise')
+        pw.plot(name=f'B: {self.B:0.2f}  A: {self.A:0.2f} (calculated from expected magDrop of event)')
+        pw.plot(name=f'red - black = {redMinusBlack:0.2f}  Positive means a detection is likely; negative means detection unlikely')
+        self.detectabilityWin = pg.GraphicsWindow(title='Detectability test: False positive distribution')
+        self.detectabilityWin.resize(1200, 700)
         layout = QtWidgets.QGridLayout()
-        self.errBarWin.setLayout(layout)
+        self.detectabilityWin.setLayout(layout)
         layout.addWidget(pw, 0, 0)
+
+        pw.getPlotItem().setFixedHeight(700)
+        pw.getPlotItem().setFixedWidth(1200)
+
+        graphicFile, _ = os.path.splitext(self.filename)
+        exporter = FixedImageExporter(pw.getPlotItem())
+        # exporter = FixedImageExporter(pw.viewRect())
+        exporter.makeWidthHeightInts()
+        targetFile = graphicFile + '.max-dur-event-detectability.PYOTE.png'
+        exporter.export(targetFile)
 
         return
 
