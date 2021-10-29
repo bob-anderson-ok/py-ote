@@ -221,6 +221,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.calcStatsFromBaselineRegionsButton.clicked.connect(self.calcBaselineStatisticsFromMarkedRegions)
         self.calcStatsFromBaselineRegionsButton.installEventFilter(self)
 
+        self.calcDetectabilityButton.clicked.connect(self.calcDetectability)
+        self.calcDetectabilityButton.installEventFilter(self)
+
+        self.detectDurationLabel.installEventFilter(self)
+        self.detectMagDropLabel.installEventFilter(self)
+
         # Checkbox: Use manual timestamp entry
         self.manualTimestampCheckBox.clicked.connect(self.toggleManualEntryButton)
         self.manualTimestampCheckBox.installEventFilter(self)
@@ -562,6 +568,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.prettyPrintCorCoefs()
 
         self.showMsg(f'mean baseline = {mean:0.2f}')
+        self.showMsg(f'snr = {mean/sigB:0.2f}')
 
     def getTimestampFromRdgNum(self, rdgNum):
         readingNumber = int(rdgNum)
@@ -1263,7 +1270,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.showMsg('Analyze light curve ' + selText + ' selected.')
             else:
                 self.showMsg('There is no curve selected for analysis.')
-
 
         if refNum == 0:
             self.yValues = []
@@ -2921,6 +2927,73 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.fillExcelReportButton.setEnabled(True)
 
         self.reDrawMainPlot()  # To add envelope to solution
+
+    def calcDetectability(self, noiseCoef=None):
+        if not self.userDeterminedBaselineStats:
+            self.showInfo(f'Baseline statistics have been extracted yet.')
+            return
+
+        posCoefs = self.newCorCoefs
+        durText = self.detectabilityDurationEdit.text()
+        if durText == '':
+            self.showInfo(f'You need to fill in a duration (in readings) for this operation.')
+            return
+        try:
+            event_duration = int(durText)
+        except ValueError:
+            self.showInfo(f'{durText} is invalid as a duration in readings value')
+            return
+
+        magDropText = self.detectabilityMagDropEdit.text()
+        if magDropText == '':
+            self.showInfo(f'You need to fill in a magDrop for this operation.')
+            return
+        try:
+            event_magDrop = float(magDropText)
+        except ValueError:
+            self.showInfo(f'{magDropText} is invalid as a magDrop value')
+            return
+
+        observation_size = self.right - self.left + 1
+        sigma = self.sigmaB
+        # Use given magDrop to calculate observed drop
+        ratio = 10**(event_magDrop / 2.5)
+        self.A = self.B / ratio
+        observed_drop = self.B - self.A
+        num_trials = 50_000
+
+        drops = compute_drops(event_duration=event_duration, observation_size=observation_size,
+                              noise_sigma=sigma, corr_array=np.array(posCoefs), num_trials=num_trials)
+
+        pw = PlotWidget(viewBox=CustomViewBox(border=(0, 0, 0)),
+                        enableMenu=False,
+                        title=f'Distribution of drops found in correlated noise for event duration: {event_duration}',
+                        labels={'bottom': 'drop size', 'left': 'number of times noise produced drop'})
+        pw.hideButtons()
+
+        y, x = np.histogram(drops, bins=50)
+
+        pw.plot(x, y, stepMode=True, fillLevel=0, brush=(0, 0, 255, 150))
+        pw.plot(x=[observed_drop, observed_drop], y=[0, 1.5 * np.max(y)], pen=pg.mkPen([255, 0, 0], width=6))
+        pw.plot(x=[np.max(x), np.max(x)], y=[0, 0.25 * np.max(y)], pen=pg.mkPen([0, 0, 0], width=6))
+
+        pw.addLegend()
+        pw.plot(name=f'red line: the drop calculated using magDrop {event_magDrop}')
+        pw.plot(name=f'B: {self.B:0.2f}  A: {self.A:0.2f} (calculated from the given event magDrop)')
+        pw.plot(name=f'black line: max drop found in {num_trials} trials against pure noise')
+        pw.plot(name='If the red line is to the right of the black line, false positive prob = 0')
+
+        # self.falsePositivePlotItem = pw3.getPlotItem()
+        pw.getPlotItem()
+
+        self.errBarWin = pg.GraphicsWindow(
+            title='Detectability test: False positive distribution')
+        self.errBarWin.resize(1200, 700)
+        layout = QtWidgets.QGridLayout()
+        self.errBarWin.setLayout(layout)
+        layout.addWidget(pw, 0, 0)
+
+        return
 
     def doFalsePositiveReport(self, posCoefs):
         d, r = self.solution

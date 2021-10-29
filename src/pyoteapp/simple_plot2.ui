@@ -50,6 +50,9 @@
        </property>
        <widget class="QWidget" name="layoutWidget">
         <layout class="QVBoxLayout" name="verticalLayout_2">
+         <property name="spacing">
+          <number>0</number>
+         </property>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_11">
            <item>
@@ -626,6 +629,33 @@
          </item>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_3">
+           <property name="spacing">
+            <number>0</number>
+           </property>
+           <item>
+            <widget class="QRadioButton" name="DandR">
+             <property name="text">
+              <string>D:R</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QRadioButton" name="Donly">
+             <property name="text">
+              <string>D</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QRadioButton" name="Ronly">
+             <property name="text">
+              <string>R</string>
+             </property>
+            </widget>
+           </item>
            <item>
             <widget class="QLabel" name="minEventLabel">
              <property name="sizePolicy">
@@ -733,30 +763,6 @@
            <property name="rightMargin">
             <number>0</number>
            </property>
-           <item>
-            <widget class="QRadioButton" name="DandR">
-             <property name="text">
-              <string>D:R</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QRadioButton" name="Donly">
-             <property name="text">
-              <string>D</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QRadioButton" name="Ronly">
-             <property name="text">
-              <string>R</string>
-             </property>
-            </widget>
-           </item>
           </layout>
          </item>
          <item>
@@ -863,6 +869,19 @@
               <number>99999</number>
              </property>
             </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_2">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
            </item>
            <item>
             <widget class="QCheckBox" name="fieldViewCheckBox">
@@ -1252,6 +1271,46 @@
               <string>Calc baseline mean/sigma/corr coeffs</string>
              </property>
             </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_17">
+           <item>
+            <widget class="QPushButton" name="calcDetectabilityButton">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;This button activates a special version of the False-Positive calculator to help determine whether an occultation observation planned for the near future is detectable given the star signal available from the observation location, the expected duration of the event, and the expected magDrop of the event.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;The workflow is as follows:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;1. Make a video of the target star with at least a few hundred frames. The video needs to be long enough and under the anticipated observation conditions and camera settings to be used during the actual event so that a valid estimate of the expected intensity of the target star, the noise level, and the correlation coefficients of that noise during the actual event can be obtained.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;2. Use PyMovie (or Tangra or LiMovie) to extract a light-curve from the video.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;3. Read the light-curve into PyOTE, then click on two points in the light-curve plot to designate those points that should be used for the needed intensity and noise calculations.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;4. Click the &lt;/span&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; color:#0000ff;&quot;&gt;Mark baseline region&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt; button (just above this one), then the &lt;/span&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; color:#0000ff;&quot;&gt;Calc baseline stats&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt; button to the right - this is what triggers the extracion of the needed intensity and noise data, a pre-requisite to performing the next step:&lt;/span&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; color:#0000ff;&quot;&gt; Calc detectability&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;5. Before clicking the &lt;/span&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; color:#0000ff;&quot;&gt;Calc detectability&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt; button, you must fill in the expected duration of the event in 'readings' using the frame rate of the camera together with the expected event duration in seconds (example: 2.5 second event at 30 fps = 75 frame duration) and possibly a block level integration factor.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;6. Next, fill in the expected magDrop (a positive number).&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;7. Click the&lt;/span&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; color:#0000ff;&quot;&gt; Calc detectability&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt; button and, after a pause while 50,000 trial observations are computed, a False-Positive plot will appear. The position of the red vertical line relative to the black line tells the detectability story: if the red line is to right of the black line, the event has a high probabilty of being detected - if the red line is to the left of the black line it has a lower probability of detection, with that probablity decreasing as the red line moves more and more to the left of the black line. &lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="text">
+              <string>Calc detectability</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="detectDurationLabel">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;The False-Positive calculation needs an event duration specified as a number of 'readings'. Usually a 'reading' is a frame, but if an integrating camera is in use, you must take this into account. Use the frame rate of the camera (perhaps reduced by a block integration factor) and expected event duration in seconds to calculate the number of readings expected during the occultation. This number is expected to be an integer.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Example: a 2.5 second duration event recorded at 30 frames per second is a 75 reading duration event.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Example: a 10 second duration event recorded at 30 fps but with 4 frame integration gives 10 * 30 / 4 = 75 readings&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="text">
+              <string>  Duration (readings):</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="detectabilityDurationEdit"/>
+           </item>
+           <item>
+            <widget class="QLabel" name="detectMagDropLabel">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Enter the expected magDrop as a postive number.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="text">
+              <string>  magDrop:</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="detectabilityMagDropEdit"/>
            </item>
           </layout>
          </item>
