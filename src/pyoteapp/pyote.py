@@ -225,6 +225,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.calcDetectabilityButton.installEventFilter(self)
 
         self.detectDurationLabel.installEventFilter(self)
+        self.durStepLabel.installEventFilter(self)
         self.detectMagDropLabel.installEventFilter(self)
 
         # Checkbox: Use manual timestamp entry
@@ -2951,6 +2952,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         try:
             event_duration_secs = float(durText)
             event_duration = int(np.ceil(event_duration_secs / self.timeDelta))
+            if event_duration < 1:
+                self.showInfo(f'The event duration: {event_duration} is too small to use.')
+                return
         except ValueError:
             self.showInfo(f'{durText} is invalid as a duration in seconds value')
             return
@@ -2961,9 +2965,24 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             return
         try:
             event_magDrop = float(magDropText)
+            if event_magDrop < 0:
+                self.showInfo(f'magDrop must be a positive value.')
+                return
         except ValueError:
             self.showInfo(f'{magDropText} is invalid as a magDrop value')
             return
+
+        durStep = 0.0
+        durStepText = self.durStepEdit.text()
+        if not durStepText == '':
+            try:
+                durStep = float(durStepText)
+                if durStep < 0:
+                    self.showInfo(f'durStep must be a positive number.')
+                    return
+            except ValueError:
+                self.showInfo(f'{durStepText} is invalid as a durSep value')
+                return
 
         observation_size = self.right - self.left + 1
         sigma = self.sigmaB
@@ -2973,64 +2992,86 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         observed_drop = self.B - self.A
         num_trials = 50_000
 
-        drops = compute_drops(event_duration=event_duration, observation_size=observation_size,
-                              noise_sigma=sigma, corr_array=np.array(posCoefs), num_trials=num_trials)
+        while True:
+            self.showMsg(f'Processing detectibility of magDrop: {event_magDrop:0.2f} dur(secs): {event_duration_secs:0.2f} event')
+            QtWidgets.QApplication.processEvents()
 
-        title = (f'Distribution of drops found in correlated noise:'
-                 f'Event duration(readings): {event_duration}   '
-                 f'Event duration(seconds): {event_duration_secs:0.2f}')
+            drops = compute_drops(event_duration=event_duration, observation_size=observation_size,
+                                  noise_sigma=sigma, corr_array=np.array(posCoefs), num_trials=num_trials)
 
-        pw = PlotWidget(viewBox=CustomViewBox(border=(0, 0, 0)),
-                        enableMenu=False,
-                        title=title,
-                        labels={'bottom': 'drop size (ADU)', 'left': 'number of times noise produced drop'})
-        pw.hideButtons()
+            title = (f'Distribution of drops found in correlated noise:'
+                     f'Event duration(readings): {event_duration}   '
+                     f'Event duration(seconds): {event_duration_secs:0.2f}')
 
-        y, x = np.histogram(drops, bins=50)
+            pw = PlotWidget(viewBox=CustomViewBox(border=(0, 0, 0)),
+                            enableMenu=False,
+                            title=title,
+                            labels={'bottom': 'drop size (ADU)', 'left': 'number of times noise produced drop'})
+            pw.hideButtons()
 
-        pw.plot(x, y, stepMode=True, fillLevel=0, brush=(0, 0, 255, 150))
-        pw.plot(x=[observed_drop, observed_drop], y=[0, 1.5 * np.max(y)], pen=pg.mkPen([255, 0, 0], width=4))
-        pw.plot(x=[np.max(x), np.max(x)], y=[0, 0.25 * np.max(y)], pen=pg.mkPen([0, 0, 0], width=4))
+            y, x = np.histogram(drops, bins=50)
 
-        # TODO remove this experimental code
-        # mid = 1000
-        # lowMax = mid - 5
-        # upperMin = mid + 5
-        # upperMax = np.max(y)
-        # self.hLineLower = pg.InfiniteLine(pos=lowMax, angle=0, bounds=[0, lowMax],
-        #                                   movable=True, pen=pg.mkPen([0, 0, 255], width=3))
-        # pw.addItem(self.hLineLower)
-        # self.hLineLower.sigPositionChangeFinished.connect(self.testLower)
-        # self.hLineUpper = pg.InfiniteLine(pos=upperMin, angle=0, bounds=[upperMin, upperMax],
-        #                                   movable=True, pen=pg.mkPen([0, 255, 0], width=3))
-        #
-        # pw.addItem(self.hLineUpper)
-        # self.hLineUpper.sigPositionChangeFinished.connect(self.testUpper)
-        # TODO experimental code
+            pw.plot(x, y, stepMode=True, fillLevel=0, brush=(0, 0, 255, 150))
+            pw.plot(x=[observed_drop, observed_drop], y=[0, 1.5 * np.max(y)], pen=pg.mkPen([255, 0, 0], width=4))
+            pw.plot(x=[np.max(x), np.max(x)], y=[0, 0.25 * np.max(y)], pen=pg.mkPen([0, 0, 0], width=4))
 
-        blackDrop = np.max(x)
-        redDrop = observed_drop
-        redMinusBlack = redDrop - blackDrop
-        pw.addLegend()
-        pw.plot(name=f'red line @ {redDrop:0.2f} = location of a {event_magDrop} magDrop event in histogram of all detected events due to noise')
-        pw.plot(name=f'black line @ {blackDrop:0.2f} = max drop found in {num_trials} trials with correlated noise')
-        pw.plot(name=f'B: {self.B:0.2f}  A: {self.A:0.2f} (calculated from expected magDrop of event)')
-        pw.plot(name=f'red - black = {redMinusBlack:0.2f}  Positive means a detection is likely; negative means detection unlikely')
-        self.detectabilityWin = pg.GraphicsWindow(title='Detectability test: False positive distribution')
-        self.detectabilityWin.resize(1200, 700)
-        layout = QtWidgets.QGridLayout()
-        self.detectabilityWin.setLayout(layout)
-        layout.addWidget(pw, 0, 0)
+            # TODO remove this experimental code
+            # mid = 1000
+            # lowMax = mid - 5
+            # upperMin = mid + 5
+            # upperMax = np.max(y)
+            # self.hLineLower = pg.InfiniteLine(pos=lowMax, angle=0, bounds=[0, lowMax],
+            #                                   movable=True, pen=pg.mkPen([0, 0, 255], width=3))
+            # pw.addItem(self.hLineLower)
+            # self.hLineLower.sigPositionChangeFinished.connect(self.testLower)
+            # self.hLineUpper = pg.InfiniteLine(pos=upperMin, angle=0, bounds=[upperMin, upperMax],
+            #                                   movable=True, pen=pg.mkPen([0, 255, 0], width=3))
+            #
+            # pw.addItem(self.hLineUpper)
+            # self.hLineUpper.sigPositionChangeFinished.connect(self.testUpper)
+            # TODO experimental code
 
-        pw.getPlotItem().setFixedHeight(700)
-        pw.getPlotItem().setFixedWidth(1200)
+            blackDrop = np.max(x)
+            redDrop = observed_drop
+            redMinusBlack = redDrop - blackDrop
+            pw.addLegend()
+            pw.plot(name=f'red line @ {redDrop:0.2f} = location of a {event_magDrop} magDrop event in histogram of all detected events due to noise')
+            pw.plot(name=f'black line @ {blackDrop:0.2f} = max drop found in {num_trials} trials with correlated noise')
+            pw.plot(name=f'B: {self.B:0.2f}  A: {self.A:0.2f} (calculated from expected magDrop of event)')
 
-        graphicFile, _ = os.path.splitext(self.filename)
-        exporter = FixedImageExporter(pw.getPlotItem())
-        # exporter = FixedImageExporter(pw.viewRect())
-        exporter.makeWidthHeightInts()
-        targetFile = graphicFile + '.max-dur-event-detectability.PYOTE.png'
-        exporter.export(targetFile)
+            if redMinusBlack > 0:
+                pw.plot(name=f'red - black = {redMinusBlack:0.2f}  An event of this duration and magDrop is detectible')
+            else:
+                pw.plot(name=f'red - black = {redMinusBlack:0.2f}  Detection of this event is unlikely')
+
+            self.detectabilityWin = pg.GraphicsWindow(title='Detectability test: False positive distribution')
+            self.detectabilityWin.resize(1200, 700)
+            layout = QtWidgets.QGridLayout()
+            self.detectabilityWin.setLayout(layout)
+            layout.addWidget(pw, 0, 0)
+
+            pw.getPlotItem().setFixedHeight(700)
+            pw.getPlotItem().setFixedWidth(1200)
+
+            graphicFile, _ = os.path.splitext(self.filename)
+            exporter = FixedImageExporter(pw.getPlotItem())
+            # exporter = FixedImageExporter(pw.viewRect())
+            exporter.makeWidthHeightInts()
+            targetFile = graphicFile + f'.detectability-dur{event_duration_secs:0.2f}-magDrop{event_magDrop:0.2f}.PYOTE.png'
+            exporter.export(targetFile)
+            QtWidgets.QApplication.processEvents()
+
+            if redMinusBlack < 0:
+                self.showMsg(f'Undetectibility reached at magDrop: {event_magDrop:0.2f}  duration=: {event_duration_secs:0.2f}')
+                break
+
+            if durStep == 0.0:
+                break
+            else:
+                event_duration_secs -= durStep
+                event_duration = int(np.ceil(event_duration_secs / self.timeDelta))
+                if event_duration < 1:
+                    break
 
         return
 

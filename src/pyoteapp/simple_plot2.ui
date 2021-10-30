@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>2000</width>
-    <height>1162</height>
+    <height>1152</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -1296,6 +1296,19 @@
             <widget class="QLineEdit" name="detectabilityDurationEdit"/>
            </item>
            <item>
+            <widget class="QLabel" name="durStepLabel">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;If this box contains 0 or is empty, a single detectivity calculation and plot will be made.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;If a non-zero entry is made in this edit box, a series of detectivity calculations and plots will be made at ever shorter durations until the false-positive probability of the event becomes non-zero.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="text">
+              <string>dur step</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="durStepEdit"/>
+           </item>
+           <item>
             <widget class="QLabel" name="detectMagDropLabel">
              <property name="toolTip">
               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Enter the expected magDrop as a postive number.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -1410,7 +1423,7 @@
         </property>
         <property name="minimumSize">
          <size>
-          <width>4000</width>
+          <width>1000</width>
           <height>0</height>
          </size>
         </property>
