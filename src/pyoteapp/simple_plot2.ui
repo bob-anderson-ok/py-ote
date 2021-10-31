@@ -57,7 +57,7 @@
        <widget class="QWidget" name="layoutWidget">
         <layout class="QVBoxLayout" name="verticalLayout_2">
          <property name="spacing">
-          <number>0</number>
+          <number>-1</number>
          </property>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_11">

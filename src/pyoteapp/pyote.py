@@ -440,19 +440,19 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.aperture_names = []
         self.initializeTableView()  # Mostly just establishes column headers
         
-        # Open (or create) file for holding 'sticky' stuff
-        self.settings = QSettings('simple-ote.ini', QSettings.IniFormat)
-        self.settings.setFallbacksEnabled(False)
-        
-        # Use 'sticky' settings to size and position the main screen
-        self.resize(self.settings.value('size', QSize(800, 800)))
-        self.move(self.settings.value('pos', QPoint(50, 50)))
-        usediff = self.settings.value('usediff', 'true') == 'true'
-        self.enableDiffractionCalculationBox.setChecked(usediff)
-        doOCRcheck = self.settings.value('doOCRcheck', 'true') == 'true'
-        self.showOCRcheckFramesCheckBox.setChecked(doOCRcheck)
-        showTimestamps = self.settings.value('showTimestamps', 'true') == 'true'
-        self.showTimestampsCheckBox.setChecked(showTimestamps)
+        # # Open (or create) file for holding 'sticky' stuff
+        # self.settings = QSettings('simple-ote.ini', QSettings.IniFormat)
+        # self.settings.setFallbacksEnabled(False)
+        #
+        # # Use 'sticky' settings to size and position the main screen
+        # self.resize(self.settings.value('size', QSize(800, 800)))
+        # self.move(self.settings.value('pos', QPoint(50, 50)))
+        # usediff = self.settings.value('usediff', 'true') == 'true'
+        # self.enableDiffractionCalculationBox.setChecked(usediff)
+        # doOCRcheck = self.settings.value('doOCRcheck', 'true') == 'true'
+        # self.showOCRcheckFramesCheckBox.setChecked(doOCRcheck)
+        # showTimestamps = self.settings.value('showTimestamps', 'true') == 'true'
+        # self.showTimestampsCheckBox.setChecked(showTimestamps)
 
         self.yValues = None
         self.outliers = []
@@ -2094,6 +2094,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.table.setHorizontalHeaderLabels(colLabels)
         
     def closeEvent(self, event):
+        # Open (or create) file for holding 'sticky' stuff
+        self.settings = QSettings('simple-ote.ini', QSettings.IniFormat)
         # Capture the close request and update 'sticky' settings
         self.settings.setValue('size', self.size())
         self.settings.setValue('pos', self.pos())
@@ -2932,13 +2934,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.reDrawMainPlot()  # To add envelope to solution
 
-    # TODO Remove the following methods
-    # def testLower(self):
-    #     self.showMsg(f'lower value: {self.hLineLower.value():0.2f}')
-    #
-    # def testUpper(self):
-    #     self.showMsg(f'upper value: {self.hLineUpper.value():0.2f}')
-
     def calcDetectability(self):
         if not self.userDeterminedBaselineStats:
             self.showInfo(f'Baseline statistics have been extracted yet.')
@@ -3014,22 +3009,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             pw.plot(x, y, stepMode=True, fillLevel=0, brush=(0, 0, 255, 150))
             pw.plot(x=[observed_drop, observed_drop], y=[0, 1.5 * np.max(y)], pen=pg.mkPen([255, 0, 0], width=4))
             pw.plot(x=[np.max(x), np.max(x)], y=[0, 0.25 * np.max(y)], pen=pg.mkPen([0, 0, 0], width=4))
-
-            # TODO remove this experimental code
-            # mid = 1000
-            # lowMax = mid - 5
-            # upperMin = mid + 5
-            # upperMax = np.max(y)
-            # self.hLineLower = pg.InfiniteLine(pos=lowMax, angle=0, bounds=[0, lowMax],
-            #                                   movable=True, pen=pg.mkPen([0, 0, 255], width=3))
-            # pw.addItem(self.hLineLower)
-            # self.hLineLower.sigPositionChangeFinished.connect(self.testLower)
-            # self.hLineUpper = pg.InfiniteLine(pos=upperMin, angle=0, bounds=[upperMin, upperMax],
-            #                                   movable=True, pen=pg.mkPen([0, 255, 0], width=3))
-            #
-            # pw.addItem(self.hLineUpper)
-            # self.hLineUpper.sigPositionChangeFinished.connect(self.testUpper)
-            # TODO experimental code
 
             blackDrop = np.max(x)
             redDrop = observed_drop
