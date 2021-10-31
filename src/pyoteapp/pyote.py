@@ -440,19 +440,24 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.aperture_names = []
         self.initializeTableView()  # Mostly just establishes column headers
         
-        # # Open (or create) file for holding 'sticky' stuff
-        # self.settings = QSettings('simple-ote.ini', QSettings.IniFormat)
-        # self.settings.setFallbacksEnabled(False)
-        #
-        # # Use 'sticky' settings to size and position the main screen
-        # self.resize(self.settings.value('size', QSize(800, 800)))
-        # self.move(self.settings.value('pos', QPoint(50, 50)))
-        # usediff = self.settings.value('usediff', 'true') == 'true'
-        # self.enableDiffractionCalculationBox.setChecked(usediff)
-        # doOCRcheck = self.settings.value('doOCRcheck', 'true') == 'true'
-        # self.showOCRcheckFramesCheckBox.setChecked(doOCRcheck)
-        # showTimestamps = self.settings.value('showTimestamps', 'true') == 'true'
-        # self.showTimestampsCheckBox.setChecked(showTimestamps)
+        # Open (or create) file for holding 'sticky' stuff
+        self.settings = QSettings('pyote.ini', QSettings.IniFormat)
+        self.settings.setFallbacksEnabled(False)
+
+        # This is a 'hack' to override QtDesigner which has evolved somehow the abilty to block my attempts
+        # at setting reasonable size parameters in the drag-and drop Designer.
+        self.resize(QSize(0, 0))
+        self.setMinimumSize(QSize(0, 0))
+
+        # Use 'sticky' settings to size and position the main screen
+        self.resize(self.settings.value('size', QSize(800, 800)))
+        self.move(self.settings.value('pos', QPoint(50, 50)))
+        usediff = self.settings.value('usediff', 'true') == 'true'
+        self.enableDiffractionCalculationBox.setChecked(usediff)
+        doOCRcheck = self.settings.value('doOCRcheck', 'true') == 'true'
+        self.showOCRcheckFramesCheckBox.setChecked(doOCRcheck)
+        showTimestamps = self.settings.value('showTimestamps', 'true') == 'true'
+        self.showTimestampsCheckBox.setChecked(showTimestamps)
 
         self.yValues = None
         self.outliers = []
@@ -2095,7 +2100,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         
     def closeEvent(self, event):
         # Open (or create) file for holding 'sticky' stuff
-        self.settings = QSettings('simple-ote.ini', QSettings.IniFormat)
+        self.settings = QSettings('pyote.ini', QSettings.IniFormat)
         # Capture the close request and update 'sticky' settings
         self.settings.setValue('size', self.size())
         self.settings.setValue('pos', self.pos())
