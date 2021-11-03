@@ -3029,13 +3029,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 pw.plot(name=f'red - black = {redMinusBlack:0.2f}  Detection of this event is unlikely')
 
             self.detectabilityWin = pg.GraphicsWindow(title='Detectability test: False positive distribution')
-            self.detectabilityWin.resize(1200, 700)
+            self.detectabilityWin.resize(1700, 700)
             layout = QtWidgets.QGridLayout()
             self.detectabilityWin.setLayout(layout)
             layout.addWidget(pw, 0, 0)
 
             pw.getPlotItem().setFixedHeight(700)
-            pw.getPlotItem().setFixedWidth(1200)
+            pw.getPlotItem().setFixedWidth(1700)
 
             lightCurveDir = os.path.dirname(self.filename)  # This gets the folder where the light-curve.csv is located
             detectibiltyPlotPath = lightCurveDir + '/DetectabilityPlots/'
