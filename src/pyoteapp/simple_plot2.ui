@@ -1294,7 +1294,7 @@
            <item>
             <widget class="QLabel" name="detectDurationLabel">
              <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Enter the expected duration of the event in seconds (oa duration of 1.5 times the predicted duration is recommended). &lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Enter the expected duration of the event in seconds (a duration of 1.5 times the predicted duration is recommended). &lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
               <string>  Duration (seconds):</string>

@@ -3037,15 +3037,24 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             pw.getPlotItem().setFixedHeight(700)
             pw.getPlotItem().setFixedWidth(1200)
 
-            graphicFile, _ = os.path.splitext(self.filename)
+            lightCurveDir = os.path.dirname(self.filename)  # This gets the folder where the light-curve.csv is located
+            detectibiltyPlotPath = lightCurveDir + '/DetectabilityPlots/'
+            if not os.path.exists(detectibiltyPlotPath):
+                os.mkdir(detectibiltyPlotPath)
             exporter = FixedImageExporter(pw.getPlotItem())
             # exporter = FixedImageExporter(pw.viewRect())
             exporter.makeWidthHeightInts()
-            targetFile = graphicFile + f'.detectability-dur{event_duration_secs:0.2f}-magDrop{event_magDrop:0.2f}.PYOTE.png'
-            exporter.export(targetFile)
-            QtWidgets.QApplication.processEvents()
+            targetFile = detectibiltyPlotPath + f'plot.detectability-dur{event_duration_secs:0.2f}-magDrop{event_magDrop:0.2f}.PYOTE.png'
 
-            if redMinusBlack < 0:
+            if durStep == 0.0:
+                # Always write plot for single detectibility requests
+                exporter.export(targetFile)
+                QtWidgets.QApplication.processEvents()
+
+            if redMinusBlack < 0 and not durStep == 0.0:
+                # Only write the final plot for "find minimum duration detectibility" requests
+                exporter.export(targetFile)
+                QtWidgets.QApplication.processEvents()
                 self.showMsg(f'Undetectibility reached at magDrop: {event_magDrop:0.2f}  duration=: {event_duration_secs:0.2f}')
                 break
 
