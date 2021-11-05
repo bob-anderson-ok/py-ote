@@ -1172,7 +1172,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     def mouseEvent(self):
         # TODO comment out the following line
-        self.showMsg('Mouse event')
+        # self.showMsg('Mouse event')
 
         if not self.blankCursor:
             # self.showMsg('Mouse event')
