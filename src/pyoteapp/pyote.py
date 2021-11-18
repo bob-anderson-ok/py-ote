@@ -3,6 +3,7 @@ Created on Sat May 20 15:32:13 2017
 
 @author: Bob Anderson
 """
+# import pickle
 import subprocess
 
 MIN_SIGMA = 0.1
@@ -404,7 +405,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         leftAxis = pg.AxisItem(orientation='left', pen=axesPen)
 
         oldMainPlot = self.mainPlot
-        self.mainPlot = PlotWidget(self.splitter_2,
+        self.mainPlot = PlotWidget(self.splitterTwo,
                                    viewBox=CustomViewBox(border=(255, 255, 255)),
                                    axisItems={'bottom': timeAxis, 'top': toptimeAxis, 'left': leftAxis},
                                    enableMenu=False, stretch=1)
@@ -417,7 +418,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.mainPlot.getPlotItem().showAxis('bottom', True)
         self.mainPlot.getPlotItem().showAxis('top', True)
         self.mainPlot.getPlotItem().showAxis('left', True)
-        self.splitter_2.addWidget(self.mainPlot)
+        self.splitterTwo.addWidget(self.mainPlot)
 
         oldMainPlot.setParent(None)
 
@@ -449,6 +450,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.resize(QSize(0, 0))
         self.setMinimumSize(QSize(0, 0))
 
+        tab_name_list = self.settings.value('tablist')
+        # self.showMsg(repr(tablist))
+        if tab_name_list:
+            self.redoTabOrder(tab_name_list)
+
         # Use 'sticky' settings to size and position the main screen
         self.resize(self.settings.value('size', QSize(800, 800)))
         self.move(self.settings.value('pos', QPoint(50, 50)))
@@ -458,6 +464,15 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.showOCRcheckFramesCheckBox.setChecked(doOCRcheck)
         showTimestamps = self.settings.value('showTimestamps', 'true') == 'true'
         self.showTimestampsCheckBox.setChecked(showTimestamps)
+
+        # splitterOne is the vertical splitter in the lower panel.
+        # splitterTwo is the vertical splitter in the upper panel
+        # splitterThree is the horizontal splitter between the top and bottom panel
+
+        if self.settings.value('splitterOne') is not None:
+            self.splitterOne.restoreState(self.settings.value('splitterOne'))
+            self.splitterTwo.restoreState(self.settings.value('splitterTwo'))
+            self.splitterThree.restoreState(self.settings.value('splitterThree'))
 
         self.yValues = None
         self.outliers = []
@@ -507,6 +522,27 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             else:
                 self.showMsg(f'Could not find csv file specified: {self.externalCsvFilePath}')
                 self.externalCsvFilePath = None
+
+    def redoTabOrder(self, tabnames):
+
+        def getIndexOfTabFromName(name):
+            for i_local in range(self.tabWidget.count()):
+                if self.tabWidget.tabText(i_local) == name:
+                    return i_local
+            return -1
+
+        if not len(tabnames) == self.tabWidget.count():
+            self.showMsg(f'Mismatch in saved tab list versus current number of tabs.')
+            return
+
+        for i in range(len(tabnames)):
+            from_index = getIndexOfTabFromName(tabnames[i])
+            to_index = i
+            if from_index < 0:
+                self.showMsg(f'Could not locate {tabnames[i]} in the existing tabs')
+                return
+            else:
+                self.tabWidget.tabBar().moveTab(from_index, to_index)
 
     def clearBaselineRegions(self):
         self.bkgndRegionLimits = []
@@ -1171,8 +1207,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.showMsg('Location of pyote information file: ' + helpFilePath, bold=True, color='blue')
 
     def mouseEvent(self):
-        # TODO comment out the following line
-        # self.showMsg('Mouse event')
 
         if not self.blankCursor:
             # self.showMsg('Mouse event')
@@ -1202,13 +1236,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         return ans
 
     def changeSecondary(self):
-        # Resolve curve-to-analyze and normalization-curve being the same
-        prim = self.curveToAnalyzeSpinBox.value()
-        norm = self.secondarySelector.value()
-        if prim == norm and norm > 0:
-            # Just get out of the way
-            self.curveToAnalyzeSpinBox.setValue(0)
-            self.lightCurveNameEdit.setText('')
+        if len(self.aperture_names) > 0:
+            self.secondarySelector.setMaximum(len(self.aperture_names))
+        else:
+            self.secondarySelector.setMaximum(self.getNumberOfUnnamedLightCurves())
 
         secondarySelText = self.secondarySelector.text()
         normNum = int(secondarySelText)
@@ -1216,7 +1247,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         primarySelText = self.curveToAnalyzeSpinBox.text()
         refNum = int(primarySelText)
 
-        if self.aperture_names:
+        if len(self.aperture_names) > 0:
             if not refNum == 0:
                 if (refNum - 1) < len(self.aperture_names):
                     self.lightCurveNameEdit.setText(self.aperture_names[refNum - 1])
@@ -1250,13 +1281,25 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.reDrawMainPlot()
         self.mainPlot.autoRange()
 
+    def getNumberOfUnnamedLightCurves(self):
+        if len(self.LC1) == 0:
+            return 0
+        elif len(self.LC2) == 0:
+            return 1
+        elif len(self.LC3) == 0:
+            return 2
+        elif len(self.LC4) == 0:
+            return 3
+        elif len(self.extra) == 0:
+            return 4
+        else:
+            return 4 + len(self.extra)
+
     def changePrimary(self):
-        # Resolve curve-to-analyze and normalization-curve being the same
-        prim = self.curveToAnalyzeSpinBox.value()
-        norm = self.secondarySelector.value()
-        if prim == norm and not prim == 0:
-            self.secondarySelector.setValue(0)
-            self.normalizationLightCurveNameEdit.setText('')
+        if len(self.aperture_names) > 0:
+            self.curveToAnalyzeSpinBox.setMaximum(len(self.aperture_names))
+        else:
+            self.curveToAnalyzeSpinBox.setMaximum(self.getNumberOfUnnamedLightCurves())
 
         selText = self.curveToAnalyzeSpinBox.text()
         refNum = int(selText)
@@ -1264,7 +1307,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         selText2 = self.secondarySelector.text()
         normNum = int(selText2)
 
-        if self.aperture_names:
+        if len(self.aperture_names) > 0:
             if refNum == 0:
                 self.showMsg('There is no curve selected for analysis.')
             elif (refNum - 1) < len(self.aperture_names):
@@ -1557,9 +1600,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.dLimits = [leftEdge, rightEdge]
         
         if self.rLimits:
-            self.DandR.setChecked(True)
+            # self.DandR.setChecked(True)
+            self.eventType = 'DandR'
         else:
-            self.Donly.setChecked(True)
+            # self.Donly.setChecked(True)
+            self.eventType = 'Donly'
             
         self.dRegion = pg.LinearRegionItem(
                 [leftEdge, rightEdge], movable=False, brush=(0, 200, 0, 50))
@@ -1615,9 +1660,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.rLimits = [leftEdge, rightEdge]
         
         if self.dLimits:
-            self.DandR.setChecked(True)
+            # self.DandR.setChecked(True)
+            self.eventType = 'DandR'
         else:
-            self.Ronly.setChecked(True)
+            self.eventType = 'Ronly'
+            # self.Ronly.setChecked(True)
             
         self.rRegion = pg.LinearRegionItem(
                 [leftEdge, rightEdge], movable=False, brush=(200, 0, 0, 50))
@@ -1671,9 +1718,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.rLimits = [leftEdge, rightEdge]
 
         if self.dLimits:
-            self.DandR.setChecked(True)
+            # self.DandR.setChecked(True)
+            self.eventType = 'DandR'
         else:
-            self.Ronly.setChecked(True)
+            self.eventType = 'Ronly'
+            # self.Ronly.setChecked(True)
 
         self.rRegion = pg.LinearRegionItem(
             [leftEdge, rightEdge], movable=False, brush=(200, 0, 0, 50))
@@ -2109,6 +2158,20 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.settings.setValue('showTimestamps', self.showTimestampsCheckBox.isChecked())
         self.helperThing.close()
 
+        tabOrderList = []
+        numTabs = self.tabWidget.count()
+        # print(f'numTabs: {numTabs}')
+        for i in range(numTabs):
+            tabName = self.tabWidget.tabText(i)
+            # print(f'{i}: |{tabName}|')
+            tabOrderList.append(tabName)
+
+        self.settings.setValue('tablist', tabOrderList)
+
+        self.settings.setValue('splitterOne', self.splitterOne.saveState())
+        self.settings.setValue('splitterTwo', self.splitterTwo.saveState())
+        self.settings.setValue('splitterThree', self.splitterThree.saveState())
+
         if self.d_underlying_lightcurve:
             matplotlib.pyplot.close(self.d_underlying_lightcurve)
 
@@ -2403,29 +2466,29 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         # self.calcNumBandApoints()
 
-        self.showMsg('================= 0.68 confidence interval report =================')
+        self.showMsg('================= 0.68 containment interval report =================')
 
         self.penumbralConfidenceIntervalReport(1, self.deltaDurhi68, self.deltaDurlo68,
                                                self.deltaDhi68, self.deltaDlo68,
                                                self.deltaRhi68, self.deltaRlo68)
 
-        self.showMsg('=============== end 0.68 confidence interval report ===============')
+        self.showMsg('=============== end 0.68 containment interval report ===============')
 
-        self.showMsg('================= 0.95 confidence interval report =================')
+        self.showMsg('================= 0.95 containment interval report =================')
 
         self.penumbralConfidenceIntervalReport(2, self.deltaDurhi95, self.deltaDurlo95,
                                                self.deltaDhi95, self.deltaDlo95,
                                                self.deltaRhi95, self.deltaRlo95)
 
-        self.showMsg('=============== end 0.95 confidence interval report ===============')
+        self.showMsg('=============== end 0.95 containment interval report ===============')
 
-        self.showMsg('================= 0.9973 confidence interval report ===============')
+        self.showMsg('================= 0.9973 containment interval report ===============')
 
         self.penumbralConfidenceIntervalReport(3, self.deltaDurhi99, self.deltaDurlo99,
                                                self.deltaDhi99, self.deltaDlo99,
                                                self.deltaRhi99, self.deltaRlo99)
 
-        self.showMsg('=============== end 0.9973 confidence interval report =============')
+        self.showMsg('=============== end 0.9973 containment interval report =============')
 
         self.doDframeReport()
         self.doRframeReport()
@@ -2449,11 +2512,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.doDurTimeReport()
 
         self.showMsg(
-            'Enter D and R error bars for each confidence interval in Excel spreadsheet without + or - sign (assumed to be +/-)')
+            'Enter D and R error bars for each containment interval in Excel spreadsheet without + or - sign (assumed to be +/-)')
 
         self.showMsg('=========== end Summary report for Excel file =====================')
 
-        self.showMsg("Solution 'envelope' in the main plot drawn using 0.95 confidence interval error bars")
+        self.showMsg("Solution 'envelope' in the main plot drawn using 0.95 containment interval error bars")
 
         return
 
@@ -2471,15 +2534,15 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.calcNumBandApoints()
 
-        self.showMsg('================= 0.68 confidence interval report =================')
+        self.showMsg('================= 0.68 containment interval report =================')
 
         self.confidenceIntervalReport(1, self.deltaDurhi68, self.deltaDurlo68,
                                       self.deltaDhi68, self.deltaDlo68,
                                       self.deltaRhi68, self.deltaRlo68)
 
-        self.showMsg('=============== end 0.68 confidence interval report ===============')
+        self.showMsg('=============== end 0.68 containment interval report ===============')
 
-        self.showMsg('================= 0.95 confidence interval report =================')
+        self.showMsg('================= 0.95 containment interval report =================')
 
         self.confidenceIntervalReport(2, self.deltaDurhi95, self.deltaDurlo95,
                                       self.deltaDhi95, self.deltaDlo95,
@@ -2490,15 +2553,15 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         envelopeMinusR = self.minusR
         envelopeMinusD = self.minusD
 
-        self.showMsg('=============== end 0.95 confidence interval report ===============')
+        self.showMsg('=============== end 0.95 containment interval report ===============')
 
-        self.showMsg('================= 0.9973 confidence interval report ===============')
+        self.showMsg('================= 0.9973 containment interval report ===============')
 
         self.confidenceIntervalReport(3, self.deltaDurhi99, self.deltaDurlo99,
                                       self.deltaDhi99, self.deltaDlo99,
                                       self.deltaRhi99, self.deltaRlo99)
 
-        self.showMsg('=============== end 0.9973 confidence interval report =============')
+        self.showMsg('=============== end 0.9973 containment interval report =============')
 
         # Set the values to be used for the envelope plot (saved during 0.95 ci calculations)
         self.plusR = envelopePlusR
@@ -2566,11 +2629,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.doRtimeReport()
         self.doDurTimeReport()
 
-        self.showMsg('Enter D and R error bars for each confidence interval in Excel spreadsheet without + or - sign (assumed to be +/-)')
+        self.showMsg('Enter D and R error bars for each containment interval in Excel spreadsheet without + or - sign (assumed to be +/-)')
 
         self.showMsg('=========== end Summary report for Excel file =====================')
 
-        self.showMsg("Solution 'envelope' in the main plot drawn using 0.95 confidence interval error bars")
+        self.showMsg("Solution 'envelope' in the main plot drawn using 0.95 containment interval error bars")
 
         self.showHelp(self.helpLabelForFalsePositive)
 
@@ -2583,11 +2646,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             Dframe = (D - int(D)) * self.framesPerEntry() + frameNum
             self.showMsg('D frame number: {0:0.2f}'.format(Dframe), blankLine=False)
             errBar = max(abs(self.deltaDlo68), abs(self.deltaDhi68)) * self.framesPerEntry()
-            self.showMsg('D: 0.6800 confidence intervals:  {{+/- {0:0.2f}}} (readings)'.format(errBar), blankLine=False)
+            self.showMsg('D: 0.6800 containment intervals:  {{+/- {0:0.2f}}} (readings)'.format(errBar), blankLine=False)
             errBar = max(abs(self.deltaDlo95), abs(self.deltaDhi95)) * self.framesPerEntry()
-            self.showMsg('D: 0.9500 confidence intervals:  {{+/- {0:0.2f}}} (readings)'.format(errBar), blankLine=False)
+            self.showMsg('D: 0.9500 containment intervals:  {{+/- {0:0.2f}}} (readings)'.format(errBar), blankLine=False)
             errBar = max(abs(self.deltaDlo99), abs(self.deltaDhi99)) * self.framesPerEntry()
-            self.showMsg('D: 0.9973 confidence intervals:  {{+/- {0:0.2f}}} (readings)'.format(errBar))
+            self.showMsg('D: 0.9973 containment intervals:  {{+/- {0:0.2f}}} (readings)'.format(errBar))
 
     def framesPerEntry(self):
         # Normally, there is 1 frame per reading (entry), but if the source file was recorded
@@ -2606,24 +2669,24 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             Rframe = (R - int(R)) * self.framesPerEntry() + frameNum
             self.showMsg('R frame number: {0:0.2f}'.format(Rframe), blankLine=False)
             errBar = max(abs(self.deltaRlo68), abs(self.deltaRhi68)) * self.framesPerEntry()
-            self.showMsg('R: 0.6800 confidence intervals:  {{+/- {0:0.2f}}} (readings)'.format(errBar), blankLine=False)
+            self.showMsg('R: 0.6800 containment intervals:  {{+/- {0:0.2f}}} (readings)'.format(errBar), blankLine=False)
             errBar = max(abs(self.deltaRlo95), abs(self.deltaRhi95)) * self.framesPerEntry()
-            self.showMsg('R: 0.9500 confidence intervals:  {{+/- {0:0.2f}}} (readings)'.format(errBar), blankLine=False)
+            self.showMsg('R: 0.9500 containment intervals:  {{+/- {0:0.2f}}} (readings)'.format(errBar), blankLine=False)
             errBar = max(abs(self.deltaRlo99), abs(self.deltaRhi99)) * self.framesPerEntry()
-            self.showMsg('R: 0.9973 confidence intervals:  {{+/- {0:0.2f}}} (readings)'.format(errBar))
+            self.showMsg('R: 0.9973 containment intervals:  {{+/- {0:0.2f}}} (readings)'.format(errBar))
 
     def doDurFrameReport(self):
         if self.eventType == 'DandR':
             D, R = self.solution
             self.showMsg('Duration (R - D): {0:0.4f} readings'.format((R - D) * self.framesPerEntry()), blankLine=False)
             errBar = ((self.deltaDurhi68 - self.deltaDurlo68) / 2) * self.framesPerEntry()
-            self.showMsg('Duration: 0.6800 confidence intervals:  {{+/- {0:0.4f}}} (readings)'.format(errBar),
+            self.showMsg('Duration: 0.6800 containment intervals:  {{+/- {0:0.4f}}} (readings)'.format(errBar),
                          blankLine=False)
             errBar = ((self.deltaDurhi95 - self.deltaDurlo95) / 2) * self.framesPerEntry()
-            self.showMsg('Duration: 0.9500 confidence intervals:  {{+/- {0:0.4f}}} (readings)'.format(errBar),
+            self.showMsg('Duration: 0.9500 containment intervals:  {{+/- {0:0.4f}}} (readings)'.format(errBar),
                          blankLine=False)
             errBar = ((self.deltaDurhi99 - self.deltaDurlo99) / 2) * self.framesPerEntry()
-            self.showMsg('Duration: 0.9973 confidence intervals:  {{+/- {0:0.4f}}} (readings)'.format(errBar))
+            self.showMsg('Duration: 0.9973 containment intervals:  {{+/- {0:0.4f}}} (readings)'.format(errBar))
 
     def doDtimeReport(self):
         if self.eventType == 'DandR' or self.eventType == 'Donly':
@@ -2643,13 +2706,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.showMsg('D time: %s' % ts, blankLine=False)
             errBar = max(abs(self.deltaDlo68), abs(self.deltaDhi68)) * self.timeDelta
             self.xlsxDict['Derr68'] = errBar
-            self.showMsg('D: 0.6800 confidence intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar), blankLine=False)
+            self.showMsg('D: 0.6800 containment intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar), blankLine=False)
             errBar = max(abs(self.deltaDlo95), abs(self.deltaDhi95)) * self.timeDelta
             self.xlsxDict['Derr95'] = errBar
-            self.showMsg('D: 0.9500 confidence intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar), blankLine=False)
+            self.showMsg('D: 0.9500 containment intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar), blankLine=False)
             errBar = max(abs(self.deltaDlo99), abs(self.deltaDhi99)) * self.timeDelta
             self.xlsxDict['Derr99'] = errBar
-            self.showMsg('D: 0.9973 confidence intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar))
+            self.showMsg('D: 0.9973 containment intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar))
 
     def doRtimeReport(self):
         if self.eventType == 'DandR' or self.eventType == 'Ronly':
@@ -2669,13 +2732,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.showMsg('R time: %s' % ts, blankLine=False)
             errBar = max(abs(self.deltaRlo68), abs(self.deltaRhi68)) * self.timeDelta
             self.xlsxDict['Rerr68'] = errBar
-            self.showMsg('R: 0.6800 confidence intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar), blankLine=False)
+            self.showMsg('R: 0.6800 containment intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar), blankLine=False)
             errBar = max(abs(self.deltaRlo95), abs(self.deltaRhi95)) * self.timeDelta
             self.xlsxDict['Rerr95'] = errBar
-            self.showMsg('R: 0.9500 confidence intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar), blankLine=False)
+            self.showMsg('R: 0.9500 containment intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar), blankLine=False)
             errBar = max(abs(self.deltaRlo99), abs(self.deltaRhi99)) * self.timeDelta
             self.xlsxDict['Rerr99'] = errBar
-            self.showMsg('R: 0.9973 confidence intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar))
+            self.showMsg('R: 0.9973 containment intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar))
 
     def doDurTimeReport(self):
         if self.eventType == 'DandR':
@@ -2684,11 +2747,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 dur = dur + 3600 * 24  # Add seconds in a day
             self.showMsg('Duration (R - D): {0:0.4f} seconds'.format(dur), blankLine=False)
             errBar = ((self.deltaDurhi68 - self.deltaDurlo68) / 2) * self.timeDelta
-            self.showMsg('Duration: 0.6800 confidence intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar), blankLine=False)
+            self.showMsg('Duration: 0.6800 containment intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar), blankLine=False)
             errBar = ((self.deltaDurhi95 - self.deltaDurlo95) / 2) * self.timeDelta
-            self.showMsg('Duration: 0.9500 confidence intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar), blankLine=False)
+            self.showMsg('Duration: 0.9500 containment intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar), blankLine=False)
             errBar = ((self.deltaDurhi99 - self.deltaDurlo99) / 2) * self.timeDelta
-            self.showMsg('Duration: 0.9973 confidence intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar))
+            self.showMsg('Duration: 0.9973 containment intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar))
 
     def reportTimeValidity(self, D, R):
         intD = int(D)
@@ -2722,7 +2785,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.showMsg('! There is something wrong with timestamps at D '
                          'and/or R or frames have been dropped !', bold=True,
                          color='red')
-        
+
+    def calculateVarianceFromHistogram(self, y, x):
+        peakIndex = np.where(y == np.max(y))
+        # print(x[0],x[-1])
+        # print(peakIndex)
+        self.showMsg(f'peakIndex: {peakIndex[0][0]} xPeak: {x[peakIndex[0][0]]:0.2f}')
+
     def computeErrorBars(self):
 
         if self.penumbralFitCheckBox.isChecked():
@@ -2764,7 +2833,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     self.choleskyFailed = True
                     self.showInfo(
                         'The Cholesky-Decomposition routine has failed.  This may be because the light curve ' +
-                        'required some level of block integration.  Please '
+                        'required block integration and you failed to do either a manual block integration or to accept the '
+                        'PyOTE estimated block integration.  Please '
                         'examine the light curve for that possibility.' +
                         '\nWe treat this situation as though there is no '
                         'correlation in the noise.')
@@ -2773,7 +2843,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                                  'treating noise as being uncorrelated.',
                                  bold=True, color='red')
                 self.progressBar.setValue(int(dist * 100))
-                # QtGui.QApplication.processEvents()
                 QtWidgets.QApplication.processEvents()
                 if self.cancelRequested:
                     self.cancelRequested = False
@@ -2781,13 +2850,15 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     self.progressBar.setValue(0)
                     return
             else:
-                # self.calcErrBars.setEnabled(False)
                 self.progressBar.setValue(0)
-        
+
+        # TODO Remove this pickle dump
+        # pickle.dump(dist, open('sample-dist.p', 'wb'))
+
         y, x = np.histogram(dist, bins=1000)
-        self.loDbar95, _, self.hiDbar95, self.deltaDlo95, self.deltaDhi95 = ciBars(dist=dist, ci=0.95)
-        self.loDbar99, _, self.hiDbar99, self.deltaDlo99, self.deltaDhi99 = ciBars(dist=dist, ci=0.9973)
-        self.loDbar68, _, self.hiDbar68, self.deltaDlo68, self.deltaDhi68 = ciBars(dist=dist, ci=0.6827)
+        self.loDbar68, _, self.hiDbar68, self.deltaDlo68, self.deltaDhi68 = ciBars(dist=dist, ci=0.6827, D=D)
+        self.loDbar95, _, self.hiDbar95, self.deltaDlo95, self.deltaDhi95 = ciBars(dist=dist, ci=0.95,   D=D)
+        self.loDbar99, _, self.hiDbar99, self.deltaDlo99, self.deltaDhi99 = ciBars(dist=dist, ci=0.9973, D=D)
 
         self.deltaRlo95 = - self.deltaDhi95
         self.deltaRhi95 = - self.deltaDlo95
@@ -2804,9 +2875,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.showInfo('Unexpected error: variable dist is not of type np.ndarray')
             return
         ydur, xdur = np.histogram(durDist, bins=1000)
-        self.loDurbar95, _, self.hiDurbar95, self.deltaDurlo95, self.deltaDurhi95 = ciBars(dist=durDist, ci=0.95)
-        self.loDurbar99, _, self.hiDurbar99, self.deltaDurlo99, self.deltaDurhi99 = ciBars(dist=durDist, ci=0.9973)
-        self.loDurbar68, _, self.hiDurbar68, self.deltaDurlo68, self.deltaDurhi68 = ciBars(dist=durDist, ci=0.6827)
+        self.loDurbar68, _, self.hiDurbar68, self.deltaDurlo68, self.deltaDurhi68 = \
+            ciBars(dist=durDist, ci=0.6827, D=0.0)
+        self.loDurbar95, _, self.hiDurbar95, self.deltaDurlo95, self.deltaDurhi95 = \
+            ciBars(dist=durDist, ci=0.95, D=0.0)
+        self.loDurbar99, _, self.hiDurbar99, self.deltaDurlo99, self.deltaDurhi99 = \
+            ciBars(dist=durDist, ci=0.9973, D=0.0)
 
         pg.setConfigOptions(antialias=True)
         pen = pg.mkPen((0, 0, 0), width=2)
@@ -2816,7 +2890,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.errBarWin.close()
 
         self.errBarWin = pg.GraphicsWindow(
-            title='Solution distributions with confidence intervals marked --- false positive distribution')
+            title='Solution distributions with containment intervals marked --- false positive distribution')
         self.errBarWin.resize(1200, 1000)
         layout = QtWidgets.QGridLayout()
         self.errBarWin.setLayout(layout)
@@ -3743,14 +3817,16 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         need_to_invite_user_to_verify_timestamps = False
 
-        if self.DandR.isChecked():
-            self.eventType = 'DandR'
+        # if self.DandR.isChecked():
+        if self.eventType == 'DandR':
+            # self.eventType = 'DandR'
             self.showMsg('Locate a "D and R" event triggered')
-        elif self.Donly.isChecked():
-            self.eventType = 'Donly'
+        # elif self.Donly.isChecked():
+        elif self.eventType == 'Donly':
+            # self.eventType = 'Donly'
             self.showMsg('Locate a "D only" event triggered')
         else:
-            self.eventType = 'Ronly'
+            # self.eventType = 'Ronly'
             self.showMsg('Locate an "R only" event triggered')
         
         minText = self.minEventEdit.text().strip()
@@ -3792,7 +3868,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         if maxText == '':
             maxText = '<blank>'
         self.showMsg('minEvent: ' + minText + '  maxEvent: ' + maxText)
-        
+
+        if not minText == '' and not maxText == '':
+            self.eventType = 'DandR'
+
         candFrom, numCandidates = candidateCounter(eventType=self.eventType,
                                                    dLimits=self.dLimits, rLimits=self.rLimits,
                                                    left=self.left, right=self.right,
@@ -4162,6 +4241,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.externalCsvFilePath = None
 
         if self.filename:
+            self.userDeterminedBaselineStats = False
             self.setWindowTitle('PYOTE Version: ' + version.version() + '  File being processed: ' + self.filename)
             dirpath, _ = os.path.split(self.filename)
             self.logFile, _ = os.path.splitext(self.filename)

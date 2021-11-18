@@ -115,25 +115,56 @@ def edgeDistributionGenerator(*, ntrials: int = 10000, numPts: int = None, D: in
     yield edgePos
 
 
-def ciBars(*, dist: np.ndarray = None, ci: float = None) -> Tuple[float, ...]:
+def ciBars(*, dist: np.ndarray = None, ci: float = None, D: float = None) -> Tuple[float, ...]:
     assert(ci >= 0)
+
+    # ecdfX means estimated cumulative distribution function
+    # ecdfX = np.sort(dist)
+    # ecdfY = np.arange(ecdfX.size) / ecdfX.size
+
+    sortedDist = np.sort(dist)
+
+    # Calculate all possible containment intervals that contain the fraction of solutions given by ci
+    i0 = 0                          # left edge of containment interval
+    i1 = int(ci * sortedDist.size)  # right edge of containment interval
+    ciVec = np.ndarray(sortedDist.size-i1, dtype='float')
+    while i1 < sortedDist.size:
+        ciVec[i0] = sortedDist[i1] - sortedDist[i0]
+        # Slide the containment interval one step to the right. By construction, this interval
+        # still contains the same number of solutions
+        i0 += 1
+        i1 += 1
+
+    # We choose the smallest containment interval for our error bars
+    minCi = np.min(ciVec)
+    minCiIndex = np.where(ciVec == minCi)[0][0]
+    loBar = sortedDist[minCiIndex]
+    midBar = D
+    hiBar = loBar + minCi
     
-    ecdfX = np.sort(dist)
-    ecdfY = np.arange(ecdfX.size) / ecdfX.size
-    
-    indices = np.where(ecdfY >= 0.5 + ci / 2)[0]
-    if indices.size == 0:
-        hiBar = ecdfX[-1]
-    else:
-        hiBar = ecdfX[np.where(ecdfY >= 0.5 + ci / 2)[0][0]]
-     
-    indices = np.where(ecdfY >= 0.5 - ci / 2)[0]
-    if indices.size == 0:
-        loBar = 0.0
-    else:
-        loBar = ecdfX[np.where(ecdfY >= 0.5 - ci / 2)[0][0]]
-    
-    midBar = ecdfX[np.where(ecdfY >= 0.5)[0][0]]
+    # indices = np.where(ecdfY >= 0.5 + ci / 2)[0]
+    # if indices.size == 0:
+    #     hiIndex = ecdfX.size
+    # else:
+    #     hiIndex = np.where(ecdfY >= 0.5 + ci / 2)[0][0]
+    # hiBar = ecdfX[hiIndex]
+
+    # indices = np.where(ecdfY >= 0.5 - ci / 2)[0]
+    # if indices.size == 0:
+    #     loIndex = 0
+    # else:
+    #     loIndex = np.where(ecdfY >= 0.5 - ci / 2)[0][0]
+    # loBar = ecdfX[loIndex]
+
+    # midBar = ecdfX[np.where(ecdfY >= 0.5)[0][0]]
+
+    # TODO comment out this experimental code
+    # varCi = np.var(ecdfX[loIndex:hiIndex+1])
+    # meanCi = np.mean(ecdfX[loIndex:hiIndex+1])
+    # print(f'ci: {ci:0.4f}  meanCi: {meanCi:0.4f}  varCi: {varCi:0.4f}  lo: {ecdfX[loIndex]:0.4f}  hi: {ecdfX[hiIndex]:0.4f}')
+    # print(f'   sqrt(var)/ci: {np.sqrt(varCi)/ (hiBar - loBar):0.4f}')
+    # totalVar = np.var(ecdfX)
+    # print(f'   totalVar: {totalVar:0.4f}')
     
     return loBar, midBar, hiBar, loBar - midBar, hiBar - midBar
 
