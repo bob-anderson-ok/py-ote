@@ -610,7 +610,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.prettyPrintCorCoefs()
 
         self.showMsg(f'mean baseline = {mean:0.2f}')
-        self.showMsg(f'snr = {mean/sigB:0.2f}')
+        self.showMsg(f'baseline snr = {mean/sigB:0.2f}')
 
     def getTimestampFromRdgNum(self, rdgNum):
         readingNumber = int(rdgNum)
@@ -2110,24 +2110,21 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     def processClick(self, event):
         # Don't allow mouse clicks to select points unless the cursor is blank
-        if self.blankCursor:
+        if self.blankCursor and self.left is not None and self.right is not None:
             # This try/except handles case where user clicks in plot area before a
             # plot has been drawn.
             try:
                 mousePoint = self.mainPlotViewBox.mapSceneToView(event.scenePos())
                 index = round(mousePoint.x())
-                if index in range(self.dataLen):
-                    if event.button() == 1:  # left button clicked?
-                        if index < self.left:
-                            index = self.left
-                        if index > self.right:
-                            index = self.right
-                        self.togglePointSelected(index)
-                        self.acceptBlockIntegration.setEnabled(False)
-                    # Move the table view of data so that clicked point data is visible
-                    self.table.setCurrentCell(index, 0)
-                else:
-                    pass  # Out of bounds clicks simply ignored
+                if event.button() == 1:  # left button clicked?
+                    if index < self.left:
+                        index = self.left
+                    if index > self.right:
+                        index = self.right
+                    self.togglePointSelected(index)
+                    self.acceptBlockIntegration.setEnabled(False)
+                # Move the table view of data so that clicked point data is visible
+                self.table.setCurrentCell(index, 0)
             except AttributeError:
                 pass
         

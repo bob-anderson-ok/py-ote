@@ -713,28 +713,30 @@ class Ui_MainWindow(object):
         self.detectDurationLabel.setObjectName("detectDurationLabel")
         self.horizontalLayout_21.addWidget(self.detectDurationLabel)
         self.detectabilityDurationEdit = QtWidgets.QLineEdit(self.tab_8)
+        self.detectabilityDurationEdit.setMaximumSize(QtCore.QSize(80, 16777215))
         self.detectabilityDurationEdit.setObjectName("detectabilityDurationEdit")
         self.horizontalLayout_21.addWidget(self.detectabilityDurationEdit)
         self.durStepLabel = QtWidgets.QLabel(self.tab_8)
+        self.durStepLabel.setMaximumSize(QtCore.QSize(16777215, 16777215))
         self.durStepLabel.setObjectName("durStepLabel")
         self.horizontalLayout_21.addWidget(self.durStepLabel)
         self.durStepEdit = QtWidgets.QLineEdit(self.tab_8)
+        self.durStepEdit.setMaximumSize(QtCore.QSize(60, 16777215))
         self.durStepEdit.setObjectName("durStepEdit")
         self.horizontalLayout_21.addWidget(self.durStepEdit)
         self.detectMagDropLabel = QtWidgets.QLabel(self.tab_8)
         self.detectMagDropLabel.setObjectName("detectMagDropLabel")
         self.horizontalLayout_21.addWidget(self.detectMagDropLabel)
         self.detectabilityMagDropEdit = QtWidgets.QLineEdit(self.tab_8)
+        self.detectabilityMagDropEdit.setMaximumSize(QtCore.QSize(60, 16777215))
         self.detectabilityMagDropEdit.setObjectName("detectabilityMagDropEdit")
         self.horizontalLayout_21.addWidget(self.detectabilityMagDropEdit)
         self.gridLayout_6.addLayout(self.horizontalLayout_21, 2, 1, 1, 1)
         self.verticalLayout_3 = QtWidgets.QVBoxLayout()
         self.verticalLayout_3.setObjectName("verticalLayout_3")
-        self.detectabilityTextEdit = QtWidgets.QTextEdit(self.tab_8)
-        self.detectabilityTextEdit.setReadOnly(True)
-        self.detectabilityTextEdit.setPlaceholderText("")
-        self.detectabilityTextEdit.setObjectName("detectabilityTextEdit")
-        self.verticalLayout_3.addWidget(self.detectabilityTextEdit)
+        self.label_5 = QtWidgets.QLabel(self.tab_8)
+        self.label_5.setObjectName("label_5")
+        self.verticalLayout_3.addWidget(self.label_5)
         self.line_12 = QtWidgets.QFrame(self.tab_8)
         self.line_12.setFrameShadow(QtWidgets.QFrame.Plain)
         self.line_12.setLineWidth(4)
@@ -828,7 +830,7 @@ class Ui_MainWindow(object):
         self.helpButton.setText(_translate("MainWindow", "Help"))
         self.tutorialButton.setToolTip(_translate("MainWindow", "<html><head/><body><p>Tip:&nbsp;right-click on buttons and labels.&nbsp;An explanation (help screen) will usually appear.&nbsp;Use that technique to learn about features that are not covered in this basic tutorial/recipe.</p><p>1. Start by clicking the<span style=\" font-weight:600; color:#0000ff;\"> Read light curve</span> button.&nbsp;(Usually,&nbsp;the camera exposure value will be read from the csv file and automatically inserted in the <span style=\" font-weight:600; color:#0000ff;\">exp:</span> edit box in the <span style=\" font-weight:600; color:#0000ff;\">parameters</span> panel.&nbsp;If that did not happen,&nbsp;you will need to manually fill in that value in before trying to find an event fit.)</p><p>2. If timestamp errors have been detected during the loading of the csv file,&nbsp;the affected points will be bracketed by vertical redlines and the <span style=\" font-weight:600; color:#0000ff;\">Show time err</span> checkbox will have been set by the program.&nbsp;Those red lines will likely have served their purpose and can/should be turned off so that a clear view of the light-curve is presented.</p><p>3. If the csv file contained multiple light-curves (it usually will),&nbsp;you may need to click the <span style=\" font-weight:600; color:#0000ff;\">Light curve to analyze</span> spinner to advance to the light-curve that contains the event.</p><p>4. The next step is to give the \'event finder\' information that can speed up the search. </p><p>4a. If the event has a wide enough bottom,&nbsp;the quickest way to provide speed-up information is mark the D and R regions.&nbsp;Right-click on those buttons for a how-to.</p><p>4b. If the event is so small that it is hard or impossible to mark D and R regions,&nbsp;the speed-up information is then best supplied by placing the smallest event duration in the <span style=\" font-weight:600; color:#0000ff;\">min event duration</span> edit box and the maximum event duration in the <span style=\" font-weight:600; color:#0000ff;\">max event duration</span> edit box.&nbsp;The \'finder\' will then search for all events in the range of durations given,&nbsp;located anywhere in the light-curve.</p><p>5. Next,&nbsp;click the <span style=\" font-weight:600; color:#0000ff;\">Find event, then ...</span> button to initiate the search.</p><p>6. Assuming the search was successful,&nbsp;the final step is to click the <span style=\" font-weight:600; color:#0000ff;\">... write report</span> button.</p><p>Every step you took is recorded in a log file in the directory where the light-curve was read from.&nbsp;This is important information to provide to anyone that you might go to for assistance.&nbsp;Give them the csv file and the log file and they will be able to reproduce your session.</p></body></html>"))
         self.tutorialButton.setText(_translate("MainWindow", "Tutorial"))
-        self.markRegionsLabel.setText(_translate("MainWindow", "When edges are clearly visible, mark points to specify region and click ..."))
+        self.markRegionsLabel.setText(_translate("MainWindow", "<html><head/><body><p>When edges are clearly visible, mark points to specify region and click ...</p></body></html>"))
         self.minMaxLabel.setText(_translate("MainWindow", "... otherwise use the entries below to place bounds on the event size."))
         self.findEventLabel.setText(_translate("MainWindow", "Finally, click on \'Find event\' and, if event found, click \'... write report\'"))
         self.smoothSecondaryButton.setToolTip(_translate("MainWindow", "<html><head/><body><p>Smooth the selected secondary (reference) star light curve using a Savitsky-Golay filter with a default window of 101 points (the edit box to the right allows for this value to be changed) and a degree 3 interpolating polynomial, applied twice.</p><p>The secondary star does not have to be visible for this smoothing to take place.</p><p>Smoothing of the secondary curve is a prerequisite to normalizing the occulted star light curve.</p></body></html>"))
@@ -937,22 +939,10 @@ class Ui_MainWindow(object):
         self.detectDurationLabel.setToolTip(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:18pt;\">Enter the expected duration of the event in seconds (a duration of 1.5 times the predicted duration is recommended). </span></p></body></html>"))
         self.detectDurationLabel.setText(_translate("MainWindow", "  Duration (seconds):"))
         self.durStepLabel.setToolTip(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:18pt;\">If this box contains 0 or is empty, a single detectivity calculation and plot will be made.</span></p><p><span style=\" font-size:18pt;\">If a non-zero entry is made in this edit box, a series of detectivity calculations and plots will be made at ever shorter durations until the false-positive probability of the event becomes non-zero.</span></p></body></html>"))
-        self.durStepLabel.setText(_translate("MainWindow", "dur step"))
+        self.durStepLabel.setText(_translate("MainWindow", "  duration step"))
         self.detectMagDropLabel.setToolTip(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:18pt;\">Enter the expected magDrop as a postive number.</span></p></body></html>"))
         self.detectMagDropLabel.setText(_translate("MainWindow", "  magDrop:"))
-        self.detectabilityTextEdit.setHtml(_translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
-"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
-"p, li { white-space: pre-wrap; }\n"
-"</style></head><body style=\" font-family:\'.AppleSystemUIFont\'; font-size:13pt; font-weight:400; font-style:normal;\">\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Use the following functions to derive light curve mean and noise results (with event data points absent).</p>\n"
-"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">You can use these results to report a simple \'signal\' SNR, when no event is present.</p>\n"
-"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">You can also use these results to calculate the minimum event that can be detected</p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">for a specified mag drop.</p>\n"
-"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">If the predicted duration of an event is smaller than the minimum detectable duration, do not</p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">report a miss. Instead, report a \'no observation\'.</p></body></html>"))
+        self.label_5.setText(_translate("MainWindow", "<html><head/><body><p>Use the following functions to derive light curve mean and noise values.</p><p>You can use these results to report a simple baseline SNR when no event</p><p>is present (or avoided by selection).</p><p>These results are then available for use in calculating the minimum event that can </p><p>be detected for a specified mag drop.</p><p>If the predicted duration of an event is smaller than the minimum detectable duration, </p><p>do not report a miss. Instead, report a \'no observation\'.</p></body></html>"))
         self.markBaselineRegionButton.setToolTip(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:18pt;\">This tool is primarily intended to be used with observations that have employed a \'GPS Flasher\' to provide timing for the video observation.&nbsp;A side effect of having an LED light up at the entrance of your telescope is that it will affect the baseline values of the target star (and others) and so make it more difficult to extract the best possible baseline statistics (mean and noise-sigma and noise-correlation-coefficients) which benefit from having more points involved in the calculation.&nbsp;This tool allows the user to tell PyOTE where the baseline values are reliable enough(unaffected by flashes,&nbsp;or wind gusts,&nbsp;or telescope jostling,&nbsp;etc)  to be used during baseline statistics calculation.</span></p><p><span style=\" font-size:18pt;\">By repeatedly selecting pairs of points on the light curve being analyzed and clicking this button,&nbsp;the regions of \'reliable baseline data\' can be designated.&nbsp;They will be shown as orangish points instead of the normal blue color.</span></p><p><span style=\" font-size:18pt; font-weight:600; color:#0000ff;\">NOTE:</span><span style=\" font-size:18pt;\"> Baseline regions marked on one curve are automatically applied to all curves. </span></p><p><span style=\" font-size:18pt;\">In general,&nbsp;normalization against a reference star should be performed first,&nbsp;then this operation.&nbsp;That will remove any \'trends\' that would affect the mean and noise-sigma.</span></p><p><span style=\" font-size:18pt;\">The procedure is simple:&nbsp;Click on two points,&nbsp;then this button.&nbsp;Rinse and repeat.</span></p><p><span style=\" font-size:18pt; font-weight:600; color:#0000ff;\">FYI:</span><span style=\" font-size:18pt;\"> One can also use this feature to calculate statistics on some set of points of interest (like a statistics in the event bottom) or for reference stars or ...</span></p></body></html>"))
         self.markBaselineRegionButton.setText(_translate("MainWindow", "Mark baseline region"))
         self.clearBaselineRegionsButton.setToolTip(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:18pt;\">Clear all marked baseline regions and any baseline statistics that may have been extracted by clicking on this button: </span><span style=\" font-size:18pt; font-weight:600; color:#0000ff;\">Calc baseline mean/sigma/corr coeffs</span><span style=\" font-size:18pt;\"> </span></p></body></html>"))
