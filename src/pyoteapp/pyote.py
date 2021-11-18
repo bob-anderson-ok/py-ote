@@ -246,8 +246,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.readData.installEventFilter(self)
         
         # CheckBox: Show secondary star
-        self.showSecondaryCheckBox.clicked.connect(self.toggleDisplayOfSecondaryStar)
-        self.showSecondaryCheckBox.installEventFilter(self)
+        # self.showSecondaryCheckBox.clicked.connect(self.toggleDisplayOfSecondaryStar)
+        # self.showSecondaryCheckBox.installEventFilter(self)
         self.normLabel.installEventFilter(self)
 
         # Checkbox: Show timestamp errors
@@ -1778,7 +1778,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.smoothSecondaryButton.setEnabled(False)
         self.numSmoothPointsEdit.setEnabled(False)
         self.setDataLimits.setEnabled(False)
-        self.showSecondaryCheckBox.setChecked(False)
+        # self.showSecondaryCheckBox.setChecked(False)
         self.reDrawMainPlot()
 
     def smoothRefStar(self):
@@ -1838,17 +1838,17 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.reDrawMainPlot()
         self.mainPlot.autoRange()
 
-    def toggleDisplayOfSecondaryStar(self):
-        if self.showSecondaryCheckBox.isChecked():
-            self.secondarySelector.setEnabled(True)
-        else:
-            self.secondarySelector.setEnabled(False)
-
-        if self.showSecondaryCheckBox.isChecked():
-            self.changeSecondary()
-        else:
-            self.reDrawMainPlot()
-            self.mainPlot.autoRange()
+    # def toggleDisplayOfSecondaryStar(self):
+    #     if self.showSecondaryCheckBox.isChecked():
+    #         self.secondarySelector.setEnabled(True)
+    #     else:
+    #         self.secondarySelector.setEnabled(False)
+    #
+    #     if self.showSecondaryCheckBox.isChecked():
+    #         self.changeSecondary()
+    #     else:
+    #         self.reDrawMainPlot()
+    #         self.mainPlot.autoRange()
         
     def showInfo(self, stuffToSay):
         QMessageBox.information(self, 'General information', stuffToSay)
@@ -2090,7 +2090,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.doBlockIntegration.setEnabled(False)
         self.acceptBlockIntegration.setEnabled(False)
 
-        if self.showSecondaryCheckBox.isChecked():
+        # if self.showSecondaryCheckBox.isChecked():
+        if self.secondarySelector.value() > 0:
             self.changeSecondary()
 
         self.reDrawMainPlot()
@@ -3067,7 +3068,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         num_trials = 50_000
 
         while True:
-            self.showMsg(f'Processing detectibility of magDrop: {event_magDrop:0.2f} dur(secs): {event_duration_secs:0.2f} event')
+            self.showMsg(f'Processing detectability of magDrop: {event_magDrop:0.2f} dur(secs): {event_duration_secs:0.2f} event')
             QtWidgets.QApplication.processEvents()
 
             drops = compute_drops(event_duration=event_duration, observation_size=observation_size,
@@ -3098,7 +3099,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             pw.plot(name=f'B: {self.B:0.2f}  A: {self.A:0.2f} (calculated from expected magDrop of event)')
 
             if redMinusBlack > 0:
-                pw.plot(name=f'red - black = {redMinusBlack:0.2f}  An event of this duration and magDrop is detectible')
+                pw.plot(name=f'red - black = {redMinusBlack:0.2f}  An event of this duration and magDrop is detectable')
             else:
                 pw.plot(name=f'red - black = {redMinusBlack:0.2f}  Detection of this event is unlikely')
 
@@ -3121,15 +3122,15 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             targetFile = detectibiltyPlotPath + f'plot.detectability-dur{event_duration_secs:0.2f}-magDrop{event_magDrop:0.2f}.PYOTE.png'
 
             if durStep == 0.0:
-                # Always write plot for single detectibility requests
+                # Always write plot for single detectability requests
                 exporter.export(targetFile)
                 QtWidgets.QApplication.processEvents()
 
             if redMinusBlack < 0 and not durStep == 0.0:
-                # Only write the final plot for "find minimum duration detectibility" requests
+                # Only write the final plot for "find minimum duration detectability" requests
                 exporter.export(targetFile)
                 QtWidgets.QApplication.processEvents()
-                self.showMsg(f'Undetectibility reached at magDrop: {event_magDrop:0.2f}  duration=: {event_duration_secs:0.2f}')
+                self.showMsg(f'Undetectability reached at magDrop: {event_magDrop:0.2f}  duration=: {event_duration_secs:0.2f}')
                 break
 
             if durStep == 0.0:
@@ -4366,8 +4367,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     self.normLabel.setEnabled(True)
                     # self.secondarySelector.setMaximum(2)
                     # self.secondarySelector.setValue(2)
-                    self.showSecondaryCheckBox.setEnabled(True)
-                    self.showSecondaryCheckBox.setChecked(False)
+                    # self.showSecondaryCheckBox.setEnabled(True)
+                    # self.showSecondaryCheckBox.setChecked(False)
                     self.curveToAnalyzeSpinBox.setMaximum(2)
                     if self.ref2:
                         self.secondarySelector.setEnabled(True)
@@ -4673,7 +4674,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.lightCurveNumberLabel.setEnabled(False)
         self.normLabel.setEnabled(False)
         self.curveToAnalyzeSpinBox.setEnabled(False)
-        self.showSecondaryCheckBox.setEnabled(False)
+        # self.showSecondaryCheckBox.setEnabled(False)
         self.secondarySelector.setEnabled(False)
         self.normalizeButton.setEnabled(False)
         self.smoothSecondaryButton.setEnabled(False)
@@ -4721,7 +4722,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.fillTableViewOfData()
         
         if len(self.yRefStar) > 0:
-            self.showSecondaryCheckBox.setEnabled(True)
+            # self.showSecondaryCheckBox.setEnabled(True)
             self.smoothSecondaryButton.setEnabled(True)
             self.numSmoothPointsEdit.setEnabled(True)
             self.secondarySelector.setEnabled(True)
@@ -4974,7 +4975,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         except IndexError:
             pass
         
-        if self.showSecondaryCheckBox.isChecked() and len(self.yRefStar) == self.dataLen:
+        # if self.showSecondaryCheckBox.isChecked() and len(self.yRefStar) == self.dataLen:
+        if self.secondarySelector.value() > 0 and len(self.yRefStar) == self.dataLen:
             self.mainPlot.plot(self.yRefStar)
             if self.right is not None:
                 right = min(self.dataLen, self.right+1)
