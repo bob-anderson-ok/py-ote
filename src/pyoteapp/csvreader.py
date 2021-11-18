@@ -12,12 +12,19 @@ tangraNeedsBackgroundSubtraction = True
 
 pymovieSignalColumnCount = 0
 
+pymovieDataColumns = []
 
-def readLightCurve(filepath):
+pymovieColumnNamePrefix = 'signal'
+
+
+def readLightCurve(filepath, pymovieColumnType='signal'):
     """
     Reads the intensities and timestamps from Limovie,
     Tangra, PYOTE, or R-OTE csv files.  (PYOTE and R-OTE file formats are equal)
     """
+    global pymovieColumnNamePrefix
+
+    pymovieColumnNamePrefix = pymovieColumnType
     if fileCanBeOpened(filepath):
         
         readOk, errMsg, frame, time, value, ref1, ref2, ref3, extra, aperture_names, headers = readAs(filepath)
@@ -142,23 +149,36 @@ def pymovieParser(line, frame, time, value, ref1, ref2, ref3, extra):
     R-OTE sample line ---
         1.00,[17:25:39.3415],2737.8,3897.32,675.3,892.12
     """
+    global pymovieDataColumns
+
     part = line.split(',')
     frame.append(part[0])
     time.append(part[1])
-    value.append(part[2])
+    dataColumnIndex = 0
+    partNum = pymovieDataColumns[dataColumnIndex]
+    value.append(part[partNum])
+    dataColumnIndex += 1
+
     if len(part) >= 4 and pymovieSignalColumnCount >= 2:
-        if part[3]:
-            ref1.append(part[3])
+        partNum = pymovieDataColumns[dataColumnIndex]
+        if part[partNum]:
+            ref1.append(part[partNum])
+        dataColumnIndex += 1
     if len(part) >= 5 and pymovieSignalColumnCount >= 3:
-        if part[4]:
-            ref2.append(part[4])
+        partNum = pymovieDataColumns[dataColumnIndex]
+        if part[partNum]:
+            ref2.append(part[partNum])
+        dataColumnIndex += 1
     if len(part) >= 6 and pymovieSignalColumnCount >= 4:
-        if part[5]:
-            ref3.append(part[5])
+        partNum = pymovieDataColumns[dataColumnIndex]
+        if part[partNum]:
+            ref3.append(part[partNum])
+        dataColumnIndex += 1
     if pymovieSignalColumnCount > 4:
         for i in range(6, pymovieSignalColumnCount + 2):
-            if len(part) > i and part[i]:
-                extra[i-6].append(part[i])
+            partNum = pymovieDataColumns[dataColumnIndex]
+            if len(part) > i and part[part]:
+                extra[i-6].append(part[partNum])
 
 
 # noinspection PyUnusedLocal
@@ -171,7 +191,7 @@ def rawParser(line, frame, time, value, secondary, ref2, ref3, extra):
 
 def readAs(file):
     global tangraNeedsBackgroundSubtraction
-    global pymovieSignalColumnCount
+    global pymovieSignalColumnCount, pymovieDataColumns, pymovieColumnNamePrefix
 
     kind = getFileKind(file)
     
@@ -222,10 +242,14 @@ def readAs(file):
                         # a column header
                         line = line.rstrip()  # Get rid of possible trailing new line \n
                         parts = line.split(',')
+                        pymovieDataColumns = []
+                        columnIndex = 0
                         for part in parts:
-                            if part.startswith('signal'):
+                            if part.startswith(pymovieColumnNamePrefix):
                                 pymovieSignalColumnCount += 1
                                 aperture_names.append(part.split('-')[1])
+                                pymovieDataColumns.append(columnIndex)
+                            columnIndex += 1
                             # If there are more than 4 columns of 'signals', we need to setup
                             # extra to hold those columns
                         for i in range(5, pymovieSignalColumnCount+1):

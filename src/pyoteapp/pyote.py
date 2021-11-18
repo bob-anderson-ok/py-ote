@@ -67,7 +67,7 @@ from pyoteapp.subframe_timing_utilities import time_correction, intensity_at_tim
 cursorAlert = pyqtSignal()
 
 # The gui module was created by typing
-#    !pyuic5 simple_plot2.ui -o gui.py  OR !pyuic5 simple_plot2Scrollable.ui -o gui.py
+#    !pyuic5 pyote.ui -o gui.py
 # in the IPython console while in pyoteapp directory
 
 # The timestampDialog module was created by typing
@@ -215,6 +215,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.markBaselineRegionButton.clicked.connect(self.markBaselineRegion)
         self.markBaselineRegionButton.installEventFilter(self)
+
+        self.pymovieDataColumnPrefixComboBox.currentTextChanged.connect(self.handlePymovieColumnChange)
 
         self.clearBaselineRegionsButton.clicked.connect(self.clearBaselineRegions)
         self.clearBaselineRegionsButton.installEventFilter(self)
@@ -474,6 +476,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.splitterTwo.restoreState(self.settings.value('splitterTwo'))
             self.splitterThree.restoreState(self.settings.value('splitterThree'))
 
+        self.pymovieFileInUse = False
+
+        self.pymovieDataColumnPrefixComboBox.addItem("signal")
+        self.pymovieDataColumnPrefixComboBox.addItem("appsum")
+        self.pymovieDataColumnPrefixComboBox.addItem("avgbkg")
+        self.pymovieDataColumnPrefixComboBox.addItem("stdbkg")
+        self.pymovieDataColumnPrefixComboBox.addItem("nmaskpx")
+
         self.yValues = None
         self.outliers = []
         self.timeDelta = None
@@ -482,6 +492,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.right = None
         self.selPts = []
         self.initializeVariablesThatDontDependOnAfile()
+
 
         self.pathToVideo = None
         self.cascadePosition = None
@@ -522,6 +533,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             else:
                 self.showMsg(f'Could not find csv file specified: {self.externalCsvFilePath}')
                 self.externalCsvFilePath = None
+
+    def handlePymovieColumnChange(self):
+        # self.showInfo('Got a changed column!')
+        if self.pymovieFileInUse:
+            self.externalCsvFilePath = self.filename
+            self.readDataFromFile()
 
     def redoTabOrder(self, tabnames):
 
@@ -1248,6 +1265,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         refNum = int(primarySelText)
 
         if len(self.aperture_names) > 0:
+            pymovieColumnType = self.pymovieDataColumnPrefixComboBox.currentText()
             if not refNum == 0:
                 if (refNum - 1) < len(self.aperture_names):
                     self.lightCurveNameEdit.setText(self.aperture_names[refNum - 1])
@@ -1256,7 +1274,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             elif (normNum - 1) < len(self.aperture_names):
                 self.normalizationLightCurveNameEdit.setText(self.aperture_names[normNum - 1])
                 self.showMsg('Secondary reference ' + secondarySelText + ' selected.  PyMovie aperture name: ' +
-                             self.aperture_names[normNum - 1])
+                             self.aperture_names[normNum - 1] + f" ({pymovieColumnType})")
         else:
             if not normNum == 0:
                 self.showMsg('Secondary reference ' + secondarySelText + ' selected.')
@@ -1308,12 +1326,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         normNum = int(selText2)
 
         if len(self.aperture_names) > 0:
+            pymovieColumnType = self.pymovieDataColumnPrefixComboBox.currentText()
             if refNum == 0:
                 self.showMsg('There is no curve selected for analysis.')
             elif (refNum - 1) < len(self.aperture_names):
                 self.lightCurveNameEdit.setText(self.aperture_names[refNum - 1])
-                self.showMsg('Analyze light curve ' + selText + ' selected.  PyMovie aperture name: ' +
-                             self.aperture_names[refNum - 1])
+                self.showMsg('Analyze data ' + selText + ' selected.  PyMovie aperture name: ' +
+                             self.aperture_names[refNum - 1] + f" ({pymovieColumnType})")
             if not normNum == 0:
                 if (normNum - 1) < len(self.aperture_names):
                     self.normalizationLightCurveNameEdit.setText(self.aperture_names[normNum - 1])
@@ -4256,16 +4275,22 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
             try:
                 self.outliers = []
+                columnPrefix = self.pymovieDataColumnPrefixComboBox.currentText()
                 frame, time, value, self.secondary, self.ref2, self.ref3, self.extra, \
-                    self.aperture_names, self.headers = readLightCurve(self.filename)
+                    self.aperture_names, self.headers = readLightCurve(self.filename, pymovieColumnType=columnPrefix)
+                self.showMsg(f'If the csv file came from PyMovie, columns with prefix: {columnPrefix} will be read.')
                 values = [float(item) for item in value]
                 self.yValues = np.array(values)  # yValues = curve to analyze
                 self.dataLen = len(self.yValues)
                 self.LC1 = np.array(values)
 
+                self.pymovieFileInUse = False
+
                 # Check headers to see if this is a PyMovie file.  Grab the
                 # path to video file if it is a PyMovie file
                 for header in self.headers:
+                    if header.startswith('# PyMovie'):
+                        self.pymovieFileInUse = True
                     if header.startswith('# PyMovie') or header.startswith('Limovie'):
                         for line in self.headers:
                             if line.startswith('# source:') or line.startswith('"FileName :'):
@@ -4362,10 +4387,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 if self.secondary:
                     self.secondarySelector.setEnabled(True)
                     self.normLabel.setEnabled(True)
-                    # self.secondarySelector.setMaximum(2)
-                    # self.secondarySelector.setValue(2)
-                    # self.showSecondaryCheckBox.setEnabled(True)
-                    # self.showSecondaryCheckBox.setChecked(False)
                     self.curveToAnalyzeSpinBox.setMaximum(2)
                     if self.ref2:
                         self.secondarySelector.setEnabled(True)
@@ -4719,7 +4740,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.fillTableViewOfData()
         
         if len(self.yRefStar) > 0:
-            # self.showSecondaryCheckBox.setEnabled(True)
             self.smoothSecondaryButton.setEnabled(True)
             self.numSmoothPointsEdit.setEnabled(True)
             self.secondarySelector.setEnabled(True)
