@@ -177,7 +177,7 @@ def pymovieParser(line, frame, time, value, ref1, ref2, ref3, extra):
     if pymovieSignalColumnCount > 4:
         for i in range(6, pymovieSignalColumnCount + 2):
             partNum = pymovieDataColumns[dataColumnIndex]
-            if len(part) > i and part[part]:
+            if len(part) > i and part[partNum]:
                 extra[i-6].append(part[partNum])
 
 

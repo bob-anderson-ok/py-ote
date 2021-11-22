@@ -493,7 +493,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.selPts = []
         self.initializeVariablesThatDontDependOnAfile()
 
-
         self.pathToVideo = None
         self.cascadePosition = None
         self.cascadeDelta = 25
