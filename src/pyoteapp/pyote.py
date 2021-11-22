@@ -1155,7 +1155,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     fileObject.write('# PyMovie file written by ' + 'PYOTE ' + version.version() + '\n')
 
                 for hdr in self.headers:
-                    fileObject.write('# ' + hdr)
+                    fileObject.write(f'#  {hdr}\n')
                 if not self.aperture_names:
                     # Handle non-PyMovie csv file
                     columnHeadings = 'FrameNum,timeInfo,primaryData'
@@ -1272,7 +1272,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.showMsg('There is no secondary reference selected.')
             elif (normNum - 1) < len(self.aperture_names):
                 self.normalizationLightCurveNameEdit.setText(self.aperture_names[normNum - 1])
-                self.showMsg('Secondary reference ' + secondarySelText + ' selected.  PyMovie aperture name: ' +
+                self.showMsg('Secondary reference ' + secondarySelText + ' selected - PyMovie aperture name: ' +
                              self.aperture_names[normNum - 1] + f" ({pymovieColumnType})")
         else:
             if not normNum == 0:
@@ -1330,7 +1330,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.showMsg('There is no curve selected for analysis.')
             elif (refNum - 1) < len(self.aperture_names):
                 self.lightCurveNameEdit.setText(self.aperture_names[refNum - 1])
-                self.showMsg('Analyze data ' + selText + ' selected.  PyMovie aperture name: ' +
+                self.showMsg('Analyze data ' + selText + ' selected - PyMovie aperture name: ' +
                              self.aperture_names[refNum - 1] + f" ({pymovieColumnType})")
             if not normNum == 0:
                 if (normNum - 1) < len(self.aperture_names):
@@ -4272,12 +4272,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.settings.sync()
             self.showMsg('filename: ' + self.filename, bold=True, color="red")
 
+            columnPrefix = self.pymovieDataColumnPrefixComboBox.currentText()
+
             try:
                 self.outliers = []
-                columnPrefix = self.pymovieDataColumnPrefixComboBox.currentText()
                 frame, time, value, self.secondary, self.ref2, self.ref3, self.extra, \
                     self.aperture_names, self.headers = readLightCurve(self.filename, pymovieColumnType=columnPrefix)
-                self.showMsg(f'If the csv file came from PyMovie, columns with prefix: {columnPrefix} will be read.')
+                self.showMsg(f'If the csv file came from PyMovie - columns with prefix: {columnPrefix} will be read.')
                 values = [float(item) for item in value]
                 self.yValues = np.array(values)  # yValues = curve to analyze
                 self.dataLen = len(self.yValues)
@@ -4495,6 +4496,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                                   "lower left corner or incorporate flash timing data.")
             except Exception as e:
                 self.showMsg(str(e))
+                self.showMsg(f'This error may be because the data column name {columnPrefix} does not exist.')
     
     def illustrateTimestampOutliers(self):
         for pos in self.outliers:
