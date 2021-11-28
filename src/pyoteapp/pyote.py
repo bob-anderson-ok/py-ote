@@ -1778,6 +1778,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         # self.showMsg('Index: ' + str(index) )
         # Reminder: the smoothSecondary[] only cover self.left to self.right inclusive,
         # hence the index manipulation in the following code
+
         ref = self.smoothSecondary[int(index)-self.left]
 
         for i in range(self.left, self.right+1):
@@ -2419,36 +2420,30 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.showMsg('Duration (R - D): %.4f {+%.4f,-%.4f} seconds' %
                          (Rtime - Dtime, plusDur, minusDur))
 
-    def magDropString(self, B, A):
+    def magDropString(self, B, A, numSigmas):
+        # TODO Version 4.1.0 code change
+        if not 0 < A < B:
+            return 'NA because 0 < A < B is not satisfied'
+        stdB = self.sigmaB / np.sqrt(self.nBpts)
         stdA = self.sigmaA / np.sqrt(self.nApts)
-        if not B > 0:
-            return 'NA because B is not greater than 0'
-        if A > B:
-            return 'NA because A is greater than B'
-        if A < stdA:  # We're in limiting magDrop region when A is less than stdA
-            if stdA > B:
-                return 'NA because std(A) is greater than B'
-            else:
-                return f'> {(np.log10(B) - np.log10(stdA)) * 2.5:0.2f}'
+        ratio = A / B
+        ratioError = numSigmas * np.sqrt((stdB / B) ** 2 + (stdA / A) ** 2) * ratio
+        lnError = ratioError / ratio
+        magdroperr = (2.5 / np.log(10.0)) * lnError
+        magDrop = (np.log10(B) - np.log10(A)) * 2.5
+        if numSigmas == 1:
+            ciStr = '(0.68 ci)'
+        elif numSigmas == 2:
+            ciStr = '(0.95 ci)'
         else:
-            # This is normal return stdA < A < B > 0
-            return f'{(np.log10(B) - np.log10(A)) * 2.5:0.2f}'
+            ciStr = '(0.9973 ci)'
+        return f'{magDrop:0.3f}  +/- {magdroperr:0.3f}  {ciStr}'
 
     def magdropReport(self, numSigmas):
-        Adelta = numSigmas * self.sigmaA / np.sqrt(self.nApts)
-        Amin = self.A - Adelta
         Anom = self.A
-        Amax = self.A + Adelta
-        Bdelta = numSigmas * self.sigmaB / np.sqrt(self.nBpts)
-        Bmin = self.B - Bdelta
         Bnom = self.B
-        Bmax = self.B + Bdelta
 
-        self.showMsg(f'minimum magDrop: {self.magDropString(Bmin, Amax)}')
-
-        self.showMsg(f'nominal magDrop: {self.magDropString(Bnom, Anom)}')
-
-        self.showMsg(f'maximum magDrop: {self.magDropString(Bmax, Amin)}')
+        self.showMsg(f'magDrop: {self.magDropString(Bnom, Anom, numSigmas)}')
 
     # noinspection PyStringFormat
     def finalReportPenumbral(self):
@@ -2518,8 +2513,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.showMsg("Times are invalid due to corrupted timestamps!",
                          color='red', bold=True)
 
-        self.showMsg(f'nominal magDrop: {self.magDropString(self.B, self.A)}')
-        self.xlsxDict['Comment'] = f'Nominal measured mag drop = {self.magDropString(self.B, self.A)}'
+        self.showMsg(f'magDrop: {self.magDropString(self.B, self.A, 2)}')
+        self.xlsxDict['Comment'] = f'Nominal measured mag drop = {self.magDropString(self.B, self.A, 2)}'
 
         self.showMsg('snr: %0.2f' % self.snrB)
 
@@ -2607,8 +2602,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.showMsg(f">>>> Consider 'drop' shape, timing, mag drop, duration and other positive observer"
                      f" chords before reporting the 'drop' as a positive.", color='blue')
 
-        self.showMsg("All timestamps are treated as being start-of-exposure times.",
-                     color='red', bold=True)
+        # self.showMsg("All timestamps are treated as being start-of-exposure times.",
+        #              color='red', bold=True)
         self.showMsg("All times are calculated/reported based on the assumption that timestamps are "
                      "start-of-exposure times.",
                      color='blue', bold=True)
@@ -2635,8 +2630,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                          'uncorrelated.',
                          bold=True, color='red')
 
-        self.xlsxDict['Comment'] = f'Nominal measured mag drop = {self.magDropString(self.B, self.A)}'
-        self.showMsg(f'nominal magDrop: {self.magDropString(self.B, self.A)}')
+        self.xlsxDict['Comment'] = f'mag drop = {self.magDropString(self.B, self.A, 2)}'
+        self.showMsg(f'magDrop: {self.magDropString(self.B, self.A, 2)}')
 
         # noinspection PyStringFormat
         self.showMsg('snr: %0.2f' % self.snrB)
