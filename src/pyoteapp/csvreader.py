@@ -179,6 +179,7 @@ def pymovieParser(line, frame, time, value, ref1, ref2, ref3, extra):
             partNum = pymovieDataColumns[dataColumnIndex]
             if len(part) > i and part[partNum]:
                 extra[i-6].append(part[partNum])
+            dataColumnIndex += 1
 
 
 # noinspection PyUnusedLocal
