@@ -3880,7 +3880,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             maxText = '<blank>'
         self.showMsg('minEvent: ' + minText + '  maxEvent: ' + maxText)
 
-        if not minText == '' and not maxText == '':
+        if not minText == '<blank>' and not maxText == '<blank>':
             self.eventType = 'DandR'
 
         candFrom, numCandidates = candidateCounter(eventType=self.eventType,
