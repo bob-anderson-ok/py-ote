@@ -44,6 +44,7 @@ from pyoteapp import fixedPrecision as fp
 from pyoteapp import gui
 from pyoteapp import timestampDialog
 from pyoteapp import helpDialog
+from pyoteapp import exponentialEdgeUtilities as ex
 from pyoteapp.checkForNewerVersion import getMostRecentVersionOfPyOTEViaJson
 from pyoteapp.checkForNewerVersion import upgradePyote
 from pyoteapp.csvreader import readLightCurve
@@ -209,6 +210,25 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.bkgndRegionLimits = []
         self.bkgndRegions = []
+
+        self.ne3ExplanationButton.clicked.connect(self.ne3ExplanationClicked)
+        self.ne3ExplanationButton.installEventFilter(self)
+
+        self.yPositionLabel.installEventFilter(self)
+
+        self.dnrOffRadioButton.installEventFilter(self)
+        self.dnrLowRadioButton.installEventFilter(self)
+        self.dnrMiddleRadioButton.installEventFilter(self)
+        self.dnrHighRadioButton.installEventFilter(self)
+
+        self.exponentialDtheoryPts = None
+        self.exponentialRtheoryPts = None
+
+        self.exponentialDinitialX = 0
+        self.exponentialRinitialX = 0
+
+        self.exponentialDedge = 0
+        self.exponentialRedge = 0
 
         self.userDeterminedBaselineStats = False
         self.userTrimInEffect = False
@@ -452,6 +472,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.resize(QSize(0, 0))
         self.setMinimumSize(QSize(0, 0))
 
+        self.logFile = None
+
         tab_name_list = self.settings.value('tablist')
         # self.showMsg(repr(tablist))
         if tab_name_list:
@@ -466,6 +488,21 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.showOCRcheckFramesCheckBox.setChecked(doOCRcheck)
         showTimestamps = self.settings.value('showTimestamps', 'true') == 'true'
         self.showTimestampsCheckBox.setChecked(showTimestamps)
+
+        self.ne3NotInUseRadioButton.setChecked(self.settings.value('ne3InUse', 'false') == 'true')
+        self.dnrOffRadioButton.setChecked(self.settings.value('dnrOff', 'false') == 'true')
+        self.dnrLowRadioButton.setChecked(self.settings.value('dnrLow', 'false') == 'true')
+        self.dnrMiddleRadioButton.setChecked(self.settings.value('dnrMiddle', 'false') == 'true')
+        self.dnrHighRadioButton.setChecked(self.settings.value('dnrHigh', 'false') == 'true')
+
+        self.dnrLowDspinBox.setValue(float(self.settings.value('dnrLowDtc', 0.50)))
+        self.dnrLowRspinBox.setValue(float(self.settings.value('dnrLowRtc', 0.50)))
+
+        self.dnrMiddleDspinBox.setValue(float(self.settings.value('dnrMiddleDtc', 1.00)))
+        self.dnrMiddleRspinBox.setValue(float(self.settings.value('dnrMiddleRtc', 1.00)))
+
+        self.dnrHighDspinBox.setValue(float(self.settings.value('dnrHighDtc', 4.50)))
+        self.dnrHighRspinBox.setValue(float(self.settings.value('dnrHighRtc', 2.00)))
 
         # splitterOne is the vertical splitter in the lower panel.
         # splitterTwo is the vertical splitter in the upper panel
@@ -487,7 +524,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.yValues = None
         self.outliers = []
         self.timeDelta = None
-        self.logFile = ''
+
         self.left = None
         self.right = None
         self.selPts = []
@@ -547,7 +584,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     return i_local
             return -1
 
-        if not len(tabnames) == self.tabWidget.count():
+        numTabs = self.tabWidget.count()
+        if not len(tabnames) == numTabs:
             self.showMsg(f'Mismatch in saved tab list versus current number of tabs.')
             return
 
@@ -1086,11 +1124,31 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
     def helpButtonClicked(self):
         self.showHelp(self.helpButton)
 
+    def ne3ExplanationClicked(self):
+        self.showHelp(self.ne3ExplanationButton)
+
     def tutorialButtonClicked(self):
         self.showHelp(self.tutorialButton)
 
     def plotHelpButtonClicked(self):
         self.showHelp(self.plotHelpButton)
+
+    @staticmethod
+    def htmlFixup(html):
+        output = ''
+        endIndex = len(html) - 1
+        for i in range(len(html)):
+            if not (html[i] == '.' or html[i] == ','):
+                output += html[i]
+            else:
+                if i == endIndex:
+                    output += html[i]
+                    return output
+                if html[i + 1] == ' ':
+                    output += html[i] + '&nbsp;'
+                else:
+                    output += html[i]
+        return output
 
     def showHelp(self, obj):
 
@@ -1098,7 +1156,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.helperThing.raise_()
             self.helperThing.show()
             self.helperThing.textEdit.clear()
-            self.helperThing.textEdit.insertHtml(obj.toolTip())
+            stuffToShow = self.htmlFixup(obj.toolTip())
+            self.helperThing.textEdit.insertHtml(stuffToShow)
 
     @staticmethod
     def processKeystroke(event):
@@ -1119,7 +1178,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     self.helperThing.raise_()
                     self.helperThing.show()
                     self.helperThing.textEdit.clear()
-                    self.helperThing.textEdit.insertHtml(obj.toolTip())
+                    stuffToShow = self.htmlFixup(obj.toolTip())
+                    self.helperThing.textEdit.insertHtml(stuffToShow)
                     return True
             return super(SimplePlot, self).eventFilter(obj, event)
             # return False
@@ -1512,6 +1572,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.left = None    # Used during block integration
         self.right = None   # "
         self.selPts = []    # "
+
+        self.exponentialDtheoryPts = None
+        self.exponentialRtheoryPts = None
 
         self.penumbralFitCheckBox.setEnabled(False)
         self.penumbralFitCheckBox.setChecked(False)
@@ -2173,6 +2236,22 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.settings.setValue('usediff', self.enableDiffractionCalculationBox.isChecked())
         self.settings.setValue('doOCRcheck', self.showOCRcheckFramesCheckBox.isChecked())
         self.settings.setValue('showTimestamps', self.showTimestampsCheckBox.isChecked())
+
+        self.settings.setValue('ne3InUse', self.ne3NotInUseRadioButton.isChecked())
+        self.settings.setValue('dnrOff', self.dnrOffRadioButton.isChecked())
+        self.settings.setValue('dnrLow', self.dnrLowRadioButton.isChecked())
+        self.settings.setValue('dnrMiddle', self.dnrMiddleRadioButton.isChecked())
+        self.settings.setValue('dnrHigh', self.dnrHighRadioButton.isChecked())
+
+        self.settings.setValue('dnrLowDtc', self.dnrLowDspinBox.value())
+        self.settings.setValue('dnrLowRtc', self.dnrLowRspinBox.value())
+
+        self.settings.setValue('dnrMiddleDtc', self.dnrMiddleDspinBox.value())
+        self.settings.setValue('dnrMiddleRtc', self.dnrMiddleRspinBox.value())
+
+        self.settings.setValue('dnrHighDtc', self.dnrHighDspinBox.value())
+        self.settings.setValue('dnrHighRtc', self.dnrHighRspinBox.value())
+
         self.helperThing.close()
 
         tabOrderList = []
@@ -2290,6 +2369,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         else:
             self.showMsg(f'Some invalid entries were found in the lightcurve parameters panel',
                          color='blue', bold=True, blankLine=False)
+
+        self.writeNe3UsageReport()
 
         self.showMsg('', blankLine=False)
 
@@ -3276,66 +3357,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     return True
         return False
 
-    # def update_noise_parameters_from_solution(self):
-    #     D, R = self.solution
-    #     # D and R are floats and may be fractional because of sub-frame timing.
-    #     # Here we remove the effects of sub-frame timing to calulate the D and
-    #     # and R transition points as integers.
-    #     if D:
-    #         D = trunc(floor(D))
-    #     if R:
-    #         R = trunc(floor(R))
-    #
-    #     self.showMsg('Recalculating noise parameters to include all points '
-    #                  'based on first pass solution ====',
-    #                  color='red', bold=True)
-    #     if D and R:
-    #         self.sigmaA = None
-    #         self.corCoefs = []
-    #         self.selectedPoints = {}
-    #
-    #         self.togglePointSelected(self.left)
-    #         self.togglePointSelected(D-1)
-    #         self.processBaselineNoise(secondPass=True)
-    #
-    #         self.selectedPoints = {}
-    #         self.togglePointSelected(R+1)
-    #         self.togglePointSelected(self.right)
-    #         self.processBaselineNoise(secondPass=True)
-    #
-    #         self.selectedPoints = {}
-    #         self.togglePointSelected(D+1)
-    #         self.togglePointSelected(R-1)
-    #         self.processEventNoise(secondPass=True)
-    #     elif D:
-    #         self.sigmaA = None
-    #         self.corCoefs = []
-    #         self.selectedPoints = {}
-    #
-    #         self.togglePointSelected(self.left)
-    #         self.togglePointSelected(D - 1)
-    #         self.processBaselineNoise(secondPass=True)
-    #
-    #         self.selectedPoints = {}
-    #         self.togglePointSelected(D + 1)
-    #         self.togglePointSelected(self.right)
-    #         self.processEventNoise(secondPass=True)
-    #     else:
-    #         self.sigmaA = None
-    #         self.corCoefs = []
-    #         self.selectedPoints = {}
-    #
-    #         self.togglePointSelected(R + 1)
-    #         self.togglePointSelected(self.right)
-    #         self.processBaselineNoise(secondPass=True)
-    #
-    #         self.selectedPoints = {}
-    #         self.togglePointSelected(self.left)
-    #         self.togglePointSelected(R - 1)
-    #         self.processEventNoise(secondPass=True)
-    #
-    #     return
-
     def extract_noise_parameters_from_iterative_solution(self):
 
         D, R = self.solution
@@ -3978,7 +3999,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                         d = None
                     if r == -1.0:
                         r = None
-                    self.solution = (d, r)
+                    self.solution = [d, r]
                     self.progressBar.setValue(0)
 
             self.showMsg('Integer (non-subframe) solution...', blankLine=False)
@@ -3991,10 +4012,20 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             # This fills in self.sigmaB and self.sigmaA
             self.extract_noise_parameters_from_iterative_solution()
 
+            # if not self.dnrOffRadioButton.isChecked():
+            if not self.ne3NotInUseRadioButton.isChecked():
+                # We're being asked to perform an exponential edge fit for the Night Eagle 3 camera
+                self.showUnderlyingLightcurveCheckBox.setChecked(True)
+                if not self.doExpFit(b, a):
+                    return
+
             subDandR, new_b, new_a = subFrameAdjusted(
                 eventType=self.eventType, cand=(d, r), B=b, A=a,
                 sigmaB=self.sigmaB, sigmaA=self.sigmaA, yValues=self.yValues,
                 left=self.left, right=self.right)
+
+            if not self.dnrOffRadioButton.isChecked():
+                subDandR = self.solution
 
             # Here we apply the correction from our computed underlying lightcurves.
             self.underlyingLightcurveAns = self.demoUnderlyingLightcurves(baseline=new_b, event=new_a, plots_wanted=False)
@@ -4004,35 +4035,34 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.showMsg(f'An error in the underlying lightcurve parameters has occurred.', bold=True, color='red')
                 return
 
-            # print(ans)
             D = R = 0
             if self.eventType == 'Donly' or self.eventType == 'DandR':
                 D = int(subDandR[0])
-                # self.showMsg(f'old D(subframe): {subDandR[0]:0.4f}')
             if self.eventType == 'Ronly' or self.eventType == 'DandR':
                 R = int(subDandR[1])
-                # self.showMsg(f'old R(subframe): {subDandR[1]:0.4f}')
-
-            # print(f'D: {D}  intensity(D): {self.yValues[D]}')
-            # print(f'R: {R}  intensity(R): {self.yValues[R]}')
 
             if (self.eventType == 'Donly' or self.eventType == 'DandR') and not D == subDandR[0]:
-                d_time_corr = time_correction(correction_dict=self.underlyingLightcurveAns,
-                                              transition_point_intensity=self.yValues[D], edge_type='D')
-                d_delta = d_time_corr / self.timeDelta
-                d_adj = D + d_delta
-                # self.showMsg(f'd_time_correction: {d_time_corr:0.4f}  new D: {d_adj:0.4f}')
-                subDandR[0] = d_adj
+                if self.exponentialDtheoryPts is None:
+                    d_time_corr = time_correction(correction_dict=self.underlyingLightcurveAns,
+                                                  transition_point_intensity=self.yValues[D], edge_type='D')
+
+                    d_delta = d_time_corr / self.timeDelta
+                    d_adj = D + d_delta
+                    # self.showMsg(f'd_time_correction: {d_time_corr:0.4f}  new D: {d_adj:0.4f}')
+                    subDandR[0] = d_adj
 
             if (self.eventType == 'Ronly' or self.eventType == 'DandR') and not R == subDandR[1]:
-                r_time_corr = time_correction(correction_dict=self.underlyingLightcurveAns,
-                                              transition_point_intensity=self.yValues[R], edge_type='R')
-                r_delta = r_time_corr / self.timeDelta
-                r_adj = R + r_delta
-                # self.showMsg(f'r_time_correction: {r_time_corr:0.4f}  new R: {r_adj:0.4f}')
-                subDandR[1] = r_adj
+                if self.exponentialRtheoryPts is None:
+                    r_time_corr = time_correction(correction_dict=self.underlyingLightcurveAns,
+                                                  transition_point_intensity=self.yValues[R], edge_type='R')
 
-            self.solution = subDandR
+                    r_delta = r_time_corr / self.timeDelta
+                    r_adj = R + r_delta
+                    # self.showMsg(f'r_time_correction: {r_time_corr:0.4f}  new R: {r_adj:0.4f}')
+                    subDandR[1] = r_adj
+
+            if self.exponentialDtheoryPts is None and self.exponentialRtheoryPts is None:
+                self.solution = subDandR
 
             self.showMsg('Subframe adjusted solution...', blankLine=False)
             self.showMsg(
@@ -4059,7 +4089,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
             if not self.only_new_solver_wanted:
                 # Proceed with old dual-pass 'solver'
-                self.solution = (None, None)
+                self.solution = [None, None]
                 self.try_to_get_solution()
 
                 if self.solution:
@@ -4079,7 +4109,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 D = round(D, 4)
             if R is not None:
                 R = round(R, 4)
-            self.solution = (D, R)
+            self.solution = [D, R]
             if self.eventType == 'DandR':
                 # ans = '(%.2f,%.2f) B: %.2f  A: %.2f' % (D, R, self.B, self.A)
                 # Check for solution search based on min max event limits
@@ -4121,7 +4151,169 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                           f'Please verify visually that the timestamp values are correct.\n\n'
                           f'If they are wrong, note the correct values and use manual timestamp entry '
                           f'to "rescue" the observation.')
-        
+
+    def getNe3TimeCorrection(self):
+        yPosition = self.targetStarYpositionSpinBox.value()
+        if yPosition == 0:
+            self.showInfo("You need to set a valid value for the target's Y position.")
+            return None
+        # We assume that NE3 cameras always have a field time of 0.0167 seconds and a 640x480 format
+        fieldTime = 0.0167
+        correction = fieldTime - yPosition * (fieldTime / 480)
+        return -correction
+
+    def writeNe3UsageReport(self):
+        self.showMsg('')
+        self.showMsg('Night Eagle 3 exponential curve fitting was employed with parameters:',
+                     color='blue', bold=True)
+        if self.dnrOffRadioButton.isChecked():
+            self.showMsg(f'==== DNR: OFF', color='black', bold=True, blankLine=False)
+        elif self.dnrLowRadioButton.isChecked():
+            tcD = self.dnrLowDspinBox.value()
+            tcR = self.dnrLowRspinBox.value()
+            msg = f'==== DNR:LOW    TC-D: {tcD:0.2f}    TC-R: {tcR:0.2f}'
+            self.showMsg(msg, color='black', bold=True, blankLine=False)
+        elif self.dnrMiddleRadioButton.isChecked():
+            tcD = self.dnrMiddleDspinBox.value()
+            tcR = self.dnrMiddleRspinBox.value()
+            msg = f'==== DNR:MIDDLE   TC-D: {tcD:0.2f}    TC-R: {tcR:0.2f}'
+            self.showMsg(msg, color='black', bold=True, blankLine=False)
+        elif self.dnrHighRadioButton.isChecked():
+            tcD = self.dnrHighDspinBox.value()
+            tcR = self.dnrHighRspinBox.value()
+            msg = f'==== DNR:HIGH    TC-D: {tcD:0.2f}    TC-R: {tcR:0.2f}'
+            self.showMsg(msg, color='black', bold=True, blankLine=False)
+
+        self.showMsg(f'==== y position of target: {self.targetStarYpositionSpinBox.value():4d}',
+                     color='black', bold=True)
+
+    def doExpFit(self, b, a):
+
+        timeCorrection = self.getNe3TimeCorrection()
+        if timeCorrection is None:
+            return False
+
+        # self.showInfo(f'timeCorrection: {timeCorrection:0.4f}')
+
+        # Convert timeCorrection to frame/field fraction
+        deltaPosition = timeCorrection / self.timeDelta
+
+        numTheoryPoints = 5
+
+        if self.eventType == 'Donly' or self.eventType == 'DandR':
+            if self.dnrLowRadioButton.isChecked():
+                DtimeConstant = self.dnrLowDspinBox.value()
+            elif self.dnrMiddleRadioButton.isChecked():
+                DtimeConstant = self.dnrMiddleDspinBox.value()
+            elif self.dnrHighRadioButton.isChecked():
+                DtimeConstant = self.dnrHighDspinBox.value()
+            elif self.dnrOffRadioButton.isChecked():
+                # TODO Test that this is effective
+                DtimeConstant = 0.01
+            else:
+                self.showInfo('Programming error - this point should never be reached')
+                return False
+
+            D = self.solution[0]
+
+            # Select a set of yValues to use for fitting
+            p1 = D - 10
+            p2 = D + 10
+            if p1 < 0:
+                p1 = 0
+            if p2 > len(self.yValues) - 1:
+                p2 = len(self.yValues) - 1
+
+            actual = self.yValues[p1:p2+1]
+
+            bestMatchPoint = ex.locateIndexOfBestMatchPoint(
+                numTheoryPts=numTheoryPoints, B=b, A=a, offset=0, N=DtimeConstant,
+                actual=actual, edge='D'
+            )
+
+            bestOffset = ex.locateBestOffset(
+                numTheoryPts=numTheoryPoints, B=b, A=a, N0=DtimeConstant,
+                actual=actual, matchPoint=bestMatchPoint, edge='D'
+            )
+
+            self.exponentialDtheoryPts = ex.getDedgePoints(
+                numPoints=numTheoryPoints, B=b, A=a, offset=bestOffset, N=DtimeConstant
+            )
+            self.exponentialDinitialX = bestMatchPoint + p1
+
+            self.exponentialDedge = bestMatchPoint + bestOffset + p1 + numTheoryPoints
+
+            # Here we add self.timeDelta to follow the convention of the MLE solver that the output of the
+            # camera shows what happened one timeDelta in the past and 'fudges' the solution so that
+            # time-on-the-wire matches time-in-the-camera
+            if self.fieldMode:
+                self.solution[0] = self.exponentialDedge + 0.5
+            else:
+                self.solution[0] = self.exponentialDedge + 1.0
+
+            self.solution[0] += deltaPosition
+
+            # TODO Remove this debug statement
+            # self.showInfo(f'bestMatchPoint: {bestMatchPoint}  bestOffset: {bestOffset:0.2f} D: {D}')
+
+        if self.eventType == 'Ronly' or self.eventType == 'DandR':
+
+            if self.dnrLowRadioButton.isChecked():
+                RtimeConstant = self.dnrLowRspinBox.value()
+            elif self.dnrMiddleRadioButton.isChecked():
+                RtimeConstant = self.dnrMiddleRspinBox.value()
+            elif self.dnrHighRadioButton.isChecked():
+                RtimeConstant = self.dnrHighRspinBox.value()
+            elif self.dnrOffRadioButton.isChecked():
+                # TODO Test that this is effective
+                RtimeConstant = 0.01
+            else:
+                self.showInfo('Programming error - this point should never be reached')
+                return False
+
+            R = self.solution[1]
+
+            # Select a set of yValues to use for fitting
+            p1 = R - 10
+            p2 = R + 10
+            if p1 < 0:
+                p1 = 0
+            if p2 > len(self.yValues) - 1:
+                p2 = len(self.yValues) - 1
+
+            actual = self.yValues[p1:p2+1]
+
+            bestMatchPoint = ex.locateIndexOfBestMatchPoint(
+                numTheoryPts=numTheoryPoints, B=b, A=a, offset=0, N=RtimeConstant, actual=actual, edge='R'
+            )
+
+            bestOffset = ex.locateBestOffset(
+                numTheoryPts=numTheoryPoints, B=b, A=a, N0=RtimeConstant,
+                actual=actual, matchPoint=bestMatchPoint, edge='R'
+            )
+
+            self.exponentialRtheoryPts = ex.getRedgePoints(
+                numPoints=numTheoryPoints, B=b, A=a, offset=bestOffset, N=RtimeConstant
+            )
+            self.exponentialRinitialX = bestMatchPoint + p1
+
+            self.exponentialRedge = bestMatchPoint + bestOffset + p1 + numTheoryPoints
+
+            # Here we add self.timeDelta to follow the convention of the MLE solver that the output of the
+            # camera shows what happened one timeDelta in the past and 'fudges' the solution so that
+            # time-on-the-wire matches time-in-the-camera
+            if self.fieldMode:
+                self.solution[1] = self.exponentialRedge + 0.5
+            else:
+                self.solution[1] = self.exponentialRedge + 1.0
+
+            self.solution[1] += deltaPosition
+
+            # TODO Remove this debug statement
+            # self.showInfo(f'bestMatchPoint: {bestMatchPoint}  bestOffset: {bestOffset:0.2f} R: {R}')
+
+        return True
+
     def fillTableViewOfData(self):
 
         self.table.setRowCount(self.dataLen)
@@ -4799,14 +4991,15 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             if self.showUnderlyingLightcurveCheckBox.isChecked():
                 plot(x_trimmed, z_trimmed, pen=pg.mkPen((150, 100, 100), width=self.lineWidthSpinner.value()))
 
-            # Now overplot with the blue camera response curve
-            plot(x_trimmed, y_trimmed, pen=pg.mkPen((0, 0, 255), width=self.lineWidthSpinner.value()))
-            # Extend camera response to the left and right if necessary...
-            if x_trimmed:
-                if x_trimmed[0] > self.left:
-                    plot([self.left, x_trimmed[0]], [y_trimmed[0], y_trimmed[0]], pen=pg.mkPen((0, 0, 255), width=self.lineWidthSpinner.value()))
-                if x_trimmed[-1] < max_x:
-                    plot([x_trimmed[-1], max_x], [y_trimmed[-1], y_trimmed[-1]], pen=pg.mkPen((0, 0, 255), width=self.lineWidthSpinner.value()))
+            if self.exponentialDtheoryPts is None:
+                # Now overplot with the blue camera response curve
+                plot(x_trimmed, y_trimmed, pen=pg.mkPen((0, 0, 255), width=self.lineWidthSpinner.value()))
+                # Extend camera response to the left and right if necessary...
+                if x_trimmed:
+                    if x_trimmed[0] > self.left:
+                        plot([self.left, x_trimmed[0]], [y_trimmed[0], y_trimmed[0]], pen=pg.mkPen((0, 0, 255), width=self.lineWidthSpinner.value()))
+                    if x_trimmed[-1] < max_x:
+                        plot([x_trimmed[-1], max_x], [y_trimmed[-1], y_trimmed[-1]], pen=pg.mkPen((0, 0, 255), width=self.lineWidthSpinner.value()))
 
         def plotRcurve():
             # The units of self.timeDelta are seconds per entry, so the conversion in the next line
@@ -4831,22 +5024,28 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             if self.showUnderlyingLightcurveCheckBox.isChecked():
                 plot(x_trimmed, z_trimmed, pen=pg.mkPen((150, 100, 100), width=self.lineWidthSpinner.value()))
 
-            # Now overplot with the blue camera response curve
-            plot(x_trimmed, y_trimmed, pen=pg.mkPen((0, 0, 255), width=self.lineWidthSpinner.value()))
-            # Extend camera response to the left and right if necessary...
-            if x_trimmed:
+            if self.exponentialRtheoryPts is None:
+                # Now overplot with the blue camera response curve
+                plot(x_trimmed, y_trimmed, pen=pg.mkPen((0, 0, 255), width=self.lineWidthSpinner.value()))
+                # Extend camera response to the left and right if necessary...
                 if x_trimmed[0] > min_x:
-                    plot([min_x, x_trimmed[0]], [y_trimmed[0], y_trimmed[0]], pen=pg.mkPen((0, 0, 255), width=self.lineWidthSpinner.value()))
+                    plot([min_x, x_trimmed[0]], [y_trimmed[0], y_trimmed[0]],
+                         pen=pg.mkPen((0, 0, 255), width=self.lineWidthSpinner.value()))
+
                 if x_trimmed[-1] < self.right:
-                    plot([x_trimmed[-1], self.right], [y_trimmed[-1], y_trimmed[-1]], pen=pg.mkPen((0, 0, 255), width=self.lineWidthSpinner.value()))
+                    plot([x_trimmed[-1], self.right], [y_trimmed[-1], y_trimmed[-1]],
+                         pen=pg.mkPen((0, 0, 255), width=self.lineWidthSpinner.value()))
+
+                if x_trimmed:
+                    pass
 
         def plotGeometricShadowAtD():
-            if self.showEdgesCheckBox.isChecked():
+            if self.showEdgesCheckBox.isChecked() and self.exponentialDtheoryPts is None:
                 pen = pg.mkPen(color=(255, 0, 0), style=QtCore.Qt.DashLine, width=self.lineWidthSpinner.value())
                 self.mainPlot.plot([D, D], [lo_int, hi_int], pen=pen, symbol=None)
 
         def plotGeometricShadowAtR():
-            if self.showEdgesCheckBox.isChecked():
+            if self.showEdgesCheckBox.isChecked() and self.exponentialRtheoryPts is None:
                 pen = pg.mkPen(color=(0, 200, 0), style=QtCore.Qt.DashLine, width=self.lineWidthSpinner.value())
                 self.mainPlot.plot([R, R], [lo_int, hi_int], pen=pen, symbol=None)
 
@@ -4854,8 +5053,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         lo_int = min(self.yValues[self.left:self.right])
         
         if self.eventType == 'DandR':
-            D = self.solution[0]
-            R = self.solution[1]
+            if self.exponentialDtheoryPts is None:
+                D = self.solution[0]
+                R = self.solution[1]
+            else:
+                D = self.exponentialDedge
+                R = self.exponentialRedge
+                D = self.solution[0]
+                R = self.solution[1]
 
             max_x = min_x = (D + R) / 2.0
 
@@ -4865,12 +5070,21 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             plotGeometricShadowAtR()
 
         elif self.eventType == 'Donly':
-            D = self.solution[0]
+            if self.exponentialDtheoryPts is None:
+                D = self.solution[0]
+            else:
+                D = self.exponentialDedge
+
             max_x = self.right
             plotDcurve()
             plotGeometricShadowAtD()
+
         elif self.eventType == 'Ronly':
-            R = self.solution[1]
+            if self.exponentialRtheoryPts is None:
+                R = self.solution[1]
+            else:
+                R = self.exponentialRedge
+
             min_x = self.left
             plotRcurve()
             plotGeometricShadowAtR()
@@ -4960,10 +5174,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         if self.showTimestampErrors.checkState():
             self.illustrateTimestampOutliers()
 
-        # # Automatically show timestamp errors at final report
-        # if self.minusD is not None or self.minusR is not None:
-        #     self.illustrateTimestampOutliers()
-
         self.mainPlot.addItem(self.verticalCursor)
 
         self.mainPlot.plot(self.yValues)
@@ -4987,8 +5197,31 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                                symbolBrush=(255, 0, 0), symbolSize=10)
         except IndexError:
             pass
-        
-        # if self.showSecondaryCheckBox.isChecked() and len(self.yRefStar) == self.dataLen:
+
+        if self.exponentialDtheoryPts is not None:
+            xVals = [self.exponentialDinitialX]
+            for i in range(len(self.exponentialDtheoryPts)-1):
+                xVals.append(xVals[-1]+1)
+            self.mainPlot.plot(xVals, self.exponentialDtheoryPts, pen=None, symbol='o',
+                               symbolBrush=(150, 100, 100), symbolSize=10)
+            hi_int = max(self.yValues[self.left:self.right])
+            lo_int = min(self.yValues[self.left:self.right])
+            pen = pg.mkPen(color=(200, 0, 0), style=QtCore.Qt.DashLine, width=self.lineWidthSpinner.value())
+            # self.mainPlot.plot([self.exponentialDedge, self.exponentialDedge], [lo_int, hi_int], pen=pen, symbol=None)
+            self.mainPlot.plot([self.solution[0], self.solution[0]], [lo_int, hi_int], pen=pen, symbol=None)
+
+        if self.exponentialRtheoryPts is not None:
+            xVals = [self.exponentialRinitialX]
+            for i in range(len(self.exponentialRtheoryPts)-1):
+                xVals.append(xVals[-1]+1)
+            self.mainPlot.plot(xVals, self.exponentialRtheoryPts, pen=None, symbol='o',
+                               symbolBrush=(150, 100, 100), symbolSize=10)
+            hi_int = max(self.yValues[self.left:self.right])
+            lo_int = min(self.yValues[self.left:self.right])
+            pen = pg.mkPen(color=(0, 200, 0), style=QtCore.Qt.DashLine, width=self.lineWidthSpinner.value())
+            # self.mainPlot.plot([self.exponentialRedge, self.exponentialRedge], [lo_int, hi_int], pen=pen, symbol=None)
+            self.mainPlot.plot([self.solution[1], self.solution[1]], [lo_int, hi_int], pen=pen, symbol=None)
+
         if self.secondarySelector.value() > 0 and len(self.yRefStar) == self.dataLen:
             self.mainPlot.plot(self.yRefStar)
             if self.right is not None:

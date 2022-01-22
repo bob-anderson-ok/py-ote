@@ -361,7 +361,6 @@ def get_star_chord_samples(
 
 
 def time_correction(correction_dict, transition_point_intensity, edge_type='D'):
-    # assert correction_dict['A'] <= transition_point_intensity <= correction_dict['B']
     if not correction_dict['A'] <= transition_point_intensity <= correction_dict['B']:
         print('Intensity violation encountered: ', correction_dict['A'], transition_point_intensity, correction_dict['B'])
     assert edge_type == 'D' or edge_type == 'R'
