@@ -4,6 +4,7 @@ Created on Sat May 20 15:32:13 2017
 @author: Bob Anderson
 """
 # import pickle
+# import math
 import subprocess
 
 MIN_SIGMA = 0.1
@@ -80,8 +81,9 @@ cursorAlert = pyqtSignal()
 # in the IPython console while in pyoteapp directory
 
 # Status of points and associated dot colors ---
+EVENT = 4  # Same as baseline
 SELECTED = 3  # big red
-BASELINE = 2  # green
+BASELINE = 2  # orangish
 INCLUDED = 1  # blue
 EXCLUDED = 0  # no dot
 
@@ -221,6 +223,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.dnrMiddleRadioButton.installEventFilter(self)
         self.dnrHighRadioButton.installEventFilter(self)
 
+        self.dnrLowDtcLabel.installEventFilter(self)
+        self.dnrLowRtcLabel.installEventFilter(self)
+        self.dnrMiddleDtcLabel.installEventFilter(self)
+        self.dnrMiddleRtcLabel.installEventFilter(self)
+        self.dnrHighDtcLabel.installEventFilter(self)
+        self.dnrHighRtcLabel.installEventFilter(self)
+
         self.exponentialDtheoryPts = None
         self.exponentialRtheoryPts = None
 
@@ -231,6 +240,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.exponentialRedge = 0
 
         self.userDeterminedBaselineStats = False
+        self.userDeterminedEventStats = False
         self.userTrimInEffect = False
 
         self.markBaselineRegionButton.clicked.connect(self.markBaselineRegion)
@@ -343,6 +353,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         # Button: Mark R zone
         self.markRzone.clicked.connect(self.showRzone)
         self.markRzone.installEventFilter(self)
+
+        # Button: Mark E zone
+        self.markEzone.clicked.connect(self.markEventRegion)
+        self.markEzone.installEventFilter(self)
 
         # Button: Calc flash edge
         self.calcFlashEdge.clicked.connect(self.calculateFlashREdge)
@@ -489,7 +503,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         showTimestamps = self.settings.value('showTimestamps', 'true') == 'true'
         self.showTimestampsCheckBox.setChecked(showTimestamps)
 
-        self.ne3NotInUseRadioButton.setChecked(self.settings.value('ne3InUse', 'false') == 'true')
+        self.ne3NotInUseRadioButton.setChecked(self.settings.value('ne3NotInUse', 'false') == 'true')
         self.dnrOffRadioButton.setChecked(self.settings.value('dnrOff', 'false') == 'true')
         self.dnrLowRadioButton.setChecked(self.settings.value('dnrLow', 'false') == 'true')
         self.dnrMiddleRadioButton.setChecked(self.settings.value('dnrMiddle', 'false') == 'true')
@@ -503,6 +517,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.dnrHighDspinBox.setValue(float(self.settings.value('dnrHighDtc', 4.50)))
         self.dnrHighRspinBox.setValue(float(self.settings.value('dnrHighRtc', 2.00)))
+
+        self.dnrHighDspinBox.valueChanged.connect(self.processTimeConstantChange)
+        self.dnrHighRspinBox.valueChanged.connect(self.processTimeConstantChange)
+        self.dnrMiddleDspinBox.valueChanged.connect(self.processTimeConstantChange)
+        self.dnrMiddleRspinBox.valueChanged.connect(self.processTimeConstantChange)
+        self.dnrLowDspinBox.valueChanged.connect(self.processTimeConstantChange)
+        self.dnrLowRspinBox.valueChanged.connect(self.processTimeConstantChange)
 
         # splitterOne is the vertical splitter in the lower panel.
         # splitterTwo is the vertical splitter in the upper panel
@@ -558,8 +579,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.copy_desktop_icon_file_to_home_directory()
 
-        self.only_new_solver_wanted = True
-
         self.helperThing = HelpDialog()
 
         if self.externalCsvFilePath is not None:
@@ -569,6 +588,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             else:
                 self.showMsg(f'Could not find csv file specified: {self.externalCsvFilePath}')
                 self.externalCsvFilePath = None
+
+    def processTimeConstantChange(self):
+        # We don't want to respond to Ne3 time constant changes until
+        # the initial solution has been found, hence the following test
+        # if self.solution is not None:
+        #     self.showMsg('Called findEvent()')
+        #     self.findEvent()
+        pass
 
     def handlePymovieColumnChange(self):
         # self.showInfo('Got a changed column!')
@@ -608,6 +635,42 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.yStatus[i] = INCLUDED
         self.reDrawMainPlot()
 
+    def markEventRegion(self):
+        if len(self.selectedPoints) == 0:
+            x = [i for i in range(self.dataLen) if self.yStatus[i] == EVENT]
+            for i in x:
+                self.yStatus[i] = INCLUDED
+            self.reDrawMainPlot()
+            # self.showInfo('No points were selected. Exactly two are required')
+            return
+
+        if len(self.selectedPoints) != 2:
+            self.showInfo('Exactly two points must be selected for this operation.')
+            return
+
+        # Erase any previously selected event points
+        x = [i for i in range(self.dataLen) if self.yStatus[i] == EVENT]
+        for i in x:
+            self.yStatus[i] = INCLUDED
+        self.reDrawMainPlot()
+
+        selIndices = [key for key, _ in self.selectedPoints.items()]
+        selIndices.sort()
+
+        leftEdge = int(min(selIndices))
+        rightEdge = int(max(selIndices))
+        self.showMsg('Event region selected: ' + str([leftEdge, rightEdge]))
+
+        # The following loop marks event points and removes the 2 red points
+        # by overwriting then with the EVENT color
+        self.selectedPoints = {}
+        for i in range(leftEdge, rightEdge + 1):
+            self.yStatus[i] = EVENT
+
+        self.calcEventStatisticsFromMarkedRegion()
+
+        self.reDrawMainPlot()
+
     def markBaselineRegion(self):
         # If the user has not selected any points, we ignore the request
         if len(self.selectedPoints) == 0:
@@ -636,6 +699,17 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.showMsg('Background region selected: ' + str([leftEdge, rightEdge]))
         self.reDrawMainPlot()
+
+    def calcEventStatisticsFromMarkedRegion(self):
+        y = [self.yValues[i] for i in range(self.dataLen) if self.yStatus[i] == EVENT]
+        mean = np.mean(y)
+        self.A = mean
+        self.sigmaA = float(np.std(y))
+
+        self.userDeterminedEventStats = True
+
+        self.showMsg(f'mean event = {mean:0.2f}')
+        self.showMsg(f'sigmaA: = {self.sigmaA:0.2f}')
 
     def calcBaselineStatisticsFromMarkedRegions(self):
         xIndices = [i for i in range(self.dataLen) if self.yStatus[i] == BASELINE]
@@ -1602,8 +1676,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.snrA = None
         self.dRegion = None
         self.rRegion = None
+        self.eRegion = None
         self.dLimits = []
         self.rLimits = []
+        self.eLimits = []
         self.minEvent = None
         self.maxEvent = None
         self.solution = None
@@ -1675,16 +1751,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.setDataLimits.setEnabled(False)
 
-        if self.only_new_solver_wanted:
-            self.locateEvent.setEnabled(True)
+        self.locateEvent.setEnabled(True)
 
         self.dLimits = [leftEdge, rightEdge]
         
         if self.rLimits:
-            # self.DandR.setChecked(True)
             self.eventType = 'DandR'
         else:
-            # self.Donly.setChecked(True)
             self.eventType = 'Donly'
             
         self.dRegion = pg.LinearRegionItem(
@@ -1735,8 +1808,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.setDataLimits.setEnabled(False)
 
-        if self.only_new_solver_wanted:
-            self.locateEvent.setEnabled(True)
+        self.locateEvent.setEnabled(True)
 
         self.rLimits = [leftEdge, rightEdge]
         
@@ -1793,8 +1865,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.reDrawMainPlot()
             return
 
-        if self.only_new_solver_wanted:
-            self.locateEvent.setEnabled(True)
+        self.locateEvent.setEnabled(True)
 
         self.rLimits = [leftEdge, rightEdge]
 
@@ -2237,7 +2308,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.settings.setValue('doOCRcheck', self.showOCRcheckFramesCheckBox.isChecked())
         self.settings.setValue('showTimestamps', self.showTimestampsCheckBox.isChecked())
 
-        self.settings.setValue('ne3InUse', self.ne3NotInUseRadioButton.isChecked())
+        self.settings.setValue('ne3NotInUse', self.ne3NotInUseRadioButton.isChecked())
         self.settings.setValue('dnrOff', self.dnrOffRadioButton.isChecked())
         self.settings.setValue('dnrLow', self.dnrLowRadioButton.isChecked())
         self.settings.setValue('dnrMiddle', self.dnrMiddleRadioButton.isChecked())
@@ -2704,7 +2775,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.showMsg("Times are invalid due to corrupted timestamps!",
                          color='red', bold=True)
 
-        if self.choleskyFailed:
+        if self.choleskyFailed and self.ne3NotInUseRadioButton.isChecked():
             self.showMsg('Cholesky decomposition failed during error bar '
                          'calculations. '
                          'Noise has therefore been treated as being '
@@ -2923,17 +2994,18 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             if type(dist) == float:
                 if dist == -1.0:
                     self.choleskyFailed = True
-                    self.showInfo(
-                        'The Cholesky-Decomposition routine has failed.  This may be because the light curve ' +
-                        'required block integration and you failed to do either a manual block integration or to accept the '
-                        'PyOTE estimated block integration.  Please '
-                        'examine the light curve for that possibility.' +
-                        '\nWe treat this situation as though there is no '
-                        'correlation in the noise.')
-                    self.showMsg('Cholesky decomposition has failed.  '
-                                 'Proceeding by '
-                                 'treating noise as being uncorrelated.',
-                                 bold=True, color='red')
+                    if self.ne3NotInUseRadioButton.isChecked():
+                        self.showInfo(
+                            'The Cholesky-Decomposition routine has failed.  This may be because the light curve ' +
+                            'required block integration and you failed to do either a manual block integration or to accept the '
+                            'PyOTE estimated block integration.  Please '
+                            'examine the light curve for that possibility.' +
+                            '\nWe treat this situation as though there is no '
+                            'correlation in the noise.')
+                        self.showMsg('Cholesky decomposition has failed.  '
+                                     'Proceeding by '
+                                     'treating noise as being uncorrelated.',
+                                     bold=True, color='red')
                 self.progressBar.setValue(int(dist * 100))
                 QtWidgets.QApplication.processEvents()
                 if self.cancelRequested:
@@ -3387,14 +3459,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             # was really needed.  That is a fatal error but is trapped and the user alerted to the problem
 
             if len(self.corCoefs) > 1:
-                if self.corCoefs[1] >= 0.7:
+                if self.corCoefs[1] >= 0.7 and self.ne3NotInUseRadioButton.isChecked():
                     self.showInfo(
                         'The auto-correlation coefficient at lag 1 is suspiciously large. '
                         'This may be because the light curve needs some degree of block integration. '
                         'Failure to do a needed block integration allows point-to-point correlations caused by '
                         'the camera integration to artificially induce non-physical correlated noise.')
                 elif len(self.corCoefs) > 2:
-                    if self.corCoefs[2] >= 0.3:
+                    if self.corCoefs[2] >= 0.3 and self.ne3NotInUseRadioButton.isChecked():
                         self.showInfo(
                             'The auto-correlation coefficient at lag 2 is suspiciously large. '
                             'This may be because the light curve needs some degree of block integration. '
@@ -3460,7 +3532,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     self.B = item[1]
                 if self.userTrimInEffect:
                     self.B = item[1]
-                self.A = item[2]
+                if not self.userDeterminedEventStats:
+                    self.A = item[2]
 
     def compareFirstAndSecondPassResults(self):
         D1, R1 = self.firstPassSolution
@@ -3607,6 +3680,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
             self.dRegion = None  # Erases the coloring of the D region (when self.reDrawMainPlot is called)
             self.rRegion = None  # Erases the coloring of the R region (when self.reDrawMainPlot is called)
+            self.eRegion = None  # Erases the coloring of the E region (when self.reDrawMainPlot is called)
 
             # Preserve these for possible next pass
             self.d_candidates = d_candidates
@@ -3614,10 +3688,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.r_candidates = r_candidates
             self.r_candidate_entry_nums = r_candidate_entry_nums
             self.penumbral_noise = (b_noise + a_noise) / 2.0
-            self.A = a_intensity
+
+            if not self.userDeterminedEventStats:
+                self.A = a_intensity
+                self.sigmaA = a_noise
+
             self.nBpts = num_b_pts
             self.nApts = num_a_pts
-            self.sigmaA = a_noise
+
             if not self.userDeterminedBaselineStats:
                 self.sigmaB = b_noise
                 self.B = b_intensity
@@ -3849,16 +3927,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         need_to_invite_user_to_verify_timestamps = False
 
-        # if self.DandR.isChecked():
         if self.eventType == 'DandR':
-            # self.eventType = 'DandR'
             self.showMsg('Locate a "D and R" event triggered')
-        # elif self.Donly.isChecked():
         elif self.eventType == 'Donly':
-            # self.eventType = 'Donly'
             self.showMsg('Locate a "D only" event triggered')
         else:
-            # self.eventType = 'Ronly'
             self.showMsg('Locate an "R only" event triggered')
         
         minText = self.minEventEdit.text().strip()
@@ -3895,6 +3968,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 if self.maxEvent > self.right - self.left - 1:
                     self.showInfo('maxEvent is too large for selected points')
                     return
+
         if minText == '':
             minText = '<blank>'
         if maxText == '':
@@ -3903,6 +3977,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         if not minText == '<blank>' and not maxText == '<blank>':
             self.eventType = 'DandR'
+
+        if not self.ne3NotInUseRadioButton.isChecked() and not self.dnrOffRadioButton.isChecked():
+            if not self.userDeterminedEventStats:
+                self.showInfo('This is a Night Eagle 3 analysis with an active DNR setting. Did you forget to select event points?')
 
         candFrom, numCandidates = candidateCounter(eventType=self.eventType,
                                                    dLimits=self.dLimits, rLimits=self.rLimits,
@@ -3985,7 +4063,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                         self.showMsg('Solution search was cancelled')
                         self.progressBar.setValue(0)
                         return
-                # elif item[0] == 'no event present':
                 elif item[0] == -1.0:
                     self.showMsg(
                         'No event fitting search criteria could be found.')
@@ -4012,11 +4089,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             # This fills in self.sigmaB and self.sigmaA
             self.extract_noise_parameters_from_iterative_solution()
 
-            # if not self.dnrOffRadioButton.isChecked():
+            DfitMetric = RfitMetric = 0.0
+
             if not self.ne3NotInUseRadioButton.isChecked():
                 # We're being asked to perform an exponential edge fit for the Night Eagle 3 camera
                 self.showUnderlyingLightcurveCheckBox.setChecked(True)
-                if not self.doExpFit(b, a):
+                resultFound, DfitMetric, RfitMetric = self.doExpFit(b, a)
+                if not resultFound:
                     return
 
             subDandR, new_b, new_a = subFrameAdjusted(
@@ -4028,7 +4107,17 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 subDandR = self.solution
 
             # Here we apply the correction from our computed underlying lightcurves.
-            self.underlyingLightcurveAns = self.demoUnderlyingLightcurves(baseline=new_b, event=new_a, plots_wanted=False)
+            if self.userDeterminedEventStats:
+                AtoUse = self.A
+            else:
+                AtoUse = new_a
+
+            if self.userDeterminedBaselineStats:
+                BtoUse = self.B
+            else:
+                BtoUse = new_b
+
+            self.underlyingLightcurveAns = self.demoUnderlyingLightcurves(baseline=BtoUse, event=AtoUse, plots_wanted=False)
 
             # If an error in data entry has occurred, ans will be None
             if self.underlyingLightcurveAns is None:
@@ -4076,32 +4165,21 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.B = new_b
             if self.userTrimInEffect:
                 self.B = new_b
-            self.A = new_a
+            if not self.userDeterminedEventStats:
+                self.A = new_a
 
-            # Activate this code if not using old solver following this.
-            if self.only_new_solver_wanted:
-                self.dRegion = None
-                self.rRegion = None
-                self.dLimits = None
-                self.rLimits = None
+            self.dRegion = None
+            self.rRegion = None
+
+            # We don't delete these limits so that we can rerun findEvent() without needing to
+            # specify the D and R regions again.
+            #     self.dLimits = None
+            #     self.rLimits = None
 
             self.showMsg('... end New solver results', color='blue', bold=True)
 
-            if not self.only_new_solver_wanted:
-                # Proceed with old dual-pass 'solver'
-                self.solution = [None, None]
-                self.try_to_get_solution()
-
-                if self.solution:
-                    self.showMsg(
-                        'sigB:%.2f  sigA:%.2f B:%.2f A:%.2f' %
-                        (self.sigmaB, self.sigmaA, self.B, self.A),
-                        blankLine=False)
-                    self.displaySolution()
-                    self.dRegion = None
-                    self.rRegion = None
-                    self.dLimits = None
-                    self.rLimits = None
+            if not self.ne3NotInUseRadioButton.isChecked():
+                self.showMsg(f'D edge fit metric: {DfitMetric:0.4f}   R edge fit metric: {RfitMetric:0.4f}')
 
         if self.runSolver and self.solution:
             D, R = self.solution  # type: int
@@ -4187,18 +4265,120 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.showMsg(f'==== y position of target: {self.targetStarYpositionSpinBox.value():4d}',
                      color='black', bold=True)
 
+    def scoreExpFit(self, b, a, TC, edge):
+        numTheoryPoints = 5
+
+        if edge == 'D':
+            D = int(self.solution[0])
+
+            # Select a set of yValues to use for fitting
+            p1 = D - 10
+            p2 = D + 10
+            if p1 < 0:
+                p1 = 0
+            if p2 > len(self.yValues) - 1:
+                p2 = len(self.yValues) - 1
+
+            actual = self.yValues[p1:p2 + 1]
+
+            bestMatchPoint = ex.locateIndexOfBestMatchPoint(
+                numTheoryPts=numTheoryPoints, B=b, A=a, offset=0, N=TC,
+                actual=actual, edge=edge
+            )
+
+            bestOffset = ex.locateBestOffset(
+                numTheoryPts=numTheoryPoints, B=b, A=a, N0=TC,
+                actual=actual, matchPoint=bestMatchPoint, edge=edge
+            )
+
+            self.exponentialDtheoryPts = ex.getDedgePoints(
+                numPoints=numTheoryPoints, B=b, A=a, offset=bestOffset, N=TC
+            )
+            self.exponentialDinitialX = bestMatchPoint + p1
+
+            self.exponentialDedge = bestMatchPoint + bestOffset + p1 + numTheoryPoints
+
+            DfitMetric = ex.scoreDedge(numTheoryPts=numTheoryPoints, B=b, A=a, offset=bestOffset,
+                                       N=TC, actual=actual, matchPoint=bestMatchPoint)
+            return DfitMetric
+
+        if edge == 'R':
+            R = int(self.solution[1])
+
+            # Select a set of yValues to use for fitting
+            p1 = R - 10
+            p2 = R + 10
+            if p1 < 0:
+                p1 = 0
+            if p2 > len(self.yValues) - 1:
+                p2 = len(self.yValues) - 1
+
+            actual = self.yValues[p1:p2 + 1]
+
+            bestMatchPoint = ex.locateIndexOfBestMatchPoint(
+                numTheoryPts=numTheoryPoints, B=b, A=a, offset=0, N=TC,
+                actual=actual, edge=edge
+            )
+
+            bestOffset = ex.locateBestOffset(
+                numTheoryPts=numTheoryPoints, B=b, A=a, N0=TC,
+                actual=actual, matchPoint=bestMatchPoint, edge=edge
+            )
+
+            self.exponentialRtheoryPts = ex.getRedgePoints(
+                numPoints=numTheoryPoints, B=b, A=a, offset=bestOffset, N=TC
+            )
+            self.exponentialRinitialX = bestMatchPoint + p1
+
+            self.exponentialRedge = bestMatchPoint + bestOffset + p1 + numTheoryPoints
+
+            RfitMetric = ex.scoreRedge(numTheoryPts=numTheoryPoints, B=b, A=a, offset=bestOffset,
+                                       N=TC, actual=actual, matchPoint=bestMatchPoint)
+            return RfitMetric
+
+    def refineNe3TimeConstant(self, b, a, TC, edge):
+        def doRefinementSteps(stepSize, timeConstant):
+            oldScore = self.scoreExpFit(b=b, a=a, TC=timeConstant, edge=edge)
+            direction = 1
+            noImprovement = False
+            while True:
+                # Take a step
+                timeConstant += direction * stepSize
+                if timeConstant <= 0:
+                    timeConstant = 0.1
+                newScore = self.scoreExpFit(b=b, a=a, TC=timeConstant, edge=edge)
+                if newScore < oldScore:
+                    oldScore = newScore
+                else:
+                    if noImprovement:
+                        break
+                    direction *= -1
+                    timeConstant += direction * stepSize
+                    noImprovement = True
+            return timeConstant - direction * stepSize
+
+        newTC = doRefinementSteps(1.0, TC)
+        newTC = doRefinementSteps(0.1, newTC)
+        newTC = doRefinementSteps(0.01, newTC)
+
+        return newTC
+
     def doExpFit(self, b, a):
+
+        DfitMetric = RfitMetric = 0.0
+
+        if self.userDeterminedEventStats:
+            a = self.A
+
+        if self.userDeterminedBaselineStats:
+            b = self.B
 
         timeCorrection = self.getNe3TimeCorrection()
         if timeCorrection is None:
             return False
 
-        # self.showInfo(f'timeCorrection: {timeCorrection:0.4f}')
-
         # Convert timeCorrection to frame/field fraction
         deltaPosition = timeCorrection / self.timeDelta
-
-        numTheoryPoints = 5
 
         if self.eventType == 'Donly' or self.eventType == 'DandR':
             if self.dnrLowRadioButton.isChecked():
@@ -4212,36 +4392,21 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 DtimeConstant = 0.01
             else:
                 self.showInfo('Programming error - this point should never be reached')
-                return False
+                return False, 0.0, 0.0
 
-            D = self.solution[0]
+            if not self.dnrOffRadioButton.isChecked():
+                DtimeConstant = self.refineNe3TimeConstant(b=b, a=a, TC=DtimeConstant, edge='D')
 
-            # Select a set of yValues to use for fitting
-            p1 = D - 10
-            p2 = D + 10
-            if p1 < 0:
-                p1 = 0
-            if p2 > len(self.yValues) - 1:
-                p2 = len(self.yValues) - 1
+                if self.dnrLowRadioButton.isChecked():
+                    self.dnrLowDspinBox.setValue(DtimeConstant)
+                elif self.dnrMiddleRadioButton.isChecked():
+                    self.dnrMiddleDspinBox.setValue(DtimeConstant)
+                elif self.dnrHighRadioButton.isChecked():
+                    self.dnrHighDspinBox.setValue(DtimeConstant)
 
-            actual = self.yValues[p1:p2+1]
+            self.showMsg(f'D timeconstant: {DtimeConstant:0.2f}', color='red', bold=True)
 
-            bestMatchPoint = ex.locateIndexOfBestMatchPoint(
-                numTheoryPts=numTheoryPoints, B=b, A=a, offset=0, N=DtimeConstant,
-                actual=actual, edge='D'
-            )
-
-            bestOffset = ex.locateBestOffset(
-                numTheoryPts=numTheoryPoints, B=b, A=a, N0=DtimeConstant,
-                actual=actual, matchPoint=bestMatchPoint, edge='D'
-            )
-
-            self.exponentialDtheoryPts = ex.getDedgePoints(
-                numPoints=numTheoryPoints, B=b, A=a, offset=bestOffset, N=DtimeConstant
-            )
-            self.exponentialDinitialX = bestMatchPoint + p1
-
-            self.exponentialDedge = bestMatchPoint + bestOffset + p1 + numTheoryPoints
+            DfitMetric = self.scoreExpFit(b=b, a=a, TC=DtimeConstant, edge='D')
 
             # Here we add self.timeDelta to follow the convention of the MLE solver that the output of the
             # camera shows what happened one timeDelta in the past and 'fudges' the solution so that
@@ -4253,9 +4418,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
             self.solution[0] += deltaPosition
 
-            # TODO Remove this debug statement
-            # self.showInfo(f'bestMatchPoint: {bestMatchPoint}  bestOffset: {bestOffset:0.2f} D: {D}')
-
         if self.eventType == 'Ronly' or self.eventType == 'DandR':
 
             if self.dnrLowRadioButton.isChecked():
@@ -4266,38 +4428,23 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 RtimeConstant = self.dnrHighRspinBox.value()
             elif self.dnrOffRadioButton.isChecked():
                 # TODO Test that this is effective
-                RtimeConstant = 0.01
+                RtimeConstant = 0.001
             else:
                 self.showInfo('Programming error - this point should never be reached')
-                return False
+                return False, 0.0, 0.0
 
-            R = self.solution[1]
+            if not self.dnrOffRadioButton.isChecked():
+                RtimeConstant = self.refineNe3TimeConstant(b=b, a=a, TC=RtimeConstant, edge='R')
+                if self.dnrLowRadioButton.isChecked():
+                    self.dnrLowRspinBox.setValue(RtimeConstant)
+                elif self.dnrMiddleRadioButton.isChecked():
+                    self.dnrMiddleRspinBox.setValue(RtimeConstant)
+                elif self.dnrHighRadioButton.isChecked():
+                    self.dnrHighRspinBox.setValue(RtimeConstant)
 
-            # Select a set of yValues to use for fitting
-            p1 = R - 10
-            p2 = R + 10
-            if p1 < 0:
-                p1 = 0
-            if p2 > len(self.yValues) - 1:
-                p2 = len(self.yValues) - 1
+            self.showMsg(f'R timeconstant: {RtimeConstant:0.2f}', color='red', bold=True)
 
-            actual = self.yValues[p1:p2+1]
-
-            bestMatchPoint = ex.locateIndexOfBestMatchPoint(
-                numTheoryPts=numTheoryPoints, B=b, A=a, offset=0, N=RtimeConstant, actual=actual, edge='R'
-            )
-
-            bestOffset = ex.locateBestOffset(
-                numTheoryPts=numTheoryPoints, B=b, A=a, N0=RtimeConstant,
-                actual=actual, matchPoint=bestMatchPoint, edge='R'
-            )
-
-            self.exponentialRtheoryPts = ex.getRedgePoints(
-                numPoints=numTheoryPoints, B=b, A=a, offset=bestOffset, N=RtimeConstant
-            )
-            self.exponentialRinitialX = bestMatchPoint + p1
-
-            self.exponentialRedge = bestMatchPoint + bestOffset + p1 + numTheoryPoints
+            RfitMetric = self.scoreExpFit(b=b, a=a, TC=RtimeConstant, edge='R')
 
             # Here we add self.timeDelta to follow the convention of the MLE solver that the output of the
             # camera shows what happened one timeDelta in the past and 'fudges' the solution so that
@@ -4309,10 +4456,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
             self.solution[1] += deltaPosition
 
+            # RfitMetric = ex.scoreRedge(numTheoryPts=numTheoryPoints, B=b, A=a, offset=bestOffset,
+            #                            N=RtimeConstant, actual=actual, matchPoint=bestMatchPoint)
+
             # TODO Remove this debug statement
             # self.showInfo(f'bestMatchPoint: {bestMatchPoint}  bestOffset: {bestOffset:0.2f} R: {R}')
 
-        return True
+        return True, DfitMetric, RfitMetric
 
     def fillTableViewOfData(self):
 
@@ -4445,6 +4595,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         if self.filename:
             self.userDeterminedBaselineStats = False
+            self.userDeterminedEventStats = False
             self.setWindowTitle('PYOTE Version: ' + version.version() + '  File being processed: ' + self.filename)
             dirpath, _ = os.path.split(self.filename)
             self.logFile, _ = os.path.splitext(self.filename)
@@ -4647,6 +4798,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
                 self.markDzone.setEnabled(True)
                 self.markRzone.setEnabled(True)
+                self.markEzone.setEnabled(not self.ne3NotInUseRadioButton.isChecked())
+
                 self.calcFlashEdge.setEnabled(True)
                 self.minEventEdit.setEnabled(True)
                 self.maxEventEdit.setEnabled(True)
@@ -4734,9 +4887,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.eventYvals.append(self.yValues[i])
             self.showSelectedPoints('Points selected for event noise '
                                     'analysis: ')
-            # self.doNoiseAnalysis.setEnabled(True)
-            # self.computeSigmaA.setEnabled(True)
-        
+
         self.removePointSelections()
         _, self.numNApts, self.sigmaA = getCorCoefs(self.eventXvals, self.eventYvals)
         self.showMsg('Event noise analysis done using ' + str(self.numNApts) + 
@@ -4787,9 +4938,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.baselineYvals.append(self.yValues[i])
             self.showSelectedPoints('Points selected for baseline noise '
                                     'analysis: ')
-            # self.doNoiseAnalysis.setEnabled(True)
-            # self.computeSigmaA.setEnabled(True)
-        
+
         self.removePointSelections()
         
         self.newCorCoefs, self.numNApts, sigB = getCorCoefs(self.baselineXvals, self.baselineYvals)
@@ -4816,13 +4965,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         # was really needed.  That is a fatal error but is trapped and the user alerted to the problem
 
         if len(self.corCoefs) > 1:
-            if self.corCoefs[1] >= 0.7:
+            if self.corCoefs[1] >= 0.7 and self.ne3NotInUseRadioButton.isChecked():
                 self.showInfo('The auto-correlation coefficient at lag 1 is suspiciously large. '
                               'This may be because the light curve needs some degree of block integration. '
                               'Failure to do a needed block integration allows point-to-point correlations caused by '
                               'the camera integration to artificially induce non-physical correlated noise.')
             elif len(self.corCoefs) > 2:
-                if self.corCoefs[2] >= 0.3:
+                if self.corCoefs[2] >= 0.3 and self.ne3NotInUseRadioButton.isChecked():
                     self.showInfo('The auto-correlation coefficient at lag 2 is suspiciously large. '
                                   'This may be because the light curve needs some degree of block integration. '
                                   'Failure to do a needed block integration allows point-to-point correlations caused by '
@@ -4836,14 +4985,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.locateEvent.setEnabled(True)
         self.markDzone.setEnabled(True)
         self.markRzone.setEnabled(True)
+        self.markEzone.setEnabled(not self.ne3NotInUseRadioButton.isChecked())
+
         self.minEventEdit.setEnabled(True)
         self.maxEventEdit.setEnabled(True)
 
     def processBaselineNoiseFromIterativeSolution(self, left, right):
-
-        # if (right - left) < 14:
-        #     return 'Failed'
-
         assert left >= self.left
         assert right <= self.right
 
@@ -4893,6 +5040,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.startOver.setEnabled(False)
         self.markDzone.setEnabled(False)
         self.markRzone.setEnabled(False)
+        self.markEzone.setEnabled(False)
         self.numSmoothPointsEdit.setEnabled(False)
         self.minEventEdit.setEnabled(False)
         self.maxEventEdit.setEnabled(False)
@@ -4903,6 +5051,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
     def restart(self):
 
         self.userDeterminedBaselineStats = False
+        self.userDeterminedEventStats = False
         self.userTrimInEffect = False
 
         self.selectedPoints = {}
@@ -4938,6 +5087,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.markDzone.setEnabled(True)
         self.markRzone.setEnabled(True)
+        self.markEzone.setEnabled(not self.ne3NotInUseRadioButton.isChecked())
         self.locateEvent.setEnabled(True)
         self.minEventEdit.setEnabled(True)
         self.maxEventEdit.setEnabled(True)
@@ -4978,6 +5128,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 z_values = self.underlyingLightcurveAns['star D']
             else:
                 z_values = self.underlyingLightcurveAns['raw D']
+
             x_trimmed = []
             y_trimmed = []
             z_trimmed = []
@@ -5011,6 +5162,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 z_values = self.underlyingLightcurveAns['star R']
             else:
                 z_values = self.underlyingLightcurveAns['raw R']
+
             x_trimmed = []
             y_trimmed = []
             z_trimmed = []
@@ -5053,14 +5205,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         lo_int = min(self.yValues[self.left:self.right])
         
         if self.eventType == 'DandR':
-            if self.exponentialDtheoryPts is None:
-                D = self.solution[0]
-                R = self.solution[1]
-            else:
-                D = self.exponentialDedge
-                R = self.exponentialRedge
-                D = self.solution[0]
-                R = self.solution[1]
+            # if self.exponentialDtheoryPts is None:
+            D = self.solution[0]
+            R = self.solution[1]
+            # else:
+            #     D = self.exponentialDedge
+            #     R = self.exponentialRedge
+            #     D = self.solution[0]
+            #     R = self.solution[1]
 
             max_x = min_x = (D + R) / 2.0
 
@@ -5070,20 +5222,20 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             plotGeometricShadowAtR()
 
         elif self.eventType == 'Donly':
-            if self.exponentialDtheoryPts is None:
-                D = self.solution[0]
-            else:
-                D = self.exponentialDedge
+            # if self.exponentialDtheoryPts is None:
+            D = self.solution[0]
+            # else:
+            #     D = self.exponentialDedge
 
             max_x = self.right
             plotDcurve()
             plotGeometricShadowAtD()
 
         elif self.eventType == 'Ronly':
-            if self.exponentialRtheoryPts is None:
-                R = self.solution[1]
-            else:
-                R = self.exponentialRedge
+            # if self.exponentialRtheoryPts is None:
+            R = self.solution[1]
+            # else:
+            #     R = self.exponentialRedge
 
             min_x = self.left
             plotRcurve()
@@ -5190,6 +5342,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             y = [self.yValues[i] for i in range(self.dataLen) if self.yStatus[i] == BASELINE]
             self.mainPlot.plot(x, y, pen=None, symbol='o',
                                symbolBrush=(255, 150, 100), symbolSize=6)
+
+            x = [i for i in range(self.dataLen) if self.yStatus[i] == EVENT]
+            y = [self.yValues[i] for i in range(self.dataLen) if self.yStatus[i] == EVENT]
+            self.mainPlot.plot(x, y, pen=None, symbol='o',
+                               symbolBrush=(155, 150, 100), symbolSize=6)
 
             x = [i for i in range(self.dataLen) if self.yStatus[i] == SELECTED]
             y = [self.yValues[i] for i in range(self.dataLen) if self.yStatus[i] == SELECTED]

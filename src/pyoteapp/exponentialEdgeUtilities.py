@@ -91,7 +91,7 @@ def locateIndexOfBestMatchPoint(numTheoryPts, B, A, offset, N, actual, edge='D')
 def locateBestOffset(numTheoryPts, B, A, N0, actual, matchPoint, edge='D'):
     metricVec = []
     offsetVec = []
-    for offset in np.linspace(-1, 1, 41):
+    for offset in np.linspace(-2, 2, 81):
         if edge == 'D':
             metricVec.append(scoreDedge(numTheoryPts, B, A, offset, N0, actual, matchPoint))
         else:
