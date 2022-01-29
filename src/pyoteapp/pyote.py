@@ -2445,18 +2445,27 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.showMsg('', blankLine=False)
 
+    def computeErrorBarPair(self, deltaHi, deltaLo, edge):
+        noiseAsymmetry = self.snrA / self.snrB
+        if (noiseAsymmetry > 0.7) and (noiseAsymmetry < 1.3):
+            plus = (deltaHi - deltaLo) / 2
+            minus = plus
+        else:
+            if edge == 'D':
+                plus = deltaHi
+                minus = -deltaLo
+            else:
+                plus = -deltaLo  # Deliberate 'inversion'
+                minus = deltaHi  # Deliberate 'inversion'
+
+        return plus, minus
+
     def Dreport(self, deltaDhi, deltaDlo):
         D, _ = self.solution
 
         intD = int(D)  # So that we can do lookup in the data table
 
-        noiseAsymmetry = self.snrA / self.snrB
-        if (noiseAsymmetry > 0.7) and (noiseAsymmetry < 1.3):
-            plusD = (deltaDhi - deltaDlo) / 2
-            minusD = plusD
-        else:
-            plusD = deltaDhi
-            minusD = -deltaDlo
+        plusD, minusD = self.computeErrorBarPair(deltaHi=deltaDhi, deltaLo=deltaDlo, edge='D')
          
         # Save these for the 'envelope' plotter
         self.plusD = plusD
@@ -2479,14 +2488,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         
     def Rreport(self, deltaRhi, deltaRlo):
         _, R = self.solution
-        # if R: R = R - self.Roffset
-        noiseAsymmetry = self.snrA / self.snrB
-        if (noiseAsymmetry > 0.7) and (noiseAsymmetry < 1.3):
-            plusR = (deltaRhi - deltaRlo) / 2
-            minusR = plusR
-        else:
-            plusR = -deltaRlo  # Deliberate 'inversion'
-            minusR = deltaRhi  # Deliberate 'inversion'
+
+        plusR, minusR = self.computeErrorBarPair(deltaHi=deltaRhi, deltaLo=deltaRlo, edge='R')
         
         # Save these for the 'envelope' plotter
         self.plusR = plusR
@@ -2867,13 +2870,19 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.xlsxDict['Dsec'] = tsParts[2]
 
             self.showMsg('D time: %s' % ts, blankLine=False)
-            errBar = max(abs(self.deltaDlo68), abs(self.deltaDhi68)) * self.timeDelta
+
+            plusD, minusD = self.computeErrorBarPair(deltaHi=self.deltaDhi68, deltaLo=self.deltaDlo68, edge='D')
+            errBar = max(abs(plusD), abs(minusD)) * self.timeDelta
             self.xlsxDict['Derr68'] = errBar
             self.showMsg('D: 0.6800 containment intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar), blankLine=False)
-            errBar = max(abs(self.deltaDlo95), abs(self.deltaDhi95)) * self.timeDelta
+
+            plusD, minusD = self.computeErrorBarPair(deltaHi=self.deltaDhi95, deltaLo=self.deltaDlo95, edge='D')
+            errBar = max(abs(plusD), abs(minusD)) * self.timeDelta
             self.xlsxDict['Derr95'] = errBar
             self.showMsg('D: 0.9500 containment intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar), blankLine=False)
-            errBar = max(abs(self.deltaDlo99), abs(self.deltaDhi99)) * self.timeDelta
+
+            plusD, minusD = self.computeErrorBarPair(deltaHi=self.deltaDhi99, deltaLo=self.deltaDlo99, edge='D')
+            errBar = max(abs(plusD), abs(minusD)) * self.timeDelta
             self.xlsxDict['Derr99'] = errBar
             self.showMsg('D: 0.9973 containment intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar))
 
@@ -2893,13 +2902,19 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.xlsxDict['Rsec'] = tsParts[2]
 
             self.showMsg('R time: %s' % ts, blankLine=False)
-            errBar = max(abs(self.deltaRlo68), abs(self.deltaRhi68)) * self.timeDelta
+
+            plusR, minusR = self.computeErrorBarPair(deltaHi=self.deltaDhi68, deltaLo=self.deltaDlo68, edge='R')
+            errBar = max(abs(plusR), abs(minusR)) * self.timeDelta
             self.xlsxDict['Rerr68'] = errBar
             self.showMsg('R: 0.6800 containment intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar), blankLine=False)
-            errBar = max(abs(self.deltaRlo95), abs(self.deltaRhi95)) * self.timeDelta
+
+            plusR, minusR = self.computeErrorBarPair(deltaHi=self.deltaDhi95, deltaLo=self.deltaDlo95, edge='R')
+            errBar = max(abs(plusR), abs(minusR)) * self.timeDelta
             self.xlsxDict['Rerr95'] = errBar
             self.showMsg('R: 0.9500 containment intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar), blankLine=False)
-            errBar = max(abs(self.deltaRlo99), abs(self.deltaRhi99)) * self.timeDelta
+
+            plusR, minusR = self.computeErrorBarPair(deltaHi=self.deltaDhi99, deltaLo=self.deltaDlo99, edge='R')
+            errBar = max(abs(plusR), abs(minusR)) * self.timeDelta
             self.xlsxDict['Rerr99'] = errBar
             self.showMsg('R: 0.9973 containment intervals:  {{+/- {0:0.4f}}} seconds'.format(errBar))
 
@@ -4375,7 +4390,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         timeCorrection = self.getNe3TimeCorrection()
         if timeCorrection is None:
-            return False
+            return False, 0.0, 0.0
 
         # Convert timeCorrection to frame/field fraction
         deltaPosition = timeCorrection / self.timeDelta
@@ -4388,8 +4403,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             elif self.dnrHighRadioButton.isChecked():
                 DtimeConstant = self.dnrHighDspinBox.value()
             elif self.dnrOffRadioButton.isChecked():
-                # TODO Test that this is effective
-                DtimeConstant = 0.01
+                DtimeConstant = 0.001
             else:
                 self.showInfo('Programming error - this point should never be reached')
                 return False, 0.0, 0.0
@@ -4427,7 +4441,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             elif self.dnrHighRadioButton.isChecked():
                 RtimeConstant = self.dnrHighRspinBox.value()
             elif self.dnrOffRadioButton.isChecked():
-                # TODO Test that this is effective
                 RtimeConstant = 0.001
             else:
                 self.showInfo('Programming error - this point should never be reached')

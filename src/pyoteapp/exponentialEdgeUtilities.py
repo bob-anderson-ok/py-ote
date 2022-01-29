@@ -1,4 +1,8 @@
 import numpy as np
+import warnings
+
+# suppress warnings
+warnings.filterwarnings('ignore')
 
 
 def expRedge(B, A, n, offset, N):
