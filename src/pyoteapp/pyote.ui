@@ -1,0 +1,2664 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1904</width>
+    <height>1165</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>1900</width>
+    <height>1000</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>16777215</width>
+    <height>16777215</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>PY-OTE</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>16777215</width>
+     <height>16777215</height>
+    </size>
+   </property>
+   <layout class="QGridLayout" name="gridLayout_8">
+    <item row="0" column="0">
+     <widget class="QSplitter" name="splitterThree">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <property name="handleWidth">
+       <number>10</number>
+      </property>
+      <widget class="QSplitter" name="splitterTwo">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="handleWidth">
+        <number>10</number>
+       </property>
+       <widget class="QWidget" name="layoutWidget">
+        <layout class="QVBoxLayout" name="verticalLayout_2">
+         <property name="spacing">
+          <number>-1</number>
+         </property>
+         <item>
+          <layout class="QGridLayout" name="gridLayout">
+           <item row="0" column="4">
+            <widget class="QPushButton" name="plotHelpButton">
+             <property name="maximumSize">
+              <size>
+               <width>150</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Once data from an observation is being displayed in the panel to the right, the following functions are available:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&amp;gt;&amp;gt;&amp;gt; moving the mouse cursor into the plot area causes a thin vertical line to appear to show the x position&lt;/p&gt;&lt;p&gt;&amp;gt;&amp;gt;&amp;gt; a left-click will toggle the selection of the data point at the x position of the mouse (watch the thin vertical line)&lt;/p&gt;&lt;p&gt;&amp;gt;&amp;gt;&amp;gt; the plot can be zoomed horizontally using the scroll wheel (or equivalent) on the mouse&lt;/p&gt;&lt;p&gt;&amp;gt;&amp;gt;&amp;gt; holding down the shift key will cause the mouse cursor to appear, useful for the following operation...&lt;/p&gt;&lt;p&gt;&amp;gt;&amp;gt;&amp;gt; a left-click/hold/drag will create a selection box --- on left-button release, a zoomed image will appear&lt;/p&gt;&lt;p&gt;&amp;gt;&amp;gt;&amp;gt; a right-click undoes any scroll/zoom modifications that have been performed&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Timestamp errors:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;If the csv file included timestamps, there may be a few (or many) thin vertical red lines, each appearing between adjacent data points.  These indicate that the time step computed from the adjacent data points was not within 10% of the 'expected' time step.  The expected value is computed from the median of all time steps.  There is a checkbox to the left that can be used to suppress this display if it is too intrusive.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;When a 'solution' has been found, there will be displayed:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;+++ in brown: the underlying lightcurve (theoretical lightcurve with diffraction and finite star disk effects included)&lt;/p&gt;&lt;p&gt;+++ in blue: the camera response --- this is the underlying lightcurve integrated by the exposure time of the camera&lt;/p&gt;&lt;p&gt;+++ vertical dashed lines: these show the position of the occultation's geometrical edges (red: D green: R)&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;After a '... write report' has been performed:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;=== the 95% containment interval for the D and/or R edges are shown with shortened vertical dotted enclosing the central value&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="text">
+              <string>Help for plot --&gt;</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QPushButton" name="infoButton">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Click this button to to open the &lt;span style=&quot; color:#ff0000;&quot;&gt;help.pdf&lt;/span&gt; file that is included in the installation. The file will open in whatever PDF viewer you have assigned as the default viewer for pdf files.&lt;/p&gt;&lt;p&gt;The first part of this file is version info that should be examined every time a new version of PyOTE is installed.&lt;/p&gt;&lt;p&gt;At the bottom of this version info is a brief introduction to PyOTE that should be read by new users.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="whatsThis">
+              <string>How does this show up?</string>
+             </property>
+             <property name="text">
+              <string>Info</string>
+             </property>
+             <property name="autoDefault">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="3">
+            <widget class="QPushButton" name="readData">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Ignored" vsizetype="Maximum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;PYOTE reads Limovie, R-OTE, and Tangra files and includes up to four light curves from those file types.  For PyMovie files, PYOTE will read an unlimited number of light curves.&lt;/p&gt;&lt;p&gt;Normally (but not required) object1 is the occulted star; other (optional) objects are reference stars to be used for normalizing the occulted star light curve or flash curves from an LED timer.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;Mouse button functions within the light curve plot:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#ff0000;&quot;&gt;Left click&lt;/span&gt;: selects/deselects points on the primary (dark blue) light curve that intersect with the vertical hairline (the mouse cursor is disabled).&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#ff0000;&quot;&gt;Left click and drag&lt;/span&gt;: rectangular zoom is available to more clearly see points for selection (but point selection can also be accomplished through clicks in the tabular data display at the lower left)&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Note! The shift key will toggle the mouse cursor on/off in the light curve plot.&lt;/span&gt; This enables the starting corner for the zoom to be seen. (But points cannot be selected/deselected while the mouse cursor is visible. A right click will always 'blank' the mouse cursor.) &lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#ff0000;&quot;&gt;Right click&lt;/span&gt;: undo zoom&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#996633;&quot;&gt;Timestamp errors are shown with vertical red hairlines when a file is first read. These will disappear after the first point is selected so that the working view is as clear as possible. The red hairlines will re-appear permanently after the error bars have been calculated and the final report written to the log.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="toolTipDuration">
+              <number>-1</number>
+             </property>
+             <property name="text">
+              <string>Read light curve</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QPushButton" name="helpButton">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;'Help' is available for most GUI items by right-clicking on the item.&lt;/p&gt;&lt;p&gt;If an item already has a different action assigned to a right-click, there will be a nearby text line or button that can be clicked on instead.&lt;/p&gt;&lt;p&gt;There is no need to close the help panel before right-clicking on another GUI item. One can use this feature to get a quick survey of the 'help' that is available by sequentially clicking on all GUI items.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="text">
+              <string>Help</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="2">
+            <widget class="QPushButton" name="tutorialButton">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Tip:&amp;nbsp;right-click on buttons and labels.&amp;nbsp;An explanation (help screen) will usually appear.&amp;nbsp;Use that technique to learn about features that are not covered in this basic tutorial/recipe.&lt;/p&gt;&lt;p&gt;1. Start by clicking the&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt; Read light curve&lt;/span&gt; button.&amp;nbsp;(Usually,&amp;nbsp;the camera exposure value will be read from the csv file and automatically inserted in the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;exp:&lt;/span&gt; edit box in the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;parameters&lt;/span&gt; panel.&amp;nbsp;If that did not happen,&amp;nbsp;you will need to manually fill in that value in before trying to find an event fit.)&lt;/p&gt;&lt;p&gt;2. If timestamp errors have been detected during the loading of the csv file,&amp;nbsp;the affected points will be bracketed by vertical redlines and the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Show time err&lt;/span&gt; checkbox will have been set by the program.&amp;nbsp;Those red lines will likely have served their purpose and can/should be turned off so that a clear view of the light-curve is presented.&lt;/p&gt;&lt;p&gt;3. If the csv file contained multiple light-curves (it usually will),&amp;nbsp;you may need to click the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Light curve to analyze&lt;/span&gt; spinner to advance to the light-curve that contains the event.&lt;/p&gt;&lt;p&gt;4. The next step is to give the 'event finder' information that can speed up the search. &lt;/p&gt;&lt;p&gt;4a. If the event has a wide enough bottom,&amp;nbsp;the quickest way to provide speed-up information is mark the D and R regions.&amp;nbsp;Right-click on those buttons for a how-to.&lt;/p&gt;&lt;p&gt;4b. If the event is so small that it is hard or impossible to mark D and R regions,&amp;nbsp;the speed-up information is then best supplied by placing the smallest event duration in the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;min event duration&lt;/span&gt; edit box and the maximum event duration in the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;max event duration&lt;/span&gt; edit box.&amp;nbsp;The 'finder' will then search for all events in the range of durations given,&amp;nbsp;located anywhere in the light-curve.&lt;/p&gt;&lt;p&gt;5. Next,&amp;nbsp;click the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Find event, then ...&lt;/span&gt; button to initiate the search.&lt;/p&gt;&lt;p&gt;6. Assuming the search was successful,&amp;nbsp;the final step is to click the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;... write report&lt;/span&gt; button.&lt;/p&gt;&lt;p&gt;Every step you took is recorded in a log file in the directory where the light-curve was read from.&amp;nbsp;This is important information to provide to anyone that you might go to for assistance.&amp;nbsp;Give them the csv file and the log file and they will be able to reproduce your session.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="text">
+              <string>Tutorial</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_6">
+           <property name="spacing">
+            <number>-1</number>
+           </property>
+           <item>
+            <widget class="QTabWidget" name="tabWidget">
+             <property name="currentIndex">
+              <number>0</number>
+             </property>
+             <property name="movable">
+              <bool>true</bool>
+             </property>
+             <widget class="QWidget" name="analysisTab">
+              <attribute name="title">
+               <string>Analysis</string>
+              </attribute>
+              <layout class="QGridLayout" name="gridLayout_4">
+               <item row="18" column="3">
+                <spacer name="verticalSpacer_10">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>40</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="3" column="1">
+                <widget class="Line" name="line_3">
+                 <property name="frameShadow">
+                  <enum>QFrame::Plain</enum>
+                 </property>
+                 <property name="lineWidth">
+                  <number>4</number>
+                 </property>
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                </widget>
+               </item>
+               <item row="5" column="1">
+                <widget class="Line" name="line_4">
+                 <property name="frameShadow">
+                  <enum>QFrame::Plain</enum>
+                 </property>
+                 <property name="lineWidth">
+                  <number>4</number>
+                 </property>
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                </widget>
+               </item>
+               <item row="8" column="1">
+                <widget class="QLabel" name="markRegionsLabel">
+                 <property name="text">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When edges are clearly visible, mark points to specify region and click ...&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item row="10" column="1">
+                <widget class="QLabel" name="minMaxLabel">
+                 <property name="text">
+                  <string>... otherwise use the entries below to place bounds on the event size.</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item row="11" column="0">
+                <spacer name="horizontalSpacer_4">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="11" column="4">
+                <spacer name="horizontalSpacer_5">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="0" column="2">
+                <spacer name="verticalSpacer_9">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>40</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="12" column="1" colspan="3">
+                <widget class="Line" name="line_2">
+                 <property name="frameShadow">
+                  <enum>QFrame::Plain</enum>
+                 </property>
+                 <property name="lineWidth">
+                  <number>4</number>
+                 </property>
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                </widget>
+               </item>
+               <item row="13" column="1">
+                <widget class="QLabel" name="findEventLabel">
+                 <property name="text">
+                  <string>Finally, click on 'Find event' and, if event found, click '... write report'</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item row="16" column="1" colspan="3">
+                <widget class="Line" name="line_6">
+                 <property name="frameShadow">
+                  <enum>QFrame::Plain</enum>
+                 </property>
+                 <property name="lineWidth">
+                  <number>4</number>
+                 </property>
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                </widget>
+               </item>
+               <item row="6" column="1">
+                <layout class="QVBoxLayout" name="verticalLayout">
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout_8">
+                   <item>
+                    <widget class="QPushButton" name="smoothSecondaryButton">
+                     <property name="enabled">
+                      <bool>false</bool>
+                     </property>
+                     <property name="toolTip">
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Smooth the selected secondary (reference) star light curve using a Savitsky-Golay filter with a default window of 101 points (the edit box to the right allows for this value to be changed) and a degree 3 interpolating polynomial, applied twice.&lt;/p&gt;&lt;p&gt;The secondary star does not have to be visible for this smoothing to take place.&lt;/p&gt;&lt;p&gt;Smoothing of the secondary curve is a prerequisite to normalizing the occulted star light curve.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     </property>
+                     <property name="text">
+                      <string>Smooth secondary</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="numSmoothingPointsLabel">
+                     <property name="text">
+                      <string>num points in smoothing: </string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLineEdit" name="numSmoothPointsEdit">
+                     <property name="enabled">
+                      <bool>false</bool>
+                     </property>
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="minimumSize">
+                      <size>
+                       <width>0</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>60</width>
+                       <height>16777215</height>
+                      </size>
+                     </property>
+                     <property name="toolTip">
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This edit box allows you to change the number of points used in Savitsky-Golay filter during smoothing of the secondary star. The window size should be an odd number in the range of 5 up to the number of data points in the secondary curve.&lt;/p&gt;&lt;p&gt;If an even number is specified, the window size used will be one less than that number.&lt;/p&gt;&lt;p&gt;Pressing &lt;span style=&quot; font-weight:600; color:#ff0000;&quot;&gt;tab&lt;/span&gt; or &lt;span style=&quot; font-weight:600; color:#ff0000;&quot;&gt;return&lt;/span&gt; at completion of data entry will trigger the smoothing, or you can click on the Smooth secondary button&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     </property>
+                     <property name="text">
+                      <string>101</string>
+                     </property>
+                     <property name="frame">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="normalizeButton">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If a smoothed secondary (reference) curve is available, and a single point has been selected on the curve to be normalized, the selected light curve will be 'normalized' against the reference star. This can be useful in removing light curve distortions caused by clouds or similat light changes.&lt;/p&gt;&lt;p&gt;This done by creating a 'gain curve' from the smoothed reference curve. The 'gain' is unity at the selected point and proportionally larger/smaller at all the other points.&lt;/p&gt;&lt;p&gt;This 'gain curve' is then multiplied point by point against the curve being analyzed to produce the 'normalized' version of that light curve.&lt;/p&gt;&lt;p&gt;Normalization is a one-time-only procedure in that its effects can &lt;span style=&quot; font-weight:600;&quot;&gt;not&lt;/span&gt; be removed by use of the &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Start over&lt;/span&gt; button.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>Normalize around selected point</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item row="1" column="1">
+                <layout class="QHBoxLayout" name="horizontalLayout">
+                 <item>
+                  <widget class="QLabel" name="lightCurveNumberLabel">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this spinner to select which light curve to analyze for an occultation event or as a source for 'flash timing' edges.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>Light curve number to analyze (blue):</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QSpinBox" name="curveToAnalyzeSpinBox">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this spinner to select which light curve to analyze for an occultation event or as a source for 'flash timing' edges.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="minimum">
+                    <number>0</number>
+                   </property>
+                   <property name="maximum">
+                    <number>12</number>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLineEdit" name="lightCurveNameEdit">
+                   <property name="readOnly">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item row="2" column="1">
+                <layout class="QHBoxLayout" name="horizontalLayout_2">
+                 <item>
+                  <widget class="QLabel" name="normLabel">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If there are multiple reference stars in the file, this spinner will activate to allow the choice of which one to display/use.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>Light curve for normalization (green):</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QSpinBox" name="secondarySelector">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If there are multiple reference stars in the file, this spinner will activate to allow the choice of which one to display/use.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="minimum">
+                    <number>0</number>
+                   </property>
+                   <property name="maximum">
+                    <number>12</number>
+                   </property>
+                   <property name="value">
+                    <number>0</number>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLineEdit" name="normalizationLightCurveNameEdit">
+                   <property name="readOnly">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item row="14" column="1" colspan="2">
+                <layout class="QHBoxLayout" name="horizontalLayout_4">
+                 <item>
+                  <widget class="QPushButton" name="locateEvent">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="text">
+                    <string>Find event, then ...</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="calcErrBars">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;To get a 'Final Report', error bars are required. Clicking this button will start the computation of those error bars and, when complete, trigger the preparation of a 'Final Report'&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>... write report</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="helpLabelForFalsePositive">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>10</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Advisory =============================================&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Assuming that you have been diligent in removing common lightcurve artifacts (dips caused by something other than an occultation, &amp;nbsp;like clouds,&amp;nbsp;or a contrail,&amp;nbsp;or ...) using the normalization function,&amp;nbsp;please be aware that ...&lt;/p&gt;&lt;p&gt;... a non-zero False Positive probability (red bar to the left of the black bar) is usually sufficient reason to report a 'miss' (but see note below).&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt; But&lt;/span&gt;,&amp;nbsp;before reporting a 'miss',&amp;nbsp;you should use the Event Detectability calculator to determine if the event was 'detectable'.&amp;nbsp;If the event was 'detectable' and yet a 'miss',&amp;nbsp;the observation has value in constraining one edge of the asteroid.&amp;nbsp;If the 'miss' was of an 'undetectable' event,&amp;nbsp;its value as a constraint on the asteroid edge is greatly diminished.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;However&lt;/span&gt;,&amp;nbsp; a False Positive probability of zero (red bar to the right of the black bar) should &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;NEVER&lt;/span&gt; be the sole reason to report a 'positive'.&lt;/p&gt;&lt;p&gt;If you get a zero False Positive probability &lt;span style=&quot; font-weight:600; text-decoration: underline;&quot;&gt;and this is the only available chord&lt;/span&gt;,&amp;nbsp;look at the False Positive distribution plot and only consider reporting a 'positive' if the measured drop is well to the right of the black bar (which shows the biggest drop found during the simulation run). 'Well to the right' is rather vague,&amp;nbsp;so consult with your area coordinator whenever you are uncertain.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Note:&lt;/span&gt; if your observed 'drop' (red bar) is near the black bar (on either side!) AND there are nearby chords reporting 'positives',&amp;nbsp;there may be value in your observation in spite of the False Positive probability calculation result;&amp;nbsp;your observation may increase confidence in the event recorded by the nearby chords.&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="fillExcelReportButton">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this button to copy your results to the Asteroid Occultation Report Form (.xlsx spreadsheet - note file type is .xlsx, not .xls). This button will be inactive (grayed out) until a succesful &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;... write report&lt;/span&gt; has been accomplished.&lt;/p&gt;&lt;p&gt;The expected workflow is:&lt;/p&gt;&lt;p&gt;1) Given that PyOTE now has a solution that you wish to report (an occultation), leave PyOTE open ...&lt;/p&gt;&lt;p&gt;2) Run OccultWatcher to enter your event result report. Be sure to ask for a 'prefill' of the .xls version of the report ...&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;3) Convert that .xls file to .xlsx using either Excel (Windows) or LibreOffice (Mac or Linux)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;4) Go back to PyOTE and click this button ...&lt;/p&gt;&lt;p&gt;5) A file dialog will open; locate and select the prefilled and converted .xlsx report from steps 2 and 3.&lt;/p&gt;&lt;p&gt;6) If the file selected in step 5 was a valid Asteroid Occultation Report Form .xlsx file, the PyOTE results will be inserted.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Note: the excel format change from .xls to .xlsx will not affect the downstream processing adversely as the tool in use accepts either format equally well.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;The values that are inserted are:&lt;/p&gt;&lt;p&gt;--- all error bars&lt;/p&gt;&lt;p&gt;--- uncorrected D and/or R times&lt;/p&gt;&lt;p&gt;--- SNR&lt;/p&gt;&lt;p&gt;--- OTA used (PYOTE)&lt;/p&gt;&lt;p&gt;---A sentence summarizing magDrop information will be added in the Comments box&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>... fill Excel report</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item row="15" column="1">
+                <layout class="QHBoxLayout" name="horizontalLayout_7">
+                 <item>
+                  <widget class="QProgressBar" name="progressBar">
+                   <property name="value">
+                    <number>0</number>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="cancelButton">
+                   <property name="text">
+                    <string>Cancel</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item row="17" column="1" colspan="3">
+                <layout class="QVBoxLayout" name="verticalLayout_5">
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout_5">
+                   <item>
+                    <widget class="QPushButton" name="writePlot">
+                     <property name="enabled">
+                      <bool>false</bool>
+                     </property>
+                     <property name="toolTip">
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Note: At the conclusion of error bar calculations, PYOTE automatically writes the main plot to a png file using the name and directory of the just-processed csv file. &lt;/p&gt;&lt;p&gt;If you want/need to record other versions of that plot, click here to open a dialog that will let you specify a different name and/or location for the storage of the new graphics.&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     </property>
+                     <property name="text">
+                      <string>Write current plot</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="writeBarPlots">
+                     <property name="enabled">
+                      <bool>false</bool>
+                     </property>
+                     <property name="toolTip">
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Note: At the conclusion of error bar calculations, PYOTE automatically writes the error bar plots to appropriately named png files using the name and directory of the just-processed csv file. &lt;/p&gt;&lt;p&gt;If you want/need to record other versions of those plots, click here to open a dialog that will let you specify a different name and/or location for the storage of the new graphics.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     </property>
+                     <property name="text">
+                      <string>Write error bar plot</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="writeCSVButton">
+                     <property name="enabled">
+                      <bool>false</bool>
+                     </property>
+                     <property name="toolTip">
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this button to write the contents of the data table below to a csv file.&lt;/p&gt;&lt;p&gt;The comment lines from the original input file are preserved.&lt;/p&gt;&lt;p&gt;The most common use for this function is to capture the result of a successful Manual Timestamp Entry for later use (without the need to again go through the manual timestamp entry procedure). It will also reflect any Block Integration that was applied.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     </property>
+                     <property name="text">
+                      <string>Save current light curve to .csv</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="startOver">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This button removes any trim that is in effect, clears a solution that may have been found, removes a smoothed reference curve, and removes any D or R region that is showing.&lt;/p&gt;&lt;p&gt;It does &lt;span style=&quot; font-weight:600; font-style:italic; color:#fc0107;&quot;&gt;not&lt;/span&gt; undo block integration or light curve normalization -- you must reload the light curve file to recover from those procedures.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>Start over</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item row="11" column="1" colspan="2">
+                <layout class="QHBoxLayout" name="horizontalLayout_12">
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout_10">
+                   <item>
+                    <spacer name="horizontalSpacer_13">
+                     <property name="orientation">
+                      <enum>Qt::Horizontal</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>40</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="minEventLabel">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="minimumSize">
+                      <size>
+                       <width>50</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="text">
+                      <string>min event:</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLineEdit" name="minEventEdit">
+                     <property name="enabled">
+                      <bool>false</bool>
+                     </property>
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="minimumSize">
+                      <size>
+                       <width>0</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>70</width>
+                       <height>16777215</height>
+                      </size>
+                     </property>
+                     <property name="toolTip">
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter smallest event size (in number of readings) to search for.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_3">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout_11">
+                   <item>
+                    <widget class="QLabel" name="maxEventLabel">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>16777215</width>
+                       <height>16777215</height>
+                      </size>
+                     </property>
+                     <property name="text">
+                      <string>max event:</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLineEdit" name="maxEventEdit">
+                     <property name="enabled">
+                      <bool>false</bool>
+                     </property>
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>70</width>
+                       <height>16777215</height>
+                      </size>
+                     </property>
+                     <property name="toolTip">
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter largest event size (in number of readings) to search for.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <spacer name="horizontalSpacer_14">
+                     <property name="orientation">
+                      <enum>Qt::Horizontal</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>40</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                  </layout>
+                 </item>
+                </layout>
+               </item>
+               <item row="9" column="1">
+                <layout class="QHBoxLayout" name="horizontalLayout_3">
+                 <item>
+                  <widget class="QPushButton" name="markDzone">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; color:#222222;&quot;&gt;Select two points in the primary (dark blue) light curve, one on each side of where the star ‘disappears’, then click this button to create a D search area.&lt;/span&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; color:#222222;&quot;&gt;If no points are selected, a search for a D transition will not be performed --- this becomes an 'R only' event.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>Mark D region</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="markRzone">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; color:#222222;&quot;&gt;Select two points in the primary (dark blue) light curve, one on each side of where the star ‘reappears’, then click this button to create an R search area.&lt;/span&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; color:#222222;&quot;&gt;If no points are selected, a search for an R transition will not be performed --- this becomes a 'D only' event.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>Mark R region</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="markEzone">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This button is only active when a Night Eagle 3 analysis is being performed.&lt;/p&gt;&lt;p&gt;The Night Eagle 3 has an effective noise reduction system that has the side effect of producing an exponential decay of intensity toward the ultimate event intensity level during a D transition. As a result, only a portion of the points in the event bottom are reliable indicators of the correct event intensity. This effect is visually obvious for the DNR:HIGH setting, much less so for the DNR:MIDDLE setting, and hard to detect at the DNR:LOW setting.&lt;/p&gt;&lt;p&gt;Usage is simple: click on two points that enclose the desired points to use for event parameter estimation (mean and noise), then click this button.&lt;/p&gt;&lt;p&gt;Clicking this button with no points selected will clear any previous selections.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>mark Event points to use</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item row="4" column="1">
+                <layout class="QVBoxLayout" name="verticalLayout_6">
+                 <property name="leftMargin">
+                  <number>0</number>
+                 </property>
+                 <item>
+                  <widget class="QPushButton" name="doBlockIntegration">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; color:#222222;&quot;&gt;Light curves from integrated videos must be block integrated before further processing is carried out.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; color:#222222;&quot;&gt;An automatic determination of the correct block size and starting point (offset) will be performed if no points have been selected.&amp;nbsp;You will have the opportunity to accept or reject the result of this automatic process using the button to the right (&lt;/span&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; font-weight:600; color:#fc0107;&quot;&gt;Accept auto integration&lt;/span&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; color:#222222;&quot;&gt;).&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; color:#222222;&quot;&gt;If a manual selection is necessary,&amp;nbsp;then the procedure stated below can be performed:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; color:#222222;&quot;&gt;Zoom into a small portion of the light curve and locate a clearly identifiable group of data points that belong to an integration block,&amp;nbsp;click on the first and last point of that data point group,&amp;nbsp;then press this button to integrate all such groups in the light curve into a single data points.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; color:#222222;&quot;&gt;&amp;nbsp;A block integration,&amp;nbsp;either manual or automatic,&amp;nbsp;can be performed only once per data file;&amp;nbsp;it cannnot be undone by use of the &lt;/span&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; font-weight:600; color:#fc0107;&quot;&gt;Start over&lt;/span&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; color:#222222;&quot;&gt; button.&amp;nbsp;Instead,&amp;nbsp;you will need to re-read the file.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>Manual/automatic block integrate</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="acceptBlockIntegration">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This button will be enabled only after pyote has proposed a block integration. If, after examining the proposed block size and offset shown on the light curve, you wish to apply the integration, press this button.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>Accept auto block integration</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="setDataLimits">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If exactly two data points have been selected, this button will &lt;span style=&quot; font-weight:600; text-decoration: underline;&quot;&gt;trim&lt;/span&gt; off (exclude) data points to the left and right of the selected points. The excluded points will shown in light gray.&lt;/p&gt;&lt;p&gt;If no points have been selected, then all data points will be selected as the default.&lt;/p&gt;&lt;p&gt;Once a trim has been performed, its effects can be removed by clicking on the &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Start over&lt;/span&gt; button.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="toolTipDuration">
+                    <number>-1</number>
+                   </property>
+                   <property name="text">
+                    <string>Trim left/right</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item row="7" column="1" colspan="3">
+                <widget class="Line" name="line">
+                 <property name="frameShadow">
+                  <enum>QFrame::Plain</enum>
+                 </property>
+                 <property name="lineWidth">
+                  <number>4</number>
+                 </property>
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+             <widget class="QWidget" name="diffractionTab">
+              <attribute name="title">
+               <string>Diffraction</string>
+              </attribute>
+              <layout class="QGridLayout" name="gridLayout_7">
+               <item row="0" column="1">
+                <spacer name="verticalSpacer_2">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>40</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="1" column="1" colspan="2">
+                <widget class="QLabel" name="underlyingLightcurveLabel">
+                 <property name="toolTip">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This group of edit boxes allows the parameters for an observation-appropriate 'underlying lightcurve' to be entered.&lt;/p&gt;&lt;p&gt;We define the 'underlying lightcurve' thusly: it is the theoretical intensity of the light diffracted at the occulting edge (assumed straight) as a function of time, i.e. as the shadow of the occulting body passes the observation position, and includes the effect of a possibly finite star disk.  Click the &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Demo&lt;/span&gt; button to get a preview of this underlying lightcurve to make sure that the parameters are reasonable and, &lt;span style=&quot; color:#fc0107;&quot;&gt;most importantly, have been entered without error&lt;/span&gt; because these values will be used once a 'solution' has been found.&lt;/p&gt;&lt;p&gt;Diffraction intensity has a wavelength dependence. In PyOTE, we compute a generic diffraction curve composed of light wavelengths in the 400nm to 600nm range (using 5 nm steps) with equal intensities at each included wavelength. The region of the diffraction curve that is of most interest to us is only about +/- 1 Fresnel unit on either side of the geometrical shadow point. Fortunately, in that region, there is very little difference between a narrow band of light wavelengths and a wide band of light wavelengths, so there is no practical need to specify a more realistic bandpass in terms of either shape (amplitudes) or extent (bandpass). The primary effect of a wide bandpass is to greatly reduce the oscillations seen in a single wavelength diffraction curve (i.e., the one that is most frequently used to show diffraction effects).&lt;/p&gt;&lt;p&gt;If the star has a finite disk, the effect on the underlying lightcurve is usually very significant and apparent, 'integrating' away most of the characteristic diffraction curve shape and moving toward what is often referred to as a penumbral shape. It also moves the value of the intensity at the geometrical shadow point from 25% of full scale up to something close to 50% of full scale.&lt;/p&gt;&lt;p&gt;If you leave the exposure duration (exp dur: edit box) empty, the result of clicking the &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Demo&lt;/span&gt; button will be a display of the underlying light curve shape. To see the effect of the camera exposure time, which integrates the underlying light curve to produce what we refer to as the camera response, fill in the effective exposure time, taking into account the observation frame rate and number of frames being integrated. Note: this field will be updated/filled in automatically when an observation with timing data is loaded and, if necessary, integrated.&lt;/p&gt;&lt;p&gt;If a &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Demo&lt;/span&gt; is run before 'solution' baseline and event intensities have been determined, generic values of 100.0 (baseline intensity) and 0.0 (event intensity) are used. If 'real' baseline and event intensities are available, they are used instead.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <property name="text">
+                  <string>Set these parameters to calculate diffraction, star disk, and centerline offset effects for the observation.</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="1" colspan="2">
+                <widget class="Line" name="line_7">
+                 <property name="frameShadow">
+                  <enum>QFrame::Plain</enum>
+                 </property>
+                 <property name="lineWidth">
+                  <number>4</number>
+                 </property>
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="0">
+                <spacer name="horizontalSpacer">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>51</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="3" column="1" colspan="2">
+                <layout class="QHBoxLayout" name="horizontalLayout_13">
+                 <item>
+                  <widget class="QLabel" name="exposureTimeLabel">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter the effective camera exposure time (shutter time) in seconds, taking into account camera integration of frames if that was employed in this observation.&lt;/p&gt;&lt;p&gt;This box will normally be filled automatically when a file is read that has timing information included.&lt;/p&gt;&lt;p&gt;The value in this box will also be updated whenever and integration operation changes the frame duration.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>  exposure:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLineEdit" name="expDurEdit">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>90</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="asteroidDistanceLabel">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter the distance to the asteroid/occulting body.&lt;/p&gt;&lt;p&gt;For distance units, use AU (Astronomical units)&lt;/p&gt;&lt;p&gt;Note: If parallax (in arc seconds) to the asteroid is available instead of distance in AU, the distance to the asteroid can be calculated with the equation:&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:18pt; font-weight:600;&quot;&gt;distance(AU) = 8.7882 / parallax(arc seconds)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>  asteroid dist(AU):</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLineEdit" name="asteroidDistanceEdit">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>60</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="shadowSpeedLabel">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter the speed of the occulting body in kilometers per second.&lt;/p&gt;&lt;p&gt;This is used as the speed of the occultation shadow projected on the earth.&lt;/p&gt;&lt;p&gt;This value is used to convert the diffraction pattern, which is calculated as a function of Fresnel units, to a function of time.&lt;/p&gt;&lt;p&gt;If the asteroid speed is not given but its diameter and the maximum expected event duration is known, the asteroid speed can be calculated with this equation:&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:18pt; font-weight:600;&quot;&gt;asteroid speed (km/sec) = asteroid diameter(km) / max duration(seconds)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>  asteroid speed(km/sec):</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLineEdit" name="shadowSpeedEdit">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>60</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_17">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
+               </item>
+               <item row="3" column="3">
+                <spacer name="horizontalSpacer_2">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>51</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="4" column="1" colspan="2">
+                <layout class="QHBoxLayout" name="horizontalLayout_15">
+                 <item>
+                  <widget class="QLabel" name="asteroidSizeLabel">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;In order to calculate the effect on the underlying diffraction lightcurve of an observation that is not on the centerline of the asteroid track (a 'graze'), two pieces of information are required:&lt;/p&gt;&lt;p&gt;1) The asteroid diameter (expressed in km) (enter in this edit box)&lt;/p&gt;&lt;p&gt;2) The distance (in km) left or right of the asteroid track centerline of the observation position&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string> asteroid diameter(km):</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLineEdit" name="astSizeEdit">
+                   <property name="maximumSize">
+                    <size>
+                     <width>60</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="pathOffsetLabel">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;In order to calculate the effect on the underlying diffraction lightcurve of an observation that is not on the centerline of the asteroid track (a 'graze'), two pieces of information are required:&lt;/p&gt;&lt;p&gt;1) The asteroid diameter (expressed in km)&lt;/p&gt;&lt;p&gt;2) The distance (in km) left or right of the asteroid track centerline of the observation position (enter in this edit box)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string> observation centerline offset(km):</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLineEdit" name="pathOffsetEdit">
+                   <property name="maximumSize">
+                    <size>
+                     <width>60</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_15">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
+               </item>
+               <item row="5" column="1" colspan="2">
+                <layout class="QHBoxLayout" name="horizontalLayout_14">
+                 <property name="spacing">
+                  <number>0</number>
+                 </property>
+                 <item>
+                  <widget class="QLabel" name="starDiameterLabel">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If the star being occulted is not point-like but rather has a finite disk, enter its diameter in milli-arcseconds (mas) in this box.&lt;/p&gt;&lt;p&gt;This value is used, in conjunction with the values entered in the &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;dist(AU)&lt;/span&gt; box and the &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;speed(km/sec)&lt;/span&gt; box, to calculate the apparent size of the star at the asteroid distance as a function of time. This is convolved with the diffraction light curve to get the underlying light curve (instantaneous values).&lt;/p&gt;&lt;p&gt;The underlying lightcurve is what is seen and integrated during the camera exposure time to get the camera response.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>Star diam(mas):</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLineEdit" name="starDiameterEdit">
+                   <property name="maximumSize">
+                    <size>
+                     <width>60</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="dLimbAngleLabel">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When the star has a perceptible disk, the angle of the asteroid limb with respect to the direction of motion changes the time duration during which the projected star image passes your observation position and therefore modifies the underlying light curve at that limb edge.&lt;/p&gt;&lt;p&gt;Angles are entered in degrees with 90 degrees used to reflect a head-on no-graze configuration.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>      D limb angle:</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QDoubleSpinBox" name="dLimbAngle">
+                   <property name="maximumSize">
+                    <size>
+                     <width>80</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="decimals">
+                    <number>1</number>
+                   </property>
+                   <property name="maximum">
+                    <double>90.000000000000000</double>
+                   </property>
+                   <property name="value">
+                    <double>90.000000000000000</double>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="rLimbAngleLabel">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When the star has a perceptible disk, the angle of the asteroid limb with respect to the direction of motion changes the time duration during which the projected star image passes your observation position and therefore modifies the underlying light curve at that limb edge.&lt;/p&gt;&lt;p&gt;Angles are entered in degrees with 90 degrees used to reflect a head-on no-graze configuration.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>      R limb angle:</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QDoubleSpinBox" name="rLimbAngle">
+                   <property name="maximumSize">
+                    <size>
+                     <width>80</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="decimals">
+                    <number>1</number>
+                   </property>
+                   <property name="maximum">
+                    <double>90.000000000000000</double>
+                   </property>
+                   <property name="value">
+                    <double>90.000000000000000</double>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_16">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
+               </item>
+               <item row="6" column="1" colspan="2">
+                <widget class="Line" name="line_8">
+                 <property name="frameShadow">
+                  <enum>QFrame::Plain</enum>
+                 </property>
+                 <property name="lineWidth">
+                  <number>4</number>
+                 </property>
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                </widget>
+               </item>
+               <item row="7" column="1" colspan="2">
+                <layout class="QHBoxLayout" name="horizontalLayout_16">
+                 <item>
+                  <widget class="QPushButton" name="demoUnderlyingLighturvesButton">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This button demonstrates the computation of the lightcurve used in determining the time of the geometric shadow edge, given the observation parameters set in the edit boxes in this edit box group. It can be a useful tool in gaining an understanding of diffraction (and other) effects.&lt;/p&gt;&lt;p&gt;If values have been entered in the two boxes to the right (asteroid distance, and speed), the 400nm to 600nm bandpass integrated analytic diffraction lightcurve will be computed and displayed.&lt;/p&gt;&lt;p&gt;We refer to this as the 'underlying lightcurve': it is the theoretical (instantaneous) intensity of the light diffracted at the occulting edge as a function of time, i.e. as the shadow of the occulting body passes an observation position that is &lt;span style=&quot; text-decoration: underline;&quot;&gt;on the path centerline&lt;/span&gt;.&lt;/p&gt;&lt;p&gt;The 'underlying lightcurve' will be further modified by:&lt;/p&gt;&lt;p&gt;1. the camera exposure function (which acts as an integrator)&lt;/p&gt;&lt;p&gt;2. the position of observation with respect to the asteroid path centerline (because of the 2D nature of the diffracted asteroid image)&lt;/p&gt;&lt;p&gt;3. a target star that has a discernible disk&lt;/p&gt;&lt;p&gt;The instantaneous underlying lightcurve (with correction for an off-centerline observation) is modified by the camera exposure function and, if the star has a discernible disk, the star intensity function. The resulting composite lightcurve is mathematically the convolution of the underlying lightcurve with the camera exposure function and possibly the star intensity function.&lt;/p&gt;&lt;p&gt;(Technically a convolution is defined as the integral of the product of two functions after one is reversed and shifted - the integral is evaluated for all values of shift to produce the modified function.)&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'Helvetica';&quot;&gt;The camera exposure function is defined as equal to 1.0 while the ‘shutter’ is open, and 0.0 at all other times. (A 'boxcar' integration)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'Helvetica';&quot;&gt;The star intensity function is the chord length across the diameter of the star.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;These two functions are plotted on the demonstration graph (at half intensity to avoid overlap with the baseline) so that one can see the functions that are being convolved and to make it easy to see how much of an effect should be expected.&lt;/p&gt;&lt;p&gt;Diffraction intensity has a wavelength dependence. In PyOTE, we compute a generic diffraction curve composed of light wavelengths in the 400nm to 600nm range (using 5 nm steps) with equal intensities at each included wavelength. The region of the diffraction curve that is of most interest to us is only about +/- 1 Fresnel unit on either side of the geometrical shadow point. Fortunately, in that region, there is very little difference between a narrow band of light wavelengths and a wide band of light wavelengths, so there is no practical need to specify a more realistic bandpass in terms of either shape (amplitudes) or extent (bandpass). The primary effect of a wide bandpass is to greatly reduce the oscillations seen in a single wavelength diffraction curve (i.e., the one that is most frequently used to show diffraction effects).&lt;/p&gt;&lt;p&gt;If the star has a finite disk, the effect on the underlying lightcurve is usually very significant and apparent, 'integrating' away most of the characteristic diffraction curve shape and moving toward what is often referred to as a penumbral shape. It also moves the value of the intensity at the geometrical shadow point from up to something close to 50% of full scale.&lt;/p&gt;&lt;p&gt;If you leave the exposure duration (exp dur: edit box) empty, the result of clicking this button will be a display of the underlying light curve shape. To see the effect of the camera exposure time, which integrates the underlying light curve to produce what we refer to as the camera response, fill in the effective exposure time, taking into account the observation frame rate and number of frames being integrated. Note: this field will be updated/filled in automatically when an observation with timing data is loaded and, if necessary, integrated.&lt;/p&gt;&lt;p&gt;If this demo is run before 'solution' baseline and event intensities have been determined, generic values of 100.0 (baseline intensity) and 0.0 (event intensity) are used. If 'real' baseline and event intensities are available, they are used instead.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>Demo (show theoretical light curve)</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="enableDiffractionCalculationBox">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This checkbox enables the application of diffraction effects to the underlying lightcurve. Usually, you will want to use diffraction effects for the underlying lightcurve, so this box is checked by default.&lt;/p&gt;&lt;p&gt;But sometimes you may want to use a pure penumbral curve when the star has a finite disk. In that case, uncheck this box.&lt;/p&gt;&lt;p&gt;This is also useful as learning/demonstration tool when exploring what effects the underlying lightcurve.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="layoutDirection">
+                    <enum>Qt::LeftToRight</enum>
+                   </property>
+                   <property name="text">
+                    <string>use diffraction in solution </string>
+                   </property>
+                   <property name="checked">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="penumbralFitCheckBox">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>120</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If an occultation involves a star that is not point-like (has a detectable disk), the observation lightcurve will often have a gradual transition and take more than one or two readings for the disappearance and/or reappearance to occur. To extract timing data from such an observation, an underlying lightcurve model that incorporates star diameter (mas) and limb angles must be used.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;This checkbox will be enabled whenever a star diameter is entered below AND the &lt;/span&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Demo&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt; button has been clicked. You WILL forget this; it happens to me. No worries; nothing breaks. Just right-click and refresh your memory!&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Please use the example-penumbra.csv file that is provided in the download for practice.&lt;/span&gt; (This file may be hard to find as it is placed wherever your system stores the PyOTE application files. Best advice is to do a search of the entire drive for the exact file name, then copy it to a more convenient place.) The header lines in that file give you good values to use for asteroid distance, asteroid speed, and star diameter to start with. Find the supplied file with a file-search --- &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;move it somewhere else to play with - don't clutter up your software installation directory with the PyOTE files that are generated during normal processing - nothing bad will happen if you fail to heed this advice, but it's good practice to follow this advice.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Once this checkbox is checked (and you will forget to do this sometimes too!), the &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Find event, then ...&lt;/span&gt; button will invoke the 'penumbral fit' methodology. When the 'penumbral fit' methodology is active, the user is expected to:&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;1.&lt;/span&gt; Carefully locate the D and or R regions so that the penumbral transition regions are precisely enclosed. Use the &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Mark D region&lt;/span&gt; button and the &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Mark R region&lt;/span&gt; button in the usual way.&lt;/p&gt;&lt;p&gt;This allows PyOTE to identify/assume the points to the left and right of the D and/or R regions are baseline points so as to compute a correct baseline intensity and its associated noise. This also allows the points between the D and/or R regions to be used for the computation of the correct event intensity and its associated noise.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;2.&lt;/span&gt; Repeatedly click the &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Find event, then ...&lt;/span&gt; button, evalute the 'fit' visually, and change the limb angles until satisfied (watch the 'metric' to see how you are doing), then&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;3.&lt;/span&gt; Click the &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;... write report&lt;/span&gt; button, as usual.&lt;/p&gt;&lt;p&gt;The D and/or R edge times will not change significantly during the step 2 iterations; they are only performed to get an estimate of the D and/or R limb angles, so a good visual fit should be adequate.&lt;/p&gt;&lt;p&gt;It is a characteristic of penumbral curves that they are 'under-constrained' in that there is NOT a unique set of values for star diameter and the two limb angles. It is &lt;span style=&quot; text-decoration: underline;&quot;&gt;always&lt;/span&gt; the case that, given a star diameter and limb angles of 90 degrees (head-on), there is a smaller star diameter with smaller limb angles that will result in exactly the same lightcurve. Usually, the star diameter will be reasonably well known, so that value is held fixed while one adjusts the D and R limb angles until a satisfactory fit is found.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>Penumbral fit   </string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item row="8" column="2">
+                <spacer name="verticalSpacer">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>40</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </widget>
+             <widget class="QWidget" name="tab_9">
+              <attribute name="title">
+               <string>Manual timestamps</string>
+              </attribute>
+              <layout class="QGridLayout" name="gridLayout_3">
+               <item row="0" column="1">
+                <spacer name="verticalSpacer_8">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>40</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="1" column="0">
+                <spacer name="horizontalSpacer_11">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="1" column="1">
+                <layout class="QVBoxLayout" name="verticalLayout_4">
+                 <item>
+                  <widget class="QPushButton" name="calcFlashEdge">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This button calculates the fractional frame number at which the start of a timing flash occurred.&lt;/p&gt;&lt;p&gt;Click a point on either side of the R event (leading edge) of a timing flash, then click the &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Calc flash edge&lt;/span&gt; button (this one). Start with the earliest edge, then repeat the procedure on the second edge (if present --- it is highly recommended to use goal-post flashes that bracket the event).&lt;/p&gt;&lt;p&gt;Next, click the &lt;span style=&quot; color:#fc0107;&quot;&gt;M&lt;/span&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;anual timestamp entry&lt;/span&gt; button to bring up a dialog for entering manual timestamp data. The calculated frame values for the edges will be automatically pre-filled in the form. You only need enter the corresponding flash time values from the flash app log and click &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Ok &lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt;to trigger timestamp calculations for all points&lt;/span&gt;.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>Calc flash edge</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout_22">
+                   <item>
+                    <widget class="QCheckBox" name="manualTimestampCheckBox">
+                     <property name="toolTip">
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;This checkbox makes the &lt;/span&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; color:#fc0107;&quot;&gt;Manual timestamp entry&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt; button active. You will need/use that button when processing a light curve that employs 'flash timing' instead of a VTI.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Manual entry of timestamp information is also useful if there &lt;/span&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; text-decoration: underline;&quot;&gt;are&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt; timestamps, but manual entry of timing information is required because of major errors in those timestamps.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;NOTE: timestamps are ALWAYS treated as start-of-exposure times.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     </property>
+                     <property name="layoutDirection">
+                      <enum>Qt::RightToLeft</enum>
+                     </property>
+                     <property name="text">
+                      <string>Enable manual timestamp entry</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="manualEntryPushButton">
+                     <property name="enabled">
+                      <bool>false</bool>
+                     </property>
+                     <property name="toolTip">
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This button causes a dialog to appear in which timestamp information may be entered. This is needed if 'flash timing' is being utilized.&lt;/p&gt;&lt;p&gt;It is also useful when OCR of a VTI overlay has a high error rate, but enough entries have been properly read that 'goal post' timing (use of two times that bracket the event to provide the timing information by interpolation) can be used.&lt;/p&gt;&lt;p&gt;NOTE: timestamps are ALWAYS treated as start-of-exposure times.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     </property>
+                     <property name="text">
+                      <string>Manual timestamp entry</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                </layout>
+               </item>
+               <item row="1" column="2">
+                <spacer name="horizontalSpacer_12">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="2" column="1">
+                <spacer name="verticalSpacer_7">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>40</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </widget>
+             <widget class="QWidget" name="settingsTab">
+              <attribute name="title">
+               <string>Settings/Misc.</string>
+              </attribute>
+              <layout class="QGridLayout" name="gridLayout_5">
+               <item row="6" column="1" colspan="2">
+                <widget class="Line" name="line_11">
+                 <property name="frameShadow">
+                  <enum>QFrame::Plain</enum>
+                 </property>
+                 <property name="lineWidth">
+                  <number>4</number>
+                 </property>
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                </widget>
+               </item>
+               <item row="12" column="1" colspan="2">
+                <widget class="Line" name="line_13">
+                 <property name="frameShadow">
+                  <enum>QFrame::Plain</enum>
+                 </property>
+                 <property name="lineWidth">
+                  <number>4</number>
+                 </property>
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                </widget>
+               </item>
+               <item row="5" column="1" colspan="2">
+                <layout class="QHBoxLayout" name="horizontalLayout_18">
+                 <item>
+                  <widget class="QPushButton" name="viewFrameButton">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this button to view a frame from the video that was used by PyMovie or Limovie to prepare the csv file that is currently being analyzed. Currently .avi and .ser files are viewable in this manner as well as .fits files inside a FITS folder.&lt;/p&gt;&lt;p&gt;If this button is disabled, it is because the csv file did not come from PyMovie or Limovie or simply cannot be found/opened.&lt;/p&gt;&lt;p&gt;This feature can/should be used as a final quality control check for a video that contains timestamps extracted using OCR. It is possible for OCR to fail in manner that is &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;not detected&lt;/span&gt; by PyOTE because the program only verifies that there is a consistent step (delata time) between frames. If a high order digit has been consistently misread, like reading an 8 as a 9 in the minutes field, the steps can be consistent but the reported time of the event will be wrong.&lt;/p&gt;&lt;p&gt;ALL time reporting is derived from the single timestamp(s) associated with D and/or R (the integer values, not the sub-frame values). If those timestamps are correct, the reported times will be correct even when there may be a few missing or duplicated frames and all other timestamps are wrong. So, best practice is to enter the D frame value in the spin box and visually confirm that the timestamp that you can see is the same as that extracted by the OCR procedure. Repeat for R.&lt;/p&gt;&lt;p&gt;Another use for this feature is to handle the case where there is a visual timestamp that can be seen in the video, but either OCR was not activated during the .csv preparation, or the timestamp overlay came from an unsupported VTI type. The workflow in this case is to let PyOTE find the D and R values, but before doing &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;... write report&lt;/span&gt;, do a &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Manual timestamp entry&lt;/span&gt; for the D and R values found by viewing the relevant frames and entering the correct times in the Manual timestamp dialog.&lt;/p&gt;&lt;p&gt;Note that timestamps can be entered manually even if timestamps are already present in the file. The manual timestamps will be calculated and used to replace those already there.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>View frame from associated video</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QSpinBox" name="frameNumSpinBox">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>100</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="sizeIncrement">
+                    <size>
+                     <width>0</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this spin box (which may be directly edited) to select the number of the frame/image you want to see.&lt;/p&gt;&lt;p&gt;The upper limit and lower limits for allowed numbers in this spin box are set when the csv is read, which sometimes only contains a subset of the frames available in the video.  If your 'edit' is refused, it is because you are trying to enter a number outside the range allowed, which is always restricted to frame numbers that actually appear in the csv file.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="maximum">
+                    <number>99999</number>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item row="17" column="1">
+                <spacer name="verticalSpacer_4">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>40</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="1" column="1" colspan="2">
+                <widget class="QLabel" name="label">
+                 <property name="text">
+                  <string>Check any of the following boxes you wish to be active during the analysis.</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="1" colspan="2">
+                <widget class="Line" name="line_5">
+                 <property name="frameShadow">
+                  <enum>QFrame::Plain</enum>
+                 </property>
+                 <property name="lineWidth">
+                  <number>4</number>
+                 </property>
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="3" rowspan="2">
+                <spacer name="horizontalSpacer_7">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="0" column="2">
+                <spacer name="verticalSpacer_3">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>40</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="4" column="1" colspan="2">
+                <widget class="QLabel" name="label_2">
+                 <property name="text">
+                  <string>Use View Frame to import a video image of a specific frame number.</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item row="8" column="1" colspan="2">
+                <layout class="QHBoxLayout" name="horizontalLayout_19">
+                 <item>
+                  <widget class="QCheckBox" name="fieldViewCheckBox">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;For videos from a composite video camera, check this box to view the frame as two fields.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>field view</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="flipYaxisCheckBox">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Checking this box will rotate/flip the image around the horizontal axis. (Flips top to bottom.)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>flip top/bottom</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="flipXaxisCheckBox">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Check this box if you need to rotate/flip the image around the vertical axis. (Flip left to right.)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>flip left/right</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item row="7" column="1" colspan="2">
+                <widget class="QLabel" name="label_3">
+                 <property name="text">
+                  <string>Use the check boxes to change the view of the imported video image.</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="0" rowspan="2">
+                <spacer name="horizontalSpacer_6">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="2" column="1" colspan="2">
+                <layout class="QHBoxLayout" name="horizontalLayout_17">
+                 <item>
+                  <widget class="QCheckBox" name="showTimestampErrors">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Timestamp errors are indicated by red lines that show where a time step is not within +/- 10% of the expected value.&lt;/p&gt;&lt;p&gt;Sometimes there are so many red lines that is becomes hard to see the plot. In that case, uncheck this box to suppress the red line display.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>time err </string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="showUnderlyingLightcurveCheckBox">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If you want to see the underlying lightcurve (the instantaneous theoretical lightcurve that the camera 'sees'), set this box to 'checked'.&lt;/p&gt;&lt;p&gt;The solution plot gets a bit cluttered when the camera response curve, the 'solution', and the underlying lightcurve are all being displayed at once.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>raw light</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="showErrBarsCheckBox">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If you do not want to see the vertical dashed lines that show the 95% containment interval error bars for D and/or R, uncheck this box.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>err bars</string>
+                   </property>
+                   <property name="checked">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="showEdgesCheckBox">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If you do not want to see the D and/or R edges marked with a vertical dashed line on the 'solution', uncheck this box.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>edges</string>
+                   </property>
+                   <property name="checked">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="showOCRcheckFramesCheckBox">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Uncheck this box if you do not need to see the D and/or R frames from the video automatically displayed to verify that timestamp OCR was correct.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Background:&lt;/span&gt; if the video that produced the csv being analyzed is still in its original location, PyOTE will access that video whenever an event has been found and the critical frames that determine the reported times will be displayed. The timing data used for the report is displayed in the title of each displayed frame, allowing a user to visually confirm that the OCR timestamp extraction was correct.&lt;/p&gt;&lt;p&gt;NOTE: timestamps are ALWAY treated as start-of-exposure times.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>Do OCR check</string>
+                   </property>
+                   <property name="checked">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="showTimestampsCheckBox">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If you want frame numbers used on the x-xaxis,&amp;nbsp;uncheck this box.&amp;nbsp;Otherwise,&amp;nbsp;if timestamps are available,&amp;nbsp;they will be used to annotate the x-axis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>timestamps</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item row="9" column="1" colspan="2">
+                <widget class="Line" name="line_9">
+                 <property name="frameShadow">
+                  <enum>QFrame::Plain</enum>
+                 </property>
+                 <property name="lineWidth">
+                  <number>4</number>
+                 </property>
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                </widget>
+               </item>
+               <item row="10" column="1" colspan="2">
+                <widget class="QLabel" name="label_4">
+                 <property name="text">
+                  <string>Set the width of the error bars and light curve lines in the light curve plot.</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="11" column="1">
+                <layout class="QHBoxLayout" name="horizontalLayout_20">
+                 <item>
+                  <widget class="QLabel" name="lineWidthLabel">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This spinner sets the line width (in pixels) of the error bar lines, the geometric edge lines, and the lightcurve lines.  Adjust this to show these lines according to your taste and the resolution of your screen.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>line width</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QSpinBox" name="lineWidthSpinner">
+                   <property name="minimum">
+                    <number>1</number>
+                   </property>
+                   <property name="maximum">
+                    <number>9</number>
+                   </property>
+                   <property name="value">
+                    <number>2</number>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_8">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
+               </item>
+               <item row="14" column="1">
+                <widget class="QLabel" name="label_7">
+                 <property name="text">
+                  <string>... signal (background subtracted)  appsum (no background subtraction) ...</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="13" column="1">
+                <widget class="QLabel" name="label_6">
+                 <property name="text">
+                  <string>If the file is from PyMovie, you can select the kind of data to analyze ...</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="16" column="1">
+                <layout class="QHBoxLayout" name="horizontalLayout_9">
+                 <item>
+                  <widget class="QComboBox" name="pymovieDataColumnPrefixComboBox">
+                   <property name="currentText">
+                    <string/>
+                   </property>
+                   <property name="currentIndex">
+                    <number>-1</number>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="label_5">
+                   <property name="text">
+                    <string>PyMovie data column prefix</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_18">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
+               </item>
+               <item row="15" column="1">
+                <widget class="QLabel" name="label_8">
+                 <property name="text">
+                  <string>... avgbkg (background value)  stdbkg (noise in background)  nmaskpx (pixel count in mask)</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+             <widget class="QWidget" name="tab_8">
+              <attribute name="title">
+               <string>Noise analysis/Detectability</string>
+              </attribute>
+              <layout class="QGridLayout" name="gridLayout_6">
+               <item row="0" column="1">
+                <spacer name="verticalSpacer_5">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>40</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="2" column="1">
+                <layout class="QHBoxLayout" name="horizontalLayout_21">
+                 <item>
+                  <widget class="QLabel" name="detectDurationLabel">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Enter the expected duration of the event in seconds (a duration of 1.5 times the predicted duration is recommended). &lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>  Duration (seconds):</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLineEdit" name="detectabilityDurationEdit">
+                   <property name="maximumSize">
+                    <size>
+                     <width>80</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="durStepLabel">
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;If this box contains 0 or is empty, a single detectivity calculation and plot will be made.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;If a non-zero entry is made in this edit box, a series of detectivity calculations and plots will be made at ever shorter durations until the false-positive probability of the event becomes non-zero.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>  duration step</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLineEdit" name="durStepEdit">
+                   <property name="maximumSize">
+                    <size>
+                     <width>60</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="detectMagDropLabel">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter the expected magDrop as a postive number.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>  magDrop:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLineEdit" name="detectabilityMagDropEdit">
+                   <property name="maximumSize">
+                    <size>
+                     <width>60</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item row="1" column="1">
+                <layout class="QVBoxLayout" name="verticalLayout_3">
+                 <item>
+                  <widget class="QPlainTextEdit" name="plainTextEdit">
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>350</height>
+                    </size>
+                   </property>
+                   <property name="plainText">
+                    <string>Use the following functions to extract light-curve mean and noise values.
+
+You can use these results to report a simple baseline SNR when no event is present (or has been avoided by selection).
+
+These results are then available for use in calculating the minimum event that can be detected for a specified mag drop.
+
+If the predicted duration of an event is smaller than the minimum detectable duration, do not report a miss. Instead, report a 'no observation'.</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="Line" name="line_12">
+                   <property name="frameShadow">
+                    <enum>QFrame::Plain</enum>
+                   </property>
+                   <property name="lineWidth">
+                    <number>4</number>
+                   </property>
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="markBaselineRegionButton">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;This tool is primarily intended to be used with observations that have employed a 'GPS Flasher' to provide timing for the video observation.&amp;nbsp;A side effect of having an LED light up at the entrance of your telescope is that it will affect the baseline values of the target star (and others) and so make it more difficult to extract the best possible baseline statistics (mean and noise-sigma and noise-correlation-coefficients) which benefit from having more points involved in the calculation.&amp;nbsp;This tool allows the user to tell PyOTE where the baseline values are reliable enough(unaffected by flashes,&amp;nbsp;or wind gusts,&amp;nbsp;or telescope jostling,&amp;nbsp;etc)  to be used during baseline statistics calculation.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;By repeatedly selecting pairs of points on the light curve being analyzed and clicking this button,&amp;nbsp;the regions of 'reliable baseline data' can be designated.&amp;nbsp;They will be shown as orangish points instead of the normal blue color.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; color:#0000ff;&quot;&gt;NOTE:&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt; Baseline regions marked on one curve are automatically applied to all curves. &lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;In general,&amp;nbsp;normalization against a reference star should be performed first,&amp;nbsp;then this operation.&amp;nbsp;That will remove any 'trends' that would affect the mean and noise-sigma.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;The procedure is simple:&amp;nbsp;Click on two points,&amp;nbsp;then this button.&amp;nbsp;Rinse and repeat.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; color:#0000ff;&quot;&gt;FYI:&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt; One can also use this feature to calculate statistics on some set of points of interest (like a statistics in the event bottom) or for reference stars or ...&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>Mark baseline region</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="clearBaselineRegionsButton">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Clear all marked baseline regions and any baseline statistics that may have been extracted by clicking on this button: &lt;/span&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; color:#0000ff;&quot;&gt;Calc baseline mean/sigma/corr coeffs&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt; &lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>Clear baseline regions</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="calcStatsFromBaselineRegionsButton">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;When this button is clicked,&amp;nbsp;all the points included in the marked 'baseline' regions will be collected and used to calculate the baseline mean,&amp;nbsp;noise-sigma,&amp;nbsp;and the noise-correlation coefficients.&amp;nbsp;Unless a 'trim' is performed,&amp;nbsp;these values will be used during error bar estimations and 'false-positive' estimation.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; color:#0000ff;&quot;&gt;NOTE:&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt; If a 'trim' is performed,&amp;nbsp;&lt;/span&gt;&lt;span style=&quot; font-size:18pt; font-weight:600;&quot;&gt;the baseline mean will be determined from the 'fit' to the trimmed data,&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;&amp;nbsp;but the noise-sigma and noise-correlation coefficients extracted from the marked 'background' regions will continue to override those obtained from the trimmed light-curve.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;This is done so that if the mean baseline level on either side of the event appears to be a little different than the overall baseline,&amp;nbsp;one can get improved baseline noise stats by using points from the entire light-curve,&amp;nbsp;yet trim the light-curve around the event and allow the 'finder/fitter' to calculate a baseline mean from the immediately adjacent points.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>Calc baseline mean/sigma/corr coeffs</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="Line" name="line_10">
+                   <property name="frameShadow">
+                    <enum>QFrame::Plain</enum>
+                   </property>
+                   <property name="lineWidth">
+                    <number>4</number>
+                   </property>
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item row="3" column="1">
+                <widget class="QPushButton" name="calcDetectabilityButton">
+                 <property name="toolTip">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;This button activates a special version of the False-Positive calculator to help determine whether an occultation observation planned for the near future is detectable given the star signal available from the observation location, the expected duration of the event, and the expected magDrop of the event. &lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt; color:#fc0107;&quot;&gt;Please keep in mind that this is a simulation using random numbers, so repeated calculations with the same duration and magDrop will naturally give slightly different answers.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;The workflow is as follows:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;1. Make a video of the target star with at least a few hundred frames. The video needs to be long enough and under the anticipated observation conditions and camera settings to be used during the actual event so that a valid estimate of the expected intensity of the target star, the noise level, and the correlation coefficients of that noise during the actual event can be obtained.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;2. Use PyMovie (or Tangra or LiMovie) to extract a light-curve from the video.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;3. Read the light-curve into PyOTE, then click on two points in the light-curve plot to designate those points that should be used for the needed intensity and noise calculations.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;4. Click the &lt;/span&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; color:#0000ff;&quot;&gt;Mark baseline region&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt; button (to the left above this one), then the &lt;/span&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; color:#0000ff;&quot;&gt;Calc baseline stats&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt; button to the right - this is what triggers the extraction of the needed intensity and noise data, a pre-requisite to performing the next step:&lt;/span&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; color:#0000ff;&quot;&gt; Calc detectability&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;5. Before clicking the &lt;/span&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; color:#0000ff;&quot;&gt;Calc detectability&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt; button, you must fill in the expected duration of the event in seconds (as well as the dur step value if you want the calculator to iteratively find the smallest duration of a detectable event for you).&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;6. Next, fill in the expected magDrop (a positive number).&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;7. Click the&lt;/span&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; color:#0000ff;&quot;&gt; Calc detectability&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt; button and, after a pause while 50,000 trial observations are computed, a False-Positive plot will appear. The position of the red vertical line relative to the black line tells the detectability story: if the red line is to right of the black line, the event has a high probabilty of being detected - if the red line is to the left of the black line it has a lower probability of detection, with that probablity decreasing as the red line moves more and more to the left of the black line. &lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <property name="text">
+                  <string>Calc detectability</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="0">
+                <spacer name="horizontalSpacer_9">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="1" column="2">
+                <spacer name="horizontalSpacer_10">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="4" column="1">
+                <spacer name="verticalSpacer_6">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>40</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </widget>
+             <widget class="QWidget" name="tab">
+              <attribute name="title">
+               <string>Night Eagle 3</string>
+              </attribute>
+              <layout class="QGridLayout" name="gridLayout_2">
+               <item row="0" column="1">
+                <spacer name="verticalSpacer_11">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>247</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="1" column="1">
+                <layout class="QVBoxLayout" name="verticalLayout_7">
+                 <item>
+                  <widget class="QPushButton" name="ne3ExplanationButton">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The Night Eagle 3 is a &lt;span style=&quot; color:#fc0107;&quot;&gt;rolling shutter CMOS camera&lt;/span&gt;. As a result, with this camera, the timing of an occultation depends on which row the occulted star is at when the occultation occurs. PyOTE will automatically calculate the needed time correction from the y (row) position that you enter in the spin/entry box at the bottom of this tab.&lt;/p&gt;&lt;p&gt;For the Night Eagle 3, times extracted by PyOTE require only a VTI correction (if you use an IOTA VTI, there is no correction at all needed).&lt;/p&gt;&lt;p&gt;Note: if the recording was &lt;span style=&quot; font-weight:600;&quot;&gt;not&lt;/span&gt; made with a tracking telescope (so the target star is moving across the image), you will need to watch the video and record the row of the occultation for use in this program. Normally, with a tracking telescope, you will be able to use the y position of the 'target' aperture directly. PyMovie includes this information in the comment lines of the csv file.&lt;/p&gt;&lt;p&gt;The Night Eagle 3 has a very effective noise reduction system called DNR (Dynamic Noise Reduction). There are 4 levels of noise reduction and you will need to indicate on this tab page what DNR setting your recording was made with.&lt;/p&gt;&lt;p&gt;The noise reduction is not without a small cost, however - the edges of an occultation light-curve will no longer be a step change. Instead, the edges will follow an exponential curve, approaching maximum and minimum intensities asymptotically. PyOTE has the ability to fit such an exponential curve to the D and R transitions, so the time resolution will be restored during the least squares fit of a 'theoretical' exponential transition curve and you should feel free to use whatever level of noise reduction you may need. It is recommended that you run your NE3 at a gamma of 0.75 (1.0 gamma is not available) AND that you use PyMovie to linearize the recording (i.e., invert the 0.75 gamma curve of the camera).&lt;/p&gt;&lt;p&gt;The D and R exponential curves each have their own time constant, measured in frames, that control the frame rate of exponential curve growth. The default values provided are usually enough to allow a good fit to be found. &lt;span style=&quot; color:#fc0107;&quot;&gt;PyOTE uses those values as the starting point for a least-squares search for better values. This usually works well, but it is possible that a starting value is too far from the correct value and the least-squares refinement process will find a local minimum that is visually wrong. In that case, you should change the starting value to something closer to 'correct' and let the 'solver' try again.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;When the exponential curve fit algorithm is in use, the light-curve plot PyOTE displays will be changed. Gone is the blue 'camera response' curve, replaced by brown dotted 'theoretical' exponential edge curves that you can use to judge for yourself the goodness of a 'fit'.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#0000ff;&quot;&gt;You will probably want to use the most aggressive noise reduction in most cases, but make sure that your expected event duration is long enough that the D transition exponential curve has time to settle to the bottom event plus some time to allow a good determination of the event bottom intensity. At DNR:HIGH, your expected event time should be greater than 30 frames (1 second) to use this setting. I suggest the following rules-of-thumb: &lt;/span&gt;&lt;span style=&quot; color:#fc0107;&quot;&gt;can use DNR:HIGH for events 2 seconds and longer; can use DNR:MIDDLE for events 1 second and longer; can use DNR:LOW for events 0.5 seconds and longer&lt;/span&gt;&lt;span style=&quot; color:#0000ff;&quot;&gt;.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>Night Eagle 3  (explanation and help)</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QRadioButton" name="ne3NotInUseRadioButton">
+                   <property name="text">
+                    <string>Night Eagle 3 not in use</string>
+                   </property>
+                   <property name="checked">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="Line" name="line_14">
+                   <property name="frameShadow">
+                    <enum>QFrame::Plain</enum>
+                   </property>
+                   <property name="lineWidth">
+                    <number>5</number>
+                   </property>
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QRadioButton" name="dnrOffRadioButton">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The NE3, operating with a DNR setting of OFF does no noise reduction and there is no exponential transition zone for step changes of light. So, unlike the other DNR settings, there is no need for 'edge' time constant values.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>DNR: Off</string>
+                   </property>
+                   <property name="checked">
+                    <bool>false</bool>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item row="2" column="1">
+                <layout class="QHBoxLayout" name="horizontalLayout_23">
+                 <item>
+                  <widget class="QRadioButton" name="dnrLowRadioButton">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The NE3 operating with an active DNR setting (i.e., other than OFF) reduces noise but also creates a light-curve that has exponential transitions (i.e., an asymptotic approach to the ultimate event or baseline intensity) at D and R edges in response to a step change in light. PyOTE will fit a 'theoretical' exponential curve to the light-curve using a least-squares fit of the 'theoretical' edge. This procedure utilizes the timing information that has been 'smeared' across the transition region in such a way that timing resolution is restored.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Note: TC stands for time constant. It is measured in frames.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;The shape of the 'theoretical' transition is governed by the time constant used at each edge. The TC values in the spin/entry boxes to the right give PyOTE starting values to use in a least-squares driven search for better TC values that will produce transition curves that better fit the observed values.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;It is possible that the starting TC value is too far from the 'correct' values and the least-squares search routine, as a consequence, finds a local minimum that produces a visibly incorrect fit. In this case, change the starting value to something closer to 'correct' and try again.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>DNR: Low</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_19">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>113</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="dnrLowDtcLabel">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This spin box provides the starting time constant value (TC) - it is given to PyOTE to be used during a least-squares search for a better value.&lt;/p&gt;&lt;p&gt;It sometimes happens that this initial value is too far from the 'correct' value and the least-squares improvement algorithm will settle on a local minimum that is visually obviously wrong. In this case, change this starting value to something closer to 'correct' and try again.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>TC:D edge</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QDoubleSpinBox" name="dnrLowDspinBox">
+                   <property name="minimumSize">
+                    <size>
+                     <width>70</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This spin box provides the starting time constant value (TC) - it is given to PyOTE to be used during a least-squares search for a better value.&lt;/p&gt;&lt;p&gt;It sometimes happens that this initial value is too far from the 'correct' value and the least-squares improvement algorithm will settle on a local minimum that is visually obviously wrong. In this case, change this starting value to something closer to 'correct' and try again.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="minimum">
+                    <double>0.100000000000000</double>
+                   </property>
+                   <property name="maximum">
+                    <double>1.000000000000000</double>
+                   </property>
+                   <property name="singleStep">
+                    <double>0.100000000000000</double>
+                   </property>
+                   <property name="value">
+                    <double>0.500000000000000</double>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="dnrLowRtcLabel">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This spin box provides the starting time constant value (TC) - it is given to PyOTE to be used during a least-squares search for a better value.&lt;/p&gt;&lt;p&gt;It sometimes happens that this initial value is too far from the 'correct' value and the least-squares improvement algorithm will settle on a local minimum that is visually obviously wrong. In this case, change this starting value to something closer to 'correct' and try again.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>TC:R edge</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QDoubleSpinBox" name="dnrLowRspinBox">
+                   <property name="minimumSize">
+                    <size>
+                     <width>70</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This spin box provides the starting time constant value (TC) - it is given to PyOTE to be used during a least-squares search for a better value.&lt;/p&gt;&lt;p&gt;It sometimes happens that this initial value is too far from the 'correct' value and the least-squares improvement algorithm will settle on a local minimum that is visually obviously wrong. In this case, change this starting value to something closer to 'correct' and try again.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="maximum">
+                    <double>1.000000000000000</double>
+                   </property>
+                   <property name="singleStep">
+                    <double>0.100000000000000</double>
+                   </property>
+                   <property name="value">
+                    <double>0.500000000000000</double>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item row="3" column="0">
+                <spacer name="horizontalSpacer_22">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>190</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="3" column="1">
+                <layout class="QHBoxLayout" name="horizontalLayout_24">
+                 <item>
+                  <widget class="QRadioButton" name="dnrMiddleRadioButton">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The NE3 operating with an active DNR setting (i.e., other than OFF) reduces noise but also creates a light-curve that has exponential transitions (i.e., an asymptotic approach to the ultimate event or baseline intensity) at D and R edges in response to a step change in light. PyOTE will fit a 'theoretical' exponential curve to the light-curve using a least-squares fit of the 'theoretical' edge. This procedure utilizes the timing information that has been 'smeared' across the transition region in such a way that timing resolution is restored.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Note: TC stands for time constant. It is measured in frames.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;The shape of the 'theoretical' transition is governed by the time constant used at each edge. The TC values in the spin/entry boxes to the right give PyOTE starting values to use in a least-squares driven search for better TC values that will produce transition curves that better fit the observed values.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;It is possible that the starting TC value is too far from the 'correct' values and the least-squares search routine, as a consequence, finds a local minimum that produces a visibly incorrect fit. In this case, change the starting value to something closer to 'correct' and try again.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>DNR: Middle</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_20">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="dnrMiddleDtcLabel">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This spin box provides the starting time constant value (TC) - it is given to PyOTE to be used during a least-squares search for a better value.&lt;/p&gt;&lt;p&gt;It sometimes happens that this initial value is too far from the 'correct' value and the least-squares improvement algorithm will settle on a local minimum that is visually obviously wrong. In this case, change this starting value to something closer to 'correct' and try again.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>TC:D edge</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QDoubleSpinBox" name="dnrMiddleDspinBox">
+                   <property name="minimumSize">
+                    <size>
+                     <width>70</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This spin box provides the starting time constant value (TC) - it is given to PyOTE to be used during a least-squares search for a better value.&lt;/p&gt;&lt;p&gt;It sometimes happens that this initial value is too far from the 'correct' value and the least-squares improvement algorithm will settle on a local minimum that is visually obviously wrong. In this case, change this starting value to something closer to 'correct' and try again.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="minimum">
+                    <double>0.500000000000000</double>
+                   </property>
+                   <property name="maximum">
+                    <double>5.000000000000000</double>
+                   </property>
+                   <property name="singleStep">
+                    <double>0.100000000000000</double>
+                   </property>
+                   <property name="value">
+                    <double>1.000000000000000</double>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="dnrMiddleRtcLabel">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This spin box provides the starting time constant value (TC) - it is given to PyOTE to be used during a least-squares search for a better value.&lt;/p&gt;&lt;p&gt;It sometimes happens that this initial value is too far from the 'correct' value and the least-squares improvement algorithm will settle on a local minimum that is visually obviously wrong. In this case, change this starting value to something closer to 'correct' and try again.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>TC:R edge</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QDoubleSpinBox" name="dnrMiddleRspinBox">
+                   <property name="minimumSize">
+                    <size>
+                     <width>70</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This spin box provides the starting time constant value (TC) - it is given to PyOTE to be used during a least-squares search for a better value.&lt;/p&gt;&lt;p&gt;It sometimes happens that this initial value is too far from the 'correct' value and the least-squares improvement algorithm will settle on a local minimum that is visually obviously wrong. In this case, change this starting value to something closer to 'correct' and try again.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="minimum">
+                    <double>0.500000000000000</double>
+                   </property>
+                   <property name="maximum">
+                    <double>5.000000000000000</double>
+                   </property>
+                   <property name="singleStep">
+                    <double>0.100000000000000</double>
+                   </property>
+                   <property name="value">
+                    <double>1.000000000000000</double>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item row="3" column="2">
+                <spacer name="horizontalSpacer_23">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>113</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="4" column="1">
+                <layout class="QHBoxLayout" name="horizontalLayout_25">
+                 <item>
+                  <widget class="QRadioButton" name="dnrHighRadioButton">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The NE3 operating with an active DNR setting (i.e., other than OFF) reduces noise but also creates a light-curve that has exponential transitions (i.e., an asymptotic approach to the ultimate event or baseline intensity) at D and R edges in response to a step change in light. PyOTE will fit a 'theoretical' exponential curve to the light-curve using a least-squares fit of the 'theoretical' edge. This procedure utilizes the timing information that has been 'smeared' across the transition region in such a way that timing resolution is restored.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Note: TC stands for time constant. It is measured in frames.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;The shape of the 'theoretical' transition is governed by the time constant used at each edge. The TC values in the spin/entry boxes to the right give PyOTE starting values to use in a least-squares driven search for better TC values that will produce transition curves that better fit the observed values.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;It is possible that the starting TC value is too far from the 'correct' values and the least-squares search routine, as a consequence, finds a local minimum that produces a visibly incorrect fit. In this case, change the starting value to something closer to 'correct' and try again.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>DNR: High</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_21">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="dnrHighDtcLabel">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This spin box provides the starting time constant value (TC) - it is given to PyOTE to be used during a least-squares search for a better value.&lt;/p&gt;&lt;p&gt;It sometimes happens that this initial value is too far from the 'correct' value and the least-squares improvement algorithm will settle on a local minimum that is visually obviously wrong. In this case, change this starting value to something closer to 'correct' and try again.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>TC:D edge</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QDoubleSpinBox" name="dnrHighDspinBox">
+                   <property name="minimumSize">
+                    <size>
+                     <width>70</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This spin box provides the starting time constant value (TC) - it is given to PyOTE to be used during a least-squares search for a better value.&lt;/p&gt;&lt;p&gt;It sometimes happens that this initial value is too far from the 'correct' value and the least-squares improvement algorithm will settle on a local minimum that is visually obviously wrong. In this case, change this starting value to something closer to 'correct' and try again.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="minimum">
+                    <double>1.000000000000000</double>
+                   </property>
+                   <property name="maximum">
+                    <double>10.000000000000000</double>
+                   </property>
+                   <property name="singleStep">
+                    <double>0.100000000000000</double>
+                   </property>
+                   <property name="value">
+                    <double>4.500000000000000</double>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="dnrHighRtcLabel">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This spin box provides the starting time constant value (TC) - it is given to PyOTE to be used during a least-squares search for a better value.&lt;/p&gt;&lt;p&gt;It sometimes happens that this initial value is too far from the 'correct' value and the least-squares improvement algorithm will settle on a local minimum that is visually obviously wrong. In this case, change this starting value to something closer to 'correct' and try again.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>TC:R edge</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QDoubleSpinBox" name="dnrHighRspinBox">
+                   <property name="minimumSize">
+                    <size>
+                     <width>70</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This spin box provides the starting time constant value (TC) - it is given to PyOTE to be used during a least-squares search for a better value.&lt;/p&gt;&lt;p&gt;It sometimes happens that this initial value is too far from the 'correct' value and the least-squares improvement algorithm will settle on a local minimum that is visually obviously wrong. In this case, change this starting value to something closer to 'correct' and try again.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="minimum">
+                    <double>1.000000000000000</double>
+                   </property>
+                   <property name="maximum">
+                    <double>10.000000000000000</double>
+                   </property>
+                   <property name="singleStep">
+                    <double>0.100000000000000</double>
+                   </property>
+                   <property name="value">
+                    <double>2.000000000000000</double>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item row="5" column="1">
+                <widget class="Line" name="line_15">
+                 <property name="frameShadow">
+                  <enum>QFrame::Plain</enum>
+                 </property>
+                 <property name="lineWidth">
+                  <number>5</number>
+                 </property>
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                </widget>
+               </item>
+               <item row="6" column="1">
+                <layout class="QHBoxLayout" name="horizontalLayout_26">
+                 <item>
+                  <spacer name="horizontalSpacer_24">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="yPositionLabel">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this spin/entry box to enter the image row the target star was on when the occultation occured.&lt;/p&gt;&lt;p&gt;The Night Eagle 3 is a rolling shutter CMOS camera. As a result, with this camera, the timing of an occultation depends on which row the occulted star is at when the occultation occurs. PyOTE will automatically calculate the needed time correction from the y (row) position that you enter in this box.&lt;/p&gt;&lt;p&gt;For the Night Eagle 3, times extracted by PyOTE require only a VTI correction (if you use an IOTA VTI, there is no correction at all needed).&lt;/p&gt;&lt;p&gt;Note: if the recording was &lt;span style=&quot; font-weight:600;&quot;&gt;not&lt;/span&gt; made with a tracking telescope (so the targer star is moving across the image), you will need to watch the video and record the row of the occultation for use in this program. Normally, with a tracking telescope, you will be able to use the y position of the 'target' aperture directly. PyMovie includes this information in the comment lines of the csv file.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>y position of target star</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QSpinBox" name="targetStarYpositionSpinBox">
+                   <property name="minimumSize">
+                    <size>
+                     <width>80</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximum">
+                    <number>479</number>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_25">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
+               </item>
+               <item row="7" column="1">
+                <spacer name="verticalSpacer_12">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>259</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </widget>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="QLabel" name="helpLabelForDataGrid">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clicking at the left-edge of a data line will cause the corresponding data point in the main display to be highlighted. Only one such point can be high-lighted at a time.&lt;/p&gt;&lt;p&gt;Clicking a point in the main data plot will cause this data grid to be positioned at that data point with the row shown in red. Clicking anywhere in this row will 'toggle' the selection of that point, useful when the main data plot is very dense.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="text">
+            <string>Right-click this label to get explanation of data grid below:</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="PlotWidget" name="mainPlot">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <horstretch>1</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="cursor" stdset="0">
+         <cursorShape>IBeamCursor</cursorShape>
+        </property>
+       </widget>
+      </widget>
+      <widget class="QSplitter" name="splitterOne">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="handleWidth">
+        <number>10</number>
+       </property>
+       <widget class="QTableWidget" name="table">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;The data displayed in this table is read from the input file. The Timestamp column in this table will be filled in in response to a successful Manual Timestamp Entry procedure. The results of smoothing and normalization are NOT reflected in this table. The results of a Block Integration ARE reflected in this table.  This policy allows this table to be used as the source when a user requests that a csv file be written, presumably to capture timestamps filled in by Manual Timestamp Entry and a possible Block Integration, thus speeding future re-analysis efforts.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Clicking on a data row (at the extreme left) in this panel will cause the corresponding point to be highlighted in the light curve plot. The highlighted point is shown as a largish yellow dot with a red rim --- it may be hard to see/find, but look for it.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt; font-weight:600;&quot;&gt;Clicking on a data cell in a row will select/deselect that point in the primary (dark blue) light curve plot. This is provided as an alternative method to clicking on points in the main light curve plot to select/deslect them.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Note: Clicking on a point in the primary (dark blue) light curve will cause the data row for that point to be selected/positioned.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="toolTipDuration">
+         <number>4000</number>
+        </property>
+        <property name="rowCount">
+         <number>11</number>
+        </property>
+        <property name="columnCount">
+         <number>4</number>
+        </property>
+        <row/>
+        <row/>
+        <row/>
+        <row/>
+        <row/>
+        <row/>
+        <row/>
+        <row/>
+        <row/>
+        <row/>
+        <row/>
+        <column/>
+        <column/>
+        <column/>
+        <column/>
+       </widget>
+       <widget class="QTextEdit" name="textOut">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="verticalScrollBarPolicy">
+         <enum>Qt::ScrollBarAlwaysOn</enum>
+        </property>
+        <property name="undoRedoEnabled">
+         <bool>false</bool>
+        </property>
+        <property name="lineWrapMode">
+         <enum>QTextEdit::NoWrap</enum>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>PlotWidget</class>
+   <extends>QGraphicsView</extends>
+   <header>pyqtgraph</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

@@ -2778,7 +2778,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.showMsg("Times are invalid due to corrupted timestamps!",
                          color='red', bold=True)
 
-        if self.choleskyFailed and self.ne3NotInUseRadioButton.isChecked():
+        # if self.choleskyFailed and self.ne3NotInUseRadioButton.isChecked():
+        if self.choleskyFailed:
             self.showMsg('Cholesky decomposition failed during error bar '
                          'calculations. '
                          'Noise has therefore been treated as being '
@@ -3009,7 +3010,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             if type(dist) == float:
                 if dist == -1.0:
                     self.choleskyFailed = True
-                    if self.ne3NotInUseRadioButton.isChecked():
+                    # if self.ne3NotInUseRadioButton.isChecked():
+                    if True:
                         self.showInfo(
                             'The Cholesky-Decomposition routine has failed.  This may be because the light curve ' +
                             'required block integration and you failed to do either a manual block integration or to accept the '
@@ -3197,6 +3199,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.showInfo(f'Baseline statistics have been extracted yet.')
             return
 
+        observation_size = self.right - self.left + 1
         posCoefs = self.newCorCoefs
         durText = self.detectabilityDurationEdit.text()
         if durText == '':
@@ -3208,6 +3211,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             if event_duration < 1:
                 self.showInfo(f'The event duration: {event_duration} is too small to use.')
                 return
+            if event_duration >= observation_size:
+                self.showInfo(f'The event duration: {event_duration} '
+                              f'is too large for an observation with {observation_size} points.')
+                return
+
         except ValueError:
             self.showInfo(f'{durText} is invalid as a duration in seconds value')
             return
@@ -3237,7 +3245,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.showInfo(f'{durStepText} is invalid as a durSep value')
                 return
 
-        observation_size = self.right - self.left + 1
+        # observation_size = self.right - self.left + 1
         sigma = self.sigmaB
         # Use given magDrop to calculate observed drop
         ratio = 10**(event_magDrop / 2.5)
