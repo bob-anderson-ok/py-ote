@@ -27,7 +27,7 @@ from pyoteapp.showVideoFrames import readSerFile
 from pyoteapp.showVideoFrames import readFitsFile
 from pyoteapp.showVideoFrames import readAavFile
 
-from pyoteapp.false_positive import compute_drops
+from pyoteapp.false_positive import compute_drops, noise_gen_jit, simple_convolve
 import numpy as np
 import pyqtgraph as pg
 import pyqtgraph.exporters as pex
@@ -257,7 +257,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.calcDetectabilityButton.clicked.connect(self.calcDetectability)
         self.calcDetectabilityButton.installEventFilter(self)
 
-        self.detectDurationLabel.installEventFilter(self)
+        self.eventDurLabel.installEventFilter(self)
+        self.obsDurLabel.installEventFilter(self)
         self.durStepLabel.installEventFilter(self)
         self.detectMagDropLabel.installEventFilter(self)
 
@@ -321,6 +322,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         # plotHelpButton
         self.plotHelpButton.clicked.connect(self.plotHelpButtonClicked)
         self.plotHelpButton.installEventFilter(self)
+
+        # detectabilityDelpButton
+        self.detectabilityHelpButton.clicked.connect(self.detectabilityHelpButtonClicked)
+        self.detectabilityHelpButton.installEventFilter(self)
 
         # Button: Trim/Select data points
         self.setDataLimits.clicked.connect(self.doTrim)
@@ -474,6 +479,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.mainPlot.showGrid(y=True, alpha=.5)
 
         self.extra = []
+        self.demoLightCurve = []                 # Used for detectability demonstration
+        self.minDetectableDurationRdgs = None    # Used for detectability demonstration
+        self.minDetectableDurationSecs = None    # Used for detectability demonstration
         self.aperture_names = []
         self.initializeTableView()  # Mostly just establishes column headers
         
@@ -1206,6 +1214,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     def plotHelpButtonClicked(self):
         self.showHelp(self.plotHelpButton)
+
+    def detectabilityHelpButtonClicked(self):
+        self.showHelp(self.detectabilityHelpButton)
 
     @staticmethod
     def htmlFixup(html):
@@ -2151,6 +2162,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         newLC2 = []
         newLC3 = []
         newLC4 = []
+        newDemoLightCurve = []
         newExtra = [[] for _ in range(len(self.extra))]
 
         if not self.blockSize % 2 == 0:
@@ -2178,6 +2190,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     avg = np.mean(lc[p:(p+span)])
                     newExtra[k].insert(0, avg)
 
+            if len(self.demoLightCurve) > 0:
+                avg = np.mean(self.demoLightCurve[p:(p + span)])
+                newDemoLightCurve.insert(0, avg)
+
             newFrame.insert(0, self.yFrame[p])
             newTime.insert(0, self.yTimes[p])
             p = p - span
@@ -2204,6 +2220,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     avg = np.mean(lc[p:(p + span)])
                     newExtra[k].append(avg)
 
+            if len(self.demoLightCurve) > 0:
+                avg = np.mean(self.demoLightCurve[p:(p + span)])
+                newDemoLightCurve.append(avg)
+
             newFrame.append(self.yFrame[p])
             newTime.append(self.yTimes[p])
             p = p + span
@@ -2217,6 +2237,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         if len(newExtra) > 0:
             for k in range(len(newExtra)):
                 self.extra[k] = np.array(newExtra[k])
+        self.demoLightCurve = np.array(newDemoLightCurve)
 
         # auto-select all points
         self.left = 0
@@ -2293,9 +2314,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             colLabels = ['FrameNum', 'timeInfo']
             for column_name in self.aperture_names:
                 colLabels.append(column_name)
-        # if len(self.extra) > 0:
-        #     for i in range(len(self.extra)):
-        #         colLabels.append(f'LC{i+5}')
+
         self.table.setHorizontalHeaderLabels(colLabels)
         
     def closeEvent(self, event):
@@ -3199,9 +3218,23 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.showInfo(f'Baseline statistics have been extracted yet.')
             return
 
-        observation_size = self.right - self.left + 1
         posCoefs = self.newCorCoefs
-        durText = self.detectabilityDurationEdit.text()
+
+        durText = self.observationDurEdit.text()
+        if durText == '':
+            self.showInfo(f'You need to fill in an observation duration (in seconds) for this operation.')
+            return
+        try:
+            obs_duration_secs = float(durText)
+            obs_duration = int(np.ceil(obs_duration_secs / self.timeDelta))
+            if obs_duration < 1:
+                self.showInfo(f'The obs duration: {obs_duration} is too small to use.')
+                return
+        except ValueError:
+            self.showInfo(f'{durText} is invalid as a duration in seconds value')
+            return
+
+        durText = self.eventDurationEdit.text()
         if durText == '':
             self.showInfo(f'You need to fill in a duration (in seconds) for this operation.')
             return
@@ -3211,9 +3244,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             if event_duration < 1:
                 self.showInfo(f'The event duration: {event_duration} is too small to use.')
                 return
-            if event_duration >= observation_size:
+            if obs_duration <= event_duration:
                 self.showInfo(f'The event duration: {event_duration} '
-                              f'is too large for an observation with {observation_size} points.')
+                              f'is too large for an observation with {obs_duration} points.')
                 return
 
         except ValueError:
@@ -3245,7 +3278,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.showInfo(f'{durStepText} is invalid as a durSep value')
                 return
 
-        # observation_size = self.right - self.left + 1
         sigma = self.sigmaB
         # Use given magDrop to calculate observed drop
         ratio = 10**(event_magDrop / 2.5)
@@ -3253,11 +3285,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         observed_drop = self.B - self.A
         num_trials = 50_000
 
+        self.minDetectableDurationRdgs = None
+        self.minDetectableDurationSecs = None
+
         while True:
             self.showMsg(f'Processing detectability of magDrop: {event_magDrop:0.2f} dur(secs): {event_duration_secs:0.2f} event')
             QtWidgets.QApplication.processEvents()
 
-            drops = compute_drops(event_duration=event_duration, observation_size=observation_size,
+            drops = compute_drops(event_duration=event_duration, observation_size=obs_duration,
                                   noise_sigma=sigma, corr_array=np.array(posCoefs), num_trials=num_trials)
 
             title = (f'Distribution of drops found in correlated noise:'
@@ -3286,6 +3321,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
             if redMinusBlack > 0:
                 pw.plot(name=f'red - black = {redMinusBlack:0.2f}  An event of this duration and magDrop is detectable')
+                self.minDetectableDurationRdgs = event_duration          # This is in 'readings'
+                self.minDetectableDurationSecs = event_duration_secs     # This is in seconds
             else:
                 pw.plot(name=f'red - black = {redMinusBlack:0.2f}  Detection of this event is unlikely')
 
@@ -3302,10 +3339,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             detectibiltyPlotPath = lightCurveDir + '/DetectabilityPlots/'
             if not os.path.exists(detectibiltyPlotPath):
                 os.mkdir(detectibiltyPlotPath)
-            exporter = FixedImageExporter(pw.getPlotItem())
-            # exporter = FixedImageExporter(pw.viewRect())
-            exporter.makeWidthHeightInts()
             targetFile = detectibiltyPlotPath + f'plot.detectability-dur{event_duration_secs:0.2f}-magDrop{event_magDrop:0.2f}.PYOTE.png'
+
+            exporter = FixedImageExporter(pw.getPlotItem())
+            exporter.makeWidthHeightInts()
 
             if durStep == 0.0:
                 # Always write plot for single detectability requests
@@ -3326,6 +3363,51 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 event_duration = int(np.ceil(event_duration_secs / self.timeDelta))
                 if event_duration < 1:
                     break
+
+        if self.minDetectableDurationRdgs is None:
+            self.showMsg(
+                f'Undetectable event @ magDrop: {event_magDrop:0.2f}  duration: {event_duration_secs:0.2f}',
+                color='red', bold=True
+            )
+        else:
+            self.showMsg(
+                f'An event of duration {self.minDetectableDurationSecs:0.2f} seconds with magDrop: {event_magDrop}'
+                f' is likely detectable.', color='red', bold=True
+            )
+
+            # Show an example light-curve with the 'event' included.
+            obs = noise_gen_jit(obs_duration, self.sigmaB)
+            obs = simple_convolve(obs, np.array(self.newCorCoefs))
+            title = (f'Example light curve at the minimum detectable duration found ---  '
+                     f'Event duration(readings): {event_duration}   '
+                     f'Event duration(seconds): {event_duration_secs:0.2f}')
+            pw = PlotWidget(viewBox=CustomViewBox(border=(0, 0, 0)),
+                            enableMenu=False,
+                            title=title,
+                            labels={'bottom': 'reading number', 'left': 'intensity'})
+            pw.hideButtons()
+            pw.getPlotItem().showAxis('bottom', True)
+            pw.getPlotItem().showAxis('left', True)
+            pw.showGrid(y=True, alpha=.5)
+            pw.getPlotItem().setFixedHeight(700)
+            pw.getPlotItem().setFixedWidth(1700)
+
+            self.detectabilityWin = pg.GraphicsWindow(title='Detectability test: sample light curve with minimum duration event')
+            self.detectabilityWin.resize(1700, 700)
+            layout = QtWidgets.QGridLayout()
+            self.detectabilityWin.setLayout(layout)
+            layout.addWidget(pw, 0, 0)
+
+            obs += self.B
+            center = int(obs_duration / 2)
+            eventStart = center - int(event_duration/2)
+            obs[eventStart:eventStart+event_duration+1] -= observed_drop
+            pw.plot(obs)
+            pw.plot(obs, pen=None, symbol='o', symbolBrush=(0, 0, 255), symbolSize=6)
+            left_marker = pg.InfiniteLine(pos=eventStart, pen='r')
+            pw.addItem(left_marker)
+            right_marker = pg.InfiniteLine(pos=eventStart+event_duration, pen='g')
+            pw.addItem(right_marker)
 
         return
 
@@ -4490,51 +4572,49 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.table.setRowCount(self.dataLen)
         self.table.setVerticalHeaderLabels([str(i) for i in range(self.dataLen)])
 
-        # print(self.yFrame[0], self.yFrame[-1])
         min_frame = int(trunc(float(self.yFrame[0])))
         max_frame = int(trunc(float(self.yFrame[-1])))
-        # print(min_frame, max_frame)
         if self.frameNumSpinBox.isEnabled():
             self.frameNumSpinBox.setMinimum(min_frame)
             self.frameNumSpinBox.setMaximum(max_frame)
 
         for i in range(self.dataLen):
-            # newitem = QtGui.QTableWidgetItem(str(i))
-            # self.table.setItem(i, 0, newitem)
             neatStr = fp.to_precision(self.yValues[i], 6)
-            # newitem = QtGui.QTableWidgetItem(str(neatStr))
             newitem = QtWidgets.QTableWidgetItem(str(neatStr))
             self.table.setItem(i, 2, newitem)
-            # newitem = QtGui.QTableWidgetItem(str(self.yTimes[i]))
             newitem = QtWidgets.QTableWidgetItem(str(self.yTimes[i]))
             self.table.setItem(i, 1, newitem)
             frameNum = float(self.yFrame[i])
             if not np.ceil(frameNum) == np.floor(frameNum):
                 self.fieldMode = True
-            # newitem = QtGui.QTableWidgetItem(str(self.yFrame[i]))
             newitem = QtWidgets.QTableWidgetItem(str(self.yFrame[i]))
             self.table.setItem(i, 0, newitem)
+            nextColumn = 3
             if len(self.LC2) > 0:
                 neatStr = fp.to_precision(self.LC2[i], 6)
-                # newitem = QtGui.QTableWidgetItem(str(neatStr))
                 newitem = QtWidgets.QTableWidgetItem(str(neatStr))
                 self.table.setItem(i, 3, newitem)
+                nextColumn += 1
             if len(self.LC3) > 0:
                 neatStr = fp.to_precision(self.LC3[i], 6)
-                # newitem = QtGui.QTableWidgetItem(str(neatStr))
                 newitem = QtWidgets.QTableWidgetItem(str(neatStr))
                 self.table.setItem(i, 4, newitem)
+                nextColumn += 1
             if len(self.LC4) > 0:
                 neatStr = fp.to_precision(self.LC4[i], 6)
-                # newitem = QtGui.QTableWidgetItem(str(neatStr))
                 newitem = QtWidgets.QTableWidgetItem(str(neatStr))
                 self.table.setItem(i, 5, newitem)
+                nextColumn += 1
             if len(self.extra) > 0:
                 for k, lightcurve in enumerate(self.extra):
                     neatStr = fp.to_precision(lightcurve[i], 6)
-                    # newitem = QtGui.QTableWidgetItem(str(neatStr))
                     newitem = QtWidgets.QTableWidgetItem(str(neatStr))
                     self.table.setItem(i, 6 + k, newitem)
+                    nextColumn += 1
+            if len(self.demoLightCurve) > 0:
+                neatStr = fp.to_precision(self.demoLightCurve[i], 6)
+                newitem = QtWidgets.QTableWidgetItem(str(neatStr))
+                self.table.setItem(i, nextColumn, newitem)
 
         self.table.resizeColumnsToContents()
         self.writeCSVButton.setEnabled(True)
@@ -4740,7 +4820,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
                 self.initializeTableView()
 
-                # self.secondarySelector.setValue(1)
                 self.curveToAnalyzeSpinBox.setMaximum(1)
                 self.curveToAnalyzeSpinBox.setValue(1)
                 if self.secondary:
