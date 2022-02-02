@@ -1326,6 +1326,46 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                         fileObject.write(line + '\n')
 
     @staticmethod
+    def getTimestampString(timeValue):
+        hours = int(timeValue / 3600)
+        timeValue -= hours * 3600
+        minutes = int(timeValue / 60)
+        timeValue -= minutes * 60
+        return f'{hours:02d}:{minutes:02d}:{timeValue:0.4f}'
+
+    def writeExampleLightcurveToFile(self, lgtCurve, timeDelta):
+        _, name = os.path.split(self.filename)
+        name = self.removeCsvExtension(name)
+
+        name += '.PYOTE.example-lightcurve.csv'
+
+        myOptions = QFileDialog.Options()
+        # myOptions |= QFileDialog.DontConfirmOverwrite
+        myOptions |= QFileDialog.DontUseNativeDialog
+        myOptions |= QFileDialog.ShowDirsOnly
+
+        self.csvFile, _ = QFileDialog.getSaveFileName(
+                self,                                  # parent
+                "Select directory/modify filename",    # title for dialog
+                self.settings.value('lightcurvedir', "") + '/' + name,  # starting directory
+                "", options=myOptions)
+
+        if self.csvFile:
+            with open(self.csvFile, 'w') as fileObject:
+                fileObject.write('# ' + 'PYOTE ' + version.version() + '\n')
+
+                fileObject.write(f'#  Example lightcurve from detectability analysis\n')
+                columnHeadings = 'FrameNum,timeInfo,primaryData'
+                fileObject.write(columnHeadings + '\n')
+
+                readingTime = 0.0
+                for i in range(len(lgtCurve)):
+                    ts = self.getTimestampString(readingTime)
+                    line = f'{i},[{ts}],{lgtCurve[i]:0.2f}'
+                    fileObject.write(line + '\n')
+                    readingTime += timeDelta
+
+    @staticmethod
     def copy_desktop_icon_file_to_home_directory():
         if platform.mac_ver()[0]:
             icon_dest_path = f"{os.environ['HOME']}{r'/Desktop/run-pyote'}"
@@ -3408,6 +3448,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             pw.addItem(left_marker)
             right_marker = pg.InfiniteLine(pos=eventStart+event_duration, pen='g')
             pw.addItem(right_marker)
+
+            if self.writeExampleLightcurveCheckBox.isChecked():
+                # Write the example lightcurve (obs) to a csv file
+                self.writeExampleLightcurveToFile(obs, self.timeDelta)
 
         return
 

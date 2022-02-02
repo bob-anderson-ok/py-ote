@@ -1881,6 +1881,89 @@
                  </property>
                 </spacer>
                </item>
+               <item row="1" column="1">
+                <layout class="QVBoxLayout" name="verticalLayout_3">
+                 <item>
+                  <widget class="QPushButton" name="detectabilityHelpButton">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The primary use of this tool is to perform a 'detectability' estimate. That estimate can be used to decide whether to attempt a future occultation observation or, alternatively, to analyze an actual occultation observation to decide whether to report a &lt;span style=&quot; color:#fc0107;&quot;&gt;'miss'&lt;/span&gt; or a &lt;span style=&quot; color:#fc0107;&quot;&gt;'no observation'&lt;/span&gt;.&lt;/p&gt;&lt;p&gt;Assuming PyOTE could not find an event in an actual occultation observation and this tool says the event was undetectable, report a &lt;span style=&quot; color:#fc0107;&quot;&gt;'no observation'&lt;/span&gt; but if this tool says that the expected event was detectable, then report a &lt;span style=&quot; color:#fc0107;&quot;&gt;'miss'&lt;/span&gt;.&lt;/p&gt;&lt;p&gt;This tool is also useful with observations that have employed a 'GPS Flasher' to provide timing for the video observation. A side effect of having an LED light up at the entrance of your telescope is that it will affect the baseline values of the target star (and others) and so make it more difficult to extract the best possible baseline statistics (mean and noise-sigma and noise-correlation-coefficients) which benefit from having more points involved in the calculation. This tool allows the user to tell PyOTE where the baseline values are reliable enough(unaffected by flashes, or wind gusts, or telescope jostling, etc) to be used during baseline statistics calculation.&lt;/p&gt;&lt;p&gt;By repeatedly selecting pairs of points on the light curve being analyzed and clicking the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Mark baseline region&lt;/span&gt; button, the regions of 'reliable baseline/event data' can be designated. They will be shown as orangish points instead of the normal blue color.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;NOTE:&lt;/span&gt; Regions marked on one curve are automatically applied to all curves. &lt;/p&gt;&lt;p&gt;In general, normalization against a reference star should be performed first, then this operation. That will remove any 'trends' that would affect the mean and noise-sigma.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;FYI:&lt;/span&gt; One can also use this feature to calculate statistics on some set of points of interest (like a statistics in the event bottom) or for reference stars or ...&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>Help</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="Line" name="line_12">
+                   <property name="frameShadow">
+                    <enum>QFrame::Plain</enum>
+                   </property>
+                   <property name="lineWidth">
+                    <number>4</number>
+                   </property>
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="markBaselineRegionButton">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Click on pairs of points that enclose points that are valid to use for noise (and mean value) calculations. This can be repeated to select disjoint sets of valid points.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>Mark baseline region</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="clearBaselineRegionsButton">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clear all marked regions and any statistics that may have been extracted by clicking on this button: &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Calc baseline mean/sigma/corr coeffs&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>Clear baseline regions</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="calcStatsFromBaselineRegionsButton">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When this button is clicked, all the points included in the marked regions will be collected and used to calculate the baseline/event mean, noise-sigma, and the noise-correlation coefficients. Unless a 'trim' is performed, these values will be used during error bar estimations and 'false-positive' estimation.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;NOTE:&lt;/span&gt; If a 'trim' is performed, &lt;span style=&quot; font-weight:600;&quot;&gt;the baseline mean will be determined from the 'fit' to the trimmed data,&lt;/span&gt; but the noise-sigma and noise-correlation coefficients extracted from the marked 'background' regions will continue to override those obtained from the trimmed light-curve.&lt;/p&gt;&lt;p&gt;This is done so that if the mean baseline level on either side of the event appears to be a little different than the overall baseline, one can get improved baseline noise stats by using points from the entire light-curve, yet trim the light-curve around the event and allow the 'finder/fitter' to calculate a baseline mean from the immediately adjacent points.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>Calc baseline mean/sigma/corr coeffs</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="Line" name="line_10">
+                   <property name="frameShadow">
+                    <enum>QFrame::Plain</enum>
+                   </property>
+                   <property name="lineWidth">
+                    <number>4</number>
+                   </property>
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item row="2" column="0">
+                <spacer name="horizontalSpacer_9">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
                <item row="2" column="1">
                 <layout class="QHBoxLayout" name="horizontalLayout_21">
                  <item>
@@ -1977,100 +2060,7 @@
                  </item>
                 </layout>
                </item>
-               <item row="1" column="1">
-                <layout class="QVBoxLayout" name="verticalLayout_3">
-                 <item>
-                  <widget class="QPushButton" name="detectabilityHelpButton">
-                   <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The primary use of this tool is to perform a 'detectability' estimate. That estimate can be used to decide whether to attempt a future occultation observation or, alternatively, to analyze an actual occultation observation to decide whether to report a &lt;span style=&quot; color:#fc0107;&quot;&gt;'miss'&lt;/span&gt; or a &lt;span style=&quot; color:#fc0107;&quot;&gt;'no observation'&lt;/span&gt;.&lt;/p&gt;&lt;p&gt;Assuming PyOTE could not find an event in an actual occultation observation and this tool says the event was undetectable, report a &lt;span style=&quot; color:#fc0107;&quot;&gt;'no observation'&lt;/span&gt; but if this tool says that the expected event was detectable, then report a &lt;span style=&quot; color:#fc0107;&quot;&gt;'miss'&lt;/span&gt;.&lt;/p&gt;&lt;p&gt;This tool is also useful with observations that have employed a 'GPS Flasher' to provide timing for the video observation. A side effect of having an LED light up at the entrance of your telescope is that it will affect the baseline values of the target star (and others) and so make it more difficult to extract the best possible baseline statistics (mean and noise-sigma and noise-correlation-coefficients) which benefit from having more points involved in the calculation. This tool allows the user to tell PyOTE where the baseline values are reliable enough(unaffected by flashes, or wind gusts, or telescope jostling, etc) to be used during baseline statistics calculation.&lt;/p&gt;&lt;p&gt;By repeatedly selecting pairs of points on the light curve being analyzed and clicking the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Mark baseline region&lt;/span&gt; button, the regions of 'reliable baseline/event data' can be designated. They will be shown as orangish points instead of the normal blue color.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;NOTE:&lt;/span&gt; Regions marked on one curve are automatically applied to all curves. &lt;/p&gt;&lt;p&gt;In general, normalization against a reference star should be performed first, then this operation. That will remove any 'trends' that would affect the mean and noise-sigma.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;FYI:&lt;/span&gt; One can also use this feature to calculate statistics on some set of points of interest (like a statistics in the event bottom) or for reference stars or ...&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                   </property>
-                   <property name="text">
-                    <string>Help</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="Line" name="line_12">
-                   <property name="frameShadow">
-                    <enum>QFrame::Plain</enum>
-                   </property>
-                   <property name="lineWidth">
-                    <number>4</number>
-                   </property>
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="markBaselineRegionButton">
-                   <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Click on pairs of points that enclose points that are valid to use for noise (and mean value) calculations. This can be repeated to select disjoint sets of valid points.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                   </property>
-                   <property name="text">
-                    <string>Mark baseline region</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="clearBaselineRegionsButton">
-                   <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clear all marked regions and any statistics that may have been extracted by clicking on this button: &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Calc baseline mean/sigma/corr coeffs&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                   </property>
-                   <property name="text">
-                    <string>Clear baseline regions</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="calcStatsFromBaselineRegionsButton">
-                   <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When this button is clicked, all the points included in the marked regions will be collected and used to calculate the baseline/event mean, noise-sigma, and the noise-correlation coefficients. Unless a 'trim' is performed, these values will be used during error bar estimations and 'false-positive' estimation.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;NOTE:&lt;/span&gt; If a 'trim' is performed, &lt;span style=&quot; font-weight:600;&quot;&gt;the baseline mean will be determined from the 'fit' to the trimmed data,&lt;/span&gt; but the noise-sigma and noise-correlation coefficients extracted from the marked 'background' regions will continue to override those obtained from the trimmed light-curve.&lt;/p&gt;&lt;p&gt;This is done so that if the mean baseline level on either side of the event appears to be a little different than the overall baseline, one can get improved baseline noise stats by using points from the entire light-curve, yet trim the light-curve around the event and allow the 'finder/fitter' to calculate a baseline mean from the immediately adjacent points.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                   </property>
-                   <property name="text">
-                    <string>Calc baseline mean/sigma/corr coeffs</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="Line" name="line_10">
-                   <property name="frameShadow">
-                    <enum>QFrame::Plain</enum>
-                   </property>
-                   <property name="lineWidth">
-                    <number>4</number>
-                   </property>
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item row="3" column="1">
-                <widget class="QPushButton" name="calcDetectabilityButton">
-                 <property name="toolTip">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This button activates a special version of the False-Positive calculator to help determine whether an occultation observation planned for the near future is detectable given the star signal available from the observation location, the expected duration of the event, and the expected magDrop of the event. &lt;/p&gt;&lt;p&gt;Or, if you are analyzing an actual occultation observation, this tool will help you in deciding whether to report a &lt;span style=&quot; color:#fc0107;&quot;&gt;'miss'&lt;/span&gt; or a &lt;span style=&quot; color:#fc0107;&quot;&gt;'no observation'&lt;/span&gt; if an event was not found. Assuming PyOTE could not find an event in the occultation observation being analyzed and this tool says the event was undetectable, report a &lt;span style=&quot; color:#fc0107;&quot;&gt;'no observation'&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt;,&lt;/span&gt; but if this tool says that the expected event was detectable, then report a &lt;span style=&quot; color:#fc0107;&quot;&gt;'miss'&lt;/span&gt;.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#fc0107;&quot;&gt;Please keep in mind that this is a simulation using random numbers, so repeated calculations with the same duration and magDrop will naturally give slightly different answers.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;The workflow is as follows:&lt;/p&gt;&lt;p&gt;1. Make a video of the target star with at least a few hundred frames. The video needs to be long enough and under the anticipated observation conditions and camera settings to be used during the actual event so that a valid estimate of the expected intensity of the target star, the noise level, and the correlation coefficients of that noise during the actual event can be obtained.&lt;/p&gt;&lt;p&gt;2. Use PyMovie (or Tangra or LiMovie) to extract a light-curve from the video.&lt;/p&gt;&lt;p&gt;3. Read the light-curve into PyOTE, then click on pairs of points in the light-curve plot to designate those points that should be used for the needed intensity and noise calculations. Click the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Mark Baseline Region&lt;/span&gt; button to record your selection. This step can be repeated multiple times to select disjoint sets of points.&lt;/p&gt;&lt;p&gt;4. Now click the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Calc baseline mean/sigma/corr coefs&lt;/span&gt; button - this is what triggers the extraction of the needed intensity and noise data, a pre-requisite to performing the next step:&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt; Calc detectability&lt;/span&gt;.&lt;/p&gt;&lt;p&gt;5. Before clicking the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Calc detectability&lt;/span&gt; button, you must fill in the observation duration (&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;ObservationDur&lt;/span&gt;) in seconds and the expected duration of the event (&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;EventDur&lt;/span&gt;) in seconds.&lt;/p&gt;&lt;p&gt;6. If you want the calculator to iteratively find the smallest duration of a detectable event for you, set &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;duration step&lt;/span&gt; to a non-zero value (in seconds).&lt;/p&gt;&lt;p&gt;6. Next, fill in the expected &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;magDrop&lt;/span&gt; (a positive number).&lt;/p&gt;&lt;p&gt;7. Click the&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt; Calc detectability&lt;/span&gt; button and, after a pause while 50,000 trial observations are computed, a False-Positive plot will appear. The position of the red vertical line relative to the black line tells the detectability story: if the red line is to right of the black line, the event has a high probabilty of being detected - if the red line is to the left of the black line it has a lower probability of detection, with that probablity decreasing as the red line moves more and more to the left of the black line. &lt;/p&gt;&lt;p&gt;If the event (possibly a minimum event duration discovered during a search) was found to be detectable, a sample light-curve is displayed that shows an example observation with such an event included.&lt;/p&gt;&lt;p&gt;If the result was no detectable event, a False-Positive plot will be shown instead of the first duration that failed (red bar to left of black bar).&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                 </property>
-                 <property name="text">
-                  <string>Calc detectability</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="1" column="0">
-                <spacer name="horizontalSpacer_9">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>40</width>
-                   <height>20</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item row="1" column="2">
+               <item row="2" column="2">
                 <spacer name="horizontalSpacer_10">
                  <property name="orientation">
                   <enum>Qt::Horizontal</enum>
@@ -2082,6 +2072,46 @@
                   </size>
                  </property>
                 </spacer>
+               </item>
+               <item row="3" column="1">
+                <layout class="QHBoxLayout" name="horizontalLayout_27">
+                 <item>
+                  <widget class="QPushButton" name="calcDetectabilityButton">
+                   <property name="minimumSize">
+                    <size>
+                     <width>500</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This button activates a special version of the False-Positive calculator to help determine whether an occultation observation planned for the near future is detectable given the star signal available from the observation location, the expected duration of the event, and the expected magDrop of the event. &lt;/p&gt;&lt;p&gt;Or, if you are analyzing an actual occultation observation, this tool will help you in deciding whether to report a &lt;span style=&quot; color:#fc0107;&quot;&gt;'miss'&lt;/span&gt; or a &lt;span style=&quot; color:#fc0107;&quot;&gt;'no observation'&lt;/span&gt; if an event was not found. Assuming PyOTE could not find an event in the occultation observation being analyzed and this tool says the event was undetectable, report a &lt;span style=&quot; color:#fc0107;&quot;&gt;'no observation'&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt;,&lt;/span&gt; but if this tool says that the expected event was detectable, then report a &lt;span style=&quot; color:#fc0107;&quot;&gt;'miss'&lt;/span&gt;.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#fc0107;&quot;&gt;Please keep in mind that this is a simulation using random numbers, so repeated calculations with the same duration and magDrop will naturally give slightly different answers.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;The workflow is as follows:&lt;/p&gt;&lt;p&gt;1. Make a video of the target star with at least a few hundred frames. The video needs to be long enough and under the anticipated observation conditions and camera settings to be used during the actual event so that a valid estimate of the expected intensity of the target star, the noise level, and the correlation coefficients of that noise during the actual event can be obtained.&lt;/p&gt;&lt;p&gt;2. Use PyMovie (or Tangra or LiMovie) to extract a light-curve from the video.&lt;/p&gt;&lt;p&gt;3. Read the light-curve into PyOTE, then click on pairs of points in the light-curve plot to designate those points that should be used for the needed intensity and noise calculations. Click the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Mark Baseline Region&lt;/span&gt; button to record your selection. This step can be repeated multiple times to select disjoint sets of points.&lt;/p&gt;&lt;p&gt;4. Now click the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Calc baseline mean/sigma/corr coefs&lt;/span&gt; button - this is what triggers the extraction of the needed intensity and noise data, a pre-requisite to performing the next step:&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt; Calc detectability&lt;/span&gt;.&lt;/p&gt;&lt;p&gt;5. Before clicking the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Calc detectability&lt;/span&gt; button, you must fill in the observation duration (&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;ObservationDur&lt;/span&gt;) in seconds and the expected duration of the event (&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;EventDur&lt;/span&gt;) in seconds.&lt;/p&gt;&lt;p&gt;6. If you want the calculator to iteratively find the smallest duration of a detectable event for you, set &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;duration step&lt;/span&gt; to a non-zero value (in seconds).&lt;/p&gt;&lt;p&gt;6. Next, fill in the expected &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;magDrop&lt;/span&gt; (a positive number).&lt;/p&gt;&lt;p&gt;7. Click the&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt; Calc detectability&lt;/span&gt; button and, after a pause while 50,000 trial observations are computed, a False-Positive plot will appear. The position of the red vertical line relative to the black line tells the detectability story: if the red line is to right of the black line, the event has a high probabilty of being detected - if the red line is to the left of the black line it has a lower probability of detection, with that probablity decreasing as the red line moves more and more to the left of the black line. &lt;/p&gt;&lt;p&gt;If the event (possibly a minimum event duration discovered during a search) was found to be detectable, a sample light-curve is displayed that shows an example observation with such an event included.&lt;/p&gt;&lt;p&gt;If the result was no detectable event, a False-Positive plot will be shown instead of the first duration that failed (red bar to left of black bar).&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>Calc detectability</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_26">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="writeExampleLightcurveCheckBox">
+                   <property name="text">
+                    <string>Write example lightcurve to csv file</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
                </item>
                <item row="4" column="1">
                 <spacer name="verticalSpacer_6">
