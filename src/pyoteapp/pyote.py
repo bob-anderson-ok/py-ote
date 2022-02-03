@@ -6,6 +6,7 @@ Created on Sat May 20 15:32:13 2017
 # import pickle
 # import math
 import subprocess
+from pathlib import Path
 
 MIN_SIGMA = 0.1
 
@@ -1286,10 +1287,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         myOptions |= QFileDialog.DontUseNativeDialog
         myOptions |= QFileDialog.ShowDirsOnly
 
+        starterFilePath = str(Path(self.settings.value('lightcurvedir', "") + '/' + name))
+
         self.csvFile, _ = QFileDialog.getSaveFileName(
                 self,                                  # parent
                 "Select directory/modify filename",    # title for dialog
-                self.settings.value('lightcurvedir', "") + '/' + name,  # starting directory
+                starterFilePath,  # starting directory
                 "", options=myOptions)
 
         if self.csvFile:
@@ -1337,17 +1340,19 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         _, name = os.path.split(self.filename)
         name = self.removeCsvExtension(name)
 
-        name += '.PYOTE.example-lightcurve.csv'
+        name += 'PYOTE.example-lightcurve.csv'
 
         myOptions = QFileDialog.Options()
         # myOptions |= QFileDialog.DontConfirmOverwrite
         myOptions |= QFileDialog.DontUseNativeDialog
         myOptions |= QFileDialog.ShowDirsOnly
 
+        starterFilePath = str(Path(self.settings.value('lightcurvedir', "") + '/' + name))
+
         self.csvFile, _ = QFileDialog.getSaveFileName(
                 self,                                  # parent
                 "Select directory/modify filename",    # title for dialog
-                self.settings.value('lightcurvedir', "") + '/' + name,  # starting directory
+                starterFilePath,  # starting directory
                 "", options=myOptions)
 
         if self.csvFile:
@@ -3420,7 +3425,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             obs = simple_convolve(obs, np.array(self.newCorCoefs))
             title = (f'Example light curve at the minimum detectable duration found ---  '
                      f'Event duration(readings): {event_duration}   '
-                     f'Event duration(seconds): {event_duration_secs:0.2f}')
+                     f'Event duration(seconds): {event_duration_secs + durStep:0.2f}')
             pw = PlotWidget(viewBox=CustomViewBox(border=(0, 0, 0)),
                             enableMenu=False,
                             title=title,
@@ -4127,9 +4132,15 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         if not minText == '<blank>' and not maxText == '<blank>':
             self.eventType = 'DandR'
 
-        if not self.ne3NotInUseRadioButton.isChecked() and not self.dnrOffRadioButton.isChecked():
-            if not self.userDeterminedEventStats:
-                self.showInfo('This is a Night Eagle 3 analysis with an active DNR setting. Did you forget to select event points?')
+        if not self.ne3NotInUseRadioButton.isChecked():
+            yPosition = self.targetStarYpositionSpinBox.value()
+            if yPosition == 0:
+                self.showInfo("You need to set a valid value for the Night Eagle 3 target's Y position.")
+                return
+
+        # if not self.ne3NotInUseRadioButton.isChecked() and not self.dnrOffRadioButton.isChecked():
+        #     if not self.userDeterminedEventStats:
+        #         self.showInfo('This is a Night Eagle 3 analysis with an active DNR setting. Did you forget to select event points?')
 
         candFrom, numCandidates = candidateCounter(eventType=self.eventType,
                                                    dLimits=self.dLimits, rLimits=self.rLimits,
@@ -4172,10 +4183,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 else:
                     self.minEvent = self.rLimits[0] - self.left
                     self.maxEvent = self.rLimits[1] - self.left
-                solverGen = \
-                    find_best_r_only_from_min_max_size(
+                solverGen = find_best_r_only_from_min_max_size(
                         self.yValues, self.left, self.right, self.minEvent,
-                        self.maxEvent)
+                        self.maxEvent
+                )
 
             else:  # Donly
                 self.showMsg('New solver results...', color='blue', bold=True)
@@ -4185,10 +4196,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     self.minEvent = self.right - self.dLimits[1]
                     self.maxEvent = self.right - self.dLimits[0] - 1
 
-                solverGen = \
-                    find_best_d_only_from_min_max_size(
+                solverGen = find_best_d_only_from_min_max_size(
                         self.yValues, self.left, self.right, self.minEvent,
-                        self.maxEvent)
+                        self.maxEvent
+                )
 
             if solverGen is None:
                 self.showInfo('Generator version not yet implemented')
@@ -4242,6 +4253,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
             if not self.ne3NotInUseRadioButton.isChecked():
                 # We're being asked to perform an exponential edge fit for the Night Eagle 3 camera
+                snr = b / sigmaB
+                if snr < 4.0:
+                    self.dnrOffRadioButton.setChecked(True)
+                    self.showMsg(f'The snr of {snr:0.1f} is too low to use an NE3 exponential solution...', color='red',
+                                 blankLine=False)
+                    self.showMsg(f'... NE3 DNR:Off has been automatically checked.', color='red')
                 self.showUnderlyingLightcurveCheckBox.setChecked(True)
                 resultFound, DfitMetric, RfitMetric = self.doExpFit(b, a)
                 if not resultFound:
