@@ -103,7 +103,9 @@ def max_drop_in_simulated_observation(
 
     drop = B - A
 
-    best_drop_so_far = drop if drop >= 0.0 else 0.0
+    # Use negative values returned by this routine as an indicator that no positive drop could be found
+    # best_drop_so_far = drop if drop >= 0.0 else 0.0
+    best_drop_so_far = -1.0
 
     # Calculate new values for B and A iteratively and conditionally update best_drop_so_far
     for i in range(1, numB):

@@ -3340,6 +3340,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             drops = compute_drops(event_duration=event_duration, observation_size=obs_duration,
                                   noise_sigma=sigma, corr_array=np.array(posCoefs), num_trials=num_trials)
 
+            # numNegativeDrops = 0
+            # for i in range(drops.size):
+            #     if drops[i] < 0.0:
+            #         numNegativeDrops += 1
+            # self.showInfo(f'numNegativeDrops: {numNegativeDrops}')
+
             title = (f'Distribution of drops found in correlated noise:'
                      f'Event duration(readings): {event_duration}   '
                      f'Event duration(seconds): {event_duration_secs:0.2f}')
@@ -3347,10 +3353,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             pw = PlotWidget(viewBox=CustomViewBox(border=(0, 0, 0)),
                             enableMenu=False,
                             title=title,
-                            labels={'bottom': 'drop size (ADU)', 'left': 'number of times noise produced drop'})
+                            labels={'bottom': 'drop size (ADU)', 'left': 'relative number of times noise produced drop'})
             pw.hideButtons()
 
-            y, x = np.histogram(drops, bins=50)
+            y, x = np.histogram(drops, bins=50, density=True, range=(0, np.max(drops)))
 
             pw.plot(x, y, stepMode=True, fillLevel=0, brush=(0, 0, 255, 150))
             pw.plot(x=[observed_drop, observed_drop], y=[0, 1.5 * np.max(y)], pen=pg.mkPen([255, 0, 0], width=4))
@@ -3363,6 +3369,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             pw.plot(name=f'red line @ {redDrop:0.2f} = location of a {event_magDrop} magDrop event in histogram of all detected events due to noise')
             pw.plot(name=f'black line @ {blackDrop:0.2f} = max drop found in {num_trials} trials with correlated noise')
             pw.plot(name=f'B: {self.B:0.2f}  A: {self.A:0.2f} (calculated from expected magDrop of event)')
+            pw.plot(name=f'magDrop: {magDropText}')
 
             if redMinusBlack > 0:
                 pw.plot(name=f'red - black = {redMinusBlack:0.2f}  An event of this duration and magDrop is detectable')
@@ -3425,7 +3432,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             obs = simple_convolve(obs, np.array(self.newCorCoefs))
             title = (f'Example light curve at the minimum detectable duration found ---  '
                      f'Event duration(readings): {event_duration}   '
-                     f'Event duration(seconds): {event_duration_secs + durStep:0.2f}')
+                     f'Event duration(seconds): {event_duration_secs + durStep:0.2f}   '
+                     f'magDrop: {magDropText}'
+                     )
             pw = PlotWidget(viewBox=CustomViewBox(border=(0, 0, 0)),
                             enableMenu=False,
                             title=title,
