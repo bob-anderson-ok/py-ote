@@ -2505,7 +2505,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.showMsg(f'Some invalid entries were found in the lightcurve parameters panel',
                          color='blue', bold=True, blankLine=False)
 
-        self.writeNe3UsageReport()
+        if not self.ne3NotInUseRadioButton.isChecked():
+            self.writeNe3UsageReport()
 
         self.showMsg('', blankLine=False)
 
