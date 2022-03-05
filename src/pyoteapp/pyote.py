@@ -198,6 +198,107 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.setWindowTitle('PYOTE  Version: ' + version.version())
 
+        self.skipNormalization = False  # A flag used to prevent inifinite recursion in self.refrawMainPlot
+
+        self.targetIndex = 0
+
+        self.targetCheckBoxes = [self.targetCheckBox_1, self.targetCheckBox_2, self.targetCheckBox_3,
+                                 self.targetCheckBox_4, self.targetCheckBox_5, self.targetCheckBox_6,
+                                 self.targetCheckBox_7, self.targetCheckBox_8, self.targetCheckBox_9,
+                                 self.targetCheckBox_10]
+
+        self.showCheckBoxes = [self.showCheckBox_1, self.showCheckBox_2, self.showCheckBox_3,
+                               self.showCheckBox_4, self.showCheckBox_5, self.showCheckBox_6,
+                               self.showCheckBox_7, self.showCheckBox_8, self.showCheckBox_9,
+                               self.showCheckBox_10]
+
+        self.lightcurveTitles = [self.lightcurveTitle_1, self.lightcurveTitle_2, self.lightcurveTitle_3,
+                                 self.lightcurveTitle_4, self.lightcurveTitle_5, self.lightcurveTitle_6,
+                                 self.lightcurveTitle_7, self.lightcurveTitle_8, self.lightcurveTitle_9,
+                                 self.lightcurveTitle_10]
+
+        self.yOffsetSpinBoxes = [self.yOffsetSpinBox_1, self.yOffsetSpinBox_2, self.yOffsetSpinBox_3,
+                                 self.yOffsetSpinBox_4, self.yOffsetSpinBox_5, self.yOffsetSpinBox_6,
+                                 self.yOffsetSpinBox_7, self.yOffsetSpinBox_8, self.yOffsetSpinBox_9,
+                                 self.yOffsetSpinBox_10]
+
+        self.referenceCheckBoxes = [self.referenceCheckBox_1, self.referenceCheckBox_2, self.referenceCheckBox_3,
+                                    self.referenceCheckBox_4, self.referenceCheckBox_5, self.referenceCheckBox_6,
+                                    self.referenceCheckBox_7, self.referenceCheckBox_8, self.referenceCheckBox_9,
+                                    self.referenceCheckBox_10]
+
+        self.xOffsetSpinBoxes = [self.xOffsetSpinBox_1, self.xOffsetSpinBox_2, self.xOffsetSpinBox_3,
+                                 self.xOffsetSpinBox_4, self.xOffsetSpinBox_5, self.xOffsetSpinBox_6,
+                                 self.xOffsetSpinBox_7, self.xOffsetSpinBox_8, self.xOffsetSpinBox_9,
+                                 self.xOffsetSpinBox_10]
+
+        self.initializeLightcurvePanel()
+
+        self.targetCheckBox_1.clicked.connect(self.processTargetSelection1)
+        self.targetCheckBox_2.clicked.connect(self.processTargetSelection2)
+        self.targetCheckBox_3.clicked.connect(self.processTargetSelection3)
+        self.targetCheckBox_4.clicked.connect(self.processTargetSelection4)
+        self.targetCheckBox_5.clicked.connect(self.processTargetSelection5)
+        self.targetCheckBox_6.clicked.connect(self.processTargetSelection6)
+        self.targetCheckBox_7.clicked.connect(self.processTargetSelection7)
+        self.targetCheckBox_8.clicked.connect(self.processTargetSelection8)
+        self.targetCheckBox_9.clicked.connect(self.processTargetSelection9)
+        self.targetCheckBox_10.clicked.connect(self.processTargetSelection10)
+
+        self.showCheckBox_1.clicked.connect(self.processShowSelection)
+        self.showCheckBox_2.clicked.connect(self.processShowSelection)
+        self.showCheckBox_3.clicked.connect(self.processShowSelection)
+        self.showCheckBox_4.clicked.connect(self.processShowSelection)
+        self.showCheckBox_5.clicked.connect(self.processShowSelection)
+        self.showCheckBox_6.clicked.connect(self.processShowSelection)
+        self.showCheckBox_7.clicked.connect(self.processShowSelection)
+        self.showCheckBox_8.clicked.connect(self.processShowSelection)
+        self.showCheckBox_9.clicked.connect(self.processShowSelection)
+        self.showCheckBox_10.clicked.connect(self.processShowSelection)
+
+        self.referenceCheckBox_1.clicked.connect(self.processReferenceSelection1)
+        self.referenceCheckBox_2.clicked.connect(self.processReferenceSelection2)
+        self.referenceCheckBox_3.clicked.connect(self.processReferenceSelection3)
+        self.referenceCheckBox_4.clicked.connect(self.processReferenceSelection4)
+        self.referenceCheckBox_5.clicked.connect(self.processReferenceSelection5)
+        self.referenceCheckBox_6.clicked.connect(self.processReferenceSelection6)
+        self.referenceCheckBox_7.clicked.connect(self.processReferenceSelection7)
+        self.referenceCheckBox_8.clicked.connect(self.processReferenceSelection8)
+        self.referenceCheckBox_9.clicked.connect(self.processReferenceSelection9)
+        self.referenceCheckBox_10.clicked.connect(self.processReferenceSelection10)
+
+        self.yOffsetSpinBox_1.valueChanged.connect(self.processYoffsetChange)
+        self.yOffsetSpinBox_2.valueChanged.connect(self.processYoffsetChange)
+        self.yOffsetSpinBox_3.valueChanged.connect(self.processYoffsetChange)
+        self.yOffsetSpinBox_4.valueChanged.connect(self.processYoffsetChange)
+        self.yOffsetSpinBox_5.valueChanged.connect(self.processYoffsetChange)
+        self.yOffsetSpinBox_6.valueChanged.connect(self.processYoffsetChange)
+        self.yOffsetSpinBox_7.valueChanged.connect(self.processYoffsetChange)
+        self.yOffsetSpinBox_8.valueChanged.connect(self.processYoffsetChange)
+        self.yOffsetSpinBox_9.valueChanged.connect(self.processYoffsetChange)
+        self.yOffsetSpinBox_10.valueChanged.connect(self.processYoffsetChange)
+
+        self.xOffsetSpinBox_1.valueChanged.connect(self.processXoffsetChange1)
+        self.xOffsetSpinBox_2.valueChanged.connect(self.processXoffsetChange2)
+        self.xOffsetSpinBox_3.valueChanged.connect(self.processXoffsetChange3)
+        self.xOffsetSpinBox_4.valueChanged.connect(self.processXoffsetChange4)
+        self.xOffsetSpinBox_5.valueChanged.connect(self.processXoffsetChange5)
+        self.xOffsetSpinBox_6.valueChanged.connect(self.processXoffsetChange6)
+        self.xOffsetSpinBox_7.valueChanged.connect(self.processXoffsetChange7)
+        self.xOffsetSpinBox_8.valueChanged.connect(self.processXoffsetChange8)
+        self.xOffsetSpinBox_9.valueChanged.connect(self.processXoffsetChange9)
+        self.xOffsetSpinBox_10.valueChanged.connect(self.processXoffsetChange10)
+
+        self.smoothingIntervalSpinBox.valueChanged.connect(self.reDrawMainPlot)
+
+        self.LC1 = []
+        self.LC2 = []
+        self.LC3 = []
+        self.LC4 = []
+        self.yRefStar = []
+
+        self.dotSizeSpinner.valueChanged.connect(self.reDrawMainPlot)
+
         # This object is used to display tooltip help in a separate
         # modeless dialog box.
         self.helperThing = HelpDialog()
@@ -207,6 +308,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.tutorialButton.clicked.connect(self.tutorialButtonClicked)
         self.tutorialButton.installEventFilter(self)
+
+        self.lightcurvesHelpButton.clicked.connect(self.lightcurvesHelpButtonClicked)
+        self.lightcurvesHelpButton.installEventFilter(self)
 
         self.minEventLabel.installEventFilter(self)
         self.maxEventLabel.installEventFilter(self)
@@ -282,7 +386,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         # CheckBox: Show secondary star
         # self.showSecondaryCheckBox.clicked.connect(self.toggleDisplayOfSecondaryStar)
         # self.showSecondaryCheckBox.installEventFilter(self)
-        self.normLabel.installEventFilter(self)
+        # self.normLabel.installEventFilter(self)
 
         # Checkbox: Show timestamp errors
         self.showTimestampErrors.clicked.connect(self.toggleDisplayOfTimestampErrors)
@@ -306,15 +410,15 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.showOCRcheckFramesCheckBox.installEventFilter(self)
 
         # QSpinBox
-        self.secondarySelector.valueChanged.connect(self.changeSecondary)
+        # self.secondarySelector.valueChanged.connect(self.changeSecondary)
 
         # QSpinBox
-        self.curveToAnalyzeSpinBox.valueChanged.connect(self.changePrimary)
-        self.curveToAnalyzeSpinBox.installEventFilter(self)
-        self.lightCurveNumberLabel.installEventFilter(self)
+        # self.curveToAnalyzeSpinBox.valueChanged.connect(self.changePrimary)
+        # self.curveToAnalyzeSpinBox.installEventFilter(self)
+        # self.lightCurveNumberLabel.installEventFilter(self)
 
         # QSpinBox: secondarySelector
-        self.secondarySelector.installEventFilter(self)
+        # self.secondarySelector.installEventFilter(self)
 
         # line size
         self.lineWidthLabel.installEventFilter(self)
@@ -333,16 +437,16 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.setDataLimits.installEventFilter(self)
 
         # Button: Smooth secondary
-        self.smoothSecondaryButton.clicked.connect(self.smoothRefStar)
-        self.smoothSecondaryButton.installEventFilter(self)
+        # self.smoothSecondaryButton.clicked.connect(self.smoothRefStar)
+        # self.smoothSecondaryButton.installEventFilter(self)
 
         # QLineEdit: window size for secondary smoothing
         # self.numSmoothPointsEdit.editingFinished.connect(self.smoothRefStar)
-        self.numSmoothPointsEdit.installEventFilter(self)
+        # self.numSmoothPointsEdit.installEventFilter(self)
 
         # Button: Normalize around selected point
-        self.normalizeButton.clicked.connect(self.normalize)
-        self.normalizeButton.installEventFilter(self)
+        # self.normalizeButton.clicked.connect(self.normalize)
+        # self.normalizeButton.installEventFilter(self)
 
         # Button: Do block integration
         self.doBlockIntegration.clicked.connect(self.doIntegration)
@@ -597,6 +701,192 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             else:
                 self.showMsg(f'Could not find csv file specified: {self.externalCsvFilePath}')
                 self.externalCsvFilePath = None
+
+    def initializeLightcurvePanel(self):
+        for checkBox in self.targetCheckBoxes:
+            checkBox.setChecked(False)
+            checkBox.setEnabled(False)
+        self.targetCheckBoxes[0].setChecked(True)
+        for checkBox in self.showCheckBoxes:
+            checkBox.setChecked(False)
+            checkBox.setEnabled(False)
+        self.showCheckBoxes[0].setChecked(True)
+        for checkBox in self.referenceCheckBoxes:
+            checkBox.setChecked(False)
+            checkBox.setEnabled(False)
+        for title in self.lightcurveTitles:
+            title.setText('')
+        for spinBox in self.yOffsetSpinBoxes:
+            spinBox.setValue(0)
+            spinBox.setEnabled(False)
+        for spinBox in self.xOffsetSpinBoxes:
+            spinBox.setValue(0)
+            spinBox.setEnabled(False)
+
+    def processYoffsetChange(self):
+        self.reDrawMainPlot()
+
+    def processXoffsetChange1(self):
+        self.showInfo('xOffset change 1')
+
+    def processXoffsetChange2(self):
+        self.showInfo('xOffset change 2')
+
+    def processXoffsetChange3(self):
+        self.showInfo('xOffset change 3')
+
+    def processXoffsetChange4(self):
+        self.showInfo('xOffset change 4')
+
+    def processXoffsetChange5(self):
+        self.showInfo('xOffset change 5')
+
+    def processXoffsetChange6(self):
+        self.showInfo('xOffset change 6')
+
+    def processXoffsetChange7(self):
+        self.showInfo('xOffset change 7')
+
+    def processXoffsetChange8(self):
+        self.showInfo('xOffset change 8')
+
+    def processXoffsetChange9(self):
+        self.showInfo('xOffset change 9')
+
+    def processXoffsetChange10(self):
+        self.showInfo('xOffset change 10')
+
+    def clearReferenceSelections(self):
+        for checkBox in self.referenceCheckBoxes:
+            checkBox.setChecked(False)
+        for spinBox in self.xOffsetSpinBoxes:
+            spinBox.setEnabled(False)
+
+    def processReferenceSelection(self, i):
+        if self.referenceCheckBoxes[i].isChecked():
+            self.clearReferenceSelections()
+            # TODO implement time-shifted normalization so that xOffset can be made active
+            # self.xOffsetSpinBoxes[i].setEnabled(True)
+            self.referenceCheckBoxes[i].setChecked(True)
+            if i == 0:
+                self.yRefStar = self.LC1[:]
+            elif i == 1:
+                self.yRefStar = self.LC2[:]
+            elif i == 2:
+                self.yRefStar = self.LC3[:]
+            elif i == 3:
+                self.yRefStar = self.LC4[:]
+            else:
+                self.yRefStar = self.extra[i-4][:]
+            self.reDrawMainPlot()
+        else:
+            self.xOffsetSpinBoxes[i].setEnabled(False)
+            for checkBox in self.referenceCheckBoxes:
+                if checkBox.isChecked():
+                    return
+            self.yRefStar = []
+            self.reDrawMainPlot()
+
+    def processReferenceSelection1(self):
+        self.processReferenceSelection(0)
+
+    def processReferenceSelection2(self):
+        self.processReferenceSelection(1)
+
+    def processReferenceSelection3(self):
+        self.processReferenceSelection(2)
+
+    def processReferenceSelection4(self):
+        self.processReferenceSelection(3)
+
+    def processReferenceSelection5(self):
+        self.processReferenceSelection(4)
+
+    def processReferenceSelection6(self):
+        self.processReferenceSelection(6)
+
+    def processReferenceSelection7(self):
+        self.processReferenceSelection(6)
+
+    def processReferenceSelection8(self):
+        self.processReferenceSelection(7)
+
+    def processReferenceSelection9(self):
+        self.processReferenceSelection(8)
+
+    def processReferenceSelection10(self):
+        self.processReferenceSelection(9)
+
+    def forceTargetToShow(self):
+        for i, checkBox in enumerate(self.targetCheckBoxes):
+            if checkBox.isChecked():
+                self.showCheckBoxes[i].setChecked(True)
+
+    def processShowSelection(self):
+        self.forceTargetToShow()
+        self.reDrawMainPlot()
+
+    def clearTargetSelections(self):
+        for checkBox in self.targetCheckBoxes:
+            checkBox.setChecked(False)
+
+    def noTargetSelected(self):
+        for checkBox in self.targetCheckBoxes:
+            if checkBox.isChecked():
+                return False
+        return True
+
+    def processTargetSelection(self, i, redraw):
+        if self.targetCheckBoxes[i].isChecked():
+            self.clearTargetSelections()
+            self.targetCheckBoxes[i].setChecked(True)
+            self.showCheckBoxes[i].setChecked(True)
+            if i == 0:
+                self.yValues = self.LC1.copy()
+            elif i == 1:
+                self.yValues = self.LC2.copy()
+            elif i == 2:
+                self.yValues = self.LC3.copy()
+            elif i == 3:
+                self.yValues = self.LC4.copy()
+            else:
+                self.yValues = self.extra[i-4].copy()
+            if redraw:
+                self.reDrawMainPlot()
+        else:
+            if self.noTargetSelected():
+                self.targetCheckBoxes[i].setChecked(True)
+                self.showCheckBoxes[i].setChecked(True)
+
+    def processTargetSelection1(self):
+        self.processTargetSelection(0, redraw=True)
+
+    def processTargetSelection2(self):
+        self.processTargetSelection(1, redraw=True)
+
+    def processTargetSelection3(self):
+        self.processTargetSelection(2, redraw=True)
+
+    def processTargetSelection4(self):
+        self.processTargetSelection(3, redraw=True)
+
+    def processTargetSelection5(self):
+        self.processTargetSelection(4, redraw=True)
+
+    def processTargetSelection6(self):
+        self.processTargetSelection(5, redraw=True)
+
+    def processTargetSelection7(self):
+        self.processTargetSelection(6, redraw=True)
+
+    def processTargetSelection8(self):
+        self.processTargetSelection(7, redraw=True)
+
+    def processTargetSelection9(self):
+        self.processTargetSelection(8, redraw=True)
+
+    def processTargetSelection10(self):
+        self.processTargetSelection(9, redraw=True)
 
     def processTimeConstantChange(self):
         # We don't want to respond to Ne3 time constant changes until
@@ -1213,6 +1503,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
     def tutorialButtonClicked(self):
         self.showHelp(self.tutorialButton)
 
+    def lightcurvesHelpButtonClicked(self):
+        self.showHelp(self.lightcurvesHelpButton)
+
     def plotHelpButtonClicked(self):
         self.showHelp(self.plotHelpButton)
 
@@ -1502,52 +1795,52 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         else:
             return 4 + len(self.extra)
 
-    def changePrimary(self):
-        if len(self.aperture_names) > 0:
-            self.curveToAnalyzeSpinBox.setMaximum(len(self.aperture_names))
-        else:
-            self.curveToAnalyzeSpinBox.setMaximum(self.getNumberOfUnnamedLightCurves())
-
-        selText = self.curveToAnalyzeSpinBox.text()
-        refNum = int(selText)
-
-        selText2 = self.secondarySelector.text()
-        normNum = int(selText2)
-
-        if len(self.aperture_names) > 0:
-            pymovieColumnType = self.pymovieDataColumnPrefixComboBox.currentText()
-            if refNum == 0:
-                self.showMsg('There is no curve selected for analysis.')
-            elif (refNum - 1) < len(self.aperture_names):
-                self.lightCurveNameEdit.setText(self.aperture_names[refNum - 1])
-                self.showMsg('Analyze data ' + selText + ' selected - PyMovie aperture name: ' +
-                             self.aperture_names[refNum - 1] + f" ({pymovieColumnType})")
-            if not normNum == 0:
-                if (normNum - 1) < len(self.aperture_names):
-                    self.normalizationLightCurveNameEdit.setText(self.aperture_names[normNum - 1])
-        else:
-            if not refNum == 0:
-                self.showMsg('Analyze light curve ' + selText + ' selected.')
-            else:
-                self.showMsg('There is no curve selected for analysis.')
-
-        if refNum == 0:
-            self.yValues = []
-            self.lightCurveNameEdit.setText('')
-        if refNum == 1:
-            self.yValues = self.LC1
-        if refNum == 2:
-            self.yValues = self.LC2
-        if refNum == 3:
-            self.yValues = self.LC3
-        if refNum == 4:
-            self.yValues = self.LC4
-        if refNum > 4:
-            self.yValues = self.extra[refNum - 4 - 1].copy()
-
-        self.solution = None
-        self.reDrawMainPlot()
-        self.mainPlot.autoRange()
+    # def changePrimary(self):
+    #     if len(self.aperture_names) > 0:
+    #         self.curveToAnalyzeSpinBox.setMaximum(len(self.aperture_names))
+    #     else:
+    #         self.curveToAnalyzeSpinBox.setMaximum(self.getNumberOfUnnamedLightCurves())
+    #
+    #     selText = self.curveToAnalyzeSpinBox.text()
+    #     refNum = int(selText)
+    #
+    #     selText2 = self.secondarySelector.text()
+    #     normNum = int(selText2)
+    #
+    #     if len(self.aperture_names) > 0:
+    #         pymovieColumnType = self.pymovieDataColumnPrefixComboBox.currentText()
+    #         if refNum == 0:
+    #             self.showMsg('There is no curve selected for analysis.')
+    #         elif (refNum - 1) < len(self.aperture_names):
+    #             self.lightCurveNameEdit.setText(self.aperture_names[refNum - 1])
+    #             self.showMsg('Analyze data ' + selText + ' selected - PyMovie aperture name: ' +
+    #                          self.aperture_names[refNum - 1] + f" ({pymovieColumnType})")
+    #         if not normNum == 0:
+    #             if (normNum - 1) < len(self.aperture_names):
+    #                 self.normalizationLightCurveNameEdit.setText(self.aperture_names[normNum - 1])
+    #     else:
+    #         if not refNum == 0:
+    #             self.showMsg('Analyze light curve ' + selText + ' selected.')
+    #         else:
+    #             self.showMsg('There is no curve selected for analysis.')
+    #
+    #     if refNum == 0:
+    #         self.yValues = []
+    #         self.lightCurveNameEdit.setText('')
+    #     if refNum == 1:
+    #         self.yValues = self.LC1
+    #     if refNum == 2:
+    #         self.yValues = self.LC2
+    #     if refNum == 3:
+    #         self.yValues = self.LC3
+    #     if refNum == 4:
+    #         self.yValues = self.LC4
+    #     if refNum > 4:
+    #         self.yValues = self.extra[refNum - 4 - 1].copy()
+    #
+    #     self.solution = None
+    #     self.reDrawMainPlot()
+    #     self.mainPlot.autoRange()
 
     def installLatestVersion(self, pyoteversion):
         self.showMsg(f'Asking to upgrade to: {pyoteversion}')
@@ -1956,6 +2249,26 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             msg = 'flash edges (in frame units): %s' % str(self.flashEdges)
             self.showMsg(msg, bold=True, color='red')
 
+    def newNormalize(self):
+        self.newSmoothRefStar()  # Produces/updates self.smoothSecondary
+
+        # Find the mean value in the smoothedSecondary curve and use it as ref (previously we had the user
+        # click on the point to use, but as that had no effect on magdrop calculations, was never needed,)
+        ref = np.mean(self.smoothSecondary)
+        # self.showInfo(f'ref: {ref:0.2f}')
+
+        # Reminder: the smoothSecondary[] only cover self.left to self.right inclusive,
+        # hence the index manipulation in the following code
+        for i in range(self.left, self.right + 1):
+            try:
+                self.yValues[i] = (ref * self.yValues[i]) / self.smoothSecondary[i - self.left]
+            except Exception as e:
+                self.showMsg(str(e))
+
+        self.fillTableViewOfData()  # This should capture/write the effects of the normalization to the table
+
+        self.normalized = True
+
     def normalize(self):
         if len(self.selectedPoints) != 1:
             self.showInfo('A single point must be selected for this operation.' +
@@ -1989,6 +2302,50 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.setDataLimits.setEnabled(False)
         # self.showSecondaryCheckBox.setChecked(False)
         self.reDrawMainPlot()
+
+    def newSmoothRefStar(self):
+        if (self.right - self.left) < 2:
+            self.showInfo('The smoothing algorithm requires a minimum data set of 3 points')
+            return
+
+        y = [self.yRefStar[i] for i in range(self.left, self.right + 1)]
+
+        userSpecedWindow = self.smoothingIntervalSpinBox.value()
+
+        if userSpecedWindow < 3:
+            userSpecedWindow = 3
+
+        # window = None
+        try:
+            if len(y) > userSpecedWindow:
+                window = userSpecedWindow
+            else:
+                window = len(y)
+
+            # Enforce the odd window size required by savgol_filter()
+            if window % 2 == 0:
+                window += 1
+
+            # We do a double pass with a first order (straight line with slope) savgol filter
+            filteredY = scipy.signal.savgol_filter(np.array(y), window, 1)
+            self.smoothSecondary = scipy.signal.savgol_filter(filteredY, window, 1)
+
+            # New in version 3.7.2: we remove the extrapolated points at each end of self.smoothSecondary
+            # self.extra_point_count = window // 2
+            # self.selectedPoints = {self.left + self.extra_point_count: 3,
+            #                        self.right - self.extra_point_count: 3}
+            # saved_smoothSecondary = self.smoothSecondary
+            # self.doTrim(redrawWanted=False)
+            # self.smoothSecondary = saved_smoothSecondary
+            # self.smoothSecondary = self.smoothSecondary[self.extra_point_count:-self.extra_point_count]
+
+            # self.left += self.extra_point_count
+            # self.right -= self.extra_point_count
+            # self.reDrawMainPlot()
+        except Exception as e:
+            self.showMsg(str(e))
+
+        # self.showMsg('Smoothing of secondary star light curve performed with window size: %i' % window)
 
     def smoothRefStar(self):
         if (self.right - self.left) < 4:
@@ -2353,12 +2710,48 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         if not self.aperture_names:
             # Handle non-PyMovie csv file
             colLabels = ['FrameNum', 'timeInfo', 'LC1', 'LC2', 'LC3', 'LC4']
+            if len(self.LC1) > 0:
+                self.lightcurveTitles[0].setText('LC1')
+                self.targetCheckBoxes[0].setEnabled(True)
+                self.showCheckBoxes[0].setEnabled(True)
+                self.yOffsetSpinBoxes[0].setEnabled(True)
+                self.referenceCheckBoxes[0].setEnabled(True)
+
+            if len(self.LC2) > 0:
+                self.lightcurveTitles[1].setText('LC2')
+                self.targetCheckBoxes[1].setEnabled(True)
+                self.showCheckBoxes[1].setEnabled(True)
+                self.yOffsetSpinBoxes[1].setEnabled(True)
+                self.referenceCheckBoxes[1].setEnabled(True)
+
+            if len(self.LC3) > 0:
+                self.lightcurveTitles[2].setText('LC3')
+                self.targetCheckBoxes[2].setEnabled(True)
+                self.showCheckBoxes[2].setEnabled(True)
+                self.yOffsetSpinBoxes[2].setEnabled(True)
+                self.referenceCheckBoxes[2].setEnabled(True)
+
+            if len(self.LC4) > 0:
+                self.lightcurveTitles[3].setText('LC4')
+                self.targetCheckBoxes[3].setEnabled(True)
+                self.showCheckBoxes[3].setEnabled(True)
+                self.yOffsetSpinBoxes[3].setEnabled(True)
+                self.referenceCheckBoxes[3].setEnabled(True)
+
             self.table.setColumnCount(6)
         else:
             self.table.setColumnCount(2 + len(self.aperture_names))
             colLabels = ['FrameNum', 'timeInfo']
+            k = 0
             for column_name in self.aperture_names:
                 colLabels.append(column_name)
+                if k < 10:
+                    self.lightcurveTitles[k].setText(column_name)
+                    self.targetCheckBoxes[k].setEnabled(True)
+                    self.showCheckBoxes[k].setEnabled(True)
+                    self.yOffsetSpinBoxes[k].setEnabled(True)
+                    self.referenceCheckBoxes[k].setEnabled(True)
+                    k += 1
 
         self.table.setHorizontalHeaderLabels(colLabels)
         
@@ -4652,7 +5045,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         for i in range(self.dataLen):
             neatStr = fp.to_precision(self.yValues[i], 6)
             newitem = QtWidgets.QTableWidgetItem(str(neatStr))
-            self.table.setItem(i, 2, newitem)
+            # self.table.setItem(i, 2, newitem)
+            self.table.setItem(i, self.targetIndex + 2, newitem)
             newitem = QtWidgets.QTableWidgetItem(str(self.yTimes[i]))
             self.table.setItem(i, 1, newitem)
             frameNum = float(self.yFrame[i])
@@ -4660,27 +5054,37 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.fieldMode = True
             newitem = QtWidgets.QTableWidgetItem(str(self.yFrame[i]))
             self.table.setItem(i, 0, newitem)
-            nextColumn = 3
+            nextColumn = 2
+            if len(self.LC1) > 0:
+                neatStr = fp.to_precision(self.LC1[i], 6)
+                newitem = QtWidgets.QTableWidgetItem(str(neatStr))
+                if not nextColumn == self.targetIndex + 2:
+                    self.table.setItem(i, 2, newitem)
+                nextColumn += 1
             if len(self.LC2) > 0:
                 neatStr = fp.to_precision(self.LC2[i], 6)
                 newitem = QtWidgets.QTableWidgetItem(str(neatStr))
-                self.table.setItem(i, 3, newitem)
+                if not nextColumn == self.targetIndex + 2:
+                    self.table.setItem(i, 3, newitem)
                 nextColumn += 1
             if len(self.LC3) > 0:
                 neatStr = fp.to_precision(self.LC3[i], 6)
                 newitem = QtWidgets.QTableWidgetItem(str(neatStr))
-                self.table.setItem(i, 4, newitem)
+                if not nextColumn == self.targetIndex + 2:
+                    self.table.setItem(i, 4, newitem)
                 nextColumn += 1
             if len(self.LC4) > 0:
                 neatStr = fp.to_precision(self.LC4[i], 6)
                 newitem = QtWidgets.QTableWidgetItem(str(neatStr))
-                self.table.setItem(i, 5, newitem)
+                if not nextColumn == self.targetIndex + 2:
+                    self.table.setItem(i, 5, newitem)
                 nextColumn += 1
             if len(self.extra) > 0:
                 for k, lightcurve in enumerate(self.extra):
                     neatStr = fp.to_precision(lightcurve[i], 6)
                     newitem = QtWidgets.QTableWidgetItem(str(neatStr))
-                    self.table.setItem(i, 6 + k, newitem)
+                    if not nextColumn == self.targetIndex + 2:
+                        self.table.setItem(i, 6 + k, newitem)
                     nextColumn += 1
             if len(self.demoLightCurve) > 0:
                 neatStr = fp.to_precision(self.demoLightCurve[i], 6)
@@ -4766,6 +5170,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.externalCsvFilePath = None
 
         if self.filename:
+            self.initializeLightcurvePanel()
             self.userDeterminedBaselineStats = False
             self.userDeterminedEventStats = False
             self.setWindowTitle('PYOTE Version: ' + version.version() + '  File being processed: ' + self.filename)
@@ -4891,25 +5296,25 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
                 self.initializeTableView()
 
-                self.curveToAnalyzeSpinBox.setMaximum(1)
-                self.curveToAnalyzeSpinBox.setValue(1)
-                if self.secondary:
-                    self.secondarySelector.setEnabled(True)
-                    self.normLabel.setEnabled(True)
-                    self.curveToAnalyzeSpinBox.setMaximum(2)
-                    if self.ref2:
-                        self.secondarySelector.setEnabled(True)
-                        self.secondarySelector.setMaximum(3)
-                        self.curveToAnalyzeSpinBox.setMaximum(3)
-                        if self.ref3:
-                            self.secondarySelector.setMaximum(4)
-                            self.curveToAnalyzeSpinBox.setMaximum(4)
-                            if self.extra:
-                                self.secondarySelector.setMaximum(4 + len(self.extra))
-                                self.curveToAnalyzeSpinBox.setMaximum(4 + len(self.extra))
+                # self.curveToAnalyzeSpinBox.setMaximum(1)
+                # self.curveToAnalyzeSpinBox.setValue(1)
+                # if self.secondary:
+                #     self.secondarySelector.setEnabled(True)
+                #     self.normLabel.setEnabled(True)
+                #     self.curveToAnalyzeSpinBox.setMaximum(2)
+                #     if self.ref2:
+                #         self.secondarySelector.setEnabled(True)
+                #         self.secondarySelector.setMaximum(3)
+                #         self.curveToAnalyzeSpinBox.setMaximum(3)
+                #         if self.ref3:
+                #             self.secondarySelector.setMaximum(4)
+                #             self.curveToAnalyzeSpinBox.setMaximum(4)
+                #             if self.extra:
+                #                 self.secondarySelector.setMaximum(4 + len(self.extra))
+                #                 self.curveToAnalyzeSpinBox.setMaximum(4 + len(self.extra))
 
-                self.lightCurveNumberLabel.setEnabled(True)
-                self.curveToAnalyzeSpinBox.setEnabled(True)
+                # self.lightCurveNumberLabel.setEnabled(True)
+                # self.curveToAnalyzeSpinBox.setEnabled(True)
 
                 # If no timestamps were found in the input file, prompt for manual entry
                 if self.timestampListIsEmpty(time):
@@ -4944,12 +5349,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.yValues = np.array(values)
                 self.yValCopy = np.ndarray(shape=(len(self.yValues),))
                 np.copyto(self.yValCopy, self.yValues)
-                self.yRefStar = np.array(refStar)
+                # TODO Check that this doesn't break anything
+                # self.yRefStar = np.array(refStar)
                 self.yRefStarCopy = np.array(refStar)
 
-                if self.yRefStar.size > 0:
-                    self.smoothSecondaryButton.setEnabled(True)
-                    self.numSmoothPointsEdit.setEnabled(True)
+                # if len(self.yRefStar) > 0:
+                #     self.smoothSecondaryButton.setEnabled(True)
+                #     self.numSmoothPointsEdit.setEnabled(True)
                     
                 self.dataLen = len(self.yValues)
                 self.yFrame = frame[:]
@@ -4989,7 +5395,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.showMsg('timestamp error rate: ' + fp.to_precision(100 *
                                                                         self.errRate, 3) + '%')
 
-                self.changePrimary()  # Done only to fill in the light-curve name boxes
+                # self.changePrimary()  # Done only to fill in the light-curve name boxes
+                self.solution = None
+                #     self.reDrawMainPlot()
+                self.mainPlot.autoRange()
 
                 if self.outliers:
                     self.showTimestampErrors.setEnabled(True)
@@ -5195,14 +5604,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         
     def disableAllButtons(self):
         self.calcFlashEdge.setEnabled(False)
-        self.lightCurveNumberLabel.setEnabled(False)
-        self.normLabel.setEnabled(False)
-        self.curveToAnalyzeSpinBox.setEnabled(False)
+        # self.lightCurveNumberLabel.setEnabled(False)
+        # self.normLabel.setEnabled(False)
+        # self.curveToAnalyzeSpinBox.setEnabled(False)
         # self.showSecondaryCheckBox.setEnabled(False)
-        self.secondarySelector.setEnabled(False)
-        self.normalizeButton.setEnabled(False)
-        self.smoothSecondaryButton.setEnabled(False)
-        self.numSmoothPointsEdit.setEnabled(False)
+        # self.secondarySelector.setEnabled(False)
+        # self.normalizeButton.setEnabled(False)
+        # self.smoothSecondaryButton.setEnabled(False)
+        # self.numSmoothPointsEdit.setEnabled(False)
         self.setDataLimits.setEnabled(False)      
         self.doBlockIntegration.setEnabled(False)    
         self.locateEvent.setEnabled(False)
@@ -5212,7 +5621,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.markDzone.setEnabled(False)
         self.markRzone.setEnabled(False)
         self.markEzone.setEnabled(False)
-        self.numSmoothPointsEdit.setEnabled(False)
+        # self.numSmoothPointsEdit.setEnabled(False)
         self.minEventEdit.setEnabled(False)
         self.maxEventEdit.setEnabled(False)
         self.writeBarPlots.setEnabled(False)
@@ -5234,9 +5643,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.firstPassPenumbralFit = True
 
-        self.lightCurveNumberLabel.setEnabled(True)
-        self.curveToAnalyzeSpinBox.setEnabled(True)
-        self.normLabel.setEnabled(True)
+        # self.lightCurveNumberLabel.setEnabled(True)
+        # self.curveToAnalyzeSpinBox.setEnabled(True)
+        # self.normLabel.setEnabled(True)
 
         if self.errBarWin:
             self.errBarWin.close()
@@ -5247,10 +5656,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.fillTableViewOfData()
         
-        if len(self.yRefStar) > 0:
-            self.smoothSecondaryButton.setEnabled(True)
-            self.numSmoothPointsEdit.setEnabled(True)
-            self.secondarySelector.setEnabled(True)
+        # if len(self.yRefStar) > 0:
+        #     self.smoothSecondaryButton.setEnabled(True)
+        #     self.numSmoothPointsEdit.setEnabled(True)
+        #     self.secondarySelector.setEnabled(True)
         
         # Enable the initial set of buttons (allowed operations)
         self.startOver.setEnabled(True)
@@ -5487,7 +5896,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             plotGeometricShadowAtD(Dright)
             plotGeometricShadowAtD(Dleft)
             return
-    
+
     def reDrawMainPlot(self):
         self.mainPlot.clear()
 
@@ -5499,30 +5908,46 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.mainPlot.addItem(self.verticalCursor)
 
-        self.mainPlot.plot(self.yValues)
+        self.targetIndex = 0
+        # Find index of target lightcurve
+        for i, checkBox in enumerate(self.targetCheckBoxes):
+            if checkBox.isChecked():
+                self.targetIndex = i
+                break
+
+        self.mainPlot.plot(self.yValues + self.yOffsetSpinBoxes[self.targetIndex].value())
         self.mainPlot.getPlotItem().showAxis('bottom')
         self.mainPlot.getPlotItem().showAxis('left')
+
+        dotSize = self.dotSizeSpinner.value()
+
+        minY = np.min(self.yValues + self.yOffsetSpinBoxes[self.targetIndex].value())
+        maxY = np.max(self.yValues + self.yOffsetSpinBoxes[self.targetIndex].value())
 
         try:
             x = [i for i in range(self.dataLen) if self.yStatus[i] == INCLUDED]
             y = [self.yValues[i] for i in range(self.dataLen) if self.yStatus[i] == INCLUDED]
+            y = np.array(y) + self.yOffsetSpinBoxes[self.targetIndex].value()
             self.mainPlot.plot(x, y, pen=None, symbol='o',
-                               symbolBrush=(0, 0, 255), symbolSize=6)
+                               symbolBrush=(0, 32, 255), symbolSize=dotSize)
 
             x = [i for i in range(self.dataLen) if self.yStatus[i] == BASELINE]
             y = [self.yValues[i] for i in range(self.dataLen) if self.yStatus[i] == BASELINE]
+            y = np.array(y) + self.yOffsetSpinBoxes[self.targetIndex].value()
             self.mainPlot.plot(x, y, pen=None, symbol='o',
-                               symbolBrush=(255, 150, 100), symbolSize=6)
+                               symbolBrush=(255, 150, 100), symbolSize=dotSize)
 
             x = [i for i in range(self.dataLen) if self.yStatus[i] == EVENT]
             y = [self.yValues[i] for i in range(self.dataLen) if self.yStatus[i] == EVENT]
+            y = np.array(y) + self.yOffsetSpinBoxes[self.targetIndex].value()
             self.mainPlot.plot(x, y, pen=None, symbol='o',
-                               symbolBrush=(155, 150, 100), symbolSize=6)
+                               symbolBrush=(155, 150, 100), symbolSize=dotSize)
 
             x = [i for i in range(self.dataLen) if self.yStatus[i] == SELECTED]
             y = [self.yValues[i] for i in range(self.dataLen) if self.yStatus[i] == SELECTED]
+            y = np.array(y) + self.yOffsetSpinBoxes[self.targetIndex].value()
             self.mainPlot.plot(x, y, pen=None, symbol='o',
-                               symbolBrush=(255, 0, 0), symbolSize=10)
+                               symbolBrush=(255, 0, 0), symbolSize=dotSize+4)
         except IndexError:
             pass
 
@@ -5531,11 +5956,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             for i in range(len(self.exponentialDtheoryPts)-1):
                 xVals.append(xVals[-1]+1)
             self.mainPlot.plot(xVals, self.exponentialDtheoryPts, pen=None, symbol='o',
-                               symbolBrush=(150, 100, 100), symbolSize=10)
+                               symbolBrush=(160, 128, 96), symbolSize=dotSize+4)
             hi_int = max(self.yValues[self.left:self.right])
             lo_int = min(self.yValues[self.left:self.right])
             pen = pg.mkPen(color=(200, 0, 0), style=QtCore.Qt.DashLine, width=self.lineWidthSpinner.value())
-            # self.mainPlot.plot([self.exponentialDedge, self.exponentialDedge], [lo_int, hi_int], pen=pen, symbol=None)
             self.mainPlot.plot([self.solution[0], self.solution[0]], [lo_int, hi_int], pen=pen, symbol=None)
 
         if self.exponentialRtheoryPts is not None:
@@ -5543,31 +5967,114 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             for i in range(len(self.exponentialRtheoryPts)-1):
                 xVals.append(xVals[-1]+1)
             self.mainPlot.plot(xVals, self.exponentialRtheoryPts, pen=None, symbol='o',
-                               symbolBrush=(150, 100, 100), symbolSize=10)
+                               symbolBrush=(160, 128, 96), symbolSize=dotSize+4)
             hi_int = max(self.yValues[self.left:self.right])
             lo_int = min(self.yValues[self.left:self.right])
             pen = pg.mkPen(color=(0, 200, 0), style=QtCore.Qt.DashLine, width=self.lineWidthSpinner.value())
-            # self.mainPlot.plot([self.exponentialRedge, self.exponentialRedge], [lo_int, hi_int], pen=pen, symbol=None)
             self.mainPlot.plot([self.solution[1], self.solution[1]], [lo_int, hi_int], pen=pen, symbol=None)
 
-        if self.secondarySelector.value() > 0 and len(self.yRefStar) == self.dataLen:
-            self.mainPlot.plot(self.yRefStar)
-            if self.right is not None:
-                right = min(self.dataLen, self.right+1)
+        if self.right is not None:
+            right = min(self.dataLen, self.right + 1)
+        else:
+            right = self.dataLen
+        if self.left is None:
+            left = 0
+        else:
+            left = self.left
+
+        # if self.secondarySelector.value() > 0 and len(self.yRefStar) == self.dataLen:
+        if len(self.yRefStar) == self.dataLen:
+            if not self.skipNormalization:
+                if self.smoothingIntervalSpinBox.value() > 0:
+                    # Start with pristine (original) values for the curve being analyzed.
+                    self.processTargetSelection(self.targetIndex, redraw=False)
+                    self.newNormalize()
+                else:
+                    self.smoothSecondary = []
+                    # Return to original values
+                    self.processTargetSelection(self.targetIndex, redraw=False)
+                    self.fillTableViewOfData()
+                    self.normalized = False
+                self.skipNormalization = True
+                self.reDrawMainPlot()
             else:
-                right = self.dataLen
-            if self.left is None:
-                left = 0
-            else:
-                left = self.left
-            x = [i for i in range(left, right)]
-            y = [self.yRefStar[i]for i in range(left, right)]
-            self.mainPlot.plot(x, y, pen=None, symbol='o', 
-                               symbolBrush=(0, 255, 0), symbolSize=6)
+                self.skipNormalization = False
+            refIndex = 0
+            # Find index of referencelightcurve
+            for i, checkBox in enumerate(self.referenceCheckBoxes):
+                if checkBox.isChecked():
+                    refIndex = i
+                    break
+            minY = min(minY, np.min(self.yRefStar + self.yOffsetSpinBoxes[refIndex].value()))
+            maxY = max(maxY, np.max(self.yRefStar + self.yOffsetSpinBoxes[refIndex].value()))
+            self.mainPlot.plot(self.yRefStar + self.yOffsetSpinBoxes[refIndex].value())
+            x = [i for i in range(self.left, self.right+1)]
+            y = [self.yRefStar[i]for i in range(self.left, self.right+1)]
+            y = np.array(y) + self.yOffsetSpinBoxes[refIndex].value()
+            self.mainPlot.plot(x, y, pen=None, symbol='o',
+                               symbolBrush=(0, 255, 0), symbolSize=dotSize)
             if len(self.smoothSecondary) > 0:
-                self.mainPlot.plot(x, self.smoothSecondary,
+                self.mainPlot.plot(x, self.smoothSecondary + self.yOffsetSpinBoxes[refIndex].value(),
                                    pen=pg.mkPen((100, 100, 100), width=4), symbol=None)
-                 
+
+        # The first entry is never used,
+        dotColors = [(0, 0, 0), (255, 0, 0), (160, 32, 255), (80, 208, 255), (0, 128, 0),
+                     (255, 224, 32), (255, 160, 16), (160, 128, 96), (64, 64, 64), (255, 208, 160)]
+
+        for i, checkBox in enumerate(self.showCheckBoxes):
+            if checkBox.isChecked():
+                if self.targetCheckBoxes[i].isChecked():
+                    continue
+                if self.referenceCheckBoxes[i].isChecked():
+                    continue
+                if i == 0:
+                    self.mainPlot.plot(self.LC1 + self.yOffsetSpinBoxes[0].value())
+                    minY = min(minY, np.min(self.LC1) + self.yOffsetSpinBoxes[0].value())
+                    maxY = max(maxY, np.max(self.LC1) + self.yOffsetSpinBoxes[0].value())
+                    x = [i for i in range(left, right)]
+                    y = [self.LC1[i] for i in range(left, right)]
+                    y = np.array(y) + self.yOffsetSpinBoxes[0].value()
+                    self.mainPlot.plot(x, y, pen=None, symbol='o',
+                                       symbolBrush=dotColors[i], symbolSize=dotSize)
+                elif i == 1:
+                    self.mainPlot.plot(self.LC2 + self.yOffsetSpinBoxes[1].value())
+                    minY = min(minY, np.min(self.LC2) + self.yOffsetSpinBoxes[1].value())
+                    maxY = max(maxY, np.max(self.LC2) + self.yOffsetSpinBoxes[1].value())
+                    x = [i for i in range(left, right)]
+                    y = [self.LC2[i] for i in range(left, right)]
+                    y = np.array(y) + self.yOffsetSpinBoxes[1].value()
+                    self.mainPlot.plot(x, y, pen=None, symbol='o',
+                                       symbolBrush=dotColors[i], symbolSize=dotSize)
+                elif i == 2:
+                    self.mainPlot.plot(self.LC3 + self.yOffsetSpinBoxes[2].value())
+                    minY = min(minY, np.min(self.LC3) + self.yOffsetSpinBoxes[2].value())
+                    maxY = max(maxY, np.max(self.LC3) + self.yOffsetSpinBoxes[2].value())
+                    x = [i for i in range(left, right)]
+                    y = [self.LC3[i] for i in range(left, right)]
+                    y = np.array(y) + self.yOffsetSpinBoxes[2].value()
+                    self.mainPlot.plot(x, y, pen=None, symbol='o',
+                                       symbolBrush=dotColors[i], symbolSize=dotSize)
+                elif i == 3:
+                    self.mainPlot.plot(self.LC4 + self.yOffsetSpinBoxes[3].value())
+                    minY = min(minY, np.min(self.LC4) + self.yOffsetSpinBoxes[3].value())
+                    maxY = max(maxY, np.max(self.LC4) + self.yOffsetSpinBoxes[3].value())
+                    x = [i for i in range(left, right)]
+                    y = [self.LC4[i] for i in range(left, right)]
+                    y = np.array(y) + self.yOffsetSpinBoxes[3].value()
+                    self.mainPlot.plot(x, y, pen=None, symbol='o',
+                                       symbolBrush=dotColors[i], symbolSize=dotSize)
+                else:
+                    self.mainPlot.plot(self.extra[i-4] + self.yOffsetSpinBoxes[i].value())
+                    minY = min(minY, np.min(self.extra[i-4] + self.yOffsetSpinBoxes[i].value()))
+                    maxY = max(maxY, np.max(self.extra[i-4] + self.yOffsetSpinBoxes[i].value()))
+                    x = [i for i in range(left, right)]
+                    y = [self.extra[i-4][j] for j in range(left, right)]
+                    y = np.array(y) + self.yOffsetSpinBoxes[i].value()
+                    self.mainPlot.plot(x, y, pen=None, symbol='o',
+                                       symbolBrush=dotColors[i], symbolSize=dotSize)
+
+        self.mainPlot.setYRange(minY, maxY)
+
         if self.dRegion is not None:
             self.mainPlot.addItem(self.dRegion)
         if self.rRegion is not None:

@@ -44,7 +44,7 @@
      <height>16777215</height>
     </size>
    </property>
-   <layout class="QGridLayout" name="gridLayout_8">
+   <layout class="QGridLayout" name="gridLayout_9">
     <item row="0" column="0">
      <widget class="QSplitter" name="splitterThree">
       <property name="enabled">
@@ -180,471 +180,1180 @@
              <property name="movable">
               <bool>true</bool>
              </property>
+             <widget class="QWidget" name="tab_2">
+              <attribute name="title">
+               <string>Lightcurves</string>
+              </attribute>
+              <layout class="QGridLayout" name="gridLayout_8">
+               <item row="0" column="0" colspan="2">
+                <spacer name="horizontalSpacer_27">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>378</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="0" column="2" colspan="2">
+                <widget class="QPushButton" name="lightcurvesHelpButton">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>200</width>
+                   <height>60</height>
+                  </size>
+                 </property>
+                 <property name="toolTip">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This panel allows up to 10 lightcurves to be displayed at the same time. If the csv file has more than 10 lightcurves, the first 10 are displayed.&lt;/p&gt;&lt;p&gt;The&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt; targe&lt;/span&gt;t lightcurve is always drawn with bright blue dots.&lt;/p&gt;&lt;p&gt;If a lightcurve is selected as a &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;reference&lt;/span&gt; to be used for normalization, it is always drawn with bright green dots.&lt;/p&gt;&lt;p&gt;Unless a lightcurve is designated as a &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;target&lt;/span&gt; (curve to be analyzed for an event) or is designated as a &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;reference&lt;/span&gt; lightcurve, its dot color depends on the row it is in - every row has a unique color other than blue or green.&lt;/p&gt;&lt;p&gt;Lightcurves can be displaced up or down using the&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt; Y offset&lt;/span&gt; spinner to control the displacement. This affects the display position only; the underlying values are not affected. This facility was added to allow the separation of lightcurves that would otherwise overlap in a confusing manner.&lt;/p&gt;&lt;p&gt;There can only be one lightcurve selected as &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;target&lt;/span&gt;.&lt;/p&gt;&lt;p&gt;There can be either 0 or 1 lightcurve selected as a &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;reference&lt;/span&gt; for normalization.&lt;/p&gt;&lt;p&gt;Normalization is applied whenever the&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt; normalization reference curve smoothing interval&lt;/span&gt; spinbox is changed from 0. Whenever this number is changed, a new normalization will result. If this number is returned to zero, all normalization is removed and the original values restored.&lt;/p&gt;&lt;p&gt;The &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;X offset&lt;/span&gt; spinbox is not yet implemented. Its (future) purpose is to allow the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;reference&lt;/span&gt; curve used for normalization to be 'time shifted' for those cases where a drifting cloud affects lightcurves at slightly different times.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <property name="text">
+                  <string>Help</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="4">
+                <spacer name="horizontalSpacer_28">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>296</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="1" column="3">
+                <spacer name="verticalSpacer_15">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeType">
+                  <enum>QSizePolicy::Fixed</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>25</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="2" column="0" colspan="5">
+                <layout class="QVBoxLayout" name="verticalLayout_8">
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout_28">
+                   <item>
+                    <widget class="QCheckBox" name="targetCheckBox_1">
+                     <property name="text">
+                      <string>target</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="showCheckBox_1">
+                     <property name="layoutDirection">
+                      <enum>Qt::RightToLeft</enum>
+                     </property>
+                     <property name="text">
+                      <string>show</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLineEdit" name="lightcurveTitle_1">
+                     <property name="readOnly">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_10">
+                     <property name="text">
+                      <string>Y offset:</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QSpinBox" name="yOffsetSpinBox_1">
+                     <property name="minimumSize">
+                      <size>
+                       <width>80</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="minimum">
+                      <number>-9999999</number>
+                     </property>
+                     <property name="maximum">
+                      <number>9999999</number>
+                     </property>
+                     <property name="singleStep">
+                      <number>10</number>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="Line" name="line_16">
+                     <property name="frameShadow">
+                      <enum>QFrame::Plain</enum>
+                     </property>
+                     <property name="lineWidth">
+                      <number>6</number>
+                     </property>
+                     <property name="orientation">
+                      <enum>Qt::Vertical</enum>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="referenceCheckBox_1">
+                     <property name="text">
+                      <string>reference</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_11">
+                     <property name="text">
+                      <string>    X offset:</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QSpinBox" name="xOffsetSpinBox_1">
+                     <property name="enabled">
+                      <bool>false</bool>
+                     </property>
+                     <property name="minimumSize">
+                      <size>
+                       <width>80</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="minimum">
+                      <number>-99999</number>
+                     </property>
+                     <property name="maximum">
+                      <number>99999</number>
+                     </property>
+                     <property name="singleStep">
+                      <number>10</number>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout_29">
+                   <item>
+                    <widget class="QCheckBox" name="targetCheckBox_2">
+                     <property name="text">
+                      <string>target</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="showCheckBox_2">
+                     <property name="layoutDirection">
+                      <enum>Qt::RightToLeft</enum>
+                     </property>
+                     <property name="text">
+                      <string>show</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLineEdit" name="lightcurveTitle_2">
+                     <property name="readOnly">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_12">
+                     <property name="text">
+                      <string>Y offset:</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QSpinBox" name="yOffsetSpinBox_2">
+                     <property name="minimumSize">
+                      <size>
+                       <width>80</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="minimum">
+                      <number>-9999999</number>
+                     </property>
+                     <property name="maximum">
+                      <number>9999999</number>
+                     </property>
+                     <property name="singleStep">
+                      <number>10</number>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="Line" name="line_17">
+                     <property name="frameShadow">
+                      <enum>QFrame::Plain</enum>
+                     </property>
+                     <property name="lineWidth">
+                      <number>6</number>
+                     </property>
+                     <property name="orientation">
+                      <enum>Qt::Vertical</enum>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="referenceCheckBox_2">
+                     <property name="text">
+                      <string>reference</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_13">
+                     <property name="text">
+                      <string>    X offset:</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QSpinBox" name="xOffsetSpinBox_2">
+                     <property name="enabled">
+                      <bool>false</bool>
+                     </property>
+                     <property name="minimumSize">
+                      <size>
+                       <width>80</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="minimum">
+                      <number>-99999</number>
+                     </property>
+                     <property name="maximum">
+                      <number>99999</number>
+                     </property>
+                     <property name="singleStep">
+                      <number>10</number>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout_30">
+                   <item>
+                    <widget class="QCheckBox" name="targetCheckBox_3">
+                     <property name="text">
+                      <string>target</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="showCheckBox_3">
+                     <property name="layoutDirection">
+                      <enum>Qt::RightToLeft</enum>
+                     </property>
+                     <property name="text">
+                      <string>show</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLineEdit" name="lightcurveTitle_3">
+                     <property name="readOnly">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_14">
+                     <property name="text">
+                      <string>Y offset:</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QSpinBox" name="yOffsetSpinBox_3">
+                     <property name="minimumSize">
+                      <size>
+                       <width>80</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="minimum">
+                      <number>-9999999</number>
+                     </property>
+                     <property name="maximum">
+                      <number>9999999</number>
+                     </property>
+                     <property name="singleStep">
+                      <number>10</number>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="Line" name="line_18">
+                     <property name="frameShadow">
+                      <enum>QFrame::Plain</enum>
+                     </property>
+                     <property name="lineWidth">
+                      <number>6</number>
+                     </property>
+                     <property name="orientation">
+                      <enum>Qt::Vertical</enum>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="referenceCheckBox_3">
+                     <property name="text">
+                      <string>reference</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_15">
+                     <property name="text">
+                      <string>    X offset:</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QSpinBox" name="xOffsetSpinBox_3">
+                     <property name="enabled">
+                      <bool>false</bool>
+                     </property>
+                     <property name="minimumSize">
+                      <size>
+                       <width>80</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="minimum">
+                      <number>-99999</number>
+                     </property>
+                     <property name="maximum">
+                      <number>99999</number>
+                     </property>
+                     <property name="singleStep">
+                      <number>10</number>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout_31">
+                   <item>
+                    <widget class="QCheckBox" name="targetCheckBox_4">
+                     <property name="text">
+                      <string>target</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="showCheckBox_4">
+                     <property name="layoutDirection">
+                      <enum>Qt::RightToLeft</enum>
+                     </property>
+                     <property name="text">
+                      <string>show</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLineEdit" name="lightcurveTitle_4">
+                     <property name="readOnly">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_16">
+                     <property name="text">
+                      <string>Y offset:</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QSpinBox" name="yOffsetSpinBox_4">
+                     <property name="minimumSize">
+                      <size>
+                       <width>80</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="minimum">
+                      <number>-9999999</number>
+                     </property>
+                     <property name="maximum">
+                      <number>9999999</number>
+                     </property>
+                     <property name="singleStep">
+                      <number>10</number>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="Line" name="line_19">
+                     <property name="frameShadow">
+                      <enum>QFrame::Plain</enum>
+                     </property>
+                     <property name="lineWidth">
+                      <number>6</number>
+                     </property>
+                     <property name="orientation">
+                      <enum>Qt::Vertical</enum>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="referenceCheckBox_4">
+                     <property name="text">
+                      <string>reference</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_17">
+                     <property name="text">
+                      <string>    X offset:</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QSpinBox" name="xOffsetSpinBox_4">
+                     <property name="enabled">
+                      <bool>false</bool>
+                     </property>
+                     <property name="minimumSize">
+                      <size>
+                       <width>80</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="minimum">
+                      <number>-99999</number>
+                     </property>
+                     <property name="maximum">
+                      <number>99999</number>
+                     </property>
+                     <property name="singleStep">
+                      <number>10</number>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout_32">
+                   <item>
+                    <widget class="QCheckBox" name="targetCheckBox_5">
+                     <property name="text">
+                      <string>target</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="showCheckBox_5">
+                     <property name="layoutDirection">
+                      <enum>Qt::RightToLeft</enum>
+                     </property>
+                     <property name="text">
+                      <string>show</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLineEdit" name="lightcurveTitle_5">
+                     <property name="readOnly">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_18">
+                     <property name="text">
+                      <string>Y offset:</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QSpinBox" name="yOffsetSpinBox_5">
+                     <property name="minimumSize">
+                      <size>
+                       <width>80</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="minimum">
+                      <number>-9999999</number>
+                     </property>
+                     <property name="maximum">
+                      <number>9999999</number>
+                     </property>
+                     <property name="singleStep">
+                      <number>10</number>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="Line" name="line_20">
+                     <property name="frameShadow">
+                      <enum>QFrame::Plain</enum>
+                     </property>
+                     <property name="lineWidth">
+                      <number>6</number>
+                     </property>
+                     <property name="orientation">
+                      <enum>Qt::Vertical</enum>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="referenceCheckBox_5">
+                     <property name="text">
+                      <string>reference</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_19">
+                     <property name="text">
+                      <string>    X offset:</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QSpinBox" name="xOffsetSpinBox_5">
+                     <property name="enabled">
+                      <bool>false</bool>
+                     </property>
+                     <property name="minimumSize">
+                      <size>
+                       <width>80</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="minimum">
+                      <number>-99999</number>
+                     </property>
+                     <property name="maximum">
+                      <number>99999</number>
+                     </property>
+                     <property name="singleStep">
+                      <number>10</number>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout_33">
+                   <item>
+                    <widget class="QCheckBox" name="targetCheckBox_6">
+                     <property name="text">
+                      <string>target</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="showCheckBox_6">
+                     <property name="layoutDirection">
+                      <enum>Qt::RightToLeft</enum>
+                     </property>
+                     <property name="text">
+                      <string>show</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLineEdit" name="lightcurveTitle_6">
+                     <property name="readOnly">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_20">
+                     <property name="text">
+                      <string>Y offset:</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QSpinBox" name="yOffsetSpinBox_6">
+                     <property name="minimumSize">
+                      <size>
+                       <width>80</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="minimum">
+                      <number>-9999999</number>
+                     </property>
+                     <property name="maximum">
+                      <number>9999999</number>
+                     </property>
+                     <property name="singleStep">
+                      <number>10</number>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="Line" name="line_21">
+                     <property name="frameShadow">
+                      <enum>QFrame::Plain</enum>
+                     </property>
+                     <property name="lineWidth">
+                      <number>6</number>
+                     </property>
+                     <property name="orientation">
+                      <enum>Qt::Vertical</enum>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="referenceCheckBox_6">
+                     <property name="text">
+                      <string>reference</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_21">
+                     <property name="text">
+                      <string>    X offset:</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QSpinBox" name="xOffsetSpinBox_6">
+                     <property name="enabled">
+                      <bool>false</bool>
+                     </property>
+                     <property name="minimumSize">
+                      <size>
+                       <width>80</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="minimum">
+                      <number>-99999</number>
+                     </property>
+                     <property name="maximum">
+                      <number>99999</number>
+                     </property>
+                     <property name="singleStep">
+                      <number>10</number>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout_34">
+                   <item>
+                    <widget class="QCheckBox" name="targetCheckBox_7">
+                     <property name="text">
+                      <string>target</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="showCheckBox_7">
+                     <property name="layoutDirection">
+                      <enum>Qt::RightToLeft</enum>
+                     </property>
+                     <property name="text">
+                      <string>show</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLineEdit" name="lightcurveTitle_7">
+                     <property name="readOnly">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_22">
+                     <property name="text">
+                      <string>Y offset:</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QSpinBox" name="yOffsetSpinBox_7">
+                     <property name="minimumSize">
+                      <size>
+                       <width>80</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="minimum">
+                      <number>-9999999</number>
+                     </property>
+                     <property name="maximum">
+                      <number>9999999</number>
+                     </property>
+                     <property name="singleStep">
+                      <number>10</number>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="Line" name="line_22">
+                     <property name="frameShadow">
+                      <enum>QFrame::Plain</enum>
+                     </property>
+                     <property name="lineWidth">
+                      <number>6</number>
+                     </property>
+                     <property name="orientation">
+                      <enum>Qt::Vertical</enum>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="referenceCheckBox_7">
+                     <property name="text">
+                      <string>reference</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_23">
+                     <property name="text">
+                      <string>    X offset:</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QSpinBox" name="xOffsetSpinBox_7">
+                     <property name="enabled">
+                      <bool>false</bool>
+                     </property>
+                     <property name="minimumSize">
+                      <size>
+                       <width>80</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="minimum">
+                      <number>-99999</number>
+                     </property>
+                     <property name="maximum">
+                      <number>99999</number>
+                     </property>
+                     <property name="singleStep">
+                      <number>10</number>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout_35">
+                   <item>
+                    <widget class="QCheckBox" name="targetCheckBox_8">
+                     <property name="text">
+                      <string>target</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="showCheckBox_8">
+                     <property name="layoutDirection">
+                      <enum>Qt::RightToLeft</enum>
+                     </property>
+                     <property name="text">
+                      <string>show</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLineEdit" name="lightcurveTitle_8">
+                     <property name="readOnly">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_24">
+                     <property name="text">
+                      <string>Y offset:</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QSpinBox" name="yOffsetSpinBox_8">
+                     <property name="minimumSize">
+                      <size>
+                       <width>80</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="minimum">
+                      <number>-9999999</number>
+                     </property>
+                     <property name="maximum">
+                      <number>9999999</number>
+                     </property>
+                     <property name="singleStep">
+                      <number>10</number>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="Line" name="line_23">
+                     <property name="frameShadow">
+                      <enum>QFrame::Plain</enum>
+                     </property>
+                     <property name="lineWidth">
+                      <number>6</number>
+                     </property>
+                     <property name="orientation">
+                      <enum>Qt::Vertical</enum>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="referenceCheckBox_8">
+                     <property name="text">
+                      <string>reference</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_25">
+                     <property name="text">
+                      <string>    X offset:</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QSpinBox" name="xOffsetSpinBox_8">
+                     <property name="enabled">
+                      <bool>false</bool>
+                     </property>
+                     <property name="minimumSize">
+                      <size>
+                       <width>80</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="minimum">
+                      <number>-99999</number>
+                     </property>
+                     <property name="maximum">
+                      <number>99999</number>
+                     </property>
+                     <property name="singleStep">
+                      <number>10</number>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout_36">
+                   <item>
+                    <widget class="QCheckBox" name="targetCheckBox_9">
+                     <property name="text">
+                      <string>target</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="showCheckBox_9">
+                     <property name="layoutDirection">
+                      <enum>Qt::RightToLeft</enum>
+                     </property>
+                     <property name="text">
+                      <string>show</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLineEdit" name="lightcurveTitle_9">
+                     <property name="readOnly">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_26">
+                     <property name="text">
+                      <string>Y offset:</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QSpinBox" name="yOffsetSpinBox_9">
+                     <property name="minimumSize">
+                      <size>
+                       <width>80</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="minimum">
+                      <number>-9999999</number>
+                     </property>
+                     <property name="maximum">
+                      <number>9999999</number>
+                     </property>
+                     <property name="singleStep">
+                      <number>10</number>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="Line" name="line_24">
+                     <property name="frameShadow">
+                      <enum>QFrame::Plain</enum>
+                     </property>
+                     <property name="lineWidth">
+                      <number>6</number>
+                     </property>
+                     <property name="orientation">
+                      <enum>Qt::Vertical</enum>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="referenceCheckBox_9">
+                     <property name="text">
+                      <string>reference</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_27">
+                     <property name="text">
+                      <string>    X offset:</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QSpinBox" name="xOffsetSpinBox_9">
+                     <property name="enabled">
+                      <bool>false</bool>
+                     </property>
+                     <property name="minimumSize">
+                      <size>
+                       <width>80</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="minimum">
+                      <number>-99999</number>
+                     </property>
+                     <property name="maximum">
+                      <number>99999</number>
+                     </property>
+                     <property name="singleStep">
+                      <number>10</number>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout_37">
+                   <item>
+                    <widget class="QCheckBox" name="targetCheckBox_10">
+                     <property name="text">
+                      <string>target</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="showCheckBox_10">
+                     <property name="layoutDirection">
+                      <enum>Qt::RightToLeft</enum>
+                     </property>
+                     <property name="text">
+                      <string>show</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLineEdit" name="lightcurveTitle_10">
+                     <property name="readOnly">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_28">
+                     <property name="text">
+                      <string>Y offset:</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QSpinBox" name="yOffsetSpinBox_10">
+                     <property name="minimumSize">
+                      <size>
+                       <width>80</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="minimum">
+                      <number>-9999999</number>
+                     </property>
+                     <property name="maximum">
+                      <number>9999999</number>
+                     </property>
+                     <property name="singleStep">
+                      <number>10</number>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="Line" name="line_25">
+                     <property name="frameShadow">
+                      <enum>QFrame::Plain</enum>
+                     </property>
+                     <property name="lineWidth">
+                      <number>6</number>
+                     </property>
+                     <property name="orientation">
+                      <enum>Qt::Vertical</enum>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="referenceCheckBox_10">
+                     <property name="text">
+                      <string>reference</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_29">
+                     <property name="text">
+                      <string>    X offset:</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QSpinBox" name="xOffsetSpinBox_10">
+                     <property name="enabled">
+                      <bool>false</bool>
+                     </property>
+                     <property name="minimumSize">
+                      <size>
+                       <width>80</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="minimum">
+                      <number>-99999</number>
+                     </property>
+                     <property name="maximum">
+                      <number>99999</number>
+                     </property>
+                     <property name="singleStep">
+                      <number>10</number>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                </layout>
+               </item>
+               <item row="3" column="1">
+                <spacer name="verticalSpacer_14">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeType">
+                  <enum>QSizePolicy::Fixed</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>13</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="4" column="0">
+                <spacer name="horizontalSpacer_29">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>345</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="4" column="2" colspan="3">
+                <layout class="QHBoxLayout" name="horizontalLayout_38">
+                 <item>
+                  <widget class="QLabel" name="label_9">
+                   <property name="text">
+                    <string>normalization reference curve smoothing interval (readings)</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QSpinBox" name="smoothingIntervalSpinBox">
+                   <property name="maximum">
+                    <number>9999</number>
+                   </property>
+                   <property name="singleStep">
+                    <number>10</number>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item row="5" column="2">
+                <spacer name="verticalSpacer_13">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>40</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </widget>
              <widget class="QWidget" name="analysisTab">
               <attribute name="title">
                <string>Analysis</string>
               </attribute>
               <layout class="QGridLayout" name="gridLayout_4">
-               <item row="18" column="3">
-                <spacer name="verticalSpacer_10">
-                 <property name="orientation">
-                  <enum>Qt::Vertical</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>20</width>
-                   <height>40</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item row="3" column="1">
-                <widget class="Line" name="line_3">
-                 <property name="frameShadow">
-                  <enum>QFrame::Plain</enum>
-                 </property>
-                 <property name="lineWidth">
-                  <number>4</number>
-                 </property>
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                </widget>
-               </item>
-               <item row="5" column="1">
-                <widget class="Line" name="line_4">
-                 <property name="frameShadow">
-                  <enum>QFrame::Plain</enum>
-                 </property>
-                 <property name="lineWidth">
-                  <number>4</number>
-                 </property>
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                </widget>
-               </item>
-               <item row="8" column="1">
-                <widget class="QLabel" name="markRegionsLabel">
-                 <property name="text">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When edges are clearly visible, mark points to specify region and click ...&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                 </property>
-                 <property name="alignment">
-                  <set>Qt::AlignCenter</set>
-                 </property>
-                </widget>
-               </item>
-               <item row="10" column="1">
-                <widget class="QLabel" name="minMaxLabel">
-                 <property name="text">
-                  <string>... otherwise use the entries below to place bounds on the event size.</string>
-                 </property>
-                 <property name="alignment">
-                  <set>Qt::AlignCenter</set>
-                 </property>
-                </widget>
-               </item>
-               <item row="11" column="0">
-                <spacer name="horizontalSpacer_4">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>40</width>
-                   <height>20</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item row="11" column="4">
-                <spacer name="horizontalSpacer_5">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>40</width>
-                   <height>20</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item row="0" column="2">
-                <spacer name="verticalSpacer_9">
-                 <property name="orientation">
-                  <enum>Qt::Vertical</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>20</width>
-                   <height>40</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item row="12" column="1" colspan="3">
-                <widget class="Line" name="line_2">
-                 <property name="frameShadow">
-                  <enum>QFrame::Plain</enum>
-                 </property>
-                 <property name="lineWidth">
-                  <number>4</number>
-                 </property>
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                </widget>
-               </item>
-               <item row="13" column="1">
-                <widget class="QLabel" name="findEventLabel">
-                 <property name="text">
-                  <string>Finally, click on 'Find event' and, if event found, click '... write report'</string>
-                 </property>
-                 <property name="alignment">
-                  <set>Qt::AlignCenter</set>
-                 </property>
-                </widget>
-               </item>
-               <item row="16" column="1" colspan="3">
-                <widget class="Line" name="line_6">
-                 <property name="frameShadow">
-                  <enum>QFrame::Plain</enum>
-                 </property>
-                 <property name="lineWidth">
-                  <number>4</number>
-                 </property>
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                </widget>
-               </item>
-               <item row="6" column="1">
-                <layout class="QVBoxLayout" name="verticalLayout">
-                 <item>
-                  <layout class="QHBoxLayout" name="horizontalLayout_8">
-                   <item>
-                    <widget class="QPushButton" name="smoothSecondaryButton">
-                     <property name="enabled">
-                      <bool>false</bool>
-                     </property>
-                     <property name="toolTip">
-                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Smooth the selected secondary (reference) star light curve using a Savitsky-Golay filter with a default window of 101 points (the edit box to the right allows for this value to be changed) and a degree 3 interpolating polynomial, applied twice.&lt;/p&gt;&lt;p&gt;The secondary star does not have to be visible for this smoothing to take place.&lt;/p&gt;&lt;p&gt;Smoothing of the secondary curve is a prerequisite to normalizing the occulted star light curve.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                     </property>
-                     <property name="text">
-                      <string>Smooth secondary</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QLabel" name="numSmoothingPointsLabel">
-                     <property name="text">
-                      <string>num points in smoothing: </string>
-                     </property>
-                     <property name="alignment">
-                      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QLineEdit" name="numSmoothPointsEdit">
-                     <property name="enabled">
-                      <bool>false</bool>
-                     </property>
-                     <property name="sizePolicy">
-                      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                       <horstretch>0</horstretch>
-                       <verstretch>0</verstretch>
-                      </sizepolicy>
-                     </property>
-                     <property name="minimumSize">
-                      <size>
-                       <width>0</width>
-                       <height>0</height>
-                      </size>
-                     </property>
-                     <property name="maximumSize">
-                      <size>
-                       <width>60</width>
-                       <height>16777215</height>
-                      </size>
-                     </property>
-                     <property name="toolTip">
-                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This edit box allows you to change the number of points used in Savitsky-Golay filter during smoothing of the secondary star. The window size should be an odd number in the range of 5 up to the number of data points in the secondary curve.&lt;/p&gt;&lt;p&gt;If an even number is specified, the window size used will be one less than that number.&lt;/p&gt;&lt;p&gt;Pressing &lt;span style=&quot; font-weight:600; color:#ff0000;&quot;&gt;tab&lt;/span&gt; or &lt;span style=&quot; font-weight:600; color:#ff0000;&quot;&gt;return&lt;/span&gt; at completion of data entry will trigger the smoothing, or you can click on the Smooth secondary button&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                     </property>
-                     <property name="text">
-                      <string>101</string>
-                     </property>
-                     <property name="frame">
-                      <bool>true</bool>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="normalizeButton">
-                   <property name="enabled">
-                    <bool>false</bool>
-                   </property>
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If a smoothed secondary (reference) curve is available, and a single point has been selected on the curve to be normalized, the selected light curve will be 'normalized' against the reference star. This can be useful in removing light curve distortions caused by clouds or similat light changes.&lt;/p&gt;&lt;p&gt;This done by creating a 'gain curve' from the smoothed reference curve. The 'gain' is unity at the selected point and proportionally larger/smaller at all the other points.&lt;/p&gt;&lt;p&gt;This 'gain curve' is then multiplied point by point against the curve being analyzed to produce the 'normalized' version of that light curve.&lt;/p&gt;&lt;p&gt;Normalization is a one-time-only procedure in that its effects can &lt;span style=&quot; font-weight:600;&quot;&gt;not&lt;/span&gt; be removed by use of the &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Start over&lt;/span&gt; button.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                   </property>
-                   <property name="text">
-                    <string>Normalize around selected point</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item row="1" column="1">
-                <layout class="QHBoxLayout" name="horizontalLayout">
-                 <item>
-                  <widget class="QLabel" name="lightCurveNumberLabel">
-                   <property name="enabled">
-                    <bool>false</bool>
-                   </property>
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this spinner to select which light curve to analyze for an occultation event or as a source for 'flash timing' edges.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                   </property>
-                   <property name="text">
-                    <string>Light curve number to analyze (blue):</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QSpinBox" name="curveToAnalyzeSpinBox">
-                   <property name="enabled">
-                    <bool>false</bool>
-                   </property>
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this spinner to select which light curve to analyze for an occultation event or as a source for 'flash timing' edges.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                   </property>
-                   <property name="minimum">
-                    <number>0</number>
-                   </property>
-                   <property name="maximum">
-                    <number>12</number>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLineEdit" name="lightCurveNameEdit">
-                   <property name="readOnly">
-                    <bool>true</bool>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item row="2" column="1">
-                <layout class="QHBoxLayout" name="horizontalLayout_2">
-                 <item>
-                  <widget class="QLabel" name="normLabel">
-                   <property name="enabled">
-                    <bool>false</bool>
-                   </property>
-                   <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If there are multiple reference stars in the file, this spinner will activate to allow the choice of which one to display/use.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                   </property>
-                   <property name="text">
-                    <string>Light curve for normalization (green):</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QSpinBox" name="secondarySelector">
-                   <property name="enabled">
-                    <bool>false</bool>
-                   </property>
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If there are multiple reference stars in the file, this spinner will activate to allow the choice of which one to display/use.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                   </property>
-                   <property name="minimum">
-                    <number>0</number>
-                   </property>
-                   <property name="maximum">
-                    <number>12</number>
-                   </property>
-                   <property name="value">
-                    <number>0</number>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLineEdit" name="normalizationLightCurveNameEdit">
-                   <property name="readOnly">
-                    <bool>true</bool>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item row="14" column="1" colspan="2">
-                <layout class="QHBoxLayout" name="horizontalLayout_4">
-                 <item>
-                  <widget class="QPushButton" name="locateEvent">
-                   <property name="enabled">
-                    <bool>false</bool>
-                   </property>
-                   <property name="text">
-                    <string>Find event, then ...</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="calcErrBars">
-                   <property name="enabled">
-                    <bool>false</bool>
-                   </property>
-                   <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;To get a 'Final Report', error bars are required. Clicking this button will start the computation of those error bars and, when complete, trigger the preparation of a 'Final Report'&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                   </property>
-                   <property name="text">
-                    <string>... write report</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="helpLabelForFalsePositive">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="minimumSize">
-                    <size>
-                     <width>10</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                   <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Advisory =============================================&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Assuming that you have been diligent in removing common lightcurve artifacts (dips caused by something other than an occultation, &amp;nbsp;like clouds,&amp;nbsp;or a contrail,&amp;nbsp;or ...) using the normalization function,&amp;nbsp;please be aware that ...&lt;/p&gt;&lt;p&gt;... a non-zero False Positive probability (red bar to the left of the black bar) is usually sufficient reason to report a 'miss' (but see note below).&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt; But&lt;/span&gt;,&amp;nbsp;before reporting a 'miss',&amp;nbsp;you should use the Event Detectability calculator to determine if the event was 'detectable'.&amp;nbsp;If the event was 'detectable' and yet a 'miss',&amp;nbsp;the observation has value in constraining one edge of the asteroid.&amp;nbsp;If the 'miss' was of an 'undetectable' event,&amp;nbsp;its value as a constraint on the asteroid edge is greatly diminished.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;However&lt;/span&gt;,&amp;nbsp; a False Positive probability of zero (red bar to the right of the black bar) should &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;NEVER&lt;/span&gt; be the sole reason to report a 'positive'.&lt;/p&gt;&lt;p&gt;If you get a zero False Positive probability &lt;span style=&quot; font-weight:600; text-decoration: underline;&quot;&gt;and this is the only available chord&lt;/span&gt;,&amp;nbsp;look at the False Positive distribution plot and only consider reporting a 'positive' if the measured drop is well to the right of the black bar (which shows the biggest drop found during the simulation run). 'Well to the right' is rather vague,&amp;nbsp;so consult with your area coordinator whenever you are uncertain.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Note:&lt;/span&gt; if your observed 'drop' (red bar) is near the black bar (on either side!) AND there are nearby chords reporting 'positives',&amp;nbsp;there may be value in your observation in spite of the False Positive probability calculation result;&amp;nbsp;your observation may increase confidence in the event recorded by the nearby chords.&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                   </property>
-                   <property name="text">
-                    <string/>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="fillExcelReportButton">
-                   <property name="enabled">
-                    <bool>false</bool>
-                   </property>
-                   <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this button to copy your results to the Asteroid Occultation Report Form (.xlsx spreadsheet - note file type is .xlsx, not .xls). This button will be inactive (grayed out) until a succesful &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;... write report&lt;/span&gt; has been accomplished.&lt;/p&gt;&lt;p&gt;The expected workflow is:&lt;/p&gt;&lt;p&gt;1) Given that PyOTE now has a solution that you wish to report (an occultation), leave PyOTE open ...&lt;/p&gt;&lt;p&gt;2) Run OccultWatcher to enter your event result report. Be sure to ask for a 'prefill' of the .xls version of the report ...&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;3) Convert that .xls file to .xlsx using either Excel (Windows) or LibreOffice (Mac or Linux)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;4) Go back to PyOTE and click this button ...&lt;/p&gt;&lt;p&gt;5) A file dialog will open; locate and select the prefilled and converted .xlsx report from steps 2 and 3.&lt;/p&gt;&lt;p&gt;6) If the file selected in step 5 was a valid Asteroid Occultation Report Form .xlsx file, the PyOTE results will be inserted.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Note: the excel format change from .xls to .xlsx will not affect the downstream processing adversely as the tool in use accepts either format equally well.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;The values that are inserted are:&lt;/p&gt;&lt;p&gt;--- all error bars&lt;/p&gt;&lt;p&gt;--- uncorrected D and/or R times&lt;/p&gt;&lt;p&gt;--- SNR&lt;/p&gt;&lt;p&gt;--- OTA used (PYOTE)&lt;/p&gt;&lt;p&gt;---A sentence summarizing magDrop information will be added in the Comments box&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                   </property>
-                   <property name="text">
-                    <string>... fill Excel report</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item row="15" column="1">
-                <layout class="QHBoxLayout" name="horizontalLayout_7">
-                 <item>
-                  <widget class="QProgressBar" name="progressBar">
-                   <property name="value">
-                    <number>0</number>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="cancelButton">
-                   <property name="text">
-                    <string>Cancel</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item row="17" column="1" colspan="3">
-                <layout class="QVBoxLayout" name="verticalLayout_5">
-                 <item>
-                  <layout class="QHBoxLayout" name="horizontalLayout_5">
-                   <item>
-                    <widget class="QPushButton" name="writePlot">
-                     <property name="enabled">
-                      <bool>false</bool>
-                     </property>
-                     <property name="toolTip">
-                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Note: At the conclusion of error bar calculations, PYOTE automatically writes the main plot to a png file using the name and directory of the just-processed csv file. &lt;/p&gt;&lt;p&gt;If you want/need to record other versions of that plot, click here to open a dialog that will let you specify a different name and/or location for the storage of the new graphics.&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                     </property>
-                     <property name="text">
-                      <string>Write current plot</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QPushButton" name="writeBarPlots">
-                     <property name="enabled">
-                      <bool>false</bool>
-                     </property>
-                     <property name="toolTip">
-                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Note: At the conclusion of error bar calculations, PYOTE automatically writes the error bar plots to appropriately named png files using the name and directory of the just-processed csv file. &lt;/p&gt;&lt;p&gt;If you want/need to record other versions of those plots, click here to open a dialog that will let you specify a different name and/or location for the storage of the new graphics.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                     </property>
-                     <property name="text">
-                      <string>Write error bar plot</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QPushButton" name="writeCSVButton">
-                     <property name="enabled">
-                      <bool>false</bool>
-                     </property>
-                     <property name="toolTip">
-                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this button to write the contents of the data table below to a csv file.&lt;/p&gt;&lt;p&gt;The comment lines from the original input file are preserved.&lt;/p&gt;&lt;p&gt;The most common use for this function is to capture the result of a successful Manual Timestamp Entry for later use (without the need to again go through the manual timestamp entry procedure). It will also reflect any Block Integration that was applied.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                     </property>
-                     <property name="text">
-                      <string>Save current light curve to .csv</string>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="startOver">
-                   <property name="enabled">
-                    <bool>false</bool>
-                   </property>
-                   <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This button removes any trim that is in effect, clears a solution that may have been found, removes a smoothed reference curve, and removes any D or R region that is showing.&lt;/p&gt;&lt;p&gt;It does &lt;span style=&quot; font-weight:600; font-style:italic; color:#fc0107;&quot;&gt;not&lt;/span&gt; undo block integration or light curve normalization -- you must reload the light curve file to recover from those procedures.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                   </property>
-                   <property name="text">
-                    <string>Start over</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item row="11" column="1" colspan="2">
+               <item row="6" column="1" colspan="2">
                 <layout class="QHBoxLayout" name="horizontalLayout_12">
                  <item>
                   <layout class="QHBoxLayout" name="horizontalLayout_10">
@@ -789,7 +1498,7 @@
                  </item>
                 </layout>
                </item>
-               <item row="9" column="1">
+               <item row="4" column="1">
                 <layout class="QHBoxLayout" name="horizontalLayout_3">
                  <item>
                   <widget class="QPushButton" name="markDzone">
@@ -844,7 +1553,7 @@
                  </item>
                 </layout>
                </item>
-               <item row="4" column="1">
+               <item row="1" column="1">
                 <layout class="QVBoxLayout" name="verticalLayout_6">
                  <property name="leftMargin">
                   <number>0</number>
@@ -905,7 +1614,7 @@
                  </item>
                 </layout>
                </item>
-               <item row="7" column="1" colspan="3">
+               <item row="2" column="1" colspan="3">
                 <widget class="Line" name="line">
                  <property name="frameShadow">
                   <enum>QFrame::Plain</enum>
@@ -917,6 +1626,254 @@
                   <enum>Qt::Horizontal</enum>
                  </property>
                 </widget>
+               </item>
+               <item row="13" column="3">
+                <spacer name="verticalSpacer_10">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>40</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="3" column="1">
+                <widget class="QLabel" name="markRegionsLabel">
+                 <property name="text">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When edges are clearly visible, mark points to specify region and click ...&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item row="5" column="1">
+                <widget class="QLabel" name="minMaxLabel">
+                 <property name="text">
+                  <string>... otherwise use the entries below to place bounds on the event size.</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item row="6" column="0">
+                <spacer name="horizontalSpacer_4">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="6" column="4">
+                <spacer name="horizontalSpacer_5">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="0" column="2">
+                <spacer name="verticalSpacer_9">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>40</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="7" column="1" colspan="3">
+                <widget class="Line" name="line_2">
+                 <property name="frameShadow">
+                  <enum>QFrame::Plain</enum>
+                 </property>
+                 <property name="lineWidth">
+                  <number>4</number>
+                 </property>
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                </widget>
+               </item>
+               <item row="8" column="1">
+                <widget class="QLabel" name="findEventLabel">
+                 <property name="text">
+                  <string>Finally, click on 'Find event' and, if event found, click '... write report'</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item row="11" column="1" colspan="3">
+                <widget class="Line" name="line_6">
+                 <property name="frameShadow">
+                  <enum>QFrame::Plain</enum>
+                 </property>
+                 <property name="lineWidth">
+                  <number>4</number>
+                 </property>
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                </widget>
+               </item>
+               <item row="9" column="1" colspan="2">
+                <layout class="QHBoxLayout" name="horizontalLayout_4">
+                 <item>
+                  <widget class="QPushButton" name="locateEvent">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="text">
+                    <string>Find event, then ...</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="calcErrBars">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;To get a 'Final Report', error bars are required. Clicking this button will start the computation of those error bars and, when complete, trigger the preparation of a 'Final Report'&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>... write report</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="helpLabelForFalsePositive">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>10</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Advisory =============================================&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Assuming that you have been diligent in removing common lightcurve artifacts (dips caused by something other than an occultation, &amp;nbsp;like clouds,&amp;nbsp;or a contrail,&amp;nbsp;or ...) using the normalization function,&amp;nbsp;please be aware that ...&lt;/p&gt;&lt;p&gt;... a non-zero False Positive probability (red bar to the left of the black bar) is usually sufficient reason to report a 'miss' (but see note below).&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt; But&lt;/span&gt;,&amp;nbsp;before reporting a 'miss',&amp;nbsp;you should use the Event Detectability calculator to determine if the event was 'detectable'.&amp;nbsp;If the event was 'detectable' and yet a 'miss',&amp;nbsp;the observation has value in constraining one edge of the asteroid.&amp;nbsp;If the 'miss' was of an 'undetectable' event,&amp;nbsp;its value as a constraint on the asteroid edge is greatly diminished.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;However&lt;/span&gt;,&amp;nbsp; a False Positive probability of zero (red bar to the right of the black bar) should &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;NEVER&lt;/span&gt; be the sole reason to report a 'positive'.&lt;/p&gt;&lt;p&gt;If you get a zero False Positive probability &lt;span style=&quot; font-weight:600; text-decoration: underline;&quot;&gt;and this is the only available chord&lt;/span&gt;,&amp;nbsp;look at the False Positive distribution plot and only consider reporting a 'positive' if the measured drop is well to the right of the black bar (which shows the biggest drop found during the simulation run). 'Well to the right' is rather vague,&amp;nbsp;so consult with your area coordinator whenever you are uncertain.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Note:&lt;/span&gt; if your observed 'drop' (red bar) is near the black bar (on either side!) AND there are nearby chords reporting 'positives',&amp;nbsp;there may be value in your observation in spite of the False Positive probability calculation result;&amp;nbsp;your observation may increase confidence in the event recorded by the nearby chords.&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="fillExcelReportButton">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this button to copy your results to the Asteroid Occultation Report Form (.xlsx spreadsheet - note file type is .xlsx, not .xls). This button will be inactive (grayed out) until a succesful &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;... write report&lt;/span&gt; has been accomplished.&lt;/p&gt;&lt;p&gt;The expected workflow is:&lt;/p&gt;&lt;p&gt;1) Given that PyOTE now has a solution that you wish to report (an occultation), leave PyOTE open ...&lt;/p&gt;&lt;p&gt;2) Run OccultWatcher to enter your event result report. Be sure to ask for a 'prefill' of the .xls version of the report ...&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;3) Convert that .xls file to .xlsx using either Excel (Windows) or LibreOffice (Mac or Linux)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;4) Go back to PyOTE and click this button ...&lt;/p&gt;&lt;p&gt;5) A file dialog will open; locate and select the prefilled and converted .xlsx report from steps 2 and 3.&lt;/p&gt;&lt;p&gt;6) If the file selected in step 5 was a valid Asteroid Occultation Report Form .xlsx file, the PyOTE results will be inserted.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Note: the excel format change from .xls to .xlsx will not affect the downstream processing adversely as the tool in use accepts either format equally well.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;The values that are inserted are:&lt;/p&gt;&lt;p&gt;--- all error bars&lt;/p&gt;&lt;p&gt;--- uncorrected D and/or R times&lt;/p&gt;&lt;p&gt;--- SNR&lt;/p&gt;&lt;p&gt;--- OTA used (PYOTE)&lt;/p&gt;&lt;p&gt;---A sentence summarizing magDrop information will be added in the Comments box&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>... fill Excel report</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item row="10" column="1">
+                <layout class="QHBoxLayout" name="horizontalLayout_7">
+                 <item>
+                  <widget class="QProgressBar" name="progressBar">
+                   <property name="value">
+                    <number>0</number>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="cancelButton">
+                   <property name="text">
+                    <string>Cancel</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item row="12" column="1" colspan="3">
+                <layout class="QVBoxLayout" name="verticalLayout_5">
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout_5">
+                   <item>
+                    <widget class="QPushButton" name="writePlot">
+                     <property name="enabled">
+                      <bool>false</bool>
+                     </property>
+                     <property name="toolTip">
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Note: At the conclusion of error bar calculations, PYOTE automatically writes the main plot to a png file using the name and directory of the just-processed csv file. &lt;/p&gt;&lt;p&gt;If you want/need to record other versions of that plot, click here to open a dialog that will let you specify a different name and/or location for the storage of the new graphics.&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     </property>
+                     <property name="text">
+                      <string>Write current plot</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="writeBarPlots">
+                     <property name="enabled">
+                      <bool>false</bool>
+                     </property>
+                     <property name="toolTip">
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Note: At the conclusion of error bar calculations, PYOTE automatically writes the error bar plots to appropriately named png files using the name and directory of the just-processed csv file. &lt;/p&gt;&lt;p&gt;If you want/need to record other versions of those plots, click here to open a dialog that will let you specify a different name and/or location for the storage of the new graphics.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     </property>
+                     <property name="text">
+                      <string>Write error bar plot</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="writeCSVButton">
+                     <property name="enabled">
+                      <bool>false</bool>
+                     </property>
+                     <property name="toolTip">
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this button to write the contents of the data table below to a csv file.&lt;/p&gt;&lt;p&gt;The comment lines from the original input file are preserved.&lt;/p&gt;&lt;p&gt;The most common use for this function is to capture the result of a successful Manual Timestamp Entry for later use (without the need to again go through the manual timestamp entry procedure). It will also reflect any Block Integration that was applied.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     </property>
+                     <property name="text">
+                      <string>Save current light curve to .csv</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="startOver">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This button removes any trim that is in effect, clears a solution that may have been found,  and removes any D or R region showing.&lt;/p&gt;&lt;p&gt;It does &lt;span style=&quot; font-weight:600; font-style:italic; color:#fc0107;&quot;&gt;not&lt;/span&gt; undo block integration -- you must reload the light curve file to recover from a block integration.&lt;/p&gt;&lt;p&gt;Normalization can be undone by simply returning the smoothing inteval number to 0 (This is in the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;lightcurves&lt;/span&gt; panel.)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>Start over</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
                </item>
               </layout>
              </widget>
@@ -1464,20 +2421,47 @@
                <string>Settings/Misc.</string>
               </attribute>
               <layout class="QGridLayout" name="gridLayout_5">
-               <item row="6" column="1" colspan="2">
-                <widget class="Line" name="line_11">
-                 <property name="frameShadow">
-                  <enum>QFrame::Plain</enum>
-                 </property>
-                 <property name="lineWidth">
-                  <number>4</number>
-                 </property>
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                </widget>
+               <item row="11" column="1">
+                <layout class="QHBoxLayout" name="horizontalLayout_20">
+                 <item>
+                  <widget class="QLabel" name="lineWidthLabel">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This spinner sets the line width (in pixels) of the error bar lines, the geometric edge lines, and the lightcurve lines.  Adjust this to show these lines according to your taste and the resolution of your screen.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>line width</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QSpinBox" name="lineWidthSpinner">
+                   <property name="minimum">
+                    <number>1</number>
+                   </property>
+                   <property name="maximum">
+                    <number>9</number>
+                   </property>
+                   <property name="value">
+                    <number>2</number>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_8">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
                </item>
-               <item row="12" column="1" colspan="2">
+               <item row="12" column="1" colspan="3">
                 <widget class="Line" name="line_13">
                  <property name="frameShadow">
                   <enum>QFrame::Plain</enum>
@@ -1490,187 +2474,21 @@
                  </property>
                 </widget>
                </item>
-               <item row="5" column="1" colspan="2">
-                <layout class="QHBoxLayout" name="horizontalLayout_18">
-                 <item>
-                  <widget class="QPushButton" name="viewFrameButton">
-                   <property name="enabled">
-                    <bool>false</bool>
-                   </property>
-                   <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this button to view a frame from the video that was used by PyMovie or Limovie to prepare the csv file that is currently being analyzed. Currently .avi and .ser files are viewable in this manner as well as .fits files inside a FITS folder.&lt;/p&gt;&lt;p&gt;If this button is disabled, it is because the csv file did not come from PyMovie or Limovie or simply cannot be found/opened.&lt;/p&gt;&lt;p&gt;This feature can/should be used as a final quality control check for a video that contains timestamps extracted using OCR. It is possible for OCR to fail in manner that is &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;not detected&lt;/span&gt; by PyOTE because the program only verifies that there is a consistent step (delata time) between frames. If a high order digit has been consistently misread, like reading an 8 as a 9 in the minutes field, the steps can be consistent but the reported time of the event will be wrong.&lt;/p&gt;&lt;p&gt;ALL time reporting is derived from the single timestamp(s) associated with D and/or R (the integer values, not the sub-frame values). If those timestamps are correct, the reported times will be correct even when there may be a few missing or duplicated frames and all other timestamps are wrong. So, best practice is to enter the D frame value in the spin box and visually confirm that the timestamp that you can see is the same as that extracted by the OCR procedure. Repeat for R.&lt;/p&gt;&lt;p&gt;Another use for this feature is to handle the case where there is a visual timestamp that can be seen in the video, but either OCR was not activated during the .csv preparation, or the timestamp overlay came from an unsupported VTI type. The workflow in this case is to let PyOTE find the D and R values, but before doing &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;... write report&lt;/span&gt;, do a &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Manual timestamp entry&lt;/span&gt; for the D and R values found by viewing the relevant frames and entering the correct times in the Manual timestamp dialog.&lt;/p&gt;&lt;p&gt;Note that timestamps can be entered manually even if timestamps are already present in the file. The manual timestamps will be calculated and used to replace those already there.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                   </property>
-                   <property name="text">
-                    <string>View frame from associated video</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QSpinBox" name="frameNumSpinBox">
-                   <property name="enabled">
-                    <bool>false</bool>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>100</width>
-                     <height>16777215</height>
-                    </size>
-                   </property>
-                   <property name="sizeIncrement">
-                    <size>
-                     <width>0</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                   <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this spin box (which may be directly edited) to select the number of the frame/image you want to see.&lt;/p&gt;&lt;p&gt;The upper limit and lower limits for allowed numbers in this spin box are set when the csv is read, which sometimes only contains a subset of the frames available in the video.  If your 'edit' is refused, it is because you are trying to enter a number outside the range allowed, which is always restricted to frame numbers that actually appear in the csv file.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                   </property>
-                   <property name="maximum">
-                    <number>99999</number>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item row="17" column="1">
-                <spacer name="verticalSpacer_4">
-                 <property name="orientation">
-                  <enum>Qt::Vertical</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>20</width>
-                   <height>40</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item row="1" column="1" colspan="2">
-                <widget class="QLabel" name="label">
+               <item row="10" column="1" colspan="3">
+                <widget class="QLabel" name="label_4">
                  <property name="text">
-                  <string>Check any of the following boxes you wish to be active during the analysis.</string>
-                 </property>
-                 <property name="alignment">
-                  <set>Qt::AlignCenter</set>
+                  <string>Set the width of the error bars and light curve lines in the light curve plot.</string>
                  </property>
                 </widget>
                </item>
-               <item row="3" column="1" colspan="2">
-                <widget class="Line" name="line_5">
-                 <property name="frameShadow">
-                  <enum>QFrame::Plain</enum>
-                 </property>
-                 <property name="lineWidth">
-                  <number>4</number>
-                 </property>
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                </widget>
-               </item>
-               <item row="3" column="3" rowspan="2">
-                <spacer name="horizontalSpacer_7">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>40</width>
-                   <height>20</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item row="0" column="2">
-                <spacer name="verticalSpacer_3">
-                 <property name="orientation">
-                  <enum>Qt::Vertical</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>20</width>
-                   <height>40</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item row="4" column="1" colspan="2">
-                <widget class="QLabel" name="label_2">
+               <item row="17" column="1" colspan="3">
+                <widget class="QLabel" name="label_7">
                  <property name="text">
-                  <string>Use View Frame to import a video image of a specific frame number.</string>
-                 </property>
-                 <property name="alignment">
-                  <set>Qt::AlignCenter</set>
+                  <string>... signal (background subtracted)  appsum (no background subtraction) ...</string>
                  </property>
                 </widget>
                </item>
-               <item row="8" column="1" colspan="2">
-                <layout class="QHBoxLayout" name="horizontalLayout_19">
-                 <item>
-                  <widget class="QCheckBox" name="fieldViewCheckBox">
-                   <property name="enabled">
-                    <bool>false</bool>
-                   </property>
-                   <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;For videos from a composite video camera, check this box to view the frame as two fields.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                   </property>
-                   <property name="text">
-                    <string>field view</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QCheckBox" name="flipYaxisCheckBox">
-                   <property name="enabled">
-                    <bool>false</bool>
-                   </property>
-                   <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Checking this box will rotate/flip the image around the horizontal axis. (Flips top to bottom.)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                   </property>
-                   <property name="text">
-                    <string>flip top/bottom</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QCheckBox" name="flipXaxisCheckBox">
-                   <property name="enabled">
-                    <bool>false</bool>
-                   </property>
-                   <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Check this box if you need to rotate/flip the image around the vertical axis. (Flip left to right.)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                   </property>
-                   <property name="text">
-                    <string>flip left/right</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item row="7" column="1" colspan="2">
-                <widget class="QLabel" name="label_3">
-                 <property name="text">
-                  <string>Use the check boxes to change the view of the imported video image.</string>
-                 </property>
-                 <property name="alignment">
-                  <set>Qt::AlignCenter</set>
-                 </property>
-                </widget>
-               </item>
-               <item row="3" column="0" rowspan="2">
-                <spacer name="horizontalSpacer_6">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>40</width>
-                   <height>20</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item row="2" column="1" colspan="2">
+               <item row="2" column="1" colspan="3">
                 <layout class="QHBoxLayout" name="horizontalLayout_17">
                  <item>
                   <widget class="QCheckBox" name="showTimestampErrors">
@@ -1746,8 +2564,8 @@
                  </item>
                 </layout>
                </item>
-               <item row="9" column="1" colspan="2">
-                <widget class="Line" name="line_9">
+               <item row="6" column="1" colspan="3">
+                <widget class="Line" name="line_11">
                  <property name="frameShadow">
                   <enum>QFrame::Plain</enum>
                  </property>
@@ -1759,68 +2577,56 @@
                  </property>
                 </widget>
                </item>
-               <item row="10" column="1" colspan="2">
-                <widget class="QLabel" name="label_4">
-                 <property name="text">
-                  <string>Set the width of the error bars and light curve lines in the light curve plot.</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="11" column="1">
-                <layout class="QHBoxLayout" name="horizontalLayout_20">
+               <item row="5" column="1" colspan="3">
+                <layout class="QHBoxLayout" name="horizontalLayout_18">
                  <item>
-                  <widget class="QLabel" name="lineWidthLabel">
+                  <widget class="QPushButton" name="viewFrameButton">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
                    <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This spinner sets the line width (in pixels) of the error bar lines, the geometric edge lines, and the lightcurve lines.  Adjust this to show these lines according to your taste and the resolution of your screen.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this button to view a frame from the video that was used by PyMovie or Limovie to prepare the csv file that is currently being analyzed. Currently .avi and .ser files are viewable in this manner as well as .fits files inside a FITS folder.&lt;/p&gt;&lt;p&gt;If this button is disabled, it is because the csv file did not come from PyMovie or Limovie or simply cannot be found/opened.&lt;/p&gt;&lt;p&gt;This feature can/should be used as a final quality control check for a video that contains timestamps extracted using OCR. It is possible for OCR to fail in manner that is &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;not detected&lt;/span&gt; by PyOTE because the program only verifies that there is a consistent step (delata time) between frames. If a high order digit has been consistently misread, like reading an 8 as a 9 in the minutes field, the steps can be consistent but the reported time of the event will be wrong.&lt;/p&gt;&lt;p&gt;ALL time reporting is derived from the single timestamp(s) associated with D and/or R (the integer values, not the sub-frame values). If those timestamps are correct, the reported times will be correct even when there may be a few missing or duplicated frames and all other timestamps are wrong. So, best practice is to enter the D frame value in the spin box and visually confirm that the timestamp that you can see is the same as that extracted by the OCR procedure. Repeat for R.&lt;/p&gt;&lt;p&gt;Another use for this feature is to handle the case where there is a visual timestamp that can be seen in the video, but either OCR was not activated during the .csv preparation, or the timestamp overlay came from an unsupported VTI type. The workflow in this case is to let PyOTE find the D and R values, but before doing &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;... write report&lt;/span&gt;, do a &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Manual timestamp entry&lt;/span&gt; for the D and R values found by viewing the relevant frames and entering the correct times in the Manual timestamp dialog.&lt;/p&gt;&lt;p&gt;Note that timestamps can be entered manually even if timestamps are already present in the file. The manual timestamps will be calculated and used to replace those already there.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="text">
-                    <string>line width</string>
+                    <string>View frame from associated video</string>
                    </property>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QSpinBox" name="lineWidthSpinner">
-                   <property name="minimum">
-                    <number>1</number>
+                  <widget class="QSpinBox" name="frameNumSpinBox">
+                   <property name="enabled">
+                    <bool>false</bool>
                    </property>
-                   <property name="maximum">
-                    <number>9</number>
-                   </property>
-                   <property name="value">
-                    <number>2</number>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <spacer name="horizontalSpacer_8">
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
+                   <property name="maximumSize">
                     <size>
-                     <width>40</width>
-                     <height>20</height>
+                     <width>100</width>
+                     <height>16777215</height>
                     </size>
                    </property>
-                  </spacer>
+                   <property name="sizeIncrement">
+                    <size>
+                     <width>0</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this spin box (which may be directly edited) to select the number of the frame/image you want to see.&lt;/p&gt;&lt;p&gt;The upper limit and lower limits for allowed numbers in this spin box are set when the csv is read, which sometimes only contains a subset of the frames available in the video.  If your 'edit' is refused, it is because you are trying to enter a number outside the range allowed, which is always restricted to frame numbers that actually appear in the csv file.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="maximum">
+                    <number>99999</number>
+                   </property>
+                  </widget>
                  </item>
                 </layout>
                </item>
-               <item row="14" column="1">
-                <widget class="QLabel" name="label_7">
+               <item row="13" column="1" colspan="3">
+                <widget class="QLabel" name="label_31">
                  <property name="text">
-                  <string>... signal (background subtracted)  appsum (no background subtraction) ...</string>
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Set the size of the dots used in lightcurve plots.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                  </property>
                 </widget>
                </item>
-               <item row="13" column="1">
-                <widget class="QLabel" name="label_6">
-                 <property name="text">
-                  <string>If the file is from PyMovie, you can select the kind of data to analyze ...</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="16" column="1">
+               <item row="19" column="1" colspan="3">
                 <layout class="QHBoxLayout" name="horizontalLayout_9">
                  <item>
                   <widget class="QComboBox" name="pymovieDataColumnPrefixComboBox">
@@ -1854,12 +2660,223 @@
                  </item>
                 </layout>
                </item>
-               <item row="15" column="1">
+               <item row="1" column="1" colspan="3">
+                <widget class="QLabel" name="label">
+                 <property name="text">
+                  <string>Check any of the following boxes you wish to be active during the analysis.</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item row="20" column="2">
+                <spacer name="verticalSpacer_4">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>40</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="15" column="1" colspan="3">
+                <widget class="Line" name="line_26">
+                 <property name="frameShadow">
+                  <enum>QFrame::Plain</enum>
+                 </property>
+                 <property name="lineWidth">
+                  <number>4</number>
+                 </property>
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                </widget>
+               </item>
+               <item row="16" column="1" colspan="3">
+                <widget class="QLabel" name="label_6">
+                 <property name="text">
+                  <string>If the file is from PyMovie, you can select the kind of data to analyze ...</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="9" column="1" colspan="3">
+                <widget class="Line" name="line_9">
+                 <property name="frameShadow">
+                  <enum>QFrame::Plain</enum>
+                 </property>
+                 <property name="lineWidth">
+                  <number>4</number>
+                 </property>
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="1" colspan="3">
+                <widget class="Line" name="line_5">
+                 <property name="frameShadow">
+                  <enum>QFrame::Plain</enum>
+                 </property>
+                 <property name="lineWidth">
+                  <number>4</number>
+                 </property>
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                </widget>
+               </item>
+               <item row="4" column="1" colspan="3">
+                <widget class="QLabel" name="label_2">
+                 <property name="text">
+                  <string>Use View Frame to import a video image of a specific frame number.</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item row="18" column="1" colspan="3">
                 <widget class="QLabel" name="label_8">
                  <property name="text">
                   <string>... avgbkg (background value)  stdbkg (noise in background)  nmaskpx (pixel count in mask)</string>
                  </property>
                 </widget>
+               </item>
+               <item row="3" column="4" rowspan="2">
+                <spacer name="horizontalSpacer_7">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="7" column="1" colspan="3">
+                <widget class="QLabel" name="label_3">
+                 <property name="text">
+                  <string>Use the check boxes to change the view of the imported video image.</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item row="8" column="1" colspan="2">
+                <layout class="QHBoxLayout" name="horizontalLayout_19">
+                 <item>
+                  <widget class="QCheckBox" name="fieldViewCheckBox">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;For videos from a composite video camera, check this box to view the frame as two fields.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>field view</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="flipYaxisCheckBox">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Checking this box will rotate/flip the image around the horizontal axis. (Flips top to bottom.)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>flip top/bottom</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="flipXaxisCheckBox">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Check this box if you need to rotate/flip the image around the vertical axis. (Flip left to right.)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>flip left/right</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item row="9" column="0" rowspan="2">
+                <spacer name="horizontalSpacer_6">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>155</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="0" column="3">
+                <spacer name="verticalSpacer_3">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>40</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="14" column="1">
+                <layout class="QHBoxLayout" name="horizontalLayout_39">
+                 <item>
+                  <widget class="QLabel" name="lineWidthLabel_2">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This spinner sets the line width (in pixels) of the error bar lines, the geometric edge lines, and the lightcurve lines.  Adjust this to show these lines according to your taste and the resolution of your screen.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>dot size</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QSpinBox" name="dotSizeSpinner">
+                   <property name="minimum">
+                    <number>1</number>
+                   </property>
+                   <property name="maximum">
+                    <number>9</number>
+                   </property>
+                   <property name="value">
+                    <number>6</number>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_30">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
                </item>
               </layout>
              </widget>
