@@ -278,16 +278,16 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.yOffsetSpinBox_9.valueChanged.connect(self.processYoffsetChange)
         self.yOffsetSpinBox_10.valueChanged.connect(self.processYoffsetChange)
 
-        self.xOffsetSpinBox_1.valueChanged.connect(self.processXoffsetChange1)
-        self.xOffsetSpinBox_2.valueChanged.connect(self.processXoffsetChange2)
-        self.xOffsetSpinBox_3.valueChanged.connect(self.processXoffsetChange3)
-        self.xOffsetSpinBox_4.valueChanged.connect(self.processXoffsetChange4)
-        self.xOffsetSpinBox_5.valueChanged.connect(self.processXoffsetChange5)
-        self.xOffsetSpinBox_6.valueChanged.connect(self.processXoffsetChange6)
-        self.xOffsetSpinBox_7.valueChanged.connect(self.processXoffsetChange7)
-        self.xOffsetSpinBox_8.valueChanged.connect(self.processXoffsetChange8)
-        self.xOffsetSpinBox_9.valueChanged.connect(self.processXoffsetChange9)
-        self.xOffsetSpinBox_10.valueChanged.connect(self.processXoffsetChange10)
+        self.xOffsetSpinBox_1.valueChanged.connect(self.processXoffsetChange)
+        self.xOffsetSpinBox_2.valueChanged.connect(self.processXoffsetChange)
+        self.xOffsetSpinBox_3.valueChanged.connect(self.processXoffsetChange)
+        self.xOffsetSpinBox_4.valueChanged.connect(self.processXoffsetChange)
+        self.xOffsetSpinBox_5.valueChanged.connect(self.processXoffsetChange)
+        self.xOffsetSpinBox_6.valueChanged.connect(self.processXoffsetChange)
+        self.xOffsetSpinBox_7.valueChanged.connect(self.processXoffsetChange)
+        self.xOffsetSpinBox_8.valueChanged.connect(self.processXoffsetChange)
+        self.xOffsetSpinBox_9.valueChanged.connect(self.processXoffsetChange)
+        self.xOffsetSpinBox_10.valueChanged.connect(self.processXoffsetChange)
 
         self.smoothingIntervalSpinBox.valueChanged.connect(self.reDrawMainPlot)
 
@@ -726,35 +726,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
     def processYoffsetChange(self):
         self.reDrawMainPlot()
 
-    def processXoffsetChange1(self):
-        self.showInfo('xOffset change 1')
-
-    def processXoffsetChange2(self):
-        self.showInfo('xOffset change 2')
-
-    def processXoffsetChange3(self):
-        self.showInfo('xOffset change 3')
-
-    def processXoffsetChange4(self):
-        self.showInfo('xOffset change 4')
-
-    def processXoffsetChange5(self):
-        self.showInfo('xOffset change 5')
-
-    def processXoffsetChange6(self):
-        self.showInfo('xOffset change 6')
-
-    def processXoffsetChange7(self):
-        self.showInfo('xOffset change 7')
-
-    def processXoffsetChange8(self):
-        self.showInfo('xOffset change 8')
-
-    def processXoffsetChange9(self):
-        self.showInfo('xOffset change 9')
-
-    def processXoffsetChange10(self):
-        self.showInfo('xOffset change 10')
+    def processXoffsetChange(self):
+        self.reDrawMainPlot()
 
     def clearReferenceSelections(self):
         for checkBox in self.referenceCheckBoxes:
@@ -764,9 +737,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     def processReferenceSelection(self, i):
         if self.referenceCheckBoxes[i].isChecked():
+            self.showMsg(f'{self.lightcurveTitles[i].text()} is selected as the reference curve for normalization.')
             self.clearReferenceSelections()
             # TODO implement time-shifted normalization so that xOffset can be made active
-            # self.xOffsetSpinBoxes[i].setEnabled(True)
+            self.xOffsetSpinBoxes[i].setEnabled(True)
             self.referenceCheckBoxes[i].setChecked(True)
             if i == 0:
                 self.yRefStar = self.LC1[:]
@@ -781,11 +755,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.reDrawMainPlot()
         else:
             self.xOffsetSpinBoxes[i].setEnabled(False)
-            for checkBox in self.referenceCheckBoxes:
+            for i, checkBox in enumerate(self.referenceCheckBoxes):
                 if checkBox.isChecked():
+                    self.showMsg(f'{self.lightcurveTitles[i].text()} is selected as the reference curve for normalization.')
                     return
             self.yRefStar = []
             self.reDrawMainPlot()
+            self.showMsg(f'The reference curve has been deselected so normalization is disabled.')
 
     def processReferenceSelection1(self):
         self.processReferenceSelection(0)
@@ -2257,6 +2233,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         ref = np.mean(self.smoothSecondary)
         # self.showInfo(f'ref: {ref:0.2f}')
 
+        xOffset = 0
+        # Look for time shift (xOffset)
+        for i, checkBox in enumerate(self.referenceCheckBoxes):
+            if checkBox.isChecked():
+                xOffset = self.xOffsetSpinBoxes[i].value()
+
+        # self.showInfo(f'xOffset: {xOffset}')
+
         # Reminder: the smoothSecondary[] only cover self.left to self.right inclusive,
         # hence the index manipulation in the following code
         for i in range(self.left, self.right + 1):
@@ -2433,33 +2417,45 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         # indicated by the spinner values
 
         # Get indices of selected primary and reference light curves
-        primary = self.curveToAnalyzeSpinBox.value()
-        reference = self.secondarySelector.value()
-        if primary == 1:
+        primary = 0
+        for i, checkBox in enumerate(self.targetCheckBoxes):
+            if checkBox.isChecked():
+                primary = i
+                break
+
+        reference = None
+        for i, checkBox in enumerate(self.referenceCheckBoxes):
+            if checkBox.isChecked():
+                reference = i
+                break
+
+        if primary == 0:
             self.yValues = self.LC1
-        elif primary == 2:
+        elif primary == 1:
             self.yValues = self.LC2
-        elif primary == 3:
+        elif primary == 2:
             self.yValues = self.LC3
-        elif primary == 4:
+        elif primary == 3:
             self.yValues = self.LC4
         else:
-            self.yValues = self.extra[primary - 5]
+            self.yValues = self.extra[primary - 4]
 
-        if primary == reference:
-            if reference == 1:
+        if reference is not None:
+            if reference == 0:
                 self.yRefStar = self.LC1
-            elif reference == 2:
+            elif reference == 1:
                 self.yRefStar = self.LC2
-            elif reference == 3:
+            elif reference == 2:
                 self.yRefStar = self.LC3
-            elif reference == 4:
+            elif reference == 3:
                 self.yRefStar = self.LC4
             else:
-                self.yRefStar = self.extra[reference - 5]
+                self.yRefStar = self.extra[reference - 4]
+        else:
+            self.yRefStar = []
 
         # noinspection PyUnusedLocal
-        self.yStatus = [1 for _i in range(self.dataLen)]
+        self.yStatus = [INCLUDED for _ in range(self.dataLen)]
 
     def doIntegration(self):
 
@@ -2667,8 +2663,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.acceptBlockIntegration.setEnabled(False)
 
         # if self.showSecondaryCheckBox.isChecked():
-        if self.secondarySelector.value() > 0:
-            self.changeSecondary()
+        # if self.secondarySelector.value() > 0:
+        #     self.changeSecondary()
 
         self.reDrawMainPlot()
         self.mainPlot.autoRange()
@@ -2900,6 +2896,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         if not self.ne3NotInUseRadioButton.isChecked():
             self.writeNe3UsageReport()
+
+        for i, checkBox in enumerate(self.referenceCheckBoxes):
+            if checkBox.isChecked():
+                self.showMsg('', blankLine=False)
+                self.showMsg(f"{self.lightcurveTitles[i].text()} "
+                             f"used for normalization with smoothing interval of {self.smoothingIntervalSpinBox.value()}",
+                             bold=True, blankLine=False)
 
         self.showMsg('', blankLine=False)
 
@@ -5915,6 +5918,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.targetIndex = i
                 break
 
+        refIndex = None
+        # Find index of reference selection (if any}
+        for i, checkBox in enumerate(self.referenceCheckBoxes):
+            if checkBox.isChecked():
+                refIndex = i
+                break
+
         self.mainPlot.plot(self.yValues + self.yOffsetSpinBoxes[self.targetIndex].value())
         self.mainPlot.getPlotItem().showAxis('bottom')
         self.mainPlot.getPlotItem().showAxis('left')
@@ -5999,18 +6009,21 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.reDrawMainPlot()
             else:
                 self.skipNormalization = False
-            refIndex = 0
+
+            # refIndex = 0
             # Find index of referencelightcurve
-            for i, checkBox in enumerate(self.referenceCheckBoxes):
-                if checkBox.isChecked():
-                    refIndex = i
-                    break
+            # for i, checkBox in enumerate(self.referenceCheckBoxes):
+            #     if checkBox.isChecked():
+            #         refIndex = i
+            #         break
+
             minY = min(minY, np.min(self.yRefStar + self.yOffsetSpinBoxes[refIndex].value()))
             maxY = max(maxY, np.max(self.yRefStar + self.yOffsetSpinBoxes[refIndex].value()))
-            self.mainPlot.plot(self.yRefStar + self.yOffsetSpinBoxes[refIndex].value())
-            x = [i for i in range(self.left, self.right+1)]
+            xOffset = self.xOffsetSpinBoxes[refIndex].value()
+            x = [i + xOffset for i in range(self.left, self.right+1)]
             y = [self.yRefStar[i]for i in range(self.left, self.right+1)]
             y = np.array(y) + self.yOffsetSpinBoxes[refIndex].value()
+            self.mainPlot.plot(x, self.yRefStar + self.yOffsetSpinBoxes[refIndex].value())
             self.mainPlot.plot(x, y, pen=None, symbol='o',
                                symbolBrush=(0, 255, 0), symbolSize=dotSize)
             if len(self.smoothSecondary) > 0:
