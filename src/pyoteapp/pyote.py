@@ -594,6 +594,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.settings = QSettings('pyote.ini', QSettings.IniFormat)
         self.settings.setFallbacksEnabled(False)
 
+        tabNameList = self.settings.value('tablist')
+        if tabNameList:
+            self.redoTabOrder(tabNameList)
+
         # This is a 'hack' to override QtDesigner which has evolved somehow the abilty to block my attempts
         # at setting reasonable size parameters in the drag-and drop Designer.
         self.resize(QSize(0, 0))
@@ -707,18 +711,25 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             checkBox.setChecked(False)
             checkBox.setEnabled(False)
         self.targetCheckBoxes[0].setChecked(True)
+
         for checkBox in self.showCheckBoxes:
             checkBox.setChecked(False)
             checkBox.setEnabled(False)
         self.showCheckBoxes[0].setChecked(True)
+
         for checkBox in self.referenceCheckBoxes:
             checkBox.setChecked(False)
             checkBox.setEnabled(False)
+
         for title in self.lightcurveTitles:
             title.setText('')
+
         for spinBox in self.yOffsetSpinBoxes:
             spinBox.setValue(0)
             spinBox.setEnabled(False)
+        self.yOffsetSpinBoxes[0].setValue(0)
+        self.yOffsetSpinBoxes[0].setEnabled(False)
+
         for spinBox in self.xOffsetSpinBoxes:
             spinBox.setValue(0)
             spinBox.setEnabled(False)
@@ -805,6 +816,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
     def clearTargetSelections(self):
         for checkBox in self.targetCheckBoxes:
             checkBox.setChecked(False)
+        for yOffsetSpin in self.yOffsetSpinBoxes:
+            yOffsetSpin.setEnabled(True)
 
     def noTargetSelected(self):
         for checkBox in self.targetCheckBoxes:
@@ -817,6 +830,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.clearTargetSelections()
             self.targetCheckBoxes[i].setChecked(True)
             self.showCheckBoxes[i].setChecked(True)
+            self.yOffsetSpinBoxes[i].setEnabled(False)
+            self.yOffsetSpinBoxes[i].setValue(0)
             if i == 0:
                 self.yValues = self.LC1.copy()
             elif i == 1:
@@ -829,10 +844,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.yValues = self.extra[i-4].copy()
             if redraw:
                 self.reDrawMainPlot()
+            self.yOffsetSpinBoxes[i].setEnabled(False)
+            self.yOffsetSpinBoxes[i].setValue(0)
         else:
             if self.noTargetSelected():
                 self.targetCheckBoxes[i].setChecked(True)
                 self.showCheckBoxes[i].setChecked(True)
+                self.yOffsetSpinBoxes[i].setEnabled(False)
+                self.yOffsetSpinBoxes[i].setValue(0)
 
     def processTargetSelection1(self):
         self.processTargetSelection(0, redraw=True)
@@ -2331,6 +2350,15 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         # self.showMsg('Smoothing of secondary star light curve performed with window size: %i' % window)
 
+    def switchToTabNamed(self, title):
+        tabCount = self.tabWidget.count()  # Returns number of tabs
+        for i in range(tabCount):
+            if self.tabWidget.tabText(i) == title:
+                self.tabWidget.setCurrentIndex(i)
+                return
+
+        self.popupMsg(f'Cannot find tab with title: {title}')
+
     def smoothRefStar(self):
         if (self.right - self.left) < 4:
             self.showInfo('The smoothing algorithm requires a minimum selection of 5 points')
@@ -2711,6 +2739,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.targetCheckBoxes[0].setEnabled(True)
                 self.showCheckBoxes[0].setEnabled(True)
                 self.yOffsetSpinBoxes[0].setEnabled(True)
+                self.yOffsetSpinBoxes[0].setValue(0)
                 self.referenceCheckBoxes[0].setEnabled(True)
 
             if len(self.LC2) > 0:
@@ -2718,6 +2747,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.targetCheckBoxes[1].setEnabled(True)
                 self.showCheckBoxes[1].setEnabled(True)
                 self.yOffsetSpinBoxes[1].setEnabled(True)
+                self.yOffsetSpinBoxes[1].setValue(0)
                 self.referenceCheckBoxes[1].setEnabled(True)
 
             if len(self.LC3) > 0:
@@ -2725,6 +2755,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.targetCheckBoxes[2].setEnabled(True)
                 self.showCheckBoxes[2].setEnabled(True)
                 self.yOffsetSpinBoxes[2].setEnabled(True)
+                self.yOffsetSpinBoxes[2].setValue(0)
                 self.referenceCheckBoxes[2].setEnabled(True)
 
             if len(self.LC4) > 0:
@@ -2732,6 +2763,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.targetCheckBoxes[3].setEnabled(True)
                 self.showCheckBoxes[3].setEnabled(True)
                 self.yOffsetSpinBoxes[3].setEnabled(True)
+                self.yOffsetSpinBoxes[3].setValue(0)
                 self.referenceCheckBoxes[3].setEnabled(True)
 
             self.table.setColumnCount(6)
@@ -2746,6 +2778,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     self.targetCheckBoxes[k].setEnabled(True)
                     self.showCheckBoxes[k].setEnabled(True)
                     self.yOffsetSpinBoxes[k].setEnabled(True)
+                    self.yOffsetSpinBoxes[k].setValue(0)
                     self.referenceCheckBoxes[k].setEnabled(True)
                     k += 1
 
@@ -2754,6 +2787,16 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
     def closeEvent(self, event):
         # Open (or create) file for holding 'sticky' stuff
         self.settings = QSettings('pyote.ini', QSettings.IniFormat)
+
+        tabOrderList = []
+        numTabs = self.tabWidget.count()
+        # print(f'numTabs: {numTabs}')
+        for i in range(numTabs):
+            tabName = self.tabWidget.tabText(i)
+            # print(f'{i}: |{tabName}|')
+            tabOrderList.append(tabName)
+
+        self.settings.setValue('tablist', tabOrderList)
         # Capture the close request and update 'sticky' settings
         self.settings.setValue('size', self.size())
         self.settings.setValue('pos', self.pos())
@@ -5174,6 +5217,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         if self.filename:
             self.initializeLightcurvePanel()
+            self.switchToTabNamed('Lightcurves')
+            QtWidgets.QApplication.processEvents()
             self.userDeterminedBaselineStats = False
             self.userDeterminedEventStats = False
             self.setWindowTitle('PYOTE Version: ' + version.version() + '  File being processed: ' + self.filename)
@@ -5298,26 +5343,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                         self.extra[i] = np.array(vals[:])
 
                 self.initializeTableView()
-
-                # self.curveToAnalyzeSpinBox.setMaximum(1)
-                # self.curveToAnalyzeSpinBox.setValue(1)
-                # if self.secondary:
-                #     self.secondarySelector.setEnabled(True)
-                #     self.normLabel.setEnabled(True)
-                #     self.curveToAnalyzeSpinBox.setMaximum(2)
-                #     if self.ref2:
-                #         self.secondarySelector.setEnabled(True)
-                #         self.secondarySelector.setMaximum(3)
-                #         self.curveToAnalyzeSpinBox.setMaximum(3)
-                #         if self.ref3:
-                #             self.secondarySelector.setMaximum(4)
-                #             self.curveToAnalyzeSpinBox.setMaximum(4)
-                #             if self.extra:
-                #                 self.secondarySelector.setMaximum(4 + len(self.extra))
-                #                 self.curveToAnalyzeSpinBox.setMaximum(4 + len(self.extra))
-
-                # self.lightCurveNumberLabel.setEnabled(True)
-                # self.curveToAnalyzeSpinBox.setEnabled(True)
+                self.yOffsetSpinBoxes[0].setEnabled(False)
 
                 # If no timestamps were found in the input file, prompt for manual entry
                 if self.timestampListIsEmpty(time):
@@ -5352,14 +5378,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.yValues = np.array(values)
                 self.yValCopy = np.ndarray(shape=(len(self.yValues),))
                 np.copyto(self.yValCopy, self.yValues)
-                # TODO Check that this doesn't break anything
-                # self.yRefStar = np.array(refStar)
                 self.yRefStarCopy = np.array(refStar)
 
-                # if len(self.yRefStar) > 0:
-                #     self.smoothSecondaryButton.setEnabled(True)
-                #     self.numSmoothPointsEdit.setEnabled(True)
-                    
                 self.dataLen = len(self.yValues)
                 self.yFrame = frame[:]
 
