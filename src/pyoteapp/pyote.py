@@ -597,6 +597,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         tabNameList = self.settings.value('tablist')
         if tabNameList:
             self.redoTabOrder(tabNameList)
+            # self.switchToTabNamed(tabNameList[0])
 
         # This is a 'hack' to override QtDesigner which has evolved somehow the abilty to block my attempts
         # at setting reasonable size parameters in the drag-and drop Designer.
@@ -2262,9 +2263,17 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         # Reminder: the smoothSecondary[] only cover self.left to self.right inclusive,
         # hence the index manipulation in the following code
+        maxK = len(self.smoothSecondary) - 1
         for i in range(self.left, self.right + 1):
+            k = i - xOffset - self.left
+            if k < 0 or k > maxK:
+                self.yStatus[i] = EXCLUDED
+                continue
+            else:
+                self.yStatus[i] = INCLUDED
             try:
-                self.yValues[i] = (ref * self.yValues[i]) / self.smoothSecondary[i - self.left]
+                # self.yValues[i] = (ref * self.yValues[i]) / self.smoothSecondary[i - self.left]
+                self.yValues[i] = (ref * self.yValues[i]) / self.smoothSecondary[k]
             except Exception as e:
                 self.showMsg(str(e))
 
@@ -6050,9 +6059,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.mainPlot.plot(x, self.smoothSecondary + self.yOffsetSpinBoxes[refIndex].value(),
                                    pen=pg.mkPen((100, 100, 100), width=4), symbol=None)
 
-        # The first entry is never used,
-        dotColors = [(0, 0, 0), (255, 0, 0), (160, 32, 255), (80, 208, 255), (0, 128, 0),
-                     (255, 224, 32), (255, 160, 16), (160, 128, 96), (64, 64, 64), (255, 208, 160)]
+        dotColors = [(255, 0, 0), (160, 32, 255), (80, 208, 255), (96, 255, 128),
+                     (255, 224, 32), (255, 160, 16), (160, 128, 96), (64, 64, 64), (255, 208, 160), (0, 128, 0)]
 
         for i, checkBox in enumerate(self.showCheckBoxes):
             if checkBox.isChecked():

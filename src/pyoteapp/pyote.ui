@@ -213,7 +213,7 @@
                   </size>
                  </property>
                  <property name="toolTip">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This panel allows up to 10 lightcurves to be displayed at the same time. If the csv file has more than 10 lightcurves, the first 10 are displayed.&lt;/p&gt;&lt;p&gt;The&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt; targe&lt;/span&gt;t lightcurve is always drawn with bright blue dots.&lt;/p&gt;&lt;p&gt;If a lightcurve is selected as a &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;reference&lt;/span&gt; to be used for normalization, it is always drawn with bright green dots.&lt;/p&gt;&lt;p&gt;Unless a lightcurve is designated as a &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;target&lt;/span&gt; (curve to be analyzed for an event) or is designated as a &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;reference&lt;/span&gt; lightcurve, its dot color depends on the row it is in - every row has a unique color other than blue or green.&lt;/p&gt;&lt;p&gt;Lightcurves can be displaced up or down using the&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt; Y offset&lt;/span&gt; spinner to control the displacement. This affects the display position only; the underlying values are not affected. This facility was added to allow the separation of lightcurves that would otherwise overlap in a confusing manner.&lt;/p&gt;&lt;p&gt;There can only be one lightcurve selected as &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;target&lt;/span&gt;.&lt;/p&gt;&lt;p&gt;There can be either 0 or 1 lightcurve selected as a &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;reference&lt;/span&gt; for normalization.&lt;/p&gt;&lt;p&gt;Normalization is applied whenever the&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt; normalization reference curve smoothing interval&lt;/span&gt; spinbox is changed from 0. Whenever this number is changed, a new normalization will result. If this number is returned to zero, all normalization is removed and the original values restored.&lt;/p&gt;&lt;p&gt;The &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;X offset&lt;/span&gt; spinbox is not yet implemented. Its (future) purpose is to allow the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;reference&lt;/span&gt; curve used for normalization to be 'time shifted' for those cases where a drifting cloud affects lightcurves at slightly different times.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This panel allows up to 10 lightcurves to be displayed at the same time. If the csv file has more than 10 lightcurves, the first 10 are displayed.&lt;/p&gt;&lt;p&gt;The&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt; targe&lt;/span&gt;t lightcurve is always drawn with bright blue dots.&lt;/p&gt;&lt;p&gt;If a lightcurve is selected as a &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;reference&lt;/span&gt; to be used for normalization, it is always drawn with bright green dots. If a non-zero value is present in the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;normalization reference curve smoothing interval&lt;/span&gt; spinbox, a smoothed version of the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;reference&lt;/span&gt; curve will be displayed as well (color is brown). This smoothed curve is produced by a double application of a first order Savitzky-Golay filter (a straight line) to the points - extrapolation is enabled to deal with the points at either end.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Note:&lt;/span&gt; If you have used a &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;reference&lt;/span&gt; curve for normalization and don't want it to be displayed anymore, simply &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;unselect&lt;/span&gt; it as a &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;reference&lt;/span&gt;.&lt;/p&gt;&lt;p&gt;Unless a lightcurve is designated as a &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;target&lt;/span&gt; (which is always the curve to be analyzed for an event) or is designated as a &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;reference&lt;/span&gt; lightcurve, its dot color depends on the row it is in - every row has a unique color other than blue or green - there is a sample color shown at the right of the lightcurve title.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Tip:&lt;/span&gt; it is easier to compare the color sample with the dots in the curve plot if the dots are larger - dot size can be changed by a spinbox that is on the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Settings/Misc.&lt;/span&gt; tab.&lt;/p&gt;&lt;p&gt;Lightcurves can be displaced up or down using the&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt; Y offset&lt;/span&gt; spinner to control the displacement. This affects the display position only; the underlying values are not affected. This facility was added to allow the separation of lightcurves that would otherwise overlap in a confusing manner.&lt;/p&gt;&lt;p&gt;There can only be one lightcurve selected as &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;target&lt;/span&gt;. That curve always has its &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Y offset&lt;/span&gt; spinner disabled with a value of zero. If there is some lightcurve that overlaps with the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;target&lt;/span&gt;, move that one out of the way.&lt;/p&gt;&lt;p&gt;There can be either 0 or 1 lightcurve selected as a &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;reference&lt;/span&gt; for normalization.&lt;/p&gt;&lt;p&gt;Normalization is applied whenever the&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt; normalization reference curve smoothing interval&lt;/span&gt; spinbox is changed from 0. Whenever this number is changed, a new normalization will result. If this number is returned to zero, all normalization is removed and the original values restored.&lt;/p&gt;&lt;p&gt;The &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;X offset&lt;/span&gt; spinbox is used to shift the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;reference&lt;/span&gt; curve left or right (a time shift) for those cases where a drifting cloud affects the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;target&lt;/span&gt; lightcurves at a slightly different time.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                  </property>
                  <property name="text">
                   <string>Help</string>
@@ -274,6 +274,28 @@
                     <widget class="QLineEdit" name="lightcurveTitle_1">
                      <property name="readOnly">
                       <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="Line" name="line_3">
+                     <property name="minimumSize">
+                      <size>
+                       <width>20</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="styleSheet">
+                      <string notr="true">color: rgb(255, 0, 0)</string>
+                     </property>
+                     <property name="frameShadow">
+                      <enum>QFrame::Plain</enum>
+                     </property>
+                     <property name="lineWidth">
+                      <number>20</number>
+                     </property>
+                     <property name="orientation">
+                      <enum>Qt::Vertical</enum>
                      </property>
                     </widget>
                    </item>
@@ -381,6 +403,28 @@
                     </widget>
                    </item>
                    <item>
+                    <widget class="Line" name="line_4">
+                     <property name="minimumSize">
+                      <size>
+                       <width>20</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="styleSheet">
+                      <string notr="true">color: rgb(160,32,255)</string>
+                     </property>
+                     <property name="frameShadow">
+                      <enum>QFrame::Plain</enum>
+                     </property>
+                     <property name="lineWidth">
+                      <number>20</number>
+                     </property>
+                     <property name="orientation">
+                      <enum>Qt::Vertical</enum>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
                     <widget class="QLabel" name="label_12">
                      <property name="text">
                       <string>Y offset:</string>
@@ -480,6 +524,34 @@
                     <widget class="QLineEdit" name="lightcurveTitle_3">
                      <property name="readOnly">
                       <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="Line" name="line_27">
+                     <property name="minimumSize">
+                      <size>
+                       <width>20</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="baseSize">
+                      <size>
+                       <width>20</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="styleSheet">
+                      <string notr="true">color: rgb(80,208,255)</string>
+                     </property>
+                     <property name="frameShadow">
+                      <enum>QFrame::Plain</enum>
+                     </property>
+                     <property name="lineWidth">
+                      <number>20</number>
+                     </property>
+                     <property name="orientation">
+                      <enum>Qt::Vertical</enum>
                      </property>
                     </widget>
                    </item>
@@ -587,6 +659,28 @@
                     </widget>
                    </item>
                    <item>
+                    <widget class="Line" name="line_28">
+                     <property name="minimumSize">
+                      <size>
+                       <width>20</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="styleSheet">
+                      <string notr="true">color: rgb(96,255,128)</string>
+                     </property>
+                     <property name="frameShadow">
+                      <enum>QFrame::Plain</enum>
+                     </property>
+                     <property name="lineWidth">
+                      <number>20</number>
+                     </property>
+                     <property name="orientation">
+                      <enum>Qt::Vertical</enum>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
                     <widget class="QLabel" name="label_16">
                      <property name="text">
                       <string>Y offset:</string>
@@ -686,6 +780,28 @@
                     <widget class="QLineEdit" name="lightcurveTitle_5">
                      <property name="readOnly">
                       <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="Line" name="line_29">
+                     <property name="minimumSize">
+                      <size>
+                       <width>20</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="styleSheet">
+                      <string notr="true">color: rgb(255,224,32)</string>
+                     </property>
+                     <property name="frameShadow">
+                      <enum>QFrame::Plain</enum>
+                     </property>
+                     <property name="lineWidth">
+                      <number>20</number>
+                     </property>
+                     <property name="orientation">
+                      <enum>Qt::Vertical</enum>
                      </property>
                     </widget>
                    </item>
@@ -793,6 +909,28 @@
                     </widget>
                    </item>
                    <item>
+                    <widget class="Line" name="line_30">
+                     <property name="minimumSize">
+                      <size>
+                       <width>20</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="styleSheet">
+                      <string notr="true">color: rgb(255,160,16)</string>
+                     </property>
+                     <property name="frameShadow">
+                      <enum>QFrame::Plain</enum>
+                     </property>
+                     <property name="lineWidth">
+                      <number>29</number>
+                     </property>
+                     <property name="orientation">
+                      <enum>Qt::Vertical</enum>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
                     <widget class="QLabel" name="label_20">
                      <property name="text">
                       <string>Y offset:</string>
@@ -892,6 +1030,28 @@
                     <widget class="QLineEdit" name="lightcurveTitle_7">
                      <property name="readOnly">
                       <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="Line" name="line_31">
+                     <property name="minimumSize">
+                      <size>
+                       <width>20</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="styleSheet">
+                      <string notr="true">color: rgb(169,128,96)</string>
+                     </property>
+                     <property name="frameShadow">
+                      <enum>QFrame::Plain</enum>
+                     </property>
+                     <property name="lineWidth">
+                      <number>20</number>
+                     </property>
+                     <property name="orientation">
+                      <enum>Qt::Vertical</enum>
                      </property>
                     </widget>
                    </item>
@@ -999,6 +1159,28 @@
                     </widget>
                    </item>
                    <item>
+                    <widget class="Line" name="line_32">
+                     <property name="minimumSize">
+                      <size>
+                       <width>20</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="styleSheet">
+                      <string notr="true">color: rgb(64,64,64)</string>
+                     </property>
+                     <property name="frameShadow">
+                      <enum>QFrame::Plain</enum>
+                     </property>
+                     <property name="lineWidth">
+                      <number>20</number>
+                     </property>
+                     <property name="orientation">
+                      <enum>Qt::Vertical</enum>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
                     <widget class="QLabel" name="label_24">
                      <property name="text">
                       <string>Y offset:</string>
@@ -1102,6 +1284,28 @@
                     </widget>
                    </item>
                    <item>
+                    <widget class="Line" name="line_33">
+                     <property name="minimumSize">
+                      <size>
+                       <width>20</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="styleSheet">
+                      <string notr="true">color: rgb(255,208,160)</string>
+                     </property>
+                     <property name="frameShadow">
+                      <enum>QFrame::Plain</enum>
+                     </property>
+                     <property name="lineWidth">
+                      <number>20</number>
+                     </property>
+                     <property name="orientation">
+                      <enum>Qt::Vertical</enum>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
                     <widget class="QLabel" name="label_26">
                      <property name="text">
                       <string>Y offset:</string>
@@ -1201,6 +1405,28 @@
                     <widget class="QLineEdit" name="lightcurveTitle_10">
                      <property name="readOnly">
                       <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="Line" name="line_34">
+                     <property name="minimumSize">
+                      <size>
+                       <width>20</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="styleSheet">
+                      <string notr="true">color: rgb(0,128,0)</string>
+                     </property>
+                     <property name="frameShadow">
+                      <enum>QFrame::Plain</enum>
+                     </property>
+                     <property name="lineWidth">
+                      <number>20</number>
+                     </property>
+                     <property name="orientation">
+                      <enum>Qt::Vertical</enum>
                      </property>
                     </widget>
                    </item>
@@ -2856,10 +3082,10 @@
                     <number>1</number>
                    </property>
                    <property name="maximum">
-                    <number>9</number>
+                    <number>12</number>
                    </property>
                    <property name="value">
-                    <number>6</number>
+                    <number>8</number>
                    </property>
                   </widget>
                  </item>
