@@ -227,6 +227,16 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                                     self.referenceCheckBox_7, self.referenceCheckBox_8, self.referenceCheckBox_9,
                                     self.referenceCheckBox_10]
 
+        self.colorStyle = ['color: rgb(255,0,0)', 'color: rgb(160,32,255)', 'color: rgb(80,208,255)',
+                           'color: rgb(96,255,128)', 'color: rgb(255,224,32)', 'color: rgb(255,160,16)',
+                           'color: rgb(160,128,96)', 'color: rgb(64,64,64)', 'color: rgb(255,208,160)',
+                           'color: rgb(0,128,0)']
+
+        self.colorBlobs = [self.colorBlob0, self.colorBlob1, self.colorBlob2,
+                           self.colorBlob3, self.colorBlob4, self.colorBlob5,
+                           self.colorBlob6, self.colorBlob7, self.colorBlob8,
+                           self.colorBlob9]
+
         self.xOffsetSpinBoxes = [self.xOffsetSpinBox_1, self.xOffsetSpinBox_2, self.xOffsetSpinBox_3,
                                  self.xOffsetSpinBox_4, self.xOffsetSpinBox_5, self.xOffsetSpinBox_6,
                                  self.xOffsetSpinBox_7, self.xOffsetSpinBox_8, self.xOffsetSpinBox_9,
@@ -735,6 +745,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             spinBox.setValue(0)
             spinBox.setEnabled(False)
 
+        self.recolorBlobs()
+
     def processYoffsetChange(self):
         self.reDrawMainPlot()
 
@@ -746,6 +758,18 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             checkBox.setChecked(False)
         for spinBox in self.xOffsetSpinBoxes:
             spinBox.setEnabled(False)
+
+    def recolorBlobs(self):
+        for i, colorBlob in enumerate(self.colorBlobs):
+            colorBlob.setStyleSheet(self.colorStyle[i])
+        for i, checkBox in enumerate(self.targetCheckBoxes):
+            if checkBox.isChecked():
+                self.colorBlobs[i].setStyleSheet('color: rgb(0,0,255)')  # Set target curve bright blue
+                break
+        for i, checkBox in enumerate(self.referenceCheckBoxes):
+            if checkBox.isChecked():
+                self.colorBlobs[i].setStyleSheet('color: rgb(0,255,0)')  # set reference curve bright green
+                break
 
     def processReferenceSelection(self, i):
         if self.referenceCheckBoxes[i].isChecked():
@@ -764,6 +788,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.yRefStar = self.LC4[:]
             else:
                 self.yRefStar = self.extra[i-4][:]
+            self.recolorBlobs()
             self.reDrawMainPlot()
         else:
             self.xOffsetSpinBoxes[i].setEnabled(False)
@@ -845,6 +870,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.yValues = self.extra[i-4].copy()
             if redraw:
                 self.reDrawMainPlot()
+            self.recolorBlobs()
             self.yOffsetSpinBoxes[i].setEnabled(False)
             self.yOffsetSpinBoxes[i].setValue(0)
         else:

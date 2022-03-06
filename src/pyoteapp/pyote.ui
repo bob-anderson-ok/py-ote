@@ -185,7 +185,70 @@
                <string>Lightcurves</string>
               </attribute>
               <layout class="QGridLayout" name="gridLayout_8">
-               <item row="0" column="0" colspan="2">
+               <item row="4" column="2">
+                <spacer name="verticalSpacer_14">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeType">
+                  <enum>QSizePolicy::Fixed</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>13</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="5" column="3" colspan="3">
+                <layout class="QHBoxLayout" name="horizontalLayout_38">
+                 <item>
+                  <widget class="QLabel" name="label_9">
+                   <property name="text">
+                    <string>normalization reference curve smoothing interval (readings)</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QSpinBox" name="smoothingIntervalSpinBox">
+                   <property name="maximum">
+                    <number>9999</number>
+                   </property>
+                   <property name="singleStep">
+                    <number>10</number>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item row="6" column="3">
+                <spacer name="verticalSpacer_13">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>40</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="5" column="0" colspan="2">
+                <spacer name="horizontalSpacer_29">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>345</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="0" column="0" colspan="3">
                 <spacer name="horizontalSpacer_27">
                  <property name="orientation">
                   <enum>Qt::Horizontal</enum>
@@ -198,7 +261,7 @@
                  </property>
                 </spacer>
                </item>
-               <item row="0" column="2" colspan="2">
+               <item row="0" column="3" colspan="2">
                 <widget class="QPushButton" name="lightcurvesHelpButton">
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
@@ -220,45 +283,65 @@
                  </property>
                 </widget>
                </item>
-               <item row="0" column="4">
-                <spacer name="horizontalSpacer_28">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>296</width>
-                   <height>20</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item row="1" column="3">
-                <spacer name="verticalSpacer_15">
-                 <property name="orientation">
-                  <enum>Qt::Vertical</enum>
-                 </property>
-                 <property name="sizeType">
-                  <enum>QSizePolicy::Fixed</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>20</width>
-                   <height>25</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item row="2" column="0" colspan="5">
+               <item row="3" column="0" colspan="6">
                 <layout class="QVBoxLayout" name="verticalLayout_8">
                  <item>
                   <layout class="QHBoxLayout" name="horizontalLayout_28">
                    <item>
-                    <widget class="QCheckBox" name="targetCheckBox_1">
+                    <widget class="QLabel" name="label_36">
                      <property name="text">
-                      <string>target</string>
+                      <string>   </string>
                      </property>
                     </widget>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="targetCheckBox_1">
+                     <property name="layoutDirection">
+                      <enum>Qt::RightToLeft</enum>
+                     </property>
+                     <property name="text">
+                      <string/>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <spacer name="horizontalSpacer_41">
+                     <property name="orientation">
+                      <enum>Qt::Horizontal</enum>
+                     </property>
+                     <property name="sizeType">
+                      <enum>QSizePolicy::Fixed</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>20</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="referenceCheckBox_1">
+                     <property name="text">
+                      <string/>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <spacer name="horizontalSpacer_31">
+                     <property name="orientation">
+                      <enum>Qt::Horizontal</enum>
+                     </property>
+                     <property name="sizeType">
+                      <enum>QSizePolicy::Fixed</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>30</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                    </spacer>
                    </item>
                    <item>
                     <widget class="QCheckBox" name="showCheckBox_1">
@@ -266,7 +349,14 @@
                       <enum>Qt::RightToLeft</enum>
                      </property>
                      <property name="text">
-                      <string>show</string>
+                      <string/>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_56">
+                     <property name="text">
+                      <string>     </string>
                      </property>
                     </widget>
                    </item>
@@ -278,7 +368,7 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="Line" name="line_3">
+                    <widget class="Line" name="colorBlob0">
                      <property name="minimumSize">
                       <size>
                        <width>20</width>
@@ -326,26 +416,6 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="Line" name="line_16">
-                     <property name="frameShadow">
-                      <enum>QFrame::Plain</enum>
-                     </property>
-                     <property name="lineWidth">
-                      <number>6</number>
-                     </property>
-                     <property name="orientation">
-                      <enum>Qt::Vertical</enum>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QCheckBox" name="referenceCheckBox_1">
-                     <property name="text">
-                      <string>reference</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
                     <widget class="QLabel" name="label_11">
                      <property name="text">
                       <string>    X offset:</string>
@@ -379,11 +449,60 @@
                  <item>
                   <layout class="QHBoxLayout" name="horizontalLayout_29">
                    <item>
-                    <widget class="QCheckBox" name="targetCheckBox_2">
+                    <widget class="QLabel" name="label_37">
                      <property name="text">
-                      <string>target</string>
+                      <string>   </string>
                      </property>
                     </widget>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="targetCheckBox_2">
+                     <property name="layoutDirection">
+                      <enum>Qt::RightToLeft</enum>
+                     </property>
+                     <property name="text">
+                      <string/>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <spacer name="horizontalSpacer_32">
+                     <property name="orientation">
+                      <enum>Qt::Horizontal</enum>
+                     </property>
+                     <property name="sizeType">
+                      <enum>QSizePolicy::Fixed</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>20</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="referenceCheckBox_2">
+                     <property name="text">
+                      <string/>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <spacer name="horizontalSpacer_42">
+                     <property name="orientation">
+                      <enum>Qt::Horizontal</enum>
+                     </property>
+                     <property name="sizeType">
+                      <enum>QSizePolicy::Fixed</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>30</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                    </spacer>
                    </item>
                    <item>
                     <widget class="QCheckBox" name="showCheckBox_2">
@@ -391,7 +510,14 @@
                       <enum>Qt::RightToLeft</enum>
                      </property>
                      <property name="text">
-                      <string>show</string>
+                      <string/>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_57">
+                     <property name="text">
+                      <string>     </string>
                      </property>
                     </widget>
                    </item>
@@ -403,7 +529,7 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="Line" name="line_4">
+                    <widget class="Line" name="colorBlob1">
                      <property name="minimumSize">
                       <size>
                        <width>20</width>
@@ -451,26 +577,6 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="Line" name="line_17">
-                     <property name="frameShadow">
-                      <enum>QFrame::Plain</enum>
-                     </property>
-                     <property name="lineWidth">
-                      <number>6</number>
-                     </property>
-                     <property name="orientation">
-                      <enum>Qt::Vertical</enum>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QCheckBox" name="referenceCheckBox_2">
-                     <property name="text">
-                      <string>reference</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
                     <widget class="QLabel" name="label_13">
                      <property name="text">
                       <string>    X offset:</string>
@@ -504,11 +610,60 @@
                  <item>
                   <layout class="QHBoxLayout" name="horizontalLayout_30">
                    <item>
-                    <widget class="QCheckBox" name="targetCheckBox_3">
+                    <widget class="QLabel" name="label_40">
                      <property name="text">
-                      <string>target</string>
+                      <string>   </string>
                      </property>
                     </widget>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="targetCheckBox_3">
+                     <property name="layoutDirection">
+                      <enum>Qt::RightToLeft</enum>
+                     </property>
+                     <property name="text">
+                      <string/>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <spacer name="horizontalSpacer_33">
+                     <property name="orientation">
+                      <enum>Qt::Horizontal</enum>
+                     </property>
+                     <property name="sizeType">
+                      <enum>QSizePolicy::Fixed</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>20</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="referenceCheckBox_3">
+                     <property name="text">
+                      <string/>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <spacer name="horizontalSpacer_43">
+                     <property name="orientation">
+                      <enum>Qt::Horizontal</enum>
+                     </property>
+                     <property name="sizeType">
+                      <enum>QSizePolicy::Fixed</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>30</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                    </spacer>
                    </item>
                    <item>
                     <widget class="QCheckBox" name="showCheckBox_3">
@@ -516,7 +671,14 @@
                       <enum>Qt::RightToLeft</enum>
                      </property>
                      <property name="text">
-                      <string>show</string>
+                      <string/>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_58">
+                     <property name="text">
+                      <string>     </string>
                      </property>
                     </widget>
                    </item>
@@ -528,7 +690,7 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="Line" name="line_27">
+                    <widget class="Line" name="colorBlob2">
                      <property name="minimumSize">
                       <size>
                        <width>20</width>
@@ -582,26 +744,6 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="Line" name="line_18">
-                     <property name="frameShadow">
-                      <enum>QFrame::Plain</enum>
-                     </property>
-                     <property name="lineWidth">
-                      <number>6</number>
-                     </property>
-                     <property name="orientation">
-                      <enum>Qt::Vertical</enum>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QCheckBox" name="referenceCheckBox_3">
-                     <property name="text">
-                      <string>reference</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
                     <widget class="QLabel" name="label_15">
                      <property name="text">
                       <string>    X offset:</string>
@@ -635,11 +777,60 @@
                  <item>
                   <layout class="QHBoxLayout" name="horizontalLayout_31">
                    <item>
-                    <widget class="QCheckBox" name="targetCheckBox_4">
+                    <widget class="QLabel" name="label_42">
                      <property name="text">
-                      <string>target</string>
+                      <string>   </string>
                      </property>
                     </widget>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="targetCheckBox_4">
+                     <property name="layoutDirection">
+                      <enum>Qt::RightToLeft</enum>
+                     </property>
+                     <property name="text">
+                      <string/>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <spacer name="horizontalSpacer_34">
+                     <property name="orientation">
+                      <enum>Qt::Horizontal</enum>
+                     </property>
+                     <property name="sizeType">
+                      <enum>QSizePolicy::Fixed</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>20</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="referenceCheckBox_4">
+                     <property name="text">
+                      <string/>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <spacer name="horizontalSpacer_44">
+                     <property name="orientation">
+                      <enum>Qt::Horizontal</enum>
+                     </property>
+                     <property name="sizeType">
+                      <enum>QSizePolicy::Fixed</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>30</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                    </spacer>
                    </item>
                    <item>
                     <widget class="QCheckBox" name="showCheckBox_4">
@@ -647,7 +838,14 @@
                       <enum>Qt::RightToLeft</enum>
                      </property>
                      <property name="text">
-                      <string>show</string>
+                      <string/>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_59">
+                     <property name="text">
+                      <string>     </string>
                      </property>
                     </widget>
                    </item>
@@ -659,7 +857,7 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="Line" name="line_28">
+                    <widget class="Line" name="colorBlob3">
                      <property name="minimumSize">
                       <size>
                        <width>20</width>
@@ -707,26 +905,6 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="Line" name="line_19">
-                     <property name="frameShadow">
-                      <enum>QFrame::Plain</enum>
-                     </property>
-                     <property name="lineWidth">
-                      <number>6</number>
-                     </property>
-                     <property name="orientation">
-                      <enum>Qt::Vertical</enum>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QCheckBox" name="referenceCheckBox_4">
-                     <property name="text">
-                      <string>reference</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
                     <widget class="QLabel" name="label_17">
                      <property name="text">
                       <string>    X offset:</string>
@@ -760,11 +938,60 @@
                  <item>
                   <layout class="QHBoxLayout" name="horizontalLayout_32">
                    <item>
-                    <widget class="QCheckBox" name="targetCheckBox_5">
+                    <widget class="QLabel" name="label_44">
                      <property name="text">
-                      <string>target</string>
+                      <string>  </string>
                      </property>
                     </widget>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="targetCheckBox_5">
+                     <property name="layoutDirection">
+                      <enum>Qt::RightToLeft</enum>
+                     </property>
+                     <property name="text">
+                      <string/>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <spacer name="horizontalSpacer_35">
+                     <property name="orientation">
+                      <enum>Qt::Horizontal</enum>
+                     </property>
+                     <property name="sizeType">
+                      <enum>QSizePolicy::Minimum</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>20</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="referenceCheckBox_5">
+                     <property name="text">
+                      <string/>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <spacer name="horizontalSpacer_45">
+                     <property name="orientation">
+                      <enum>Qt::Horizontal</enum>
+                     </property>
+                     <property name="sizeType">
+                      <enum>QSizePolicy::Fixed</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>30</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                    </spacer>
                    </item>
                    <item>
                     <widget class="QCheckBox" name="showCheckBox_5">
@@ -772,7 +999,14 @@
                       <enum>Qt::RightToLeft</enum>
                      </property>
                      <property name="text">
-                      <string>show</string>
+                      <string/>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_60">
+                     <property name="text">
+                      <string>     </string>
                      </property>
                     </widget>
                    </item>
@@ -784,7 +1018,7 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="Line" name="line_29">
+                    <widget class="Line" name="colorBlob4">
                      <property name="minimumSize">
                       <size>
                        <width>20</width>
@@ -832,26 +1066,6 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="Line" name="line_20">
-                     <property name="frameShadow">
-                      <enum>QFrame::Plain</enum>
-                     </property>
-                     <property name="lineWidth">
-                      <number>6</number>
-                     </property>
-                     <property name="orientation">
-                      <enum>Qt::Vertical</enum>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QCheckBox" name="referenceCheckBox_5">
-                     <property name="text">
-                      <string>reference</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
                     <widget class="QLabel" name="label_19">
                      <property name="text">
                       <string>    X offset:</string>
@@ -885,11 +1099,60 @@
                  <item>
                   <layout class="QHBoxLayout" name="horizontalLayout_33">
                    <item>
-                    <widget class="QCheckBox" name="targetCheckBox_6">
+                    <widget class="QLabel" name="label_46">
                      <property name="text">
-                      <string>target</string>
+                      <string>  </string>
                      </property>
                     </widget>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="targetCheckBox_6">
+                     <property name="layoutDirection">
+                      <enum>Qt::RightToLeft</enum>
+                     </property>
+                     <property name="text">
+                      <string/>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <spacer name="horizontalSpacer_36">
+                     <property name="orientation">
+                      <enum>Qt::Horizontal</enum>
+                     </property>
+                     <property name="sizeType">
+                      <enum>QSizePolicy::Fixed</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>20</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="referenceCheckBox_6">
+                     <property name="text">
+                      <string/>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <spacer name="horizontalSpacer_46">
+                     <property name="orientation">
+                      <enum>Qt::Horizontal</enum>
+                     </property>
+                     <property name="sizeType">
+                      <enum>QSizePolicy::Fixed</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>30</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                    </spacer>
                    </item>
                    <item>
                     <widget class="QCheckBox" name="showCheckBox_6">
@@ -897,7 +1160,14 @@
                       <enum>Qt::RightToLeft</enum>
                      </property>
                      <property name="text">
-                      <string>show</string>
+                      <string/>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_61">
+                     <property name="text">
+                      <string>     </string>
                      </property>
                     </widget>
                    </item>
@@ -909,7 +1179,7 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="Line" name="line_30">
+                    <widget class="Line" name="colorBlob5">
                      <property name="minimumSize">
                       <size>
                        <width>20</width>
@@ -957,26 +1227,6 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="Line" name="line_21">
-                     <property name="frameShadow">
-                      <enum>QFrame::Plain</enum>
-                     </property>
-                     <property name="lineWidth">
-                      <number>6</number>
-                     </property>
-                     <property name="orientation">
-                      <enum>Qt::Vertical</enum>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QCheckBox" name="referenceCheckBox_6">
-                     <property name="text">
-                      <string>reference</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
                     <widget class="QLabel" name="label_21">
                      <property name="text">
                       <string>    X offset:</string>
@@ -1010,11 +1260,60 @@
                  <item>
                   <layout class="QHBoxLayout" name="horizontalLayout_34">
                    <item>
-                    <widget class="QCheckBox" name="targetCheckBox_7">
+                    <widget class="QLabel" name="label_48">
                      <property name="text">
-                      <string>target</string>
+                      <string>  </string>
                      </property>
                     </widget>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="targetCheckBox_7">
+                     <property name="layoutDirection">
+                      <enum>Qt::RightToLeft</enum>
+                     </property>
+                     <property name="text">
+                      <string/>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <spacer name="horizontalSpacer_37">
+                     <property name="orientation">
+                      <enum>Qt::Horizontal</enum>
+                     </property>
+                     <property name="sizeType">
+                      <enum>QSizePolicy::Fixed</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>20</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="referenceCheckBox_7">
+                     <property name="text">
+                      <string/>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <spacer name="horizontalSpacer_47">
+                     <property name="orientation">
+                      <enum>Qt::Horizontal</enum>
+                     </property>
+                     <property name="sizeType">
+                      <enum>QSizePolicy::Minimum</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>30</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                    </spacer>
                    </item>
                    <item>
                     <widget class="QCheckBox" name="showCheckBox_7">
@@ -1022,7 +1321,14 @@
                       <enum>Qt::RightToLeft</enum>
                      </property>
                      <property name="text">
-                      <string>show</string>
+                      <string/>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_62">
+                     <property name="text">
+                      <string>     </string>
                      </property>
                     </widget>
                    </item>
@@ -1034,7 +1340,7 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="Line" name="line_31">
+                    <widget class="Line" name="colorBlob6">
                      <property name="minimumSize">
                       <size>
                        <width>20</width>
@@ -1042,7 +1348,7 @@
                       </size>
                      </property>
                      <property name="styleSheet">
-                      <string notr="true">color: rgb(169,128,96)</string>
+                      <string notr="true">color: rgb(160,128,96)</string>
                      </property>
                      <property name="frameShadow">
                       <enum>QFrame::Plain</enum>
@@ -1082,26 +1388,6 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="Line" name="line_22">
-                     <property name="frameShadow">
-                      <enum>QFrame::Plain</enum>
-                     </property>
-                     <property name="lineWidth">
-                      <number>6</number>
-                     </property>
-                     <property name="orientation">
-                      <enum>Qt::Vertical</enum>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QCheckBox" name="referenceCheckBox_7">
-                     <property name="text">
-                      <string>reference</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
                     <widget class="QLabel" name="label_23">
                      <property name="text">
                       <string>    X offset:</string>
@@ -1135,11 +1421,60 @@
                  <item>
                   <layout class="QHBoxLayout" name="horizontalLayout_35">
                    <item>
-                    <widget class="QCheckBox" name="targetCheckBox_8">
+                    <widget class="QLabel" name="label_50">
                      <property name="text">
-                      <string>target</string>
+                      <string>  </string>
                      </property>
                     </widget>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="targetCheckBox_8">
+                     <property name="layoutDirection">
+                      <enum>Qt::RightToLeft</enum>
+                     </property>
+                     <property name="text">
+                      <string/>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <spacer name="horizontalSpacer_38">
+                     <property name="orientation">
+                      <enum>Qt::Horizontal</enum>
+                     </property>
+                     <property name="sizeType">
+                      <enum>QSizePolicy::Fixed</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>20</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="referenceCheckBox_8">
+                     <property name="text">
+                      <string/>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <spacer name="horizontalSpacer_48">
+                     <property name="orientation">
+                      <enum>Qt::Horizontal</enum>
+                     </property>
+                     <property name="sizeType">
+                      <enum>QSizePolicy::Fixed</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>30</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                    </spacer>
                    </item>
                    <item>
                     <widget class="QCheckBox" name="showCheckBox_8">
@@ -1147,7 +1482,14 @@
                       <enum>Qt::RightToLeft</enum>
                      </property>
                      <property name="text">
-                      <string>show</string>
+                      <string/>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_63">
+                     <property name="text">
+                      <string>     </string>
                      </property>
                     </widget>
                    </item>
@@ -1159,7 +1501,7 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="Line" name="line_32">
+                    <widget class="Line" name="colorBlob7">
                      <property name="minimumSize">
                       <size>
                        <width>20</width>
@@ -1207,26 +1549,6 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="Line" name="line_23">
-                     <property name="frameShadow">
-                      <enum>QFrame::Plain</enum>
-                     </property>
-                     <property name="lineWidth">
-                      <number>6</number>
-                     </property>
-                     <property name="orientation">
-                      <enum>Qt::Vertical</enum>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QCheckBox" name="referenceCheckBox_8">
-                     <property name="text">
-                      <string>reference</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
                     <widget class="QLabel" name="label_25">
                      <property name="text">
                       <string>    X offset:</string>
@@ -1260,11 +1582,60 @@
                  <item>
                   <layout class="QHBoxLayout" name="horizontalLayout_36">
                    <item>
-                    <widget class="QCheckBox" name="targetCheckBox_9">
+                    <widget class="QLabel" name="label_52">
                      <property name="text">
-                      <string>target</string>
+                      <string>  </string>
                      </property>
                     </widget>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="targetCheckBox_9">
+                     <property name="layoutDirection">
+                      <enum>Qt::RightToLeft</enum>
+                     </property>
+                     <property name="text">
+                      <string/>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <spacer name="horizontalSpacer_39">
+                     <property name="orientation">
+                      <enum>Qt::Horizontal</enum>
+                     </property>
+                     <property name="sizeType">
+                      <enum>QSizePolicy::Fixed</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>20</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="referenceCheckBox_9">
+                     <property name="text">
+                      <string/>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <spacer name="horizontalSpacer_49">
+                     <property name="orientation">
+                      <enum>Qt::Horizontal</enum>
+                     </property>
+                     <property name="sizeType">
+                      <enum>QSizePolicy::Fixed</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>30</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                    </spacer>
                    </item>
                    <item>
                     <widget class="QCheckBox" name="showCheckBox_9">
@@ -1272,7 +1643,14 @@
                       <enum>Qt::RightToLeft</enum>
                      </property>
                      <property name="text">
-                      <string>show</string>
+                      <string/>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_64">
+                     <property name="text">
+                      <string>     </string>
                      </property>
                     </widget>
                    </item>
@@ -1284,7 +1662,7 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="Line" name="line_33">
+                    <widget class="Line" name="colorBlob8">
                      <property name="minimumSize">
                       <size>
                        <width>20</width>
@@ -1332,26 +1710,6 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="Line" name="line_24">
-                     <property name="frameShadow">
-                      <enum>QFrame::Plain</enum>
-                     </property>
-                     <property name="lineWidth">
-                      <number>6</number>
-                     </property>
-                     <property name="orientation">
-                      <enum>Qt::Vertical</enum>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QCheckBox" name="referenceCheckBox_9">
-                     <property name="text">
-                      <string>reference</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
                     <widget class="QLabel" name="label_27">
                      <property name="text">
                       <string>    X offset:</string>
@@ -1385,11 +1743,60 @@
                  <item>
                   <layout class="QHBoxLayout" name="horizontalLayout_37">
                    <item>
-                    <widget class="QCheckBox" name="targetCheckBox_10">
+                    <widget class="QLabel" name="label_54">
                      <property name="text">
-                      <string>target</string>
+                      <string>  </string>
                      </property>
                     </widget>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="targetCheckBox_10">
+                     <property name="layoutDirection">
+                      <enum>Qt::RightToLeft</enum>
+                     </property>
+                     <property name="text">
+                      <string/>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <spacer name="horizontalSpacer_40">
+                     <property name="orientation">
+                      <enum>Qt::Horizontal</enum>
+                     </property>
+                     <property name="sizeType">
+                      <enum>QSizePolicy::Fixed</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>20</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="referenceCheckBox_10">
+                     <property name="text">
+                      <string/>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <spacer name="horizontalSpacer_50">
+                     <property name="orientation">
+                      <enum>Qt::Horizontal</enum>
+                     </property>
+                     <property name="sizeType">
+                      <enum>QSizePolicy::Minimum</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>30</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                    </spacer>
                    </item>
                    <item>
                     <widget class="QCheckBox" name="showCheckBox_10">
@@ -1397,7 +1804,14 @@
                       <enum>Qt::RightToLeft</enum>
                      </property>
                      <property name="text">
-                      <string>show</string>
+                      <string/>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_65">
+                     <property name="text">
+                      <string>     </string>
                      </property>
                     </widget>
                    </item>
@@ -1409,7 +1823,7 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="Line" name="line_34">
+                    <widget class="Line" name="colorBlob9">
                      <property name="minimumSize">
                       <size>
                        <width>20</width>
@@ -1457,26 +1871,6 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="Line" name="line_25">
-                     <property name="frameShadow">
-                      <enum>QFrame::Plain</enum>
-                     </property>
-                     <property name="lineWidth">
-                      <number>6</number>
-                     </property>
-                     <property name="orientation">
-                      <enum>Qt::Vertical</enum>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QCheckBox" name="referenceCheckBox_10">
-                     <property name="text">
-                      <string>reference</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
                     <widget class="QLabel" name="label_29">
                      <property name="text">
                       <string>    X offset:</string>
@@ -1509,8 +1903,34 @@
                  </item>
                 </layout>
                </item>
-               <item row="3" column="1">
-                <spacer name="verticalSpacer_14">
+               <item row="2" column="0">
+                <widget class="QLabel" name="label_30">
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string> target ref/norm show</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="5">
+                <spacer name="horizontalSpacer_28">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>296</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="1" column="4">
+                <spacer name="verticalSpacer_15">
                  <property name="orientation">
                   <enum>Qt::Vertical</enum>
                  </property>
@@ -1520,54 +1940,7 @@
                  <property name="sizeHint" stdset="0">
                   <size>
                    <width>20</width>
-                   <height>13</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item row="4" column="0">
-                <spacer name="horizontalSpacer_29">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>345</width>
-                   <height>20</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item row="4" column="2" colspan="3">
-                <layout class="QHBoxLayout" name="horizontalLayout_38">
-                 <item>
-                  <widget class="QLabel" name="label_9">
-                   <property name="text">
-                    <string>normalization reference curve smoothing interval (readings)</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QSpinBox" name="smoothingIntervalSpinBox">
-                   <property name="maximum">
-                    <number>9999</number>
-                   </property>
-                   <property name="singleStep">
-                    <number>10</number>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item row="5" column="2">
-                <spacer name="verticalSpacer_13">
-                 <property name="orientation">
-                  <enum>Qt::Vertical</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>20</width>
-                   <height>40</height>
+                   <height>25</height>
                   </size>
                  </property>
                 </spacer>
