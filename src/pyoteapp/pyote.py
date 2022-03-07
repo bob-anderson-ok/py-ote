@@ -764,10 +764,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 break
 
     def processReferenceSelection(self, i):
+        # Undo any previous normalization
+        self.fillTableViewOfData()
+        self.smoothingIntervalSpinBox.setValue(0)
+
         if self.referenceCheckBoxes[i].isChecked():
             self.showMsg(f'{self.lightcurveTitles[i].text()} is selected as the reference curve for normalization.')
             self.clearReferenceSelections()
-            # TODO implement time-shifted normalization so that xOffset can be made active
             self.xOffsetSpinBoxes[i].setEnabled(True)
             self.referenceCheckBoxes[i].setChecked(True)
             if i == 0:
@@ -1747,52 +1750,52 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 break
         return ans
 
-    def changeSecondary(self):
-        if len(self.aperture_names) > 0:
-            self.secondarySelector.setMaximum(len(self.aperture_names))
-        else:
-            self.secondarySelector.setMaximum(self.getNumberOfUnnamedLightCurves())
-
-        secondarySelText = self.secondarySelector.text()
-        normNum = int(secondarySelText)
-
-        primarySelText = self.curveToAnalyzeSpinBox.text()
-        refNum = int(primarySelText)
-
-        if len(self.aperture_names) > 0:
-            pymovieColumnType = self.pymovieDataColumnPrefixComboBox.currentText()
-            if not refNum == 0:
-                if (refNum - 1) < len(self.aperture_names):
-                    self.lightCurveNameEdit.setText(self.aperture_names[refNum - 1])
-            if normNum == 0:
-                self.showMsg('There is no secondary reference selected.')
-            elif (normNum - 1) < len(self.aperture_names):
-                self.normalizationLightCurveNameEdit.setText(self.aperture_names[normNum - 1])
-                self.showMsg('Secondary reference ' + secondarySelText + ' selected - PyMovie aperture name: ' +
-                             self.aperture_names[normNum - 1] + f" ({pymovieColumnType})")
-        else:
-            if not normNum == 0:
-                self.showMsg('Secondary reference ' + secondarySelText + ' selected.')
-            else:
-                self.showMsg('There is no secondary reference selected.')
-
-        if normNum == 0:
-            self.yRefStar = []
-            self.normalizationLightCurveNameEdit.setText('')
-        if normNum == 1:
-            self.yRefStar = self.LC1
-        if normNum == 2:
-            self.yRefStar = self.LC2
-        if normNum == 3:
-            self.yRefStar = self.LC3
-        if normNum == 4:
-            self.yRefStar = self.LC4
-        if normNum > 4:
-            self.yRefStar = self.extra[normNum - 4 - 1]
-
-        self.smoothSecondary = []
-        self.reDrawMainPlot()
-        self.mainPlot.autoRange()
+    # def changeSecondary(self):
+    #     if len(self.aperture_names) > 0:
+    #         self.secondarySelector.setMaximum(len(self.aperture_names))
+    #     else:
+    #         self.secondarySelector.setMaximum(self.getNumberOfUnnamedLightCurves())
+    #
+    #     secondarySelText = self.secondarySelector.text()
+    #     normNum = int(secondarySelText)
+    #
+    #     primarySelText = self.curveToAnalyzeSpinBox.text()
+    #     refNum = int(primarySelText)
+    #
+    #     if len(self.aperture_names) > 0:
+    #         pymovieColumnType = self.pymovieDataColumnPrefixComboBox.currentText()
+    #         if not refNum == 0:
+    #             if (refNum - 1) < len(self.aperture_names):
+    #                 self.lightCurveNameEdit.setText(self.aperture_names[refNum - 1])
+    #         if normNum == 0:
+    #             self.showMsg('There is no secondary reference selected.')
+    #         elif (normNum - 1) < len(self.aperture_names):
+    #             self.normalizationLightCurveNameEdit.setText(self.aperture_names[normNum - 1])
+    #             self.showMsg('Secondary reference ' + secondarySelText + ' selected - PyMovie aperture name: ' +
+    #                          self.aperture_names[normNum - 1] + f" ({pymovieColumnType})")
+    #     else:
+    #         if not normNum == 0:
+    #             self.showMsg('Secondary reference ' + secondarySelText + ' selected.')
+    #         else:
+    #             self.showMsg('There is no secondary reference selected.')
+    #
+    #     if normNum == 0:
+    #         self.yRefStar = []
+    #         self.normalizationLightCurveNameEdit.setText('')
+    #     if normNum == 1:
+    #         self.yRefStar = self.LC1
+    #     if normNum == 2:
+    #         self.yRefStar = self.LC2
+    #     if normNum == 3:
+    #         self.yRefStar = self.LC3
+    #     if normNum == 4:
+    #         self.yRefStar = self.LC4
+    #     if normNum > 4:
+    #         self.yRefStar = self.extra[normNum - 4 - 1]
+    #
+    #     self.smoothSecondary = []
+    #     self.reDrawMainPlot()
+    #     self.mainPlot.autoRange()
 
     def getNumberOfUnnamedLightCurves(self):
         if len(self.LC1) == 0:
@@ -2339,58 +2342,58 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.popupMsg(f'Cannot find tab with title: {title}')
 
-    def smoothRefStar(self):
-        if (self.right - self.left) < 4:
-            self.showInfo('The smoothing algorithm requires a minimum selection of 5 points')
-            return
-        
-        y = [self.yRefStar[i] for i in range(self.left, self.right+1)]
-
-        userSpecedWindow = 101
-
-        numPts = self.numSmoothPointsEdit.text().strip()
-        if numPts:
-            if not numPts.isnumeric():
-                self.showInfo('Invalid entry for smoothing window size - defaulting to 101')
-            else:
-                userSpecedWindow = int(numPts)
-                if userSpecedWindow < 5:
-                    self.showInfo('smoothing window must be size 5 or greater - defaulting to 101')
-                    userSpecedWindow = 101
-
-        window = None
-        try:
-            if len(y) > userSpecedWindow:
-                window = userSpecedWindow
-            else:
-                window = len(y)
-
-            # Enforce the odd window size required by savgol_filter()
-            if window % 2 == 0:
-                window -= 1
-
-            # We do a double pass with a third order savgol filter
-            filteredY = scipy.signal.savgol_filter(np.array(y), window, 3)
-            self.smoothSecondary = scipy.signal.savgol_filter(filteredY, window, 3)
-
-            # New in version 3.7.2: we remove the extrapolated points at each end of self.smoothSecondary
-            self.extra_point_count = window // 2
-            self.selectedPoints = {self.left + self.extra_point_count: 3,
-                                   self.right - self.extra_point_count: 3}
-            saved_smoothSecondary = self.smoothSecondary
-            self.doTrim()
-            self.smoothSecondary = saved_smoothSecondary
-            self.smoothSecondary = self.smoothSecondary[self.extra_point_count:-self.extra_point_count]
-
-            # self.left += self.extra_point_count
-            # self.right -= self.extra_point_count
-            self.reDrawMainPlot()
-        except Exception as e:
-            self.showMsg(str(e))
-
-        self.showMsg('Smoothing of secondary star light curve performed with window size: %i' % window)
-
-        self.normalizeButton.setEnabled(True)
+    # def smoothRefStar(self):
+    #     if (self.right - self.left) < 4:
+    #         self.showInfo('The smoothing algorithm requires a minimum selection of 5 points')
+    #         return
+    #
+    #     y = [self.yRefStar[i] for i in range(self.left, self.right+1)]
+    #
+    #     userSpecedWindow = 101
+    #
+    #     numPts = self.numSmoothPointsEdit.text().strip()
+    #     if numPts:
+    #         if not numPts.isnumeric():
+    #             self.showInfo('Invalid entry for smoothing window size - defaulting to 101')
+    #         else:
+    #             userSpecedWindow = int(numPts)
+    #             if userSpecedWindow < 5:
+    #                 self.showInfo('smoothing window must be size 5 or greater - defaulting to 101')
+    #                 userSpecedWindow = 101
+    #
+    #     window = None
+    #     try:
+    #         if len(y) > userSpecedWindow:
+    #             window = userSpecedWindow
+    #         else:
+    #             window = len(y)
+    #
+    #         # Enforce the odd window size required by savgol_filter()
+    #         if window % 2 == 0:
+    #             window -= 1
+    #
+    #         # We do a double pass with a third order savgol filter
+    #         filteredY = scipy.signal.savgol_filter(np.array(y), window, 3)
+    #         self.smoothSecondary = scipy.signal.savgol_filter(filteredY, window, 3)
+    #
+    #         # New in version 3.7.2: we remove the extrapolated points at each end of self.smoothSecondary
+    #         self.extra_point_count = window // 2
+    #         self.selectedPoints = {self.left + self.extra_point_count: 3,
+    #                                self.right - self.extra_point_count: 3}
+    #         saved_smoothSecondary = self.smoothSecondary
+    #         self.doTrim()
+    #         self.smoothSecondary = saved_smoothSecondary
+    #         self.smoothSecondary = self.smoothSecondary[self.extra_point_count:-self.extra_point_count]
+    #
+    #         # self.left += self.extra_point_count
+    #         # self.right -= self.extra_point_count
+    #         self.reDrawMainPlot()
+    #     except Exception as e:
+    #         self.showMsg(str(e))
+    #
+    #     self.showMsg('Smoothing of secondary star light curve performed with window size: %i' % window)
+    #
+    #     self.normalizeButton.setEnabled(True)
 
     def toggleDisplayOfTimestampErrors(self):
         self.reDrawMainPlot()
@@ -3678,6 +3681,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.reDrawMainPlot()  # To add envelope to solution
 
     def calcDetectability(self):
+        if self.timeDelta == 0:
+            self.showInfo(f'Cannot use the detectabilty tool on a light curve without timestamps.')
+            return
+
         if not self.userDeterminedBaselineStats:
             self.showInfo(f'Baseline statistics have been extracted yet.')
             return
@@ -3753,7 +3760,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.minDetectableDurationSecs = None
 
         while True:
-            self.showMsg(f'Processing detectability of magDrop: {event_magDrop:0.2f} dur(secs): {event_duration_secs:0.2f} event')
+            i = 0
+            for i, checkBox in enumerate(self.targetCheckBoxes):
+                if checkBox.isChecked():
+                    break
+            self.showMsg(f'Using lightcurve: {self.lightcurveTitles[i].text()} ...', blankLine=False)
+            self.showMsg(f'... processing detectability of magDrop: {event_magDrop:0.2f} dur(secs): {event_duration_secs:0.2f} event')
             QtWidgets.QApplication.processEvents()
 
             drops = compute_drops(event_duration=event_duration, observation_size=obs_duration,
@@ -5070,7 +5082,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         for i in range(self.dataLen):
             neatStr = fp.to_precision(self.yValues[i], 6)
             newitem = QtWidgets.QTableWidgetItem(str(neatStr))
-            # self.table.setItem(i, 2, newitem)
             self.table.setItem(i, self.targetIndex + 2, newitem)
             newitem = QtWidgets.QTableWidgetItem(str(self.yTimes[i]))
             self.table.setItem(i, 1, newitem)
@@ -5921,6 +5932,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         maxY = np.max(self.yValues + self.yOffsetSpinBoxes[self.targetIndex].value())
 
         try:
+            # Plot the 'target' lightcurve
             x = [i for i in range(self.dataLen) if self.yStatus[i] == INCLUDED]
             y = [self.yValues[i] for i in range(self.dataLen) if self.yStatus[i] == INCLUDED]
             y = np.array(y) + self.yOffsetSpinBoxes[self.targetIndex].value()
@@ -5980,6 +5992,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         if len(self.yRefStar) == self.dataLen:
             if not self.skipNormalization and not self.suppressNormalization:
+                # Update reference curve smoothing
                 if self.smoothingIntervalSpinBox.value() > 0:
                     # Start with pristine (original) values for the curve being analyzed.
                     self.processTargetSelection(self.targetIndex, redraw=False)
@@ -5996,19 +6009,22 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.skipNormalization = False
                 self.suppressNormalization = False
 
-            minY = min(minY, np.min(self.yRefStar + self.yOffsetSpinBoxes[refIndex].value()))
-            maxY = max(maxY, np.max(self.yRefStar + self.yOffsetSpinBoxes[refIndex].value()))
-            xOffset = self.xOffsetSpinBoxes[refIndex].value()
-            x = [i + xOffset for i in range(self.left, self.right+1)]
-            y = [self.yRefStar[i]for i in range(self.left, self.right+1)]
-            y = np.array(y) + self.yOffsetSpinBoxes[refIndex].value()
-            # self.mainPlot.plot(x, self.yRefStar + self.yOffsetSpinBoxes[refIndex].value())
-            self.mainPlot.plot(x, y)
-            self.mainPlot.plot(x, y, pen=None, symbol='o',
-                               symbolBrush=(0, 255, 0), symbolSize=dotSize)
-            if len(self.smoothSecondary) > 0:
-                self.mainPlot.plot(x, self.smoothSecondary + self.yOffsetSpinBoxes[refIndex].value(),
-                                   pen=pg.mkPen((100, 100, 100), width=4), symbol=None)
+            # Plot the normalization reference lightcurve
+            if refIndex is not None:
+                minY = min(minY, np.min(self.yRefStar + self.yOffsetSpinBoxes[refIndex].value()))
+                maxY = max(maxY, np.max(self.yRefStar + self.yOffsetSpinBoxes[refIndex].value()))
+                xOffset = self.xOffsetSpinBoxes[refIndex].value()
+                x = [i + xOffset for i in range(self.left, self.right+1)]
+                y = [self.yRefStar[i]for i in range(self.left, self.right+1)]
+                y = np.array(y) + self.yOffsetSpinBoxes[refIndex].value()
+                self.mainPlot.plot(x, y)
+                self.mainPlot.plot(x, y, pen=None, symbol='o',
+                                   symbolBrush=(0, 255, 0), symbolSize=dotSize)
+
+                # Plot the continuous smoothed curve through the reference lightcurve
+                if len(self.smoothSecondary) > 0:
+                    self.mainPlot.plot(x, self.smoothSecondary + self.yOffsetSpinBoxes[refIndex].value(),
+                                       pen=pg.mkPen((100, 100, 100), width=4), symbol=None)
 
         dotColors = [(255, 0, 0), (160, 32, 255), (80, 208, 255), (96, 255, 128),
                      (255, 224, 32), (255, 160, 16), (160, 128, 96), (64, 64, 64), (255, 208, 160), (0, 128, 0)]
@@ -6104,15 +6120,20 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.left = 0
             self.right = self.dataLen - 1
 
-        self.smoothSecondary = []
-        
         for i in range(0, self.left):
             self.yStatus[i] = EXCLUDED
         for i in range(min(self.dataLen, self.right+1), self.dataLen):
             self.yStatus[i] = EXCLUDED
         for i in range(self.left, min(self.dataLen, self.right+1)):
             self.yStatus[i] = INCLUDED
-        
+
+        if len(self.smoothSecondary) > 0:
+            self.smoothSecondary = []
+            if self.smoothingIntervalSpinBox.value() > 0:
+                # Start with pristine (original) values for the curve being analyzed.
+                self.processTargetSelection(self.targetIndex, redraw=False)
+                self.newNormalize()
+
         self.selectedPoints = {}
         self.reDrawMainPlot()
         self.doBlockIntegration.setEnabled(False)
