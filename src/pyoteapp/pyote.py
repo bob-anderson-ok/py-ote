@@ -200,6 +200,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.skipNormalization = False  # A flag used to prevent inifinite recursion in self.refrawMainPlot
 
+        self.suppressNormalization = False
+
         self.targetIndex = 0
 
         self.targetCheckBoxes = [self.targetCheckBox_1, self.targetCheckBox_2, self.targetCheckBox_3,
@@ -243,6 +245,15 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                                  self.xOffsetSpinBox_10]
 
         self.initializeLightcurvePanel()
+
+        self.stepBy2Button.clicked.connect(self.processStepBy2)
+        self.stepBy2Button.installEventFilter(self)
+
+        self.stepBy10Button.clicked.connect(self.processStepBy10)
+        self.stepBy10Button.installEventFilter(self)
+
+        self.stepBy100Button.clicked.connect(self.processStepBy100)
+        self.stepBy100Button.installEventFilter(self)
 
         self.targetCheckBox_1.clicked.connect(self.processTargetSelection1)
         self.targetCheckBox_2.clicked.connect(self.processTargetSelection2)
@@ -393,11 +404,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.readData.clicked.connect(self.readDataFromFile)
         self.readData.installEventFilter(self)
         
-        # CheckBox: Show secondary star
-        # self.showSecondaryCheckBox.clicked.connect(self.toggleDisplayOfSecondaryStar)
-        # self.showSecondaryCheckBox.installEventFilter(self)
-        # self.normLabel.installEventFilter(self)
-
         # Checkbox: Show timestamp errors
         self.showTimestampErrors.clicked.connect(self.toggleDisplayOfTimestampErrors)
         self.showTimestampErrors.installEventFilter(self)
@@ -419,17 +425,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         # Checkbox: Do OCR check
         self.showOCRcheckFramesCheckBox.installEventFilter(self)
 
-        # QSpinBox
-        # self.secondarySelector.valueChanged.connect(self.changeSecondary)
-
-        # QSpinBox
-        # self.curveToAnalyzeSpinBox.valueChanged.connect(self.changePrimary)
-        # self.curveToAnalyzeSpinBox.installEventFilter(self)
-        # self.lightCurveNumberLabel.installEventFilter(self)
-
-        # QSpinBox: secondarySelector
-        # self.secondarySelector.installEventFilter(self)
-
         # line size
         self.lineWidthLabel.installEventFilter(self)
         self.lineWidthSpinner.valueChanged.connect(self.reDrawMainPlot)
@@ -445,18 +440,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         # Button: Trim/Select data points
         self.setDataLimits.clicked.connect(self.doTrim)
         self.setDataLimits.installEventFilter(self)
-
-        # Button: Smooth secondary
-        # self.smoothSecondaryButton.clicked.connect(self.smoothRefStar)
-        # self.smoothSecondaryButton.installEventFilter(self)
-
-        # QLineEdit: window size for secondary smoothing
-        # self.numSmoothPointsEdit.editingFinished.connect(self.smoothRefStar)
-        # self.numSmoothPointsEdit.installEventFilter(self)
-
-        # Button: Normalize around selected point
-        # self.normalizeButton.clicked.connect(self.normalize)
-        # self.normalizeButton.installEventFilter(self)
 
         # Button: Do block integration
         self.doBlockIntegration.clicked.connect(self.doIntegration)
@@ -717,6 +700,15 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.showMsg(f'Could not find csv file specified: {self.externalCsvFilePath}')
                 self.externalCsvFilePath = None
 
+    def processStepBy2(self):
+        self.smoothingIntervalSpinBox.setSingleStep(2)
+
+    def processStepBy10(self):
+        self.smoothingIntervalSpinBox.setSingleStep(10)
+
+    def processStepBy100(self):
+        self.smoothingIntervalSpinBox.setSingleStep(100)
+
     def initializeLightcurvePanel(self):
         for checkBox in self.targetCheckBoxes:
             checkBox.setChecked(False)
@@ -816,7 +808,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.processReferenceSelection(4)
 
     def processReferenceSelection6(self):
-        self.processReferenceSelection(6)
+        self.processReferenceSelection(5)
 
     def processReferenceSelection7(self):
         self.processReferenceSelection(6)
@@ -1589,7 +1581,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             return True
 
         return super(SimplePlot, self).eventFilter(obj, event)
-        # return False
 
     def writeCSVfile(self):
         _, name = os.path.split(self.filename)
@@ -2307,40 +2298,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.normalized = True
 
-    def normalize(self):
-        if len(self.selectedPoints) != 1:
-            self.showInfo('A single point must be selected for this operation.' +
-                          'That point will retain its value while all other points ' +
-                          'are scaled (normalized) around it.')
-            return
-        
-        selIndices = [key for key, value in self.selectedPoints.items()]
-        index = selIndices[0]
-        # self.showMsg('Index: ' + str(index) )
-        # Reminder: the smoothSecondary[] only cover self.left to self.right inclusive,
-        # hence the index manipulation in the following code
-
-        ref = self.smoothSecondary[int(index)-self.left]
-
-        for i in range(self.left, self.right+1):
-            try:
-                self.yValues[i] = (ref * self.yValues[i]) / self.smoothSecondary[i-self.left]
-            except Exception as e:
-                self.showMsg(str(e))
-
-        self.fillTableViewOfData()  # This should capture/write the effects of the normalization to the table
-
-        self.showMsg('Light curve normalized to secondary around point ' + str(index))
-        self.normalized = True
-        
-        self.removePointSelections()
-        self.normalizeButton.setEnabled(False)
-        self.smoothSecondaryButton.setEnabled(False)
-        self.numSmoothPointsEdit.setEnabled(False)
-        self.setDataLimits.setEnabled(False)
-        # self.showSecondaryCheckBox.setChecked(False)
-        self.reDrawMainPlot()
-
     def newSmoothRefStar(self):
         if (self.right - self.left) < 2:
             self.showInfo('The smoothing algorithm requires a minimum data set of 3 points')
@@ -2368,18 +2325,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             filteredY = scipy.signal.savgol_filter(np.array(y), window, 1)
             self.smoothSecondary = scipy.signal.savgol_filter(filteredY, window, 1)
 
-            # New in version 3.7.2: we remove the extrapolated points at each end of self.smoothSecondary
-            # self.extra_point_count = window // 2
-            # self.selectedPoints = {self.left + self.extra_point_count: 3,
-            #                        self.right - self.extra_point_count: 3}
-            # saved_smoothSecondary = self.smoothSecondary
-            # self.doTrim(redrawWanted=False)
-            # self.smoothSecondary = saved_smoothSecondary
-            # self.smoothSecondary = self.smoothSecondary[self.extra_point_count:-self.extra_point_count]
-
-            # self.left += self.extra_point_count
-            # self.right -= self.extra_point_count
-            # self.reDrawMainPlot()
         except Exception as e:
             self.showMsg(str(e))
 
@@ -2725,10 +2670,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.doBlockIntegration.setEnabled(False)
         self.acceptBlockIntegration.setEnabled(False)
 
-        # if self.showSecondaryCheckBox.isChecked():
-        # if self.secondarySelector.value() > 0:
-        #     self.changeSecondary()
-
         self.reDrawMainPlot()
         self.mainPlot.autoRange()
 
@@ -2741,7 +2682,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             # Restore previous status (when originally clicked)
             self.yStatus[index] = self.selectedPoints[index]
             del (self.selectedPoints[index])
+        self.suppressNormalization = True
         self.reDrawMainPlot()  # Redraw plot to show selection change
+        self.suppressNormalization = False
 
     def processClick(self, event):
         # Don't allow mouse clicks to select points unless the cursor is blank
@@ -2758,6 +2701,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                         index = self.right
                     self.togglePointSelected(index)
                     self.acceptBlockIntegration.setEnabled(False)
+                    self.suppressNormalization = True
                 # Move the table view of data so that clicked point data is visible
                 self.table.setCurrentCell(index, 0)
             except AttributeError:
@@ -5662,15 +5606,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         
     def disableAllButtons(self):
         self.calcFlashEdge.setEnabled(False)
-        # self.lightCurveNumberLabel.setEnabled(False)
-        # self.normLabel.setEnabled(False)
-        # self.curveToAnalyzeSpinBox.setEnabled(False)
-        # self.showSecondaryCheckBox.setEnabled(False)
-        # self.secondarySelector.setEnabled(False)
-        # self.normalizeButton.setEnabled(False)
-        # self.smoothSecondaryButton.setEnabled(False)
-        # self.numSmoothPointsEdit.setEnabled(False)
-        self.setDataLimits.setEnabled(False)      
+        self.setDataLimits.setEnabled(False)
         self.doBlockIntegration.setEnabled(False)    
         self.locateEvent.setEnabled(False)
         self.calcErrBars.setEnabled(False)
@@ -5713,11 +5649,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.expDurEdit.setText(fp.to_precision(self.timeDelta, 6))
 
         self.fillTableViewOfData()
-        
-        # if len(self.yRefStar) > 0:
-        #     self.smoothSecondaryButton.setEnabled(True)
-        #     self.numSmoothPointsEdit.setEnabled(True)
-        #     self.secondarySelector.setEnabled(True)
         
         # Enable the initial set of buttons (allowed operations)
         self.startOver.setEnabled(True)
@@ -6047,9 +5978,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         else:
             left = self.left
 
-        # if self.secondarySelector.value() > 0 and len(self.yRefStar) == self.dataLen:
         if len(self.yRefStar) == self.dataLen:
-            if not self.skipNormalization:
+            if not self.skipNormalization and not self.suppressNormalization:
                 if self.smoothingIntervalSpinBox.value() > 0:
                     # Start with pristine (original) values for the curve being analyzed.
                     self.processTargetSelection(self.targetIndex, redraw=False)
@@ -6064,13 +5994,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.reDrawMainPlot()
             else:
                 self.skipNormalization = False
-
-            # refIndex = 0
-            # Find index of referencelightcurve
-            # for i, checkBox in enumerate(self.referenceCheckBoxes):
-            #     if checkBox.isChecked():
-            #         refIndex = i
-            #         break
+                self.suppressNormalization = False
 
             minY = min(minY, np.min(self.yRefStar + self.yOffsetSpinBoxes[refIndex].value()))
             maxY = max(maxY, np.max(self.yRefStar + self.yOffsetSpinBoxes[refIndex].value()))
@@ -6078,7 +6002,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             x = [i + xOffset for i in range(self.left, self.right+1)]
             y = [self.yRefStar[i]for i in range(self.left, self.right+1)]
             y = np.array(y) + self.yOffsetSpinBoxes[refIndex].value()
-            self.mainPlot.plot(x, self.yRefStar + self.yOffsetSpinBoxes[refIndex].value())
+            # self.mainPlot.plot(x, self.yRefStar + self.yOffsetSpinBoxes[refIndex].value())
+            self.mainPlot.plot(x, y)
             self.mainPlot.plot(x, y, pen=None, symbol='o',
                                symbolBrush=(0, 255, 0), symbolSize=dotSize)
             if len(self.smoothSecondary) > 0:
@@ -6180,10 +6105,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.right = self.dataLen - 1
 
         self.smoothSecondary = []
-        
-        if len(self.yRefStar) > 0:
-            self.smoothSecondaryButton.setEnabled(True)
-            self.numSmoothPointsEdit.setEnabled(True)
         
         for i in range(0, self.left):
             self.yStatus[i] = EXCLUDED

@@ -185,70 +185,7 @@
                <string>Lightcurves</string>
               </attribute>
               <layout class="QGridLayout" name="gridLayout_8">
-               <item row="4" column="2">
-                <spacer name="verticalSpacer_14">
-                 <property name="orientation">
-                  <enum>Qt::Vertical</enum>
-                 </property>
-                 <property name="sizeType">
-                  <enum>QSizePolicy::Fixed</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>20</width>
-                   <height>13</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item row="5" column="3" colspan="3">
-                <layout class="QHBoxLayout" name="horizontalLayout_38">
-                 <item>
-                  <widget class="QLabel" name="label_9">
-                   <property name="text">
-                    <string>normalization reference curve smoothing interval (readings)</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QSpinBox" name="smoothingIntervalSpinBox">
-                   <property name="maximum">
-                    <number>9999</number>
-                   </property>
-                   <property name="singleStep">
-                    <number>10</number>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item row="6" column="3">
-                <spacer name="verticalSpacer_13">
-                 <property name="orientation">
-                  <enum>Qt::Vertical</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>20</width>
-                   <height>40</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item row="5" column="0" colspan="2">
-                <spacer name="horizontalSpacer_29">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>345</width>
-                   <height>20</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item row="0" column="0" colspan="3">
+               <item row="0" column="0" colspan="2">
                 <spacer name="horizontalSpacer_27">
                  <property name="orientation">
                   <enum>Qt::Horizontal</enum>
@@ -261,7 +198,7 @@
                  </property>
                 </spacer>
                </item>
-               <item row="0" column="3" colspan="2">
+               <item row="0" column="2" colspan="2">
                 <widget class="QPushButton" name="lightcurvesHelpButton">
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
@@ -283,7 +220,49 @@
                  </property>
                 </widget>
                </item>
-               <item row="3" column="0" colspan="6">
+               <item row="0" column="4">
+                <spacer name="horizontalSpacer_28">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>296</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="1" column="3">
+                <spacer name="verticalSpacer_15">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeType">
+                  <enum>QSizePolicy::Fixed</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>25</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="2" column="0">
+                <widget class="QLabel" name="label_30">
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string> target     ref      show</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="0" colspan="5">
                 <layout class="QVBoxLayout" name="verticalLayout_8">
                  <item>
                   <layout class="QHBoxLayout" name="horizontalLayout_28">
@@ -940,7 +919,7 @@
                    <item>
                     <widget class="QLabel" name="label_44">
                      <property name="text">
-                      <string>  </string>
+                      <string>   </string>
                      </property>
                     </widget>
                    </item>
@@ -1101,7 +1080,7 @@
                    <item>
                     <widget class="QLabel" name="label_46">
                      <property name="text">
-                      <string>  </string>
+                      <string>   </string>
                      </property>
                     </widget>
                    </item>
@@ -1262,7 +1241,7 @@
                    <item>
                     <widget class="QLabel" name="label_48">
                      <property name="text">
-                      <string>  </string>
+                      <string>   </string>
                      </property>
                     </widget>
                    </item>
@@ -1423,7 +1402,7 @@
                    <item>
                     <widget class="QLabel" name="label_50">
                      <property name="text">
-                      <string>  </string>
+                      <string>   </string>
                      </property>
                     </widget>
                    </item>
@@ -1584,7 +1563,7 @@
                    <item>
                     <widget class="QLabel" name="label_52">
                      <property name="text">
-                      <string>  </string>
+                      <string>   </string>
                      </property>
                     </widget>
                    </item>
@@ -1745,7 +1724,7 @@
                    <item>
                     <widget class="QLabel" name="label_54">
                      <property name="text">
-                      <string>  </string>
+                      <string>   </string>
                      </property>
                     </widget>
                    </item>
@@ -1903,34 +1882,21 @@
                  </item>
                 </layout>
                </item>
-               <item row="2" column="0">
-                <widget class="QLabel" name="label_30">
-                 <property name="maximumSize">
-                  <size>
-                   <width>16777215</width>
-                   <height>16777215</height>
-                  </size>
-                 </property>
-                 <property name="text">
-                  <string> target ref/norm show</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="0" column="5">
-                <spacer name="horizontalSpacer_28">
+               <item row="3" column="5" colspan="2">
+                <spacer name="horizontalSpacer_53">
                  <property name="orientation">
                   <enum>Qt::Horizontal</enum>
                  </property>
                  <property name="sizeHint" stdset="0">
                   <size>
-                   <width>296</width>
+                   <width>143</width>
                    <height>20</height>
                   </size>
                  </property>
                 </spacer>
                </item>
-               <item row="1" column="4">
-                <spacer name="verticalSpacer_15">
+               <item row="4" column="1">
+                <spacer name="verticalSpacer_14">
                  <property name="orientation">
                   <enum>Qt::Vertical</enum>
                  </property>
@@ -1940,7 +1906,172 @@
                  <property name="sizeHint" stdset="0">
                   <size>
                    <width>20</width>
-                   <height>25</height>
+                   <height>13</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="5" column="0" colspan="6">
+                <layout class="QHBoxLayout" name="horizontalLayout_38">
+                 <item>
+                  <spacer name="horizontalSpacer_52">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="label_9">
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>1677215</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>normalization reference curve smoothing interval (readings)</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QSpinBox" name="smoothingIntervalSpinBox">
+                   <property name="minimumSize">
+                    <size>
+                     <width>80</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>180</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="maximum">
+                    <number>9999</number>
+                   </property>
+                   <property name="singleStep">
+                    <number>10</number>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_51">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeType">
+                    <enum>QSizePolicy::Fixed</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>20</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="label_32">
+                   <property name="maximumSize">
+                    <size>
+                     <width>54</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>Set step:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="stepBy2Button">
+                   <property name="maximumSize">
+                    <size>
+                     <width>40</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>2</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="stepBy10Button">
+                   <property name="maximumSize">
+                    <size>
+                     <width>40</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>10</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="stepBy100Button">
+                   <property name="maximumSize">
+                    <size>
+                     <width>40</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>100</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_54">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
+               </item>
+               <item row="5" column="6">
+                <spacer name="horizontalSpacer_29">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>133</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="6" column="2">
+                <spacer name="verticalSpacer_13">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>40</height>
                   </size>
                  </property>
                 </spacer>
