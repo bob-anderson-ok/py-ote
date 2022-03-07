@@ -5898,6 +5898,15 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             return
 
     def reDrawMainPlot(self):
+        if self.right is not None:
+            right = min(self.dataLen, self.right + 1)
+        else:
+            right = self.dataLen
+        if self.left is None:
+            left = 0
+        else:
+            left = self.left
+
         self.mainPlot.clear()
 
         if self.yValues is None:
@@ -5981,14 +5990,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             pen = pg.mkPen(color=(0, 200, 0), style=QtCore.Qt.DashLine, width=self.lineWidthSpinner.value())
             self.mainPlot.plot([self.solution[1], self.solution[1]], [lo_int, hi_int], pen=pen, symbol=None)
 
-        if self.right is not None:
-            right = min(self.dataLen, self.right + 1)
-        else:
-            right = self.dataLen
-        if self.left is None:
-            left = 0
-        else:
-            left = self.left
+        # if self.right is not None:
+        #     right = min(self.dataLen, self.right + 1)
+        # else:
+        #     right = self.dataLen
+        # if self.left is None:
+        #     left = 0
+        # else:
+        #     left = self.left
 
         if len(self.yRefStar) == self.dataLen:
             if not self.skipNormalization and not self.suppressNormalization:
