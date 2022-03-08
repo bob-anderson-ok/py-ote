@@ -251,14 +251,23 @@
                </item>
                <item row="2" column="0">
                 <widget class="QLabel" name="label_30">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
                  <property name="maximumSize">
                   <size>
-                   <width>46</width>
+                   <width>16777215</width>
                    <height>16777215</height>
                   </size>
                  </property>
                  <property name="text">
-                  <string> target</string>
+                  <string> target     ref      show</string>
+                 </property>
+                 <property name="textFormat">
+                  <enum>Qt::PlainText</enum>
                  </property>
                 </widget>
                </item>
@@ -268,6 +277,12 @@
                   <layout class="QHBoxLayout" name="horizontalLayout_28">
                    <item>
                     <widget class="QLabel" name="label_36">
+                     <property name="maximumSize">
+                      <size>
+                       <width>8</width>
+                       <height>16777215</height>
+                      </size>
+                     </property>
                      <property name="text">
                       <string/>
                      </property>
@@ -429,6 +444,12 @@
                   <layout class="QHBoxLayout" name="horizontalLayout_29">
                    <item>
                     <widget class="QLabel" name="label_37">
+                     <property name="maximumSize">
+                      <size>
+                       <width>8</width>
+                       <height>16777215</height>
+                      </size>
+                     </property>
                      <property name="text">
                       <string/>
                      </property>
@@ -590,6 +611,12 @@
                   <layout class="QHBoxLayout" name="horizontalLayout_30">
                    <item>
                     <widget class="QLabel" name="label_40">
+                     <property name="maximumSize">
+                      <size>
+                       <width>8</width>
+                       <height>16777215</height>
+                      </size>
+                     </property>
                      <property name="text">
                       <string/>
                      </property>
@@ -757,6 +784,12 @@
                   <layout class="QHBoxLayout" name="horizontalLayout_31">
                    <item>
                     <widget class="QLabel" name="label_42">
+                     <property name="maximumSize">
+                      <size>
+                       <width>8</width>
+                       <height>16777215</height>
+                      </size>
+                     </property>
                      <property name="text">
                       <string/>
                      </property>
@@ -918,6 +951,12 @@
                   <layout class="QHBoxLayout" name="horizontalLayout_32">
                    <item>
                     <widget class="QLabel" name="label_44">
+                     <property name="maximumSize">
+                      <size>
+                       <width>8</width>
+                       <height>16777215</height>
+                      </size>
+                     </property>
                      <property name="text">
                       <string/>
                      </property>
@@ -1079,6 +1118,12 @@
                   <layout class="QHBoxLayout" name="horizontalLayout_33">
                    <item>
                     <widget class="QLabel" name="label_46">
+                     <property name="maximumSize">
+                      <size>
+                       <width>8</width>
+                       <height>16777215</height>
+                      </size>
+                     </property>
                      <property name="text">
                       <string/>
                      </property>
@@ -1240,6 +1285,12 @@
                   <layout class="QHBoxLayout" name="horizontalLayout_34">
                    <item>
                     <widget class="QLabel" name="label_48">
+                     <property name="maximumSize">
+                      <size>
+                       <width>8</width>
+                       <height>16777215</height>
+                      </size>
+                     </property>
                      <property name="text">
                       <string/>
                      </property>
@@ -1401,6 +1452,12 @@
                   <layout class="QHBoxLayout" name="horizontalLayout_35">
                    <item>
                     <widget class="QLabel" name="label_50">
+                     <property name="maximumSize">
+                      <size>
+                       <width>8</width>
+                       <height>16777215</height>
+                      </size>
+                     </property>
                      <property name="text">
                       <string/>
                      </property>
@@ -1562,6 +1619,12 @@
                   <layout class="QHBoxLayout" name="horizontalLayout_36">
                    <item>
                     <widget class="QLabel" name="label_52">
+                     <property name="maximumSize">
+                      <size>
+                       <width>8</width>
+                       <height>16777215</height>
+                      </size>
+                     </property>
                      <property name="text">
                       <string/>
                      </property>
@@ -1723,6 +1786,12 @@
                   <layout class="QHBoxLayout" name="horizontalLayout_37">
                    <item>
                     <widget class="QLabel" name="label_54">
+                     <property name="maximumSize">
+                      <size>
+                       <width>8</width>
+                       <height>16777215</height>
+                      </size>
+                     </property>
                      <property name="text">
                       <string/>
                      </property>
@@ -1914,19 +1983,6 @@
                <item row="5" column="0" colspan="6">
                 <layout class="QHBoxLayout" name="horizontalLayout_38">
                  <item>
-                  <spacer name="horizontalSpacer_52">
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>40</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                 <item>
                   <widget class="QLabel" name="label_9">
                    <property name="minimumSize">
                     <size>
@@ -1942,6 +1998,9 @@
                    </property>
                    <property name="text">
                     <string>normalization reference curve smoothing interval (readings)</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                    </property>
                   </widget>
                  </item>
@@ -1968,31 +2027,18 @@
                   </widget>
                  </item>
                  <item>
-                  <spacer name="horizontalSpacer_51">
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                   <property name="sizeType">
-                    <enum>QSizePolicy::Fixed</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>20</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                 <item>
                   <widget class="QLabel" name="label_32">
                    <property name="maximumSize">
                     <size>
-                     <width>54</width>
+                     <width>100</width>
                      <height>16777215</height>
                     </size>
                    </property>
                    <property name="text">
                     <string>Set step:</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                    </property>
                   </widget>
                  </item>
@@ -2035,19 +2081,6 @@
                    </property>
                   </widget>
                  </item>
-                 <item>
-                  <spacer name="horizontalSpacer_54">
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>40</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
                 </layout>
                </item>
                <item row="5" column="6">
@@ -2075,32 +2108,6 @@
                   </size>
                  </property>
                 </spacer>
-               </item>
-               <item row="2" column="1">
-                <widget class="QLabel" name="label_33">
-                 <property name="maximumSize">
-                  <size>
-                   <width>33</width>
-                   <height>16777215</height>
-                  </size>
-                 </property>
-                 <property name="text">
-                  <string>ref</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="2" column="2">
-                <widget class="QLabel" name="label_34">
-                 <property name="maximumSize">
-                  <size>
-                   <width>40</width>
-                   <height>16777215</height>
-                  </size>
-                 </property>
-                 <property name="text">
-                  <string>show</string>
-                 </property>
-                </widget>
                </item>
               </layout>
              </widget>

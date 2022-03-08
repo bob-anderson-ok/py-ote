@@ -587,7 +587,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.settings = QSettings('pyote.ini', QSettings.IniFormat)
         self.settings.setFallbacksEnabled(False)
 
-        tabNameList = self.settings.value('tablist')
+        tabNameList = self.settings.value('tablist', [])
         if tabNameList:
             self.redoTabOrder(tabNameList)
             # self.switchToTabNamed(tabNameList[0])
@@ -599,10 +599,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.logFile = None
 
-        tab_name_list = self.settings.value('tablist')
-        # self.showMsg(repr(tablist))
-        if tab_name_list:
-            self.redoTabOrder(tab_name_list)
+        # tab_name_list = self.settings.value('tablist')
+        # # self.showMsg(repr(tablist))
+        # if tab_name_list:
+        #     self.redoTabOrder(tab_name_list)
 
         # Use 'sticky' settings to size and position the main screen
         self.resize(self.settings.value('size', QSize(800, 800)))
@@ -929,14 +929,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         numTabs = self.tabWidget.count()
         if not len(tabnames) == numTabs:
-            self.showMsg(f'Mismatch in saved tab list versus current number of tabs.')
+            # self.showMsg(f'Mismatch in saved tab list versus current number of tabs.')
             return
 
         for i in range(len(tabnames)):
             from_index = getIndexOfTabFromName(tabnames[i])
             to_index = i
             if from_index < 0:
-                self.showMsg(f'Could not locate {tabnames[i]} in the existing tabs')
+                # self.showMsg(f'Could not locate {tabnames[i]} in the existing tabs')
                 return
             else:
                 self.tabWidget.tabBar().moveTab(from_index, to_index)
