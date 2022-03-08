@@ -33,6 +33,7 @@ import numpy as np
 import pyqtgraph as pg
 import pyqtgraph.exporters as pex
 import scipy.signal
+from scipy.stats import pearsonr as pearson
 import PyQt5
 from PyQt5 import QtCore, QtWidgets
 from PyQt5 import QtGui
@@ -2301,11 +2302,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             if checkBox.isChecked():
                 xOffset = self.xOffsetSpinBoxes[i].value()
 
-        # self.showInfo(f'xOffset: {xOffset}')
-
         # Reminder: the smoothSecondary[] only cover self.left to self.right inclusive,
         # hence the index manipulation in the following code
         maxK = len(self.smoothSecondary) - 1
+        targetY = []
+        referenceY = []
         for i in range(self.left, self.right + 1):
             k = i - xOffset - self.left
             if k < 0 or k > maxK:
@@ -2313,11 +2314,22 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 continue
             else:
                 self.yStatus[i] = INCLUDED
+                targetY.append(self.yValues[i])
+                referenceY.append(self.smoothSecondary[k])
             try:
-                # self.yValues[i] = (ref * self.yValues[i]) / self.smoothSecondary[i - self.left]
                 self.yValues[i] = (ref * self.yValues[i]) / self.smoothSecondary[k]
             except Exception as e:
                 self.showMsg(str(e))
+
+        # Compute and show pearson R
+        stdT = np.std(targetY)
+        stdR = np.std(referenceY)
+        if not stdT == 0.0 and not stdR == 0.0:
+            coeff, _ = pearson(targetY, referenceY)
+            self.showMsg(f'Pearson R: {coeff:0.3f}', color='red', bold=True, blankLine=False)
+        else:
+            # self.showInfo(f'Could not calculate Pearson R because an std was 0.0')
+            pass
 
         self.fillTableViewOfData()  # This should capture/write the effects of the normalization to the table
 
