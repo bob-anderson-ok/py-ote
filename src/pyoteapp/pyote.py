@@ -255,6 +255,15 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.stepBy100Button.clicked.connect(self.processStepBy100)
         self.stepBy100Button.installEventFilter(self)
 
+        self.yOffsetStep10.clicked.connect(self.processYoffsetStepBy10)
+        self.yOffsetStep10.installEventFilter(self)
+
+        self.yOffsetStep100.clicked.connect(self.processYoffsetStepBy100)
+        self.yOffsetStep100.installEventFilter(self)
+
+        self.yOffsetStep1000.clicked.connect(self.processYoffsetStepBy1000)
+        self.yOffsetStep1000.installEventFilter(self)
+
         self.targetCheckBox_1.clicked.connect(self.processTargetSelection1)
         self.targetCheckBox_2.clicked.connect(self.processTargetSelection2)
         self.targetCheckBox_3.clicked.connect(self.processTargetSelection3)
@@ -700,6 +709,18 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.showMsg(f'Could not find csv file specified: {self.externalCsvFilePath}')
                 self.externalCsvFilePath = None
 
+    def processYoffsetStepBy10(self):
+        for spinBox in self.yOffsetSpinBoxes:
+            spinBox.setSingleStep(10)
+
+    def processYoffsetStepBy100(self):
+        for spinBox in self.yOffsetSpinBoxes:
+            spinBox.setSingleStep(100)
+
+    def processYoffsetStepBy1000(self):
+        for spinBox in self.yOffsetSpinBoxes:
+            spinBox.setSingleStep(1000)
+
     def processStepBy2(self):
         self.smoothingIntervalSpinBox.setSingleStep(2)
 
@@ -773,6 +794,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.clearReferenceSelections()
             self.xOffsetSpinBoxes[i].setEnabled(True)
             self.referenceCheckBoxes[i].setChecked(True)
+            self.showCheckBoxes[i].setChecked(True)
             if i == 0:
                 self.yRefStar = self.LC1[:]
             elif i == 1:
@@ -1161,7 +1183,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             except Exception as e:
                 self.showMsg(repr(e))
                 self.showMsg(f'FAILED to fill Asteroid Occultation Report Form', color='red', bold=True)
-                self.showMsg(f'Is it possible that you have the file already open somewjere?', color='red', bold=True)
+                self.showMsg(f'Is it possible that you have the file already open somewhere?', color='red', bold=True)
                 return
 
             self.showMsg(f'Excel spreadsheet Asteroid Report Form entries made successfully.')
@@ -5990,15 +6012,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             pen = pg.mkPen(color=(0, 200, 0), style=QtCore.Qt.DashLine, width=self.lineWidthSpinner.value())
             self.mainPlot.plot([self.solution[1], self.solution[1]], [lo_int, hi_int], pen=pen, symbol=None)
 
-        # if self.right is not None:
-        #     right = min(self.dataLen, self.right + 1)
-        # else:
-        #     right = self.dataLen
-        # if self.left is None:
-        #     left = 0
-        # else:
-        #     left = self.left
-
         if len(self.yRefStar) == self.dataLen:
             if not self.skipNormalization and not self.suppressNormalization:
                 # Update reference curve smoothing
@@ -6019,7 +6032,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.suppressNormalization = False
 
             # Plot the normalization reference lightcurve
-            if refIndex is not None:
+            if refIndex is not None and self.showCheckBoxes[refIndex].isChecked():
                 minY = min(minY, np.min(self.yRefStar + self.yOffsetSpinBoxes[refIndex].value()))
                 maxY = max(maxY, np.max(self.yRefStar + self.yOffsetSpinBoxes[refIndex].value()))
                 xOffset = self.xOffsetSpinBoxes[refIndex].value()
