@@ -158,7 +158,6 @@ def ciBars(*, dist: np.ndarray = None, ci: float = None, D: float = None) -> Tup
 
     # midBar = ecdfX[np.where(ecdfY >= 0.5)[0][0]]
 
-    # TODO comment out this experimental code
     # varCi = np.var(ecdfX[loIndex:hiIndex+1])
     # meanCi = np.mean(ecdfX[loIndex:hiIndex+1])
     # print(f'ci: {ci:0.4f}  meanCi: {meanCi:0.4f}  varCi: {varCi:0.4f}  lo: {ecdfX[loIndex]:0.4f}  hi: {ecdfX[hiIndex]:0.4f}')

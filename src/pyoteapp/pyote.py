@@ -2338,10 +2338,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         userSpecedWindow = self.smoothingIntervalSpinBox.value()
 
-        if userSpecedWindow < 3:
-            userSpecedWindow = 3
+        # if userSpecedWindow < 3:
+        #     userSpecedWindow = 3
 
-        # window = None
         try:
             if len(y) > userSpecedWindow:
                 window = userSpecedWindow
@@ -2352,9 +2351,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             if window % 2 == 0:
                 window += 1
 
-            # We do a double pass with a first order (straight line with slope) savgol filter
-            filteredY = scipy.signal.savgol_filter(np.array(y), window, 1)
-            self.smoothSecondary = scipy.signal.savgol_filter(filteredY, window, 1)
+            if window == 1:
+                self.smoothSecondary = np.array(y)
+            else:
+                # We do a double pass with a first order (straight line with slope) savgol filter
+                filteredY = scipy.signal.savgol_filter(np.array(y), window, 1)
+                self.smoothSecondary = scipy.signal.savgol_filter(filteredY, window, 1)
 
         except Exception as e:
             self.showMsg(str(e))
@@ -3090,7 +3092,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                          (Rtime - Dtime, plusDur, minusDur))
 
     def magDropString(self, B, A, numSigmas):
-        # TODO Version 4.1.0 code change
         if not 0 < A < B:
             return 'NA because 0 < A < B is not satisfied'
         stdB = self.sigmaB / np.sqrt(self.nBpts)
@@ -3547,7 +3548,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             else:
                 self.progressBar.setValue(0)
 
-        # TODO Remove this pickle dump
         # pickle.dump(dist, open('sample-dist.p', 'wb'))
 
         y, x = np.histogram(dist, bins=1000)
@@ -5091,7 +5091,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             # RfitMetric = ex.scoreRedge(numTheoryPts=numTheoryPoints, B=b, A=a, offset=bestOffset,
             #                            N=RtimeConstant, actual=actual, matchPoint=bestMatchPoint)
 
-            # TODO Remove this debug statement
             # self.showInfo(f'bestMatchPoint: {bestMatchPoint}  bestOffset: {bestOffset:0.2f} R: {R}')
 
         return True, DfitMetric, RfitMetric
