@@ -247,23 +247,17 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.initializeLightcurvePanel()
 
-        self.stepBy2Button.clicked.connect(self.processStepBy2)
-        self.stepBy2Button.installEventFilter(self)
+        self.stepBy2radioButton.clicked.connect(self.processStepBy2)
 
-        self.stepBy10Button.clicked.connect(self.processStepBy10)
-        self.stepBy10Button.installEventFilter(self)
+        self.stepBy10radioButton.clicked.connect(self.processStepBy10)
 
-        self.stepBy100Button.clicked.connect(self.processStepBy100)
-        self.stepBy100Button.installEventFilter(self)
+        self.stepBy100radioButton.clicked.connect(self.processStepBy100)
 
-        self.yOffsetStep10.clicked.connect(self.processYoffsetStepBy10)
-        self.yOffsetStep10.installEventFilter(self)
+        self.yOffsetStep10radioButton.clicked.connect(self.processYoffsetStepBy10)
 
-        self.yOffsetStep100.clicked.connect(self.processYoffsetStepBy100)
-        self.yOffsetStep100.installEventFilter(self)
+        self.yOffsetStep100radioButton.clicked.connect(self.processYoffsetStepBy100)
 
-        self.yOffsetStep1000.clicked.connect(self.processYoffsetStepBy1000)
-        self.yOffsetStep1000.installEventFilter(self)
+        self.yOffsetStep1000radioButton.clicked.connect(self.processYoffsetStepBy1000)
 
         self.targetCheckBox_1.clicked.connect(self.processTargetSelection1)
         self.targetCheckBox_2.clicked.connect(self.processTargetSelection2)
@@ -5241,7 +5235,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         if self.filename:
             self.initializeLightcurvePanel()
-            self.switchToTabNamed('Lightcurves')
+            # self.switchToTabNamed('Lightcurves')
             QtWidgets.QApplication.processEvents()
             self.userDeterminedBaselineStats = False
             self.userDeterminedEventStats = False
