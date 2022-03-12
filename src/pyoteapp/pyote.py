@@ -2221,6 +2221,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 'Exactly two points must be selected for this operation.')
             return
 
+        self.minEventEdit.setText('')
+        self.maxEventEdit.setText('')
+
         selIndices = [key for key, _ in self.selectedPoints.items()]
         selIndices.sort()
 
@@ -2351,7 +2354,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         targetStd = np.std(yValuesInMetric)
         self.showMsg(f'Flatness  (minimize this value): {targetStd:0.2f} '
                      f'(readings: {self.smoothingIntervalSpinBox.value()})  (X offset: {xOffset})',
-                     color='green', bold=True)
+                     color='green', bold=True, writeToLog=False)
 
         self.fillTableViewOfData()  # This should capture/write the effects of the normalization to the table
 
@@ -2912,7 +2915,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.mainPlot.plot(x, y, pen=None, symbol='o', symbolPen=(255, 0, 0),
                            symbolBrush=(255, 255, 0), symbolSize=10)
         
-    def showMsg(self, msg, color=None, bold=False, blankLine=True):
+    def showMsg(self, msg, color=None, bold=False, blankLine=True, writeToLog=True):
         """ show standard output message """
         htmlmsg = msg
         if color:
@@ -2925,7 +2928,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         if blankLine:
             self.textOut.insertHtml('<br>')
         self.textOut.ensureCursorVisible()
-        if self.logFile:
+        if self.logFile and writeToLog:
             fileObject = open(self.logFile, 'a')
             fileObject.write(msg + '\n')
             if blankLine:
@@ -3825,18 +3828,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             for i, checkBox in enumerate(self.targetCheckBoxes):
                 if checkBox.isChecked():
                     break
-            self.showMsg(f'Using lightcurve: {self.lightcurveTitles[i].text()} ...', blankLine=False)
-            self.showMsg(f'... processing detectability of magDrop: {event_magDrop:0.2f} dur(secs): {event_duration_secs:0.2f} event')
+            self.showMsg(f'Using lightcurve: {self.lightcurveTitles[i].text()} ...',
+                         blankLine=False, writeToLog=False)
+            self.showMsg(f'... processing detectability of magDrop: {event_magDrop:0.2f} '
+                         f'dur(secs): {event_duration_secs:0.2f} event', writeToLog=False)
             QtWidgets.QApplication.processEvents()
 
             drops = compute_drops(event_duration=event_duration, observation_size=obs_duration,
                                   noise_sigma=sigma, corr_array=np.array(posCoefs), num_trials=num_trials)
-
-            # numNegativeDrops = 0
-            # for i in range(drops.size):
-            #     if drops[i] < 0.0:
-            #         numNegativeDrops += 1
-            # self.showInfo(f'numNegativeDrops: {numNegativeDrops}')
 
             title = (f'Distribution of drops found in correlated noise:'
                      f'Event duration(readings): {event_duration}   '
@@ -5813,10 +5812,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     z_trimmed.append(z_values[i])
 
             # (150, 100, 100) is the brownish color we use to show the underlying lightcurve
-            if self.showUnderlyingLightcurveCheckBox.isChecked():
+            if self.showUnderlyingLightcurveCheckBox.isChecked() and x_trimmed:
                 plot(x_trimmed, z_trimmed, pen=pg.mkPen((150, 100, 100), width=self.lineWidthSpinner.value()))
 
-            if self.exponentialRtheoryPts is None:
+            if self.exponentialRtheoryPts is None and x_trimmed:
                 # Now overplot with the blue camera response curve
                 plot(x_trimmed, y_trimmed, pen=pg.mkPen((0, 0, 255), width=self.lineWidthSpinner.value()))
                 # Extend camera response to the left and right if necessary...
@@ -5872,10 +5871,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             plotGeometricShadowAtD()
 
         elif self.eventType == 'Ronly':
-            # if self.exponentialRtheoryPts is None:
             R = self.solution[1]
-            # else:
-            #     R = self.exponentialRedge
 
             min_x = self.left
             plotRcurve()
