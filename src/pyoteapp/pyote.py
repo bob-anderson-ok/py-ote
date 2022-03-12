@@ -2320,10 +2320,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         stdR = np.std(referenceY)
         if not stdT == 0.0 and not stdR == 0.0:
             coeff, _ = pearson(targetY, referenceY)
-            self.showMsg(f'Pearson R: {coeff:0.3f}', color='red', bold=True, blankLine=False)
+            self.showMsg(f'Pearson R (maximize using X offset): {coeff:0.3f}', color='red', bold=True, blankLine=False)
         else:
             # self.showInfo(f'Could not calculate Pearson R because an std was 0.0')
             pass
+
+        # Compute standard deviation of normalized target curve - minimize this metric
+        targetStd = np.std(self.yValues)
+        self.showMsg(f'Flatness  (minimize with smoothing): {targetStd:0.1f}', color='green', bold=True)
 
         self.fillTableViewOfData()  # This should capture/write the effects of the normalization to the table
 
@@ -2515,7 +2519,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 ans = mean_std_versus_offset(k, self.yValues)
                 progress += 1
                 self.progressBar.setValue((progress / len(integrationSizes)) * 100)
-                # QtGui.QApplication.processEvents()
+
                 QtWidgets.QApplication.processEvents()
                 offsetList.append(np.argmin(ans))
                 median = np.median(ans)
