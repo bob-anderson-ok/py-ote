@@ -33,7 +33,7 @@ import numpy as np
 import pyqtgraph as pg
 import pyqtgraph.exporters as pex
 import scipy.signal
-from scipy.stats import pearsonr as pearson
+# from scipy.stats import pearsonr as pearson
 import PyQt5
 from PyQt5 import QtCore, QtWidgets
 from PyQt5 import QtGui
@@ -376,10 +376,16 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.markBaselineRegionButton.clicked.connect(self.markBaselineRegion)
         self.markBaselineRegionButton.installEventFilter(self)
 
+        self.normMarkBaselineRegionButton.clicked.connect(self.markBaselineRegion)
+        self.normMarkBaselineRegionButton.installEventFilter(self)
+
         self.pymovieDataColumnPrefixComboBox.currentTextChanged.connect(self.handlePymovieColumnChange)
 
         self.clearBaselineRegionsButton.clicked.connect(self.clearBaselineRegions)
         self.clearBaselineRegionsButton.installEventFilter(self)
+
+        self.clearMetricPointsButton.clicked.connect(self.clearBaselineRegions)
+        self.clearMetricPointsButton.installEventFilter(self)
 
         self.calcStatsFromBaselineRegionsButton.clicked.connect(self.calcBaselineStatisticsFromMarkedRegions)
         self.calcStatsFromBaselineRegionsButton.installEventFilter(self)
@@ -2252,11 +2258,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.rLimits = [leftEdge, rightEdge]
 
         if self.dLimits:
-            # self.DandR.setChecked(True)
             self.eventType = 'DandR'
         else:
             self.eventType = 'Ronly'
-            # self.Ronly.setChecked(True)
 
         self.rRegion = pg.LinearRegionItem(
             [leftEdge, rightEdge], movable=False, brush=(200, 0, 0, 50))
@@ -2264,7 +2268,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.showMsg('R zone selected: ' + str([leftEdge, rightEdge]))
         self.removePointSelections()
-        self.reDrawMainPlot()
+        # self.reDrawMainPlot()
 
         self.findEvent()
 
@@ -2307,7 +2311,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.yStatus[i] = EXCLUDED
                 continue
             else:
-                self.yStatus[i] = INCLUDED
+                if not self.yStatus[i] == BASELINE:
+                    self.yStatus[i] = INCLUDED
                 targetY.append(self.yValues[i])
                 referenceY.append(self.smoothSecondary[k])
             try:
@@ -2316,24 +2321,48 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.showMsg(str(e))
 
         # Compute and show pearson R
-        stdT = np.std(targetY)
-        stdR = np.std(referenceY)
-        if not stdT == 0.0 and not stdR == 0.0:
-            coeff, _ = pearson(targetY, referenceY)
-            self.showMsg(f'Pearson R (maximize using X offset): {coeff:0.3f}', color='red', bold=True, blankLine=False)
-        else:
-            # self.showInfo(f'Could not calculate Pearson R because an std was 0.0')
-            pass
+        # stdT = np.std(targetY)
+        # stdR = np.std(referenceY)
+        # if not stdT == 0.0 and not stdR == 0.0:
+        #     coeff, _ = pearson(targetY, referenceY)
+        #     self.showMsg(f'Pearson R (maximize using X offset): {coeff:0.3f} '
+        #                  f'({xOffset})',
+        #                  color='red', bold=True, blankLine=False)
+        # else:
+        #     self.showInfo(f'Could not calculate Pearson R because an std was 0.0')
+        #     pass
 
         # Compute standard deviation of normalized target curve - minimize this metric
-        targetStd = np.std(self.yValues)
-        self.showMsg(f'Flatness  (minimize with smoothing): {targetStd:0.1f}', color='green', bold=True)
+        yValuesInMetric = []
+        baselineSelectionAvailable = False
+        for i in range(len(self.yValues)):
+            if self.yStatus[i] == BASELINE:
+                baselineSelectionAvailable = True
+                break
+        if baselineSelectionAvailable:
+            for i in range(len(self.yValues)):
+                if self.yStatus[i] == BASELINE:
+                    yValuesInMetric.append(self.yValues[i])
+        else:
+            for i in range(len(self.yValues)):
+                if self.yStatus[i] == INCLUDED:
+                    yValuesInMetric.append(self.yValues[i])
+
+        targetStd = np.std(yValuesInMetric)
+        self.showMsg(f'Flatness  (minimize this value): {targetStd:0.2f} '
+                     f'(readings: {self.smoothingIntervalSpinBox.value()})  (X offset: {xOffset})',
+                     color='green', bold=True)
 
         self.fillTableViewOfData()  # This should capture/write the effects of the normalization to the table
 
         self.normalized = True
 
     def newSmoothRefStar(self):
+        if self.right is None:
+            self.right = self.dataLen
+        if self.left is None:
+            self.left = 0
+
         if (self.right - self.left) < 2:
             self.showInfo('The smoothing algorithm requires a minimum data set of 3 points')
             return
