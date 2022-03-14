@@ -185,7 +185,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.yTimes = []
 
-        self.firstEvent = True
+        self.dataLen = None
+        self.left = None
+        self.right = None
+        self.yValues = None
 
         # This is an externally supplied csv file path (probably from PyMovie)
         self.externalCsvFilePath = csv_file
@@ -599,6 +602,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.settings = QSettings('pyote.ini', QSettings.IniFormat)
         self.settings.setFallbacksEnabled(False)
 
+        lineWidth = self.settings.value('lineWidth', '5')
+        dotSize = self.settings.value('dotSize', '8')
+
+        self.lineWidthSpinner.setValue(int(lineWidth))
+        self.dotSizeSpinner.setValue(int(dotSize))
+
         allowNewVersionPopup = self.settings.value('allowNewVersionPopup', 'true')
         if allowNewVersionPopup == 'true':
             self.allowNewVersionPopupCheckbox.setChecked(True)
@@ -670,12 +679,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.pymovieDataColumnPrefixComboBox.addItem("stdbkg")
         self.pymovieDataColumnPrefixComboBox.addItem("nmaskpx")
 
-        self.yValues = None
         self.outliers = []
         self.timeDelta = None
 
-        self.left = None
-        self.right = None
         self.selPts = []
         self.initializeVariablesThatDontDependOnAfile()
 
@@ -2854,6 +2860,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.settings = QSettings('pyote.ini', QSettings.IniFormat)
 
         self.settings.setValue('allowNewVersionPopup', self.allowNewVersionPopupCheckbox.isChecked())
+
+        self.settings.setValue('lineWidth', self.lineWidthSpinner.value())
+        self.settings.setValue('dotSize', self.dotSizeSpinner.value())
 
         tabOrderList = []
         numTabs = self.tabWidget.count()
