@@ -2154,7 +2154,7 @@
                   <widget class="QFrame" name="frame">
                    <property name="maximumSize">
                     <size>
-                     <width>200</width>
+                     <width>16777215</width>
                      <height>16777215</height>
                     </size>
                    </property>
@@ -3320,48 +3320,34 @@
                <string>Settings/Misc.</string>
               </attribute>
               <layout class="QGridLayout" name="gridLayout_5">
-               <item row="11" column="1">
-                <layout class="QHBoxLayout" name="horizontalLayout_20">
-                 <item>
-                  <widget class="QLabel" name="lineWidthLabel">
-                   <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This spinner sets the line width (in pixels) of the error bar lines, the geometric edge lines, and the lightcurve lines.  Adjust this to show these lines according to your taste and the resolution of your screen.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                   </property>
-                   <property name="text">
-                    <string>line width</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QSpinBox" name="lineWidthSpinner">
-                   <property name="minimum">
-                    <number>1</number>
-                   </property>
-                   <property name="maximum">
-                    <number>9</number>
-                   </property>
-                   <property name="value">
-                    <number>2</number>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <spacer name="horizontalSpacer_8">
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>40</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                </layout>
+               <item row="0" column="2">
+                <spacer name="verticalSpacer_3">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>40</height>
+                  </size>
+                 </property>
+                </spacer>
                </item>
-               <item row="12" column="1" colspan="3">
-                <widget class="Line" name="line_13">
+               <item row="1" column="1">
+                <widget class="QCheckBox" name="allowNewVersionPopupCheckbox">
+                 <property name="toolTip">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; color:#0000ff;&quot;&gt;What's new:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; color:#fc0107;&quot;&gt;This version contains many new changes in the GUI and analysis features. Be sure and read all the applicable help by clicking on applicable HELP buttons and by right-clicking on text labels of new features.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;This popup can be disabled in the Settings/Misc tab. There is a checkbox provided there for this function. Note: right click on that checkbox at any time to see the new vesion description.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <property name="text">
+                  <string>allow 'new version' information pop-up</string>
+                 </property>
+                 <property name="checked">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="1" colspan="3">
+                <widget class="Line" name="line_16">
                  <property name="frameShadow">
                   <enum>QFrame::Plain</enum>
                  </property>
@@ -3373,21 +3359,17 @@
                  </property>
                 </widget>
                </item>
-               <item row="10" column="1" colspan="3">
-                <widget class="QLabel" name="label_4">
+               <item row="3" column="1" colspan="2">
+                <widget class="QLabel" name="label">
                  <property name="text">
-                  <string>Set the width of the error bars and light curve lines in the light curve plot.</string>
+                  <string>Check any of the following boxes you wish to be active during the analysis.</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
                  </property>
                 </widget>
                </item>
-               <item row="17" column="1" colspan="3">
-                <widget class="QLabel" name="label_7">
-                 <property name="text">
-                  <string>... signal (background subtracted)  appsum (no background subtraction) ...</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="2" column="1" colspan="3">
+               <item row="4" column="1" colspan="2">
                 <layout class="QHBoxLayout" name="horizontalLayout_17">
                  <item>
                   <widget class="QCheckBox" name="showTimestampErrors">
@@ -3463,8 +3445,8 @@
                  </item>
                 </layout>
                </item>
-               <item row="6" column="1" colspan="3">
-                <widget class="Line" name="line_11">
+               <item row="5" column="1" colspan="3">
+                <widget class="Line" name="line_5">
                  <property name="frameShadow">
                   <enum>QFrame::Plain</enum>
                  </property>
@@ -3476,7 +3458,30 @@
                  </property>
                 </widget>
                </item>
-               <item row="5" column="1" colspan="3">
+               <item row="5" column="4" rowspan="2">
+                <spacer name="horizontalSpacer_7">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="6" column="1" colspan="2">
+                <widget class="QLabel" name="label_2">
+                 <property name="text">
+                  <string>Use View Frame to import a video image of a specific frame number.</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item row="7" column="1">
                 <layout class="QHBoxLayout" name="horizontalLayout_18">
                  <item>
                   <widget class="QPushButton" name="viewFrameButton">
@@ -3518,72 +3523,8 @@
                  </item>
                 </layout>
                </item>
-               <item row="13" column="1" colspan="3">
-                <widget class="QLabel" name="label_31">
-                 <property name="text">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Set the size of the dots used in lightcurve plots.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="19" column="1" colspan="3">
-                <layout class="QHBoxLayout" name="horizontalLayout_9">
-                 <item>
-                  <widget class="QComboBox" name="pymovieDataColumnPrefixComboBox">
-                   <property name="currentText">
-                    <string/>
-                   </property>
-                   <property name="currentIndex">
-                    <number>-1</number>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="label_5">
-                   <property name="text">
-                    <string>PyMovie data column prefix</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <spacer name="horizontalSpacer_18">
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>40</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                </layout>
-               </item>
-               <item row="1" column="1" colspan="3">
-                <widget class="QLabel" name="label">
-                 <property name="text">
-                  <string>Check any of the following boxes you wish to be active during the analysis.</string>
-                 </property>
-                 <property name="alignment">
-                  <set>Qt::AlignCenter</set>
-                 </property>
-                </widget>
-               </item>
-               <item row="20" column="2">
-                <spacer name="verticalSpacer_4">
-                 <property name="orientation">
-                  <enum>Qt::Vertical</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>20</width>
-                   <height>40</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item row="15" column="1" colspan="3">
-                <widget class="Line" name="line_26">
+               <item row="8" column="1" colspan="3">
+                <widget class="Line" name="line_11">
                  <property name="frameShadow">
                   <enum>QFrame::Plain</enum>
                  </property>
@@ -3595,70 +3536,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="16" column="1" colspan="3">
-                <widget class="QLabel" name="label_6">
-                 <property name="text">
-                  <string>If the file is from PyMovie, you can select the kind of data to analyze ...</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="9" column="1" colspan="3">
-                <widget class="Line" name="line_9">
-                 <property name="frameShadow">
-                  <enum>QFrame::Plain</enum>
-                 </property>
-                 <property name="lineWidth">
-                  <number>4</number>
-                 </property>
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                </widget>
-               </item>
-               <item row="3" column="1" colspan="3">
-                <widget class="Line" name="line_5">
-                 <property name="frameShadow">
-                  <enum>QFrame::Plain</enum>
-                 </property>
-                 <property name="lineWidth">
-                  <number>4</number>
-                 </property>
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                </widget>
-               </item>
-               <item row="4" column="1" colspan="3">
-                <widget class="QLabel" name="label_2">
-                 <property name="text">
-                  <string>Use View Frame to import a video image of a specific frame number.</string>
-                 </property>
-                 <property name="alignment">
-                  <set>Qt::AlignCenter</set>
-                 </property>
-                </widget>
-               </item>
-               <item row="18" column="1" colspan="3">
-                <widget class="QLabel" name="label_8">
-                 <property name="text">
-                  <string>... avgbkg (background value)  stdbkg (noise in background)  nmaskpx (pixel count in mask)</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="3" column="4" rowspan="2">
-                <spacer name="horizontalSpacer_7">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>40</width>
-                   <height>20</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item row="7" column="1" colspan="3">
+               <item row="9" column="1" colspan="2">
                 <widget class="QLabel" name="label_3">
                  <property name="text">
                   <string>Use the check boxes to change the view of the imported video image.</string>
@@ -3668,7 +3546,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="8" column="1" colspan="2">
+               <item row="10" column="1">
                 <layout class="QHBoxLayout" name="horizontalLayout_19">
                  <item>
                   <widget class="QCheckBox" name="fieldViewCheckBox">
@@ -3711,7 +3589,7 @@
                  </item>
                 </layout>
                </item>
-               <item row="9" column="0" rowspan="2">
+               <item row="11" column="0" rowspan="2">
                 <spacer name="horizontalSpacer_6">
                  <property name="orientation">
                   <enum>Qt::Horizontal</enum>
@@ -3724,20 +3602,87 @@
                  </property>
                 </spacer>
                </item>
-               <item row="0" column="3">
-                <spacer name="verticalSpacer_3">
+               <item row="11" column="1" colspan="3">
+                <widget class="Line" name="line_9">
+                 <property name="frameShadow">
+                  <enum>QFrame::Plain</enum>
+                 </property>
+                 <property name="lineWidth">
+                  <number>4</number>
+                 </property>
                  <property name="orientation">
-                  <enum>Qt::Vertical</enum>
+                  <enum>Qt::Horizontal</enum>
                  </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>20</width>
-                   <height>40</height>
-                  </size>
-                 </property>
-                </spacer>
+                </widget>
                </item>
-               <item row="14" column="1">
+               <item row="12" column="1" colspan="2">
+                <widget class="QLabel" name="label_4">
+                 <property name="text">
+                  <string>Set the width of the error bars and light curve lines in the light curve plot.</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="13" column="1">
+                <layout class="QHBoxLayout" name="horizontalLayout_20">
+                 <item>
+                  <widget class="QLabel" name="lineWidthLabel">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This spinner sets the line width (in pixels) of the error bar lines, the geometric edge lines, and the lightcurve lines.  Adjust this to show these lines according to your taste and the resolution of your screen.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>line width</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QSpinBox" name="lineWidthSpinner">
+                   <property name="minimum">
+                    <number>1</number>
+                   </property>
+                   <property name="maximum">
+                    <number>9</number>
+                   </property>
+                   <property name="value">
+                    <number>5</number>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_8">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
+               </item>
+               <item row="14" column="1" colspan="3">
+                <widget class="Line" name="line_13">
+                 <property name="frameShadow">
+                  <enum>QFrame::Plain</enum>
+                 </property>
+                 <property name="lineWidth">
+                  <number>4</number>
+                 </property>
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                </widget>
+               </item>
+               <item row="15" column="1">
+                <widget class="QLabel" name="label_31">
+                 <property name="text">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Set the size of the dots used in lightcurve plots.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="16" column="1">
                 <layout class="QHBoxLayout" name="horizontalLayout_39">
                  <item>
                   <widget class="QLabel" name="lineWidthLabel_2">
@@ -3777,6 +3722,87 @@
                  </item>
                 </layout>
                </item>
+               <item row="17" column="1" colspan="3">
+                <widget class="Line" name="line_26">
+                 <property name="frameShadow">
+                  <enum>QFrame::Plain</enum>
+                 </property>
+                 <property name="lineWidth">
+                  <number>4</number>
+                 </property>
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                </widget>
+               </item>
+               <item row="18" column="1" colspan="2">
+                <widget class="QLabel" name="label_6">
+                 <property name="text">
+                  <string>If the file is from PyMovie, you can select the kind of data to analyze ...</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="19" column="1" colspan="2">
+                <widget class="QLabel" name="label_7">
+                 <property name="text">
+                  <string>... signal (background subtracted)  appsum (no background subtraction) ...</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="20" column="1" colspan="3">
+                <widget class="QLabel" name="label_8">
+                 <property name="text">
+                  <string>... avgbkg (background value)  stdbkg (noise in background)  nmaskpx (pixel count in mask)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="21" column="1">
+                <layout class="QHBoxLayout" name="horizontalLayout_9">
+                 <item>
+                  <widget class="QComboBox" name="pymovieDataColumnPrefixComboBox">
+                   <property name="currentText">
+                    <string/>
+                   </property>
+                   <property name="currentIndex">
+                    <number>-1</number>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="label_5">
+                   <property name="text">
+                    <string>PyMovie data column prefix</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_18">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
+               </item>
+               <item row="22" column="3">
+                <spacer name="verticalSpacer_4">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>40</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
               </layout>
              </widget>
              <widget class="QWidget" name="tab_8">
@@ -3802,7 +3828,7 @@
                  <item>
                   <widget class="QPushButton" name="detectabilityHelpButton">
                    <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The primary use of this tool is to perform a 'detectability' estimate. That estimate can be used to decide whether to attempt a future occultation observation or, alternatively, to analyze an actual occultation observation to decide whether to report a &lt;span style=&quot; color:#fc0107;&quot;&gt;'miss'&lt;/span&gt; or a &lt;span style=&quot; color:#fc0107;&quot;&gt;'no observation'&lt;/span&gt;.&lt;/p&gt;&lt;p&gt;Assuming PyOTE could not find an event in an actual occultation observation and this tool says the event was undetectable, report a &lt;span style=&quot; color:#fc0107;&quot;&gt;'no observation'&lt;/span&gt; but if this tool says that the expected event was detectable, then report a &lt;span style=&quot; color:#fc0107;&quot;&gt;'miss'&lt;/span&gt;.&lt;/p&gt;&lt;p&gt;This tool is also useful with observations that have employed a 'GPS Flasher' to provide timing for the video observation. A side effect of having an LED light up at the entrance of your telescope is that it will affect the baseline values of the target star (and others) and so make it more difficult to extract the best possible baseline statistics (mean and noise-sigma and noise-correlation-coefficients) which benefit from having more points involved in the calculation. This tool allows the user to tell PyOTE where the baseline values are reliable enough(unaffected by flashes, or wind gusts, or telescope jostling, etc) to be used during baseline statistics calculation.&lt;/p&gt;&lt;p&gt;By repeatedly selecting pairs of points on the light curve being analyzed and clicking the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Mark baseline region&lt;/span&gt; button, the regions of 'reliable baseline/event data' can be designated. They will be shown as orangish points instead of the normal blue color.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;NOTE:&lt;/span&gt; Regions marked on one curve are automatically applied to all curves. &lt;/p&gt;&lt;p&gt;In general, normalization against a reference star should be performed first, then this operation. That will remove any 'trends' that would affect the mean and noise-sigma.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;FYI:&lt;/span&gt; One can also use this feature to calculate statistics on some set of points of interest (like a statistics in the event bottom) or for reference stars or ...&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The primary use of this tool is to perform a 'detectability' estimate. That estimate can be used to decide whether to attempt a future occultation observation or, to analyze an actual occultation observation to decide whether to report a &lt;span style=&quot; color:#fc0107;&quot;&gt;'miss'&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt;,&lt;/span&gt;&lt;span style=&quot; color:#fc0107;&quot;&gt; 'qualified miss'&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt;,&lt;/span&gt;&lt;span style=&quot; color:#fc0107;&quot;/&gt;or &lt;span style=&quot; color:#fc0107;&quot;&gt;'no observation'&lt;/span&gt;. Do this as follows:&lt;/p&gt;&lt;p&gt;1) If PyOTE could not find an event in an actual occultation observation and this tool says the event was detectable at a duration as short as one data frame, report a &lt;span style=&quot; color:#fc0107;&quot;&gt;'miss'&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt;.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;2) If PyOTE could not find an event in an actual occultation observation and this tool says the event was detectable at more than one data frame duration, then report a&lt;/span&gt;&lt;span style=&quot; color:#fc0107;&quot;&gt; 'qualified miss for a duration greater than the detectable limit'&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; and a &lt;/span&gt;&lt;span style=&quot; color:#fc0107;&quot;&gt;'no observation'&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; for a duration shorter than the detectable limit.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;3) If PyOTE could not find an event in actual occultation observation and the tool says the event was not detectable at a duration of more than 1.5 X the predicted duration, then report a &lt;/span&gt;&lt;span style=&quot; color:#fc0107;&quot;&gt;'no observation'&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt;.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;This tool is also useful with observations that have employed a 'GPS Flasher' to provide timing for the video observation. A side effect of having an LED light up at the entrance of your telescope is that it will affect the baseline values of the target star (and others) and so make it more difficult to extract the best possible baseline statistics (mean and noise-sigma and noise-correlation-coefficients) which benefit from having more points involved in the calculation. This tool allows the user to tell PyOTE where the baseline values are reliable enough(unaffected by flashes, or wind gusts, or telescope jostling, etc) to be used during baseline statistics calculation.&lt;/p&gt;&lt;p&gt;By repeatedly selecting pairs of points on the light curve being analyzed and clicking the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Mark baseline region&lt;/span&gt; button, the regions of 'reliable baseline/event data' can be designated. They will be shown as orangish points instead of the normal blue color.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;NOTE:&lt;/span&gt; Regions marked on one curve are automatically applied to all curves. &lt;/p&gt;&lt;p&gt;In general, normalization against a reference star should be performed first, then this operation. That will remove any 'trends' that would affect the mean and noise-sigma.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;FYI:&lt;/span&gt; One can also use this feature to calculate statistics on some set of points of interest (like a statistics in the event bottom) or for reference stars or ...&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="text">
                     <string>Help</string>
@@ -3885,7 +3911,7 @@
                  <item>
                   <widget class="QLabel" name="obsDurLabel">
                    <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter the length of the observation (in seconds).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter the length of the observation (in seconds). This allow the User to see how the detectability limit event looks in the context of a typical observation duration. Typically, 120 seconds is used (2 minutes).&lt;/p&gt;&lt;p&gt;A simulated observation light curve will be plotted. If you want to save this lightcurve as a csv file, put a check mark in the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Write example to csv file&lt;/span&gt; checkbox.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="text">
                     <string>ObservationDur(secs):</string>
@@ -3937,10 +3963,10 @@
                     </size>
                    </property>
                    <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If this box contains 0 or is empty, a single detectability calculation and plot will be made.&lt;/p&gt;&lt;p&gt;If a non-zero entry is made in this edit box, a series of detectability calculations and plots will be made at ever shorter durations until the false-positive probability of the event becomes non-zero.&lt;/p&gt;&lt;p&gt;The units here are seconds.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If this box contains 0 or is empty, a single detectability calculation and plot will be made for the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;EventDur(secs)&lt;/span&gt; entered.&lt;/p&gt;&lt;p&gt;If a non-zero entry is made in this edit box, a series of detectability calculations and plots will be made at ever shorter durations, decremented by the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;duration step&lt;/span&gt; entered, until the false-positive probability of the event becomes non-zero (greater than 0.0000).&lt;/p&gt;&lt;p&gt;The units here are seconds.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="text">
-                    <string>  duration step</string>
+                    <string>  duration step:</string>
                    </property>
                   </widget>
                  </item>
@@ -3955,12 +3981,25 @@
                   </widget>
                  </item>
                  <item>
+                  <spacer name="horizontalSpacer_54">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
                   <widget class="QLabel" name="detectMagDropLabel">
                    <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter the expected magDrop as a positive number.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter the expected (predicted) magDrop as a positive number.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="text">
-                    <string>  magDrop:</string>
+                    <string>magDrop:</string>
                    </property>
                   </widget>
                  </item>
@@ -4000,7 +4039,7 @@
                     </size>
                    </property>
                    <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This button activates a special version of the False-Positive calculator to help determine whether an occultation observation planned for the near future is detectable given the star signal available from the observation location, the expected duration of the event, and the expected magDrop of the event. &lt;/p&gt;&lt;p&gt;Or, if you are analyzing an actual occultation observation, this tool will help you in deciding whether to report a &lt;span style=&quot; color:#fc0107;&quot;&gt;'miss'&lt;/span&gt; or a &lt;span style=&quot; color:#fc0107;&quot;&gt;'no observation'&lt;/span&gt; if an event was not found. Assuming PyOTE could not find an event in the occultation observation being analyzed and this tool says the event was undetectable, report a &lt;span style=&quot; color:#fc0107;&quot;&gt;'no observation'&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt;,&lt;/span&gt; but if this tool says that the expected event was detectable, then report a &lt;span style=&quot; color:#fc0107;&quot;&gt;'miss'&lt;/span&gt;.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#fc0107;&quot;&gt;Please keep in mind that this is a simulation using random numbers, so repeated calculations with the same duration and magDrop will naturally give slightly different answers.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;The workflow is as follows:&lt;/p&gt;&lt;p&gt;1. Make a video of the target star with at least a few hundred frames. The video needs to be long enough and under the anticipated observation conditions and camera settings to be used during the actual event so that a valid estimate of the expected intensity of the target star, the noise level, and the correlation coefficients of that noise during the actual event can be obtained.&lt;/p&gt;&lt;p&gt;2. Use PyMovie (or Tangra or LiMovie) to extract a light-curve from the video.&lt;/p&gt;&lt;p&gt;3. Read the light-curve into PyOTE, then click on pairs of points in the light-curve plot to designate those points that should be used for the needed intensity and noise calculations. Click the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Mark Baseline Region&lt;/span&gt; button to record your selection. This step can be repeated multiple times to select disjoint sets of points.&lt;/p&gt;&lt;p&gt;4. Now click the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Calc baseline mean/sigma/corr coefs&lt;/span&gt; button - this is what triggers the extraction of the needed intensity and noise data, a pre-requisite to performing the next step:&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt; Calc detectability&lt;/span&gt;.&lt;/p&gt;&lt;p&gt;5. Before clicking the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Calc detectability&lt;/span&gt; button, you must fill in the observation duration (&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;ObservationDur&lt;/span&gt;) in seconds and the expected duration of the event (&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;EventDur&lt;/span&gt;) in seconds.&lt;/p&gt;&lt;p&gt;6. If you want the calculator to iteratively find the smallest duration of a detectable event for you, set &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;duration step&lt;/span&gt; to a non-zero value (in seconds).&lt;/p&gt;&lt;p&gt;6. Next, fill in the expected &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;magDrop&lt;/span&gt; (a positive number).&lt;/p&gt;&lt;p&gt;7. Click the&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt; Calc detectability&lt;/span&gt; button and, after a pause while 50,000 trial observations are computed, a False-Positive plot will appear. The position of the red vertical line relative to the black line tells the detectability story: if the red line is to right of the black line, the event has a high probabilty of being detected - if the red line is to the left of the black line it has a lower probability of detection, with that probablity decreasing as the red line moves more and more to the left of the black line. &lt;/p&gt;&lt;p&gt;If the event (possibly a minimum event duration discovered during a search) was found to be detectable, a sample light-curve is displayed that shows an example observation with such an event included.&lt;/p&gt;&lt;p&gt;If the result was no detectable event, a False-Positive plot will be shown instead of the first duration that failed (red bar to left of black bar).&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The use of this tool is to perform a 'detectability' estimate. That estimate can be used to decide whether to attempt a future occultation observation or, to analyze an actual occultation observation to decide whether to report a &lt;span style=&quot; color:#fc0107;&quot;&gt;'miss'&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt;,&lt;/span&gt;&lt;span style=&quot; color:#fc0107;&quot;&gt; 'qualified miss'&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt;,&lt;/span&gt;or &lt;span style=&quot; color:#fc0107;&quot;&gt;'no observation'&lt;/span&gt;. Do this as follows:&lt;/p&gt;&lt;p&gt;1) If PyOTE could not find an event in an actual occultation observation and this tool says the event was &lt;span style=&quot; text-decoration: underline;&quot;&gt;detectable&lt;/span&gt; at a duration as short as one data frame, report a &lt;span style=&quot; color:#fc0107;&quot;&gt;'miss'&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt;.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;2) If PyOTE could not find an event in an actual occultation observation and this tool says the event was &lt;/span&gt;&lt;span style=&quot; text-decoration: underline; color:#000000;&quot;&gt;detectable&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; at more than one data frame duration, then report a&lt;/span&gt;&lt;span style=&quot; color:#fc0107;&quot;&gt; 'qualified miss for a duration greater than the detectable limit'&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; and a &lt;/span&gt;&lt;span style=&quot; color:#fc0107;&quot;&gt;'no observation'&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; for a duration shorter than the detectable limit.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;3) If PyOTE could not find an event in actual occultation observation and the tool says the event was not detectable at a duration of more than 1.5 X the predicted duration, then report a &lt;/span&gt;&lt;span style=&quot; color:#fc0107;&quot;&gt;'no observation'&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt;.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#fc0107;&quot;&gt;Please keep in mind that this is a simulation using random numbers, so repeated calculations with the same duration and magDrop will naturally give slightly different answers.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;The workflow for determining the detectability of a future event is as follows:&lt;/p&gt;&lt;p&gt;1. Make a video of the target star with at least a few hundred frames. The video needs to be long enough and under the anticipated observation conditions and camera settings to be used during the actual event so that a valid estimate of the expected intensity of the target star, the noise level, and the correlation coefficients of that noise during the actual event can be obtained.&lt;/p&gt;&lt;p&gt;2. Use PyMovie (or Tangra or LiMovie) to extract a light-curve from the video.&lt;/p&gt;&lt;p&gt;3. Read the light-curve into PyOTE, then click on pairs of points in the light-curve plot to designate those points that should be used for the needed intensity and noise calculations. Click the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Mark Baseline Region&lt;/span&gt; button to record your selection. This step can be repeated multiple times to select disjoint sets of points.&lt;/p&gt;&lt;p&gt;4. Now click the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Calc baseline mean/sigma/corr coefs&lt;/span&gt; button - this is what triggers the extraction of the needed intensity and noise data, a pre-requisite to performing the next step:&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt; Calc detectability&lt;/span&gt;.&lt;/p&gt;&lt;p&gt;5. Before clicking the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Calc detectability&lt;/span&gt; button, you must fill in the observation duration (&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;ObservationDur&lt;/span&gt;) in seconds and the expected duration of the event (&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;EventDur&lt;/span&gt;) in seconds.&lt;/p&gt;&lt;p&gt;6. If you want the calculator to iteratively find the smallest duration of a detectable event for you, set &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;duration step&lt;/span&gt; to a non-zero value (in seconds).&lt;/p&gt;&lt;p&gt;6. Next, fill in the expected &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;magDrop&lt;/span&gt; (a positive number).&lt;/p&gt;&lt;p&gt;7. Click the&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt; Calc detectability&lt;/span&gt; button and, after a pause while 50,000 trial observations are computed, a False-Positive plot will appear. The position of the red vertical line relative to the black line tells the detectability story: if the red line is to right of the black line, the event has a high probabilty of being detected - if the red line is to the left of the black line it has a lower probability of detection, with that probablity decreasing as the black line moves more and more to the right (red) line. &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Note:&lt;/span&gt; the red line may not be visible on some computer displays due to resolution differences and so will appear off screen to the right. Resize the plot to make the red line visible in this case. &lt;/p&gt;&lt;p&gt;If the event (possibly a minimum event duration discovered during a search) was found to be detectable, a sample light-curve is displayed that shows an example observation with such an event included.&lt;/p&gt;&lt;p&gt;If the result was no detectable event, a False-Positive plot will be shown instead of the first duration that failed (red bar to left of black bar). The sequnce of detectability tests and the event duration where an event is determined to be undectable will be recorded in a separate .detectability.PYOTE.log file written in the occultation event folder.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="text">
                     <string>Calc detectability</string>
@@ -4067,7 +4106,7 @@
                  <item>
                   <widget class="QPushButton" name="ne3ExplanationButton">
                    <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The Night Eagle 3 is a &lt;span style=&quot; color:#fc0107;&quot;&gt;rolling shutter CMOS camera&lt;/span&gt;. As a result, with this camera, the timing of an occultation depends on which row the occulted star is at when the occultation occurs. PyOTE will automatically calculate the needed time correction from the y (row) position that you enter in the spin/entry box at the bottom of this tab.&lt;/p&gt;&lt;p&gt;For the Night Eagle 3, times extracted by PyOTE require only a VTI correction (if you use an IOTA VTI, there is no correction at all needed).&lt;/p&gt;&lt;p&gt;Note: if the recording was &lt;span style=&quot; font-weight:600;&quot;&gt;not&lt;/span&gt; made with a tracking telescope (so the target star is moving across the image), you will need to watch the video and record the row of the occultation for use in this program. Normally, with a tracking telescope, you will be able to use the y position of the 'target' aperture directly. PyMovie includes this information in the comment lines of the csv file.&lt;/p&gt;&lt;p&gt;The Night Eagle 3 has a very effective noise reduction system called DNR (Dynamic Noise Reduction). There are 4 levels of noise reduction and you will need to indicate on this tab page what DNR setting your recording was made with.&lt;/p&gt;&lt;p&gt;The noise reduction is not without a small cost, however - the edges of an occultation light-curve will no longer be a step change. Instead, the edges will follow an exponential curve, approaching maximum and minimum intensities asymptotically. PyOTE has the ability to fit such an exponential curve to the D and R transitions, so the time resolution will be restored during the least squares fit of a 'theoretical' exponential transition curve and you should feel free to use whatever level of noise reduction you may need. It is recommended that you run your NE3 at a gamma of 0.75 (1.0 gamma is not available) AND that you use PyMovie to linearize the recording (i.e., invert the 0.75 gamma curve of the camera).&lt;/p&gt;&lt;p&gt;The D and R exponential curves each have their own time constant, measured in frames, that control the frame rate of exponential curve growth. The default values provided are usually enough to allow a good fit to be found. &lt;span style=&quot; color:#fc0107;&quot;&gt;PyOTE uses those values as the starting point for a least-squares search for better values. This usually works well, but it is possible that a starting value is too far from the correct value and the least-squares refinement process will find a local minimum that is visually wrong. In that case, you should change the starting value to something closer to 'correct' and let the 'solver' try again.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;When the exponential curve fit algorithm is in use, the light-curve plot PyOTE displays will be changed. Gone is the blue 'camera response' curve, replaced by brown dotted 'theoretical' exponential edge curves that you can use to judge for yourself the goodness of a 'fit'.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#0000ff;&quot;&gt;You will probably want to use the most aggressive noise reduction in most cases, but make sure that your expected event duration is long enough that the D transition exponential curve has time to settle to the bottom event plus some time to allow a good determination of the event bottom intensity. At DNR:HIGH, your expected event time should be greater than 30 frames (1 second) to use this setting. I suggest the following rules-of-thumb: &lt;/span&gt;&lt;span style=&quot; color:#fc0107;&quot;&gt;can use DNR:HIGH for events 2 seconds and longer; can use DNR:MIDDLE for events 1 second and longer; can use DNR:LOW for events 0.5 seconds and longer&lt;/span&gt;&lt;span style=&quot; color:#0000ff;&quot;&gt;.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This tab is provided for users of the RunCam Night Eagle 3 camera&lt;/p&gt;&lt;p&gt;The Night Eagle 3 is a &lt;span style=&quot; color:#fc0107;&quot;&gt;rolling shutter CMOS camera&lt;/span&gt;. As a result, with this camera, the timing of an occultation depends on which row the occulted star is at when the occultation occurs. PyOTE will automatically calculate the needed time correction from the y (row) position that you enter in the spin/entry box at the bottom of this tab.&lt;/p&gt;&lt;p&gt;For the Night Eagle 3, times extracted by PyOTE require only a VTI correction (if you use an IOTA VTI, there is no correction at all needed).&lt;/p&gt;&lt;p&gt;Note: if the recording was &lt;span style=&quot; font-weight:600;&quot;&gt;not&lt;/span&gt; made with a tracking telescope (so the target star is moving across the image), you will need to watch the video and record the row of the occultation for use in this program. Normally, with a tracking telescope, you will be able to use the y position of the 'target' aperture directly. PyMovie includes this information in the comment lines of the csv file.&lt;/p&gt;&lt;p&gt;The Night Eagle 3 has a very effective noise reduction system called DNR (Dynamic Noise Reduction). There are 4 levels of noise reduction and you will need to indicate on this tab page what DNR setting your recording was made with.&lt;/p&gt;&lt;p&gt;The noise reduction is not without a small cost, however - the edges of an occultation light-curve will no longer be a step change. Instead, the edges will follow an exponential curve, approaching maximum and minimum intensities asymptotically. PyOTE has the ability to fit such an exponential curve to the D and R transitions, so the time resolution will be restored during the least squares fit of a 'theoretical' exponential transition curve and you should feel free to use whatever level of noise reduction you may need. It is recommended that you run your NE3 at a gamma of 0.75 (1.0 gamma is not available) AND that you use PyMovie to linearize the recording (i.e., invert the 0.75 gamma curve of the camera).&lt;/p&gt;&lt;p&gt;The D and R exponential curves each have their own time constant, measured in frames, that control the frame rate of exponential curve growth. The default values provided are usually enough to allow a good fit to be found. &lt;span style=&quot; color:#fc0107;&quot;&gt;PyOTE uses those values as the starting point for a least-squares search for better values. This usually works well, but it is possible that a starting value is too far from the correct value and the least-squares refinement process will find a local minimum that is visually wrong. In that case, you should change the starting value to something closer to 'correct' and let the 'solver' try again.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;When the exponential curve fit algorithm is in use, the light-curve plot PyOTE displays will be changed. Gone is the blue 'camera response' curve, replaced by brown dotted 'theoretical' exponential edge curves that you can use to judge for yourself the goodness of a 'fit'.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#0000ff;&quot;&gt;When recording an an event video with the Night Eagle 3 camera, you can use any of the DNR settings, but make sure that your expected event duration is long enough that the D transition exponential curve has time to settle to the bottom plus some time to allow a good determination of the event bottom intensity. At &lt;/span&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;DNR:HIGH&lt;/span&gt;&lt;span style=&quot; color:#0000ff;&quot;&gt;, your expected time should be greater than 30 frames (1 second) to use this setting. I suggest the following rules-of-thumb: use &lt;/span&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;DNR:LOW&lt;/span&gt;&lt;span style=&quot; color:#0000ff;&quot;&gt; for all recordings except when stars are at the limit of the camera are being observed, then use incrementally stronger levels of DNR to the point where the star is visible on-screen.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="text">
                     <string>Night Eagle 3  (explanation and help)</string>

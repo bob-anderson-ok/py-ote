@@ -185,6 +185,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.yTimes = []
 
+        self.firstEvent = True
+
         # This is an externally supplied csv file path (probably from PyMovie)
         self.externalCsvFilePath = csv_file
 
@@ -597,6 +599,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.settings = QSettings('pyote.ini', QSettings.IniFormat)
         self.settings.setFallbacksEnabled(False)
 
+        allowNewVersionPopup = self.settings.value('allowNewVersionPopup', 'true')
+        if allowNewVersionPopup == 'true':
+            self.allowNewVersionPopupCheckbox.setChecked(True)
+        else:
+            self.allowNewVersionPopupCheckbox.setChecked(False)
+
+        self.allowNewVersionPopupCheckbox.installEventFilter(self)
+
         tabNameList = self.settings.value('tablist', [])
         if tabNameList:
             self.redoTabOrder(tabNameList)
@@ -608,11 +618,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.setMinimumSize(QSize(0, 0))
 
         self.logFile = None
-
-        # tab_name_list = self.settings.value('tablist')
-        # # self.showMsg(repr(tablist))
-        # if tab_name_list:
-        #     self.redoTabOrder(tab_name_list)
+        self.detectabilityLogFile = None
+        self.normalizationLogFile = None
 
         # Use 'sticky' settings to size and position the main screen
         self.resize(self.settings.value('size', QSize(800, 800)))
@@ -709,6 +716,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             else:
                 self.showMsg(f'Could not find csv file specified: {self.externalCsvFilePath}')
                 self.externalCsvFilePath = None
+
+        # self.firstEvent = True
+        if self.allowNewVersionPopupCheckbox.isChecked():
+            self.showHelp(self.allowNewVersionPopupCheckbox)
 
     def processYoffsetStepBy10(self):
         for spinBox in self.yOffsetSpinBoxes:
@@ -1577,6 +1588,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.helperThing.textEdit.clear()
             stuffToShow = self.htmlFixup(obj.toolTip())
             self.helperThing.textEdit.insertHtml(stuffToShow)
+            self.helperThing.setHidden(True)
+            self.helperThing.setVisible(True)
 
     @staticmethod
     def processKeystroke(event):
@@ -1584,6 +1597,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         return False
 
     def eventFilter(self, obj, event):
+        # if self.firstEvent and self.targetCheckBox_1.isVisible():
+        if self.allowNewVersionPopupCheckbox.isChecked():
+            self.helperThing.raise_()
+        #     self.firstEvent = False
         if event.type() == QtCore.QEvent.KeyPress:
             handled = self.processKeystroke(event)
             if handled:
@@ -2354,7 +2371,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         targetStd = np.std(yValuesInMetric)
         self.showMsg(f'Flatness  (minimize this value): {targetStd:0.2f} '
                      f'(readings: {self.smoothingIntervalSpinBox.value()})  (X offset: {xOffset})',
-                     color='green', bold=True, writeToLog=False)
+                     color='green', bold=True, alternateLogFile=self.normalizationLogFile)
 
         self.fillTableViewOfData()  # This should capture/write the effects of the normalization to the table
 
@@ -2836,6 +2853,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         # Open (or create) file for holding 'sticky' stuff
         self.settings = QSettings('pyote.ini', QSettings.IniFormat)
 
+        self.settings.setValue('allowNewVersionPopup', self.allowNewVersionPopupCheckbox.isChecked())
+
         tabOrderList = []
         numTabs = self.tabWidget.count()
         # print(f'numTabs: {numTabs}')
@@ -2915,7 +2934,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.mainPlot.plot(x, y, pen=None, symbol='o', symbolPen=(255, 0, 0),
                            symbolBrush=(255, 255, 0), symbolSize=10)
         
-    def showMsg(self, msg, color=None, bold=False, blankLine=True, writeToLog=True):
+    def showMsg(self, msg, color=None, bold=False, blankLine=True, alternateLogFile=None):
         """ show standard output message """
         htmlmsg = msg
         if color:
@@ -2928,7 +2947,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         if blankLine:
             self.textOut.insertHtml('<br>')
         self.textOut.ensureCursorVisible()
-        if self.logFile and writeToLog:
+        if alternateLogFile is not None:
+            fileObject = open(alternateLogFile, 'a')
+            fileObject.write(msg + '\n')
+            if blankLine:
+                fileObject.write('\n')
+            fileObject.close()
+        elif self.logFile:
             fileObject = open(self.logFile, 'a')
             fileObject.write(msg + '\n')
             if blankLine:
@@ -2945,9 +2970,17 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                          self.blockSize, color='blue', bold=True, blankLine=False)
 
         if self.normalized:
+            self.showMsg('', blankLine=False)
             self.showMsg('This light curve has been normalized against a '
                          'reference star.',
                          color='blue', bold=True, blankLine=False)
+            for i, checkBox in enumerate(self.referenceCheckBoxes):
+                if checkBox.isChecked():
+                    self.showMsg(f'... {self.lightcurveTitles[i].text()} was used for normalization with '
+                                 f'X offset: {self.xOffsetSpinBoxes[i].value()}', color='blue', bold=True,
+                                 blankLine=False)
+                    self.showMsg(f'... {self.smoothingIntervalSpinBox.value()} readings were used for smoothing',
+                                 color='blue', bold=True, blankLine=True)
 
         if not (self.left == 0 and self.right == self.dataLen - 1):
             self.showMsg('This light curve has been trimmed.',
@@ -2988,12 +3021,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         if not self.ne3NotInUseRadioButton.isChecked():
             self.writeNe3UsageReport()
 
-        for i, checkBox in enumerate(self.referenceCheckBoxes):
-            if checkBox.isChecked():
-                self.showMsg('', blankLine=False)
-                self.showMsg(f"{self.lightcurveTitles[i].text()} "
-                             f"used for normalization with smoothing interval of {self.smoothingIntervalSpinBox.value()}",
-                             bold=True, blankLine=False)
+        # for i, checkBox in enumerate(self.referenceCheckBoxes):
+        #     if checkBox.isChecked():
+        #         self.showMsg('', blankLine=False)
+        #         self.showMsg(f"{self.lightcurveTitles[i].text()} "
+        #                      f"used for normalization with smoothing interval of {self.smoothingIntervalSpinBox.value()}",
+        #                      bold=True, blankLine=False)
 
         self.showMsg('', blankLine=False)
 
@@ -3829,9 +3862,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 if checkBox.isChecked():
                     break
             self.showMsg(f'Using lightcurve: {self.lightcurveTitles[i].text()} ...',
-                         blankLine=False, writeToLog=False)
+                         blankLine=False, alternateLogFile=self.detectabilityLogFile)
             self.showMsg(f'... processing detectability of magDrop: {event_magDrop:0.2f} '
-                         f'dur(secs): {event_duration_secs:0.2f} event', writeToLog=False)
+                         f'dur(secs): {event_duration_secs:0.2f} event', alternateLogFile=self.detectabilityLogFile)
             QtWidgets.QApplication.processEvents()
 
             drops = compute_drops(event_duration=event_duration, observation_size=obs_duration,
@@ -5274,10 +5307,27 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             dirpath, _ = os.path.split(self.filename)
             self.logFile, _ = os.path.splitext(self.filename)
             self.logFile = self.logFile + '.PYOTE.log'
+
+            self.detectabilityLogFile, _ = os.path.splitext(self.filename)
+            self.detectabilityLogFile = self.detectabilityLogFile + '.PYOTE.detectabillity.log'
+
+            self.normalizationLogFile, _ = os.path.splitext(self.filename)
+            self.normalizationLogFile = self.normalizationLogFile + '.PYOTE.normalization.log'
             
             curDateTime = datetime.datetime.today().ctime()
             self.showMsg('')
-            self.showMsg('#' * 20 + ' PYOTE ' + version.version() + '  session started: ' + curDateTime + '  ' + '#' * 20)
+            self.showMsg(
+                '#' * 20 + ' PYOTE ' + version.version() + '  session started: ' + curDateTime + '  ' + '#' * 20)
+
+            self.showMsg('', alternateLogFile=self.detectabilityLogFile)
+            self.showMsg(
+                '#' * 20 + ' PYOTE ' + version.version() + '  session started: ' + curDateTime + '  ' + '#' * 20,
+                alternateLogFile=self.detectabilityLogFile)
+
+            self.showMsg('', alternateLogFile=self.normalizationLogFile)
+            self.showMsg(
+                '#' * 20 + ' PYOTE ' + version.version() + '  session started: ' + curDateTime + '  ' + '#' * 20,
+                alternateLogFile=self.normalizationLogFile)
         
             # Make the directory 'sticky'
             self.settings.setValue('lightcurvedir', dirpath)
