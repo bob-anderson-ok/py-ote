@@ -2092,6 +2092,12 @@
                 <layout class="QHBoxLayout" name="horizontalLayout_2">
                  <item>
                   <widget class="QLabel" name="label_9">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
                    <property name="minimumSize">
                     <size>
                      <width>0</width>
@@ -2100,7 +2106,7 @@
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>300</width>
+                     <width>16777215</width>
                      <height>16777215</height>
                     </size>
                    </property>
@@ -2114,6 +2120,12 @@
                  </item>
                  <item>
                   <widget class="QSpinBox" name="smoothingIntervalSpinBox">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
                    <property name="minimumSize">
                     <size>
                      <width>60</width>
@@ -2136,11 +2148,26 @@
                  </item>
                  <item>
                   <widget class="QLabel" name="label_32">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>100</width>
+                     <height>0</height>
+                    </size>
+                   </property>
                    <property name="maximumSize">
                     <size>
-                     <width>60</width>
+                     <width>16777215</width>
                      <height>16777215</height>
                     </size>
+                   </property>
+                   <property name="layoutDirection">
+                    <enum>Qt::LeftToRight</enum>
                    </property>
                    <property name="text">
                     <string>Set step:</string>
@@ -2151,71 +2178,53 @@
                   </widget>
                  </item>
                  <item>
-                  <widget class="QFrame" name="frame">
-                   <property name="maximumSize">
-                    <size>
-                     <width>16777215</width>
-                     <height>16777215</height>
-                    </size>
+                  <widget class="QRadioButton" name="stepBy2radioButton">
+                   <property name="text">
+                    <string>2</string>
                    </property>
-                   <property name="frameShape">
-                    <enum>QFrame::StyledPanel</enum>
+                   <property name="checked">
+                    <bool>true</bool>
                    </property>
-                   <property name="frameShadow">
-                    <enum>QFrame::Plain</enum>
-                   </property>
-                   <property name="lineWidth">
-                    <number>-1</number>
-                   </property>
-                   <widget class="QRadioButton" name="stepBy2radioButton">
-                    <property name="geometry">
-                     <rect>
-                      <x>17</x>
-                      <y>1</y>
-                      <width>33</width>
-                      <height>20</height>
-                     </rect>
-                    </property>
-                    <property name="text">
-                     <string>2</string>
-                    </property>
-                    <property name="checked">
-                     <bool>true</bool>
-                    </property>
-                   </widget>
-                   <widget class="QRadioButton" name="stepBy10radioButton">
-                    <property name="geometry">
-                     <rect>
-                      <x>67</x>
-                      <y>1</y>
-                      <width>40</width>
-                      <height>20</height>
-                     </rect>
-                    </property>
-                    <property name="text">
-                     <string>10</string>
-                    </property>
-                   </widget>
-                   <widget class="QRadioButton" name="stepBy100radioButton">
-                    <property name="geometry">
-                     <rect>
-                      <x>126</x>
-                      <y>1</y>
-                      <width>48</width>
-                      <height>20</height>
-                     </rect>
-                    </property>
-                    <property name="text">
-                     <string>100</string>
-                    </property>
-                   </widget>
                   </widget>
                  </item>
                  <item>
+                  <widget class="QRadioButton" name="stepBy10radioButton">
+                   <property name="text">
+                    <string>10</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QRadioButton" name="stepBy100radioButton">
+                   <property name="text">
+                    <string>100</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_55">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
                   <widget class="QPushButton" name="normMarkBaselineRegionButton">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
                    <property name="maximumSize">
                     <size>
-                     <width>140</width>
+                     <width>16777215</width>
                      <height>16777215</height>
                     </size>
                    </property>
@@ -2229,9 +2238,15 @@
                  </item>
                  <item>
                   <widget class="QPushButton" name="clearMetricPointsButton">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
                    <property name="maximumSize">
                     <size>
-                     <width>140</width>
+                     <width>16777215</width>
                      <height>16777215</height>
                     </size>
                    </property>
@@ -3336,7 +3351,7 @@
                <item row="1" column="1">
                 <widget class="QCheckBox" name="allowNewVersionPopupCheckbox">
                  <property name="toolTip">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; color:#0000ff;&quot;&gt;What's new:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; color:#fc0107;&quot;&gt;This version contains many new changes in the GUI and analysis features. Be sure and read all the applicable help by clicking on applicable HELP buttons and by right-clicking on text labels of new features.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;This popup can be disabled in the Settings/Misc tab. There is a checkbox provided there for this function. Note: right click on that checkbox at any time to see the new vesion description.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;What's new:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;This version contains many new changes in the GUI and analysis features. Be sure and read all the applicable help by clicking on applicable HELP buttons and by right-clicking on text labels of new features.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;This popup can be disabled in the Settings/Misc tab. There is a checkbox provided there for this function. Note: right click on that checkbox at any time to see the new version description.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                  </property>
                  <property name="text">
                   <string>allow 'new version' information pop-up</string>
