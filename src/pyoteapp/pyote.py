@@ -253,16 +253,24 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.initializeLightcurvePanel()
 
         self.stepBy2radioButton.clicked.connect(self.processStepBy2)
-
         self.stepBy10radioButton.clicked.connect(self.processStepBy10)
-
         self.stepBy100radioButton.clicked.connect(self.processStepBy100)
 
+        self.stepByButtonGroup = QtWidgets.QButtonGroup()
+        self.stepByButtonGroup.addButton(self.stepBy2radioButton)
+        self.stepByButtonGroup.addButton(self.stepBy10radioButton)
+        self.stepByButtonGroup.addButton(self.stepBy100radioButton)
+
         self.yOffsetStep10radioButton.clicked.connect(self.processYoffsetStepBy10)
-
         self.yOffsetStep100radioButton.clicked.connect(self.processYoffsetStepBy100)
-
         self.yOffsetStep1000radioButton.clicked.connect(self.processYoffsetStepBy1000)
+
+        self.offsetStepButtonGroup = QtWidgets.QButtonGroup()
+        self.offsetStepButtonGroup.addButton(self.yOffsetStep10radioButton)
+        self.offsetStepButtonGroup.addButton(self.yOffsetStep100radioButton)
+        self.offsetStepButtonGroup.addButton(self.yOffsetStep1000radioButton)
+
+        self.yOffsetStep10radioButton.setChecked(True)
 
         self.targetCheckBox_1.clicked.connect(self.processTargetSelection1)
         self.targetCheckBox_2.clicked.connect(self.processTargetSelection2)
@@ -297,29 +305,29 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.referenceCheckBox_9.clicked.connect(self.processReferenceSelection9)
         self.referenceCheckBox_10.clicked.connect(self.processReferenceSelection10)
 
-        self.yOffsetSpinBox_1.valueChanged.connect(self.processYoffsetChange)
-        self.yOffsetSpinBox_2.valueChanged.connect(self.processYoffsetChange)
-        self.yOffsetSpinBox_3.valueChanged.connect(self.processYoffsetChange)
-        self.yOffsetSpinBox_4.valueChanged.connect(self.processYoffsetChange)
-        self.yOffsetSpinBox_5.valueChanged.connect(self.processYoffsetChange)
-        self.yOffsetSpinBox_6.valueChanged.connect(self.processYoffsetChange)
-        self.yOffsetSpinBox_7.valueChanged.connect(self.processYoffsetChange)
-        self.yOffsetSpinBox_8.valueChanged.connect(self.processYoffsetChange)
-        self.yOffsetSpinBox_9.valueChanged.connect(self.processYoffsetChange)
-        self.yOffsetSpinBox_10.valueChanged.connect(self.processYoffsetChange)
+        self.yOffsetSpinBox_1.editingFinished.connect(self.processYoffsetChange)
+        self.yOffsetSpinBox_2.editingFinished.connect(self.processYoffsetChange)
+        self.yOffsetSpinBox_3.editingFinished.connect(self.processYoffsetChange)
+        self.yOffsetSpinBox_4.editingFinished.connect(self.processYoffsetChange)
+        self.yOffsetSpinBox_5.editingFinished.connect(self.processYoffsetChange)
+        self.yOffsetSpinBox_6.editingFinished.connect(self.processYoffsetChange)
+        self.yOffsetSpinBox_7.editingFinished.connect(self.processYoffsetChange)
+        self.yOffsetSpinBox_8.editingFinished.connect(self.processYoffsetChange)
+        self.yOffsetSpinBox_9.editingFinished.connect(self.processYoffsetChange)
+        self.yOffsetSpinBox_10.editingFinished.connect(self.processYoffsetChange)
 
-        self.xOffsetSpinBox_1.valueChanged.connect(self.processXoffsetChange)
-        self.xOffsetSpinBox_2.valueChanged.connect(self.processXoffsetChange)
-        self.xOffsetSpinBox_3.valueChanged.connect(self.processXoffsetChange)
-        self.xOffsetSpinBox_4.valueChanged.connect(self.processXoffsetChange)
-        self.xOffsetSpinBox_5.valueChanged.connect(self.processXoffsetChange)
-        self.xOffsetSpinBox_6.valueChanged.connect(self.processXoffsetChange)
-        self.xOffsetSpinBox_7.valueChanged.connect(self.processXoffsetChange)
-        self.xOffsetSpinBox_8.valueChanged.connect(self.processXoffsetChange)
-        self.xOffsetSpinBox_9.valueChanged.connect(self.processXoffsetChange)
-        self.xOffsetSpinBox_10.valueChanged.connect(self.processXoffsetChange)
+        self.xOffsetSpinBox_1.editingFinished.connect(self.processXoffsetChange)
+        self.xOffsetSpinBox_2.editingFinished.connect(self.processXoffsetChange)
+        self.xOffsetSpinBox_3.editingFinished.connect(self.processXoffsetChange)
+        self.xOffsetSpinBox_4.editingFinished.connect(self.processXoffsetChange)
+        self.xOffsetSpinBox_5.editingFinished.connect(self.processXoffsetChange)
+        self.xOffsetSpinBox_6.editingFinished.connect(self.processXoffsetChange)
+        self.xOffsetSpinBox_7.editingFinished.connect(self.processXoffsetChange)
+        self.xOffsetSpinBox_8.editingFinished.connect(self.processXoffsetChange)
+        self.xOffsetSpinBox_9.editingFinished.connect(self.processXoffsetChange)
+        self.xOffsetSpinBox_10.editingFinished.connect(self.processXoffsetChange)
 
-        self.smoothingIntervalSpinBox.valueChanged.connect(self.reDrawMainPlot)
+        self.smoothingIntervalSpinBox.editingFinished.connect(self.reDrawMainPlot)
 
         self.LC1 = []
         self.LC2 = []
@@ -779,6 +787,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.recolorBlobs()
 
     def processYoffsetChange(self):
+        QtWidgets.QApplication.processEvents()
         self.reDrawMainPlot()
 
     def processXoffsetChange(self):
