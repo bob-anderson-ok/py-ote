@@ -252,6 +252,30 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.initializeLightcurvePanel()
 
+        self.smoothingLabel.installEventFilter(self)
+
+        self.yOffsetLabel1.installEventFilter(self)
+        self.yOffsetLabel2.installEventFilter(self)
+        self.yOffsetLabel3.installEventFilter(self)
+        self.yOffsetLabel4.installEventFilter(self)
+        self.yOffsetLabel5.installEventFilter(self)
+        self.yOffsetLabel6.installEventFilter(self)
+        self.yOffsetLabel7.installEventFilter(self)
+        self.yOffsetLabel8.installEventFilter(self)
+        self.yOffsetLabel9.installEventFilter(self)
+        self.yOffsetLabel10.installEventFilter(self)
+
+        self.xOffsetLabel1.installEventFilter(self)
+        self.xOffsetLabel2.installEventFilter(self)
+        self.xOffsetLabel3.installEventFilter(self)
+        self.xOffsetLabel4.installEventFilter(self)
+        self.xOffsetLabel5.installEventFilter(self)
+        self.xOffsetLabel6.installEventFilter(self)
+        self.xOffsetLabel7.installEventFilter(self)
+        self.xOffsetLabel8.installEventFilter(self)
+        self.xOffsetLabel9.installEventFilter(self)
+        self.xOffsetLabel10.installEventFilter(self)
+
         self.stepBy2radioButton.clicked.connect(self.processStepBy2)
         self.stepBy10radioButton.clicked.connect(self.processStepBy10)
         self.stepBy100radioButton.clicked.connect(self.processStepBy100)
@@ -327,7 +351,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.xOffsetSpinBox_9.editingFinished.connect(self.processXoffsetChange)
         self.xOffsetSpinBox_10.editingFinished.connect(self.processXoffsetChange)
 
-        self.smoothingIntervalSpinBox.editingFinished.connect(self.reDrawMainPlot)
+        self.smoothingIntervalSpinBox.editingFinished.connect(self.newRedrawMainPlot)
 
         self.LC1 = []
         self.LC2 = []
@@ -335,7 +359,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.LC4 = []
         self.yRefStar = []
 
-        self.dotSizeSpinner.valueChanged.connect(self.reDrawMainPlot)
+        self.dotSizeSpinner.valueChanged.connect(self.newRedrawMainPlot)
 
         # This object is used to display tooltip help in a separate
         # modeless dialog box.
@@ -435,22 +459,22 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         # Checkbox: Show underlying lightcurve
         self.showUnderlyingLightcurveCheckBox.installEventFilter(self)
-        self.showUnderlyingLightcurveCheckBox.clicked.connect(self.reDrawMainPlot)
+        self.showUnderlyingLightcurveCheckBox.clicked.connect(self.newRedrawMainPlot)
 
         # Checkbox: Show error bars
         self.showErrBarsCheckBox.installEventFilter(self)
-        self.showErrBarsCheckBox.clicked.connect(self.reDrawMainPlot)
+        self.showErrBarsCheckBox.clicked.connect(self.newRedrawMainPlot)
 
         # Checkbox: Show D and R edges
         self.showEdgesCheckBox.installEventFilter(self)
-        self.showEdgesCheckBox.clicked.connect(self.reDrawMainPlot)
+        self.showEdgesCheckBox.clicked.connect(self.newRedrawMainPlot)
 
         # Checkbox: Do OCR check
         self.showOCRcheckFramesCheckBox.installEventFilter(self)
 
         # line size
         self.lineWidthLabel.installEventFilter(self)
-        self.lineWidthSpinner.valueChanged.connect(self.reDrawMainPlot)
+        self.lineWidthSpinner.valueChanged.connect(self.newRedrawMainPlot)
 
         # plotHelpButton
         self.plotHelpButton.clicked.connect(self.plotHelpButtonClicked)
@@ -736,14 +760,17 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.showHelp(self.allowNewVersionPopupCheckbox)
 
     def processYoffsetStepBy10(self):
+        self.yOffsetStep10radioButton.repaint()
         for spinBox in self.yOffsetSpinBoxes:
             spinBox.setSingleStep(10)
 
     def processYoffsetStepBy100(self):
+        self.yOffsetStep100radioButton.repaint()
         for spinBox in self.yOffsetSpinBoxes:
             spinBox.setSingleStep(100)
 
     def processYoffsetStepBy1000(self):
+        self.yOffsetStep1000radioButton.repaint()
         for spinBox in self.yOffsetSpinBoxes:
             spinBox.setSingleStep(1000)
 
@@ -787,11 +814,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.recolorBlobs()
 
     def processYoffsetChange(self):
-        QtWidgets.QApplication.processEvents()
-        self.reDrawMainPlot()
+        # QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.BusyCursor))
+        # QtWidgets.QApplication.processEvents()
+        self.newRedrawMainPlot()
+        # QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+        # QtWidgets.QApplication.processEvents()
 
     def processXoffsetChange(self):
-        self.reDrawMainPlot()
+        self.newRedrawMainPlot()
 
     def clearReferenceSelections(self):
         for checkBox in self.referenceCheckBoxes:
@@ -833,7 +863,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             else:
                 self.yRefStar = self.extra[i-4][:]
             self.recolorBlobs()
-            self.reDrawMainPlot()
+            self.newRedrawMainPlot()
         else:
             self.xOffsetSpinBoxes[i].setEnabled(False)
             for i, checkBox in enumerate(self.referenceCheckBoxes):
@@ -841,7 +871,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     self.showMsg(f'{self.lightcurveTitles[i].text()} is selected as the reference curve for normalization.')
                     return
             self.yRefStar = []
-            self.reDrawMainPlot()
+            self.newRedrawMainPlot()
             self.showMsg(f'The reference curve has been deselected so normalization is disabled.')
 
     def processReferenceSelection1(self):
@@ -881,7 +911,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     def processShowSelection(self):
         self.forceTargetToShow()
-        self.reDrawMainPlot()
+        self.newRedrawMainPlot()
 
     def clearTargetSelections(self):
         for checkBox in self.targetCheckBoxes:
@@ -913,7 +943,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             else:
                 self.yValues = self.extra[i-4].copy()
             if redraw:
-                self.reDrawMainPlot()
+                self.newRedrawMainPlot()
             self.recolorBlobs()
             self.yOffsetSpinBoxes[i].setEnabled(False)
             self.yOffsetSpinBoxes[i].setValue(0)
@@ -998,14 +1028,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         x = [i for i in range(self.dataLen) if self.yStatus[i] == BASELINE]
         for i in x:
             self.yStatus[i] = INCLUDED
-        self.reDrawMainPlot()
+        self.newRedrawMainPlot()
 
     def markEventRegion(self):
         if len(self.selectedPoints) == 0:
             x = [i for i in range(self.dataLen) if self.yStatus[i] == EVENT]
             for i in x:
                 self.yStatus[i] = INCLUDED
-            self.reDrawMainPlot()
+            self.newRedrawMainPlot()
             # self.showInfo('No points were selected. Exactly two are required')
             return
 
@@ -1017,7 +1047,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         x = [i for i in range(self.dataLen) if self.yStatus[i] == EVENT]
         for i in x:
             self.yStatus[i] = INCLUDED
-        self.reDrawMainPlot()
+        self.newRedrawMainPlot()
 
         selIndices = [key for key, _ in self.selectedPoints.items()]
         selIndices.sort()
@@ -1034,7 +1064,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.calcEventStatisticsFromMarkedRegion()
 
-        self.reDrawMainPlot()
+        self.newRedrawMainPlot()
 
     def markBaselineRegion(self):
         # If the user has not selected any points, we ignore the request
@@ -1063,7 +1093,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.yStatus[i] = BASELINE
 
         self.showMsg('Background region selected: ' + str([leftEdge, rightEdge]))
-        self.reDrawMainPlot()
+        self.newRedrawMainPlot()
 
     def calcEventStatisticsFromMarkedRegion(self):
         y = [self.yValues[i] for i in range(self.dataLen) if self.yStatus[i] == EVENT]
@@ -1849,7 +1879,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
     #         self.yRefStar = self.extra[normNum - 4 - 1]
     #
     #     self.smoothSecondary = []
-    #     self.reDrawMainPlot()
+    #     self.newRedrawMainPlot()
     #     self.mainPlot.autoRange()
 
     def getNumberOfUnnamedLightCurves(self):
@@ -1910,7 +1940,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
     #         self.yValues = self.extra[refNum - 4 - 1].copy()
     #
     #     self.solution = None
-    #     self.reDrawMainPlot()
+    #     self.newRedrawMainPlot()
     #     self.mainPlot.autoRange()
 
     def installLatestVersion(self, pyoteversion):
@@ -2136,7 +2166,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         if len(self.selectedPoints) == 0:
             self.dRegion = None
             self.dLimits = None
-            self.reDrawMainPlot()
+            self.newRedrawMainPlot()
             return
         
         if len(self.selectedPoints) != 2:
@@ -2166,7 +2196,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         if rightEdge < self.left or rightEdge <= leftEdge:
             self.removePointSelections()
-            self.reDrawMainPlot()
+            self.newRedrawMainPlot()
             return
 
         self.setDataLimits.setEnabled(False)
@@ -2186,7 +2216,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.showMsg('D zone selected: ' + str([leftEdge, rightEdge]))
         self.removePointSelections()
-        self.reDrawMainPlot()
+        self.newRedrawMainPlot()
         
     def showRzone(self):
         # If the user has not selected any points, we remove any rRegion that may
@@ -2194,7 +2224,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         if len(self.selectedPoints) == 0:
             self.rRegion = None
             self.rLimits = None
-            self.reDrawMainPlot()
+            self.newRedrawMainPlot()
             return
         
         if len(self.selectedPoints) != 2:
@@ -2223,7 +2253,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         if rightEdge <= leftEdge:
             self.removePointSelections()
-            self.reDrawMainPlot()
+            self.newRedrawMainPlot()
             return
 
         self.setDataLimits.setEnabled(False)
@@ -2245,7 +2275,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         
         self.showMsg('R zone selected: ' + str([leftEdge, rightEdge]))
         self.removePointSelections()
-        self.reDrawMainPlot()
+        self.newRedrawMainPlot()
 
     def calculateFlashREdge(self):
         if len(self.selectedPoints) != 2:
@@ -2285,7 +2315,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         if rightEdge <= leftEdge:
             self.removePointSelections()
-            self.reDrawMainPlot()
+            self.newRedrawMainPlot()
             return
 
         self.locateEvent.setEnabled(True)
@@ -2303,13 +2333,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.showMsg('R zone selected: ' + str([leftEdge, rightEdge]))
         self.removePointSelections()
-        # self.reDrawMainPlot()
+        # self.newRedrawMainPlot()
 
         self.findEvent()
 
         self.left = savedLeft
         self.right = savedRight
-        self.reDrawMainPlot()
+        self.newRedrawMainPlot()
 
         if self.solution:
             frameDelta = float(self.yFrame[1]) - float(self.yFrame[0])
@@ -2485,7 +2515,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
     #
     #         # self.left += self.extra_point_count
     #         # self.right -= self.extra_point_count
-    #         self.reDrawMainPlot()
+    #         self.newRedrawMainPlot()
     #     except Exception as e:
     #         self.showMsg(str(e))
     #
@@ -2494,7 +2524,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
     #     self.normalizeButton.setEnabled(True)
 
     def toggleDisplayOfTimestampErrors(self):
-        self.reDrawMainPlot()
+        self.newRedrawMainPlot()
         self.mainPlot.autoRange()
 
     # def toggleDisplayOfSecondaryStar(self):
@@ -2506,7 +2536,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
     #     if self.showSecondaryCheckBox.isChecked():
     #         self.changeSecondary()
     #     else:
-    #         self.reDrawMainPlot()
+    #         self.newRedrawMainPlot()
     #         self.mainPlot.autoRange()
         
     def showInfo(self, stuffToSay):
@@ -2771,7 +2801,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.doBlockIntegration.setEnabled(False)
         self.acceptBlockIntegration.setEnabled(False)
 
-        self.reDrawMainPlot()
+        self.newRedrawMainPlot()
         self.mainPlot.autoRange()
 
     def togglePointSelected(self, index):
@@ -2784,7 +2814,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.yStatus[index] = self.selectedPoints[index]
             del (self.selectedPoints[index])
         self.suppressNormalization = True
-        self.reDrawMainPlot()  # Redraw plot to show selection change
+        self.newRedrawMainPlot()  # Redraw plot to show selection change
         self.suppressNormalization = False
 
     def processClick(self, event):
@@ -2948,7 +2978,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
     def highlightReading(self, rdgNum):
         x = [rdgNum]
         y = [self.yValues[x]]
-        self.reDrawMainPlot()
+        self.newRedrawMainPlot()
         self.mainPlot.plot(x, y, pen=None, symbol='o', symbolPen=(255, 0, 0),
                            symbolBrush=(255, 255, 0), symbolSize=10)
         
@@ -3793,7 +3823,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.finalReport(false_positive, false_probability)
             self.fillExcelReportButton.setEnabled(True)
 
-        self.reDrawMainPlot()  # To add envelope to solution
+        self.newRedrawMainPlot()  # To add envelope to solution
 
     def calcDetectability(self):
         if self.timeDelta == 0:
@@ -4205,7 +4235,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     def try_to_get_solution(self):
         self.solution = None
-        self.reDrawMainPlot()
+        self.newRedrawMainPlot()
         solverGen = solver(
             eventType=self.eventType, yValues=self.yValues,
             left=self.left, right=self.right,
@@ -4383,9 +4413,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             if self.dLimits and self.rLimits:
                 self.eventType = 'DandR'
 
-            self.dRegion = None  # Erases the coloring of the D region (when self.reDrawMainPlot is called)
-            self.rRegion = None  # Erases the coloring of the R region (when self.reDrawMainPlot is called)
-            self.eRegion = None  # Erases the coloring of the E region (when self.reDrawMainPlot is called)
+            self.dRegion = None  # Erases the coloring of the D region (when self.newRedrawMainPlot is called)
+            self.rRegion = None  # Erases the coloring of the R region (when self.newRedrawMainPlot is called)
+            self.eRegion = None  # Erases the coloring of the E region (when self.newRedrawMainPlot is called)
 
             # Preserve these for possible next pass
             self.d_candidates = d_candidates
@@ -4489,7 +4519,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         if self.eventType in ['Ronly', 'DandR']:
             self.Rreport(r_time_err_bar, -r_time_err_bar)
 
-        self.reDrawMainPlot()
+        self.newRedrawMainPlot()
         self.drawSolution()
         self.calcErrBars.setEnabled(True)
 
@@ -4910,13 +4940,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 # Check for solution search based on min max event limits
                 if self.maxEvent is not None:
                     if (R - D) > self.maxEvent:
-                        self.reDrawMainPlot()
+                        self.newRedrawMainPlot()
                         self.showMsg('Invalid solution: max event limit constrained solution', color='red', bold=True)
                         self.showInfo('The solution is likely incorrect because the max event limit' +
                                       ' was set too low.  Increase that limit and try again.')
                         return
                     if self.minEvent >= (R - D):
-                        self.reDrawMainPlot()
+                        self.newRedrawMainPlot()
                         self.showMsg('Invalid solution: min event limit constrained solution!', color='red', bold=True)
                         self.showInfo('The solution is likely incorrect because the min event limit' +
                                       ' was set too high.  Decrease that limit and try again.')
@@ -4934,7 +4964,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         elif self.runSolver:
             self.showMsg('Event could not be found')
             
-        self.reDrawMainPlot()
+        self.newRedrawMainPlot()
 
         self.calcErrBars.setEnabled(True)
 
@@ -5270,7 +5300,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     self.expDurEdit.setText(fp.to_precision(self.timeDelta, 6))
 
                     self.fillTableViewOfData()
-                    self.reDrawMainPlot()
+                    self.newRedrawMainPlot()
                     self.showMsg(
                         'timeDelta: ' + fp.to_precision(self.timeDelta, 6) +
                         ' seconds per reading' +
@@ -5537,13 +5567,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
                 # self.changePrimary()  # Done only to fill in the light-curve name boxes
                 self.solution = None
-                #     self.reDrawMainPlot()
+                #     self.newRedrawMainPlot()
                 self.mainPlot.autoRange()
 
                 if self.outliers:
                     self.showTimestampErrors.setEnabled(True)
                     self.showTimestampErrors.setChecked(True)
-                self.reDrawMainPlot()
+                self.newRedrawMainPlot()
                 self.mainPlot.autoRange()
 
                 if self.timeDelta == 0.0 and not self.manualTimestampCheckBox.isChecked():
@@ -5613,7 +5643,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.showMsg('Event noise analysis done using ' + str(self.numNApts) + 
                      ' points ---  sigmaA: ' + fp.to_precision(self.sigmaA, 4))
         
-        self.reDrawMainPlot()
+        self.newRedrawMainPlot()
 
     def processEventNoiseFromIterativeSolution(self, left, right):
 
@@ -5700,7 +5730,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         if self.sigmaA is None:
             self.sigmaA = self.sigmaB
 
-        self.reDrawMainPlot()
+        self.newRedrawMainPlot()
                 
         self.locateEvent.setEnabled(True)
         self.markDzone.setEnabled(True)
@@ -5817,7 +5847,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.bkgndRegionLimits = []
 
-        self.reDrawMainPlot()
+        self.newRedrawMainPlot()
         self.mainPlot.autoRange()
         self.showMsg('*' * 20 + ' starting over ' + '*' * 20, color='blue')
 
@@ -6021,7 +6051,15 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             plotGeometricShadowAtD(Dleft)
             return
 
+    def newRedrawMainPlot(self):
+        QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.BusyCursor))
+        QtWidgets.QApplication.processEvents()
+        self.reDrawMainPlot()
+        QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+        # QtWidgets.QApplication.processEvents()
+
     def reDrawMainPlot(self):
+        # QtWidgets.QApplication.processEvents()
         if self.right is not None:
             right = min(self.dataLen, self.right + 1)
         else:
@@ -6128,7 +6166,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     self.fillTableViewOfData()
                     self.normalized = False
                 self.skipNormalization = True
-                self.reDrawMainPlot()
+                self.newRedrawMainPlot()
             else:
                 self.skipNormalization = False
                 self.suppressNormalization = False
@@ -6259,7 +6297,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.newNormalize()
 
         self.selectedPoints = {}
-        self.reDrawMainPlot()
+        self.newRedrawMainPlot()
         self.doBlockIntegration.setEnabled(False)
         self.mainPlot.autoRange()
 

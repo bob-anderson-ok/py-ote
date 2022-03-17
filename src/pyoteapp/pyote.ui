@@ -466,7 +466,10 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="QLabel" name="label_10">
+                    <widget class="QLabel" name="yOffsetLabel1">
+                     <property name="toolTip">
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The value entered in this box does not take effect until either the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt; key is pressed or this box loses focus when you click on some other widget.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Best practice:&lt;/span&gt; Click inside the box, then use the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;up/down arrow&lt;/span&gt; keys to set the desired value, then press &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt;. Repeating is easy because the cursor does not leave the box.&lt;/p&gt;&lt;p&gt;Of course, you can always edit the value directly using the keyboard - just remember to press &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt; to complete the operation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     </property>
                      <property name="text">
                       <string>Y offset:</string>
                      </property>
@@ -492,7 +495,10 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="QLabel" name="label_11">
+                    <widget class="QLabel" name="xOffsetLabel1">
+                     <property name="toolTip">
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The value entered in this box does not take effect until either the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt; key is pressed or this box loses focus when you click on some other widget.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Best practice:&lt;/span&gt; Click inside the box, then use the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;up/down arrow&lt;/span&gt; keys to set the desired value, then press &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt;. Repeating is easy because the cursor does not leave the box.&lt;/p&gt;&lt;p&gt;Of course, you can always edit the value directly using the keyboard - just remember to press &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt; to complete the operation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     </property>
                      <property name="text">
                       <string>    X offset:</string>
                      </property>
@@ -633,7 +639,10 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="QLabel" name="label_12">
+                    <widget class="QLabel" name="yOffsetLabel2">
+                     <property name="toolTip">
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The value entered in this box does not take effect until either the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt; key is pressed or this box loses focus when you click on some other widget.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Best practice:&lt;/span&gt; Click inside the box, then use the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;up/down arrow&lt;/span&gt; keys to set the desired value, then press &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt;. Repeating is easy because the cursor does not leave the box.&lt;/p&gt;&lt;p&gt;Of course, you can always edit the value directly using the keyboard - just remember to press &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt; to complete the operation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     </property>
                      <property name="text">
                       <string>Y offset:</string>
                      </property>
@@ -659,7 +668,10 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="QLabel" name="label_13">
+                    <widget class="QLabel" name="xOffsetLabel2">
+                     <property name="toolTip">
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The value entered in this box does not take effect until either the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt; key is pressed or this box loses focus when you click on some other widget.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Best practice:&lt;/span&gt; Click inside the box, then use the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;up/down arrow&lt;/span&gt; keys to set the desired value, then press &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt;. Repeating is easy because the cursor does not leave the box.&lt;/p&gt;&lt;p&gt;Of course, you can always edit the value directly using the keyboard - just remember to press &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt; to complete the operation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     </property>
                      <property name="text">
                       <string>    X offset:</string>
                      </property>
@@ -806,7 +818,10 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="QLabel" name="label_14">
+                    <widget class="QLabel" name="yOffsetLabel3">
+                     <property name="toolTip">
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The value entered in this box does not take effect until either the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt; key is pressed or this box loses focus when you click on some other widget.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Best practice:&lt;/span&gt; Click inside the box, then use the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;up/down arrow&lt;/span&gt; keys to set the desired value, then press &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt;. Repeating is easy because the cursor does not leave the box.&lt;/p&gt;&lt;p&gt;Of course, you can always edit the value directly using the keyboard - just remember to press &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt; to complete the operation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     </property>
                      <property name="text">
                       <string>Y offset:</string>
                      </property>
@@ -832,7 +847,10 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="QLabel" name="label_15">
+                    <widget class="QLabel" name="xOffsetLabel3">
+                     <property name="toolTip">
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The value entered in this box does not take effect until either the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt; key is pressed or this box loses focus when you click on some other widget.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Best practice:&lt;/span&gt; Click inside the box, then use the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;up/down arrow&lt;/span&gt; keys to set the desired value, then press &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt;. Repeating is easy because the cursor does not leave the box.&lt;/p&gt;&lt;p&gt;Of course, you can always edit the value directly using the keyboard - just remember to press &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt; to complete the operation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     </property>
                      <property name="text">
                       <string>    X offset:</string>
                      </property>
@@ -973,7 +991,10 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="QLabel" name="label_16">
+                    <widget class="QLabel" name="yOffsetLabel4">
+                     <property name="toolTip">
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The value entered in this box does not take effect until either the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt; key is pressed or this box loses focus when you click on some other widget.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Best practice:&lt;/span&gt; Click inside the box, then use the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;up/down arrow&lt;/span&gt; keys to set the desired value, then press &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt;. Repeating is easy because the cursor does not leave the box.&lt;/p&gt;&lt;p&gt;Of course, you can always edit the value directly using the keyboard - just remember to press &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt; to complete the operation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     </property>
                      <property name="text">
                       <string>Y offset:</string>
                      </property>
@@ -999,7 +1020,10 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="QLabel" name="label_17">
+                    <widget class="QLabel" name="xOffsetLabel4">
+                     <property name="toolTip">
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The value entered in this box does not take effect until either the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt; key is pressed or this box loses focus when you click on some other widget.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Best practice:&lt;/span&gt; Click inside the box, then use the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;up/down arrow&lt;/span&gt; keys to set the desired value, then press &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt;. Repeating is easy because the cursor does not leave the box.&lt;/p&gt;&lt;p&gt;Of course, you can always edit the value directly using the keyboard - just remember to press &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt; to complete the operation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     </property>
                      <property name="text">
                       <string>    X offset:</string>
                      </property>
@@ -1140,7 +1164,10 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="QLabel" name="label_18">
+                    <widget class="QLabel" name="yOffsetLabel5">
+                     <property name="toolTip">
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The value entered in this box does not take effect until either the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt; key is pressed or this box loses focus when you click on some other widget.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Best practice:&lt;/span&gt; Click inside the box, then use the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;up/down arrow&lt;/span&gt; keys to set the desired value, then press &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt;. Repeating is easy because the cursor does not leave the box.&lt;/p&gt;&lt;p&gt;Of course, you can always edit the value directly using the keyboard - just remember to press &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt; to complete the operation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     </property>
                      <property name="text">
                       <string>Y offset:</string>
                      </property>
@@ -1166,7 +1193,10 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="QLabel" name="label_19">
+                    <widget class="QLabel" name="xOffsetLabel5">
+                     <property name="toolTip">
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The value entered in this box does not take effect until either the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt; key is pressed or this box loses focus when you click on some other widget.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Best practice:&lt;/span&gt; Click inside the box, then use the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;up/down arrow&lt;/span&gt; keys to set the desired value, then press &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt;. Repeating is easy because the cursor does not leave the box.&lt;/p&gt;&lt;p&gt;Of course, you can always edit the value directly using the keyboard - just remember to press &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt; to complete the operation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     </property>
                      <property name="text">
                       <string>    X offset:</string>
                      </property>
@@ -1307,7 +1337,10 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="QLabel" name="label_20">
+                    <widget class="QLabel" name="yOffsetLabel6">
+                     <property name="toolTip">
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The value entered in this box does not take effect until either the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt; key is pressed or this box loses focus when you click on some other widget.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Best practice:&lt;/span&gt; Click inside the box, then use the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;up/down arrow&lt;/span&gt; keys to set the desired value, then press &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt;. Repeating is easy because the cursor does not leave the box.&lt;/p&gt;&lt;p&gt;Of course, you can always edit the value directly using the keyboard - just remember to press &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt; to complete the operation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     </property>
                      <property name="text">
                       <string>Y offset:</string>
                      </property>
@@ -1333,7 +1366,10 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="QLabel" name="label_21">
+                    <widget class="QLabel" name="xOffsetLabel6">
+                     <property name="toolTip">
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The value entered in this box does not take effect until either the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt; key is pressed or this box loses focus when you click on some other widget.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Best practice:&lt;/span&gt; Click inside the box, then use the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;up/down arrow&lt;/span&gt; keys to set the desired value, then press &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt;. Repeating is easy because the cursor does not leave the box.&lt;/p&gt;&lt;p&gt;Of course, you can always edit the value directly using the keyboard - just remember to press &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt; to complete the operation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     </property>
                      <property name="text">
                       <string>    X offset:</string>
                      </property>
@@ -1474,7 +1510,10 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="QLabel" name="label_22">
+                    <widget class="QLabel" name="yOffsetLabel7">
+                     <property name="toolTip">
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The value entered in this box does not take effect until either the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt; key is pressed or this box loses focus when you click on some other widget.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Best practice:&lt;/span&gt; Click inside the box, then use the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;up/down arrow&lt;/span&gt; keys to set the desired value, then press &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt;. Repeating is easy because the cursor does not leave the box.&lt;/p&gt;&lt;p&gt;Of course, you can always edit the value directly using the keyboard - just remember to press &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt; to complete the operation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     </property>
                      <property name="text">
                       <string>Y offset:</string>
                      </property>
@@ -1500,7 +1539,10 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="QLabel" name="label_23">
+                    <widget class="QLabel" name="xOffsetLabel7">
+                     <property name="toolTip">
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The value entered in this box does not take effect until either the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt; key is pressed or this box loses focus when you click on some other widget.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Best practice:&lt;/span&gt; Click inside the box, then use the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;up/down arrow&lt;/span&gt; keys to set the desired value, then press &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt;. Repeating is easy because the cursor does not leave the box.&lt;/p&gt;&lt;p&gt;Of course, you can always edit the value directly using the keyboard - just remember to press &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt; to complete the operation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     </property>
                      <property name="text">
                       <string>    X offset:</string>
                      </property>
@@ -1641,7 +1683,10 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="QLabel" name="label_24">
+                    <widget class="QLabel" name="yOffsetLabel8">
+                     <property name="toolTip">
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The value entered in this box does not take effect until either the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt; key is pressed or this box loses focus when you click on some other widget.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Best practice:&lt;/span&gt; Click inside the box, then use the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;up/down arrow&lt;/span&gt; keys to set the desired value, then press &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt;. Repeating is easy because the cursor does not leave the box.&lt;/p&gt;&lt;p&gt;Of course, you can always edit the value directly using the keyboard - just remember to press &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt; to complete the operation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     </property>
                      <property name="text">
                       <string>Y offset:</string>
                      </property>
@@ -1667,7 +1712,10 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="QLabel" name="label_25">
+                    <widget class="QLabel" name="xOffsetLabel8">
+                     <property name="toolTip">
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The value entered in this box does not take effect until either the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt; key is pressed or this box loses focus when you click on some other widget.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Best practice:&lt;/span&gt; Click inside the box, then use the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;up/down arrow&lt;/span&gt; keys to set the desired value, then press &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt;. Repeating is easy because the cursor does not leave the box.&lt;/p&gt;&lt;p&gt;Of course, you can always edit the value directly using the keyboard - just remember to press &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt; to complete the operation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     </property>
                      <property name="text">
                       <string>    X offset:</string>
                      </property>
@@ -1808,7 +1856,10 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="QLabel" name="label_26">
+                    <widget class="QLabel" name="yOffsetLabel9">
+                     <property name="toolTip">
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The value entered in this box does not take effect until either the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt; key is pressed or this box loses focus when you click on some other widget.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Best practice:&lt;/span&gt; Click inside the box, then use the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;up/down arrow&lt;/span&gt; keys to set the desired value, then press &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt;. Repeating is easy because the cursor does not leave the box.&lt;/p&gt;&lt;p&gt;Of course, you can always edit the value directly using the keyboard - just remember to press &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt; to complete the operation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     </property>
                      <property name="text">
                       <string>Y offset:</string>
                      </property>
@@ -1834,7 +1885,10 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="QLabel" name="label_27">
+                    <widget class="QLabel" name="xOffsetLabel9">
+                     <property name="toolTip">
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The value entered in this box does not take effect until either the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt; key is pressed or this box loses focus when you click on some other widget.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Best practice:&lt;/span&gt; Click inside the box, then use the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;up/down arrow&lt;/span&gt; keys to set the desired value, then press &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt;. Repeating is easy because the cursor does not leave the box.&lt;/p&gt;&lt;p&gt;Of course, you can always edit the value directly using the keyboard - just remember to press &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt; to complete the operation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     </property>
                      <property name="text">
                       <string>    X offset:</string>
                      </property>
@@ -1975,7 +2029,10 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="QLabel" name="label_28">
+                    <widget class="QLabel" name="yOffsetLabel10">
+                     <property name="toolTip">
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The value entered in this box does not take effect until either the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt; key is pressed or this box loses focus when you click on some other widget.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Best practice:&lt;/span&gt; Click inside the box, then use the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;up/down arrow&lt;/span&gt; keys to set the desired value, then press &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt;. Repeating is easy because the cursor does not leave the box.&lt;/p&gt;&lt;p&gt;Of course, you can always edit the value directly using the keyboard - just remember to press &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt; to complete the operation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     </property>
                      <property name="text">
                       <string>Y offset:</string>
                      </property>
@@ -2001,7 +2058,10 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="QLabel" name="label_29">
+                    <widget class="QLabel" name="xOffsetLabel10">
+                     <property name="toolTip">
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The value entered in this box does not take effect until either the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt; key is pressed or this box loses focus when you click on some other widget.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Best practice:&lt;/span&gt; Click inside the box, then use the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;up/down arrow&lt;/span&gt; keys to set the desired value, then press &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt;. Repeating is easy because the cursor does not leave the box.&lt;/p&gt;&lt;p&gt;Of course, you can always edit the value directly using the keyboard - just remember to press &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt; to complete the operation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     </property>
                      <property name="text">
                       <string>    X offset:</string>
                      </property>
@@ -2091,7 +2151,7 @@
                <item row="5" column="0" colspan="4">
                 <layout class="QHBoxLayout" name="horizontalLayout_2">
                  <item>
-                  <widget class="QLabel" name="label_9">
+                  <widget class="QLabel" name="smoothingLabel">
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                      <horstretch>0</horstretch>
@@ -2110,6 +2170,9 @@
                      <height>16777215</height>
                     </size>
                    </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The value entered in this box does not take effect until either the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt; key is pressed or this box loses focus when you click on some other widget.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Best practice:&lt;/span&gt; Click inside the box, then use the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;up/down arrow&lt;/span&gt; keys to set the desired value, then press &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt;. Repeating is easy because the cursor does not leave the box.&lt;/p&gt;&lt;p&gt;Of course, you can always edit the value directly using the keyboard - just remember to press &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;return/enter&lt;/span&gt; to complete the operation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
                    <property name="text">
                     <string>smoothing readings</string>
                    </property>
@@ -2121,7 +2184,7 @@
                  <item>
                   <widget class="QSpinBox" name="smoothingIntervalSpinBox">
                    <property name="sizePolicy">
-                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                    <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                      <horstretch>0</horstretch>
                      <verstretch>0</verstretch>
                     </sizepolicy>
@@ -2134,7 +2197,7 @@
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>80</width>
+                     <width>16777215</width>
                      <height>16777215</height>
                     </size>
                    </property>
