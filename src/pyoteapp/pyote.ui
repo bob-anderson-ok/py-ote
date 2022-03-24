@@ -3440,7 +3440,7 @@
                <item row="3" column="1" colspan="2">
                 <widget class="QLabel" name="label">
                  <property name="text">
-                  <string>Check any of the following boxes you wish to be active during the analysis.</string>
+                  <string>Check any of the following plot options you wish to be active during the analysis.</string>
                  </property>
                  <property name="alignment">
                   <set>Qt::AlignCenter</set>
@@ -3463,12 +3463,25 @@
                   </widget>
                  </item>
                  <item>
+                  <widget class="QCheckBox" name="showCameraResponseCheckBox">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The 'camera response curve' shows what the camera output would be given the underlying light curve (shown in brown) position.&lt;/p&gt;&lt;p&gt;It assumes the camera linearly accumulates light during the exposure interval. The model is: the camera integrates/accumulates light during the exposure time, then emits tha result immediately (which may not be true for many cameras, but the camera delay tables used during final reports will make the needed correction).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>camera response</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
                   <widget class="QCheckBox" name="showUnderlyingLightcurveCheckBox">
                    <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If you want to see the underlying lightcurve (the instantaneous theoretical lightcurve that the camera 'sees'), set this box to 'checked'.&lt;/p&gt;&lt;p&gt;The solution plot gets a bit cluttered when the camera response curve, the 'solution', and the underlying lightcurve are all being displayed at once.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Check this box if you want a plot of the 'light' the camera sees.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="text">
                     <string>raw light</string>
+                   </property>
+                   <property name="checked">
+                    <bool>true</bool>
                    </property>
                   </widget>
                  </item>

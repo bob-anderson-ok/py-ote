@@ -461,6 +461,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.showUnderlyingLightcurveCheckBox.installEventFilter(self)
         self.showUnderlyingLightcurveCheckBox.clicked.connect(self.newRedrawMainPlot)
 
+        self.showCameraResponseCheckBox.installEventFilter(self)
+        self.showCameraResponseCheckBox.clicked.connect(self.newRedrawMainPlot)
+
         # Checkbox: Show error bars
         self.showErrBarsCheckBox.installEventFilter(self)
         self.showErrBarsCheckBox.clicked.connect(self.newRedrawMainPlot)
@@ -5880,6 +5883,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 plot(x_trimmed, z_trimmed, pen=pg.mkPen((150, 100, 100), width=self.lineWidthSpinner.value()))
 
             if self.exponentialDtheoryPts is None:
+                if not self.showCameraResponseCheckBox.isChecked():
+                    return
                 # Now overplot with the blue camera response curve
                 plot(x_trimmed, y_trimmed, pen=pg.mkPen((0, 0, 255), width=self.lineWidthSpinner.value()))
                 # Extend camera response to the left and right if necessary...
@@ -5914,6 +5919,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 plot(x_trimmed, z_trimmed, pen=pg.mkPen((150, 100, 100), width=self.lineWidthSpinner.value()))
 
             if self.exponentialRtheoryPts is None and x_trimmed:
+                if not self.showCameraResponseCheckBox.isChecked():
+                    return
                 # Now overplot with the blue camera response curve
                 plot(x_trimmed, y_trimmed, pen=pg.mkPen((0, 0, 255), width=self.lineWidthSpinner.value()))
                 # Extend camera response to the left and right if necessary...
