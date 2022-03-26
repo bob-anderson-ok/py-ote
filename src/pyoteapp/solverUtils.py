@@ -212,7 +212,9 @@ def calcBandA(*, yValues=None, left=None, right=None, cand=None):
         if D == right:
             A = yValues[D]
         else:
-            A = np.mean(yValues[D+1:right+1])
+            # changed in 4.4.6
+            # A = np.mean(yValues[D+1:right+1])
+            A = np.mean(yValues[D:right+1])
         if A >= B:
             A = B * 0.999
         return B, A
@@ -226,7 +228,9 @@ def calcBandA(*, yValues=None, left=None, right=None, cand=None):
         if R == right:
             B = yValues[R]
         else:
-            B = np.mean(yValues[R+1:right+1])
+            # changed in 4.4.6
+            # B = np.mean(yValues[R+1:right+1])
+            B = np.mean(yValues[R:right+1])
         A = np.mean(yValues[left:R])  # smallest R is left + 1
         if A >= B:
             A = B * 0.999

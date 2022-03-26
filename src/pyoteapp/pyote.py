@@ -1967,6 +1967,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 if self.queryWhetherNewVersionShouldBeInstalled() == QMessageBox.Yes:
                     self.showMsg('You have opted to install latest version of PyOTE')
                     self.installLatestVersion(f'pyote=={latestVersion}')
+                    self.allowNewVersionPopupCheckbox.setChecked(True)
+                    self.settings.setValue('allowNewVersionPopup', True)
                 else:
                     self.showMsg('You have declined the opportunity to install latest PyOTE')
         else:
