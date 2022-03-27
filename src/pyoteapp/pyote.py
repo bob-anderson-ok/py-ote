@@ -4851,8 +4851,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 sigmaB=self.sigmaB, sigmaA=self.sigmaA, yValues=self.yValues,
                 left=self.left, right=self.right)
 
-            if not self.dnrOffRadioButton.isChecked():
-                subDandR = self.solution
+            if not self.ne3NotInUseRadioButton.isChecked():
+                if not self.dnrOffRadioButton.isChecked():
+                    subDandR = self.solution
 
             # Here we apply the correction from our computed underlying lightcurves.
             if self.userDeterminedEventStats:
