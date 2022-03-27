@@ -4693,8 +4693,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.showInfo('Invalid entry for min event (rdgs)')
             else:
                 self.minEvent = int(minText)
-                if self.minEvent < 1:
-                    self.showInfo('minEvent must be greater than 0')
+                if self.minEvent < 2:
+                    self.showInfo('minEvent must be greater than 1')
                     return
         
         if maxText:
@@ -4717,16 +4717,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         if not minText == '<blank>' and not maxText == '<blank>':
             self.eventType = 'DandR'
+            self.dLimits = []
+            self.rLimits = []
 
         if not self.ne3NotInUseRadioButton.isChecked():
             yPosition = self.targetStarYpositionSpinBox.value()
             if yPosition == 0:
                 self.showInfo("You need to set a valid value for the Night Eagle 3 target's Y position.")
                 return
-
-        # if not self.ne3NotInUseRadioButton.isChecked() and not self.dnrOffRadioButton.isChecked():
-        #     if not self.userDeterminedEventStats:
-        #         self.showInfo('This is a Night Eagle 3 analysis with an active DNR setting. Did you forget to select event points?')
 
         candFrom, numCandidates = candidateCounter(eventType=self.eventType,
                                                    dLimits=self.dLimits, rLimits=self.rLimits,

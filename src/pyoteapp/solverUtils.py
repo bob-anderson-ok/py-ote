@@ -205,6 +205,7 @@ def calcBandA(*, yValues=None, left=None, right=None, cand=None):
         assert(D >= left)
         # This is a 'Donly' candidate
         # Note that the yValue at D is not included in the B calculation
+        # because that point is in the event bottom.
         B = np.mean(yValues[left:D])
         # We have to deal with a D at the right edge.  There is no value to
         # the right to use to calculate A so we simply return the value at D
@@ -212,7 +213,7 @@ def calcBandA(*, yValues=None, left=None, right=None, cand=None):
         if D == right:
             A = yValues[D]
         else:
-            # changed in 4.4.6
+            # changed in 4.4.7
             # A = np.mean(yValues[D+1:right+1])
             A = np.mean(yValues[D:right+1])
         if A >= B:
@@ -228,7 +229,7 @@ def calcBandA(*, yValues=None, left=None, right=None, cand=None):
         if R == right:
             B = yValues[R]
         else:
-            # changed in 4.4.6
+            # changed in 4.4.7
             # B = np.mean(yValues[R+1:right+1])
             B = np.mean(yValues[R:right+1])
         A = np.mean(yValues[left:R])  # smallest R is left + 1
@@ -243,7 +244,8 @@ def calcBandA(*, yValues=None, left=None, right=None, cand=None):
         if R == right:
             rightBvals = yValues[right]
         else:
-            rightBvals = yValues[R+1:right+1]
+            # changed in 4.4.8
+            rightBvals = yValues[R:right+1]
         B = (np.sum(leftBvals) + np.sum(rightBvals)) / (leftBvals.size + rightBvals.size)
         
         if R - D == 1:  # Event size of 1 has no valid A --- we choose the value at D
