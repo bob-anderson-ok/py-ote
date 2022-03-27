@@ -120,7 +120,6 @@ def find_best_event_from_min_max_size(
     a_best = 0.0
     sigma_b_best = 0.0
     sigma_a_best = 0.0
-    # sigma_a = sigma_b = 0.0  # To satisfy PEP8
     not_started = True
 
     num_candidates = calcNumCandidatesFromEventSize(eventType="DandR",
@@ -573,10 +572,12 @@ def locate_event_from_d_and_r_ranges(
             # =========== update_best_solution() =======
 
         while r < r_end:
-            r += 1
             b_s, b_s2, b_n, b_var = sub_entry(y[r], b_s, b_s2, b_n, True)
-            a_s, a_s2, a_n, a_var = add_entry(y[r-1], a_s, a_s2, a_n, True)
+            # changed in 4.4.8
+            # a_s, a_s2, a_n, a_var = add_entry(y[r-1], a_s, a_s2, a_n, True)
+            a_s, a_s2, a_n, a_var = add_entry(y[r], a_s, a_s2, a_n, True)
 
+            r += 1
             # ============== calc_metric() =================
             max_var = max(a_var, b_var, MIN_FLOAT)
 

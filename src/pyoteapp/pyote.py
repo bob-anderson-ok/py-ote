@@ -4796,10 +4796,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             sigmaB = sigmaA = 0.0
 
             for item in solverGen:
-                # if item[0] == 'fractionDone':
                 if item[0] == 1.0:
                     self.progressBar.setValue(int(item[1] * 100))
-                    # QtGui.QApplication.processEvents()
                     QtWidgets.QApplication.processEvents()
                     if self.cancelRequested:
                         self.cancelRequested = False
