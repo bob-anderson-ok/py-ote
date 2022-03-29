@@ -48,9 +48,7 @@ def model(B=0.0, A=0.0,
     
     # D, R = edgeTuple
     assert(numPts > 0 and sigmaA >= 0 and sigmaB >= 0)
-    # m = np.ndarray(shape=(numPts,), dtype=np.float64)
     m = np.zeros(numPts)
-    # sigma = np.ndarray(shape=(numPts,), dtype=np.float64)
     sigma = np.zeros(numPts)
 
     if D == -1 and R == -1:  # -1 means None
@@ -193,7 +191,91 @@ def calcNumCandidatesFromEventSize(eventType='DandR',
         return maxSize - minSize + 1
     else:
         raise Exception("Unrecognized edge specifier")
-    
+
+
+def newCalcBandA(*, yValues=None, tpList=None, left=None, right=None, cand=None):
+    assert (right > left)
+
+    sigmaA = 0.0
+
+    def valuesToBeUsed(lowRange, highRange):
+        valList = []
+        for i in range(lowRange, highRange):
+            if i not in tpList:
+                valList.append(yValues[i])
+        return valList
+
+    D, R = cand  # Extract D and R from the tuple
+
+    if R is None:
+        assert (D >= left)
+        # This is a 'Donly' candidate
+        # Note that the yValue at D is not included in the B calculation
+        # because that point is in the event bottom.
+        valuesToUse = valuesToBeUsed(left, D)
+        B = np.mean(valuesToUse)
+        sigmaB = np.std(valuesToUse)
+        # We have to deal with a D at the right edge.  There is no value to
+        # the right to use to calculate A so we simply return the value at D
+        # as the best estimate of A
+        if D == right:
+            A = yValues[D]
+            sigmaA = 0.0
+        else:
+            # changed in 4.4.7
+            # A = np.mean(yValues[D+1:right+1])
+            valuesToUse = valuesToBeUsed(D, right + 1)
+            A = np.mean(valuesToUse)
+            sigmaA = np.std(valuesToUse)
+        if A >= B:
+            A = B * 0.999
+        return B, A, sigmaB, sigmaA
+
+    elif D is None:
+        assert (R <= right)
+        # This is an 'Ronly' candidate
+        # We have to deal with a R at the right edge.  There is no value to
+        # the right to use to calculate B so we simply return the value at R
+        # as the best estimate of B
+        if R == right:
+            B = yValues[R]
+            sigmaB = 0.0
+        else:
+            # changed in 4.4.7
+            # B = np.mean(yValues[R+1:right+1])
+            valuesToUse = [val for i, val in enumerate(yValues[R:right + 1]) if i not in tpList]
+            B = np.mean(valuesToUse)
+            sigmaB = np.std(valuesToUse)
+        valuesToUse = valuesToBeUsed(left, R)
+        A = np.mean(valuesToUse)
+        sigmaA = np.std(valuesToUse)
+        if A >= B:
+            A = B * 0.999
+        return B, A, sigmaB, sigmaA
+
+    else:
+        assert ((D >= left) and (R <= right) and (R > D))
+        # We have a 'DandR' candidate
+        leftBvals = valuesToBeUsed(left, D)
+
+        if R == right:
+            rightBvals = yValues[right]
+        else:
+            # changed in 4.4.8
+            rightBvals = valuesToBeUsed(R, right + 1)
+        B = (np.sum(leftBvals) + np.sum(rightBvals)) / (len(leftBvals) + len(rightBvals))
+        sigmaB = np.std(leftBvals + rightBvals)
+
+        if R - D == 1:  # Event size of 1 has no valid A --- we choose the value at D
+            A = yValues[D]
+        else:
+            valuesToUse = valuesToBeUsed(D, R)
+            A = np.mean(valuesToUse)
+            sigmaA = np.std(valuesToUse)
+        if A >= B:
+            A = B * 0.999
+        return B, A, sigmaB, sigmaA
+
 
 def calcBandA(*, yValues=None, left=None, right=None, cand=None):
     
@@ -240,28 +322,28 @@ def calcBandA(*, yValues=None, left=None, right=None, cand=None):
     else:
         assert((D >= left) and (R <= right) and (R > D))
         # We have a 'DandR' candidate
-        leftBvals = yValues[left:D]  # Smallest D will be 1
+        leftBvals = yValues[left:D]  # Smallest D will = left
         if R == right:
             rightBvals = yValues[right]
         else:
             # changed in 4.4.8
             rightBvals = yValues[R:right+1]
         B = (np.sum(leftBvals) + np.sum(rightBvals)) / (leftBvals.size + rightBvals.size)
-        
+
         if R - D == 1:  # Event size of 1 has no valid A --- we choose the value at D
             A = yValues[D]
-        else:    
-            A = np.mean(yValues[D+1:R])
+        else:
+            A = np.mean(yValues[D:R])
         if A >= B:
             A = B * 0.999
         return B, A
 
 
-def scoreCandidate(yValues, left, right, cand, sigmaB, sigmaA):
-    B, A = calcBandA(yValues=yValues, left=left, right=right, cand=cand)
-    m, sigma = model(B=B, A=A, D=cand[0], R=cand[1],
-                     sigmaB=sigmaB, sigmaA=sigmaA, numPts=yValues.size)
-    return cum_loglikelihood(yValues, m, sigma, left, right), B, A
+# def scoreCandidate(yValues, left, right, cand, sigmaB, sigmaA):
+#     B, A = calcBandA(yValues=yValues, left=left, right=right, cand=cand)
+#     m, sigma = model(B=B, A=A, D=cand[0], R=cand[1],
+#                      sigmaB=sigmaB, sigmaA=sigmaA, numPts=yValues.size)
+#     return cum_loglikelihood(yValues, m, sigma, left, right), B, A
 
 
 def scoreSubFrame(yValues, left, right, cand, sigmaB, sigmaA):
@@ -350,6 +432,8 @@ def subFrameAdjusted(*, eventType=None, cand=None, B=None, A=None,
         adj = (value - A) / (B - A)
         return D + adj
 
+    transitionPoints = []
+
     D, R = cand
     adjD = D
     adjR = R
@@ -374,14 +458,16 @@ def subFrameAdjusted(*, eventType=None, cand=None, B=None, A=None,
             # else if point at D categorizes as B, set D to D+1 and recalculate B and A
             D = D + 1
             adjD = D
-            B, A = calcBandA(yValues=yValues, left=left, right=right, cand=(D, R))
+            B, A, sigmaB, sigmaA = newCalcBandA(yValues=yValues, tpList=transitionPoints,
+                                                left=left, right=right, cand=(D, R))
             # It's possible that this new point qualifies as M --- so we check:
             if aicModelValue(
                     obsValue=yValues[D], B=B, A=A, sigmaB=sigmaB,
                     sigmaA=sigmaA) == yValues[D]:
                 adjD = adjustD()
+                transitionPoints.append(D)
         # else (point at D categorizes as A) --- nothing to do
-        return [adjD, adjR], B, A
+        return [adjD, adjR], B, A, sigmaB, sigmaA
 
     elif eventType == 'Ronly':
         if aicModelValue(obsValue=yValues[R], B=B, A=A, sigmaB=sigmaB, sigmaA=sigmaA) == yValues[R]:
@@ -391,23 +477,26 @@ def subFrameAdjusted(*, eventType=None, cand=None, B=None, A=None,
             # else if point at R categorizes as A, set R to R + 1 and recalculate B and A
             R = R + 1
             adjR = R
-            B, A = calcBandA(yValues=yValues, left=left, right=right, cand=(D, R))
+            B, A, sigmaB, sigmaA = newCalcBandA(yValues=yValues, tpList=transitionPoints,
+                                                left=left, right=right, cand=(D, R))
             # It's possible that this new point qualifies as M --- so we check
             if aicModelValue(
                     obsValue=yValues[R], B=B, A=A, sigmaB=sigmaB,
                     sigmaA=sigmaA) == yValues[R]:
                 adjR = adjustR()
+                transitionPoints.append(R)
         # else (point at R categorizes as B) --- nothing to do
-        return [adjD, adjR], B, A
+        return [adjD, adjR], B, A, sigmaB, sigmaA
 
     elif eventType == 'DandR':
         if not R - D > 2:
-            return [D, R], B, A
+            return [D, R], B, A, sigmaB, sigmaA
         if aicModelValue(
                 obsValue=yValues[D], B=B, A=A, sigmaB=sigmaB, sigmaA=sigmaA) == yValues[D]:
             # The point at D categorizes as M, do sub-frame adjustment; this
             # (finishes D)
             adjD = adjustD()
+            transitionPoints.append(D)
         elif aicModelValue(obsValue=yValues[D], B=B, A=A, sigmaB=sigmaB, sigmaA=sigmaA) == B:
             # The point at D categorizes as B, set D to D+1 and recalculate B and A
             D = D + 1
@@ -417,7 +506,9 @@ def subFrameAdjusted(*, eventType=None, cand=None, B=None, A=None,
                     obsValue=yValues[D], B=B, A=A, sigmaB=sigmaB,
                     sigmaA=sigmaA) == yValues[D]:
                 adjD = adjustD()
-            B, A = calcBandA(yValues=yValues, left=left, right=right, cand=(D, R))
+                transitionPoints.append(D)
+            B, A, sigmaB, sigmaA = newCalcBandA(yValues=yValues, tpList=transitionPoints,
+                                                left=left, right=right, cand=(D, R))
         elif aicModelValue(obsValue=yValues[D-1], B=B, A=A, sigmaB=sigmaB,
                            sigmaA=sigmaA) == yValues[D-1]:
             # The point at D categorizes as A, and we have found
@@ -425,23 +516,27 @@ def subFrameAdjusted(*, eventType=None, cand=None, B=None, A=None,
             # recalculate B and A
             D = D - 1
             adjD = adjustD()
-            B, A = calcBandA(yValues=yValues, left=left, right=right,
-                             cand=(D, R))
+            transitionPoints.append(D)
+            B, A, sigmaB, sigmaA = newCalcBandA(yValues=yValues, tpList=transitionPoints,
+                                                left=left, right=right, cand=(D, R))
 
         if aicModelValue(
                 obsValue=yValues[R], B=B, A=A, sigmaB=sigmaB, sigmaA=sigmaA) == yValues[R]:
             # The point at R categorizes as M, do sub-frame adjustment
             adjR = adjustR()
+            transitionPoints.append(R)
         elif aicModelValue(obsValue=yValues[R], B=B, A=A, sigmaB=sigmaB, sigmaA=sigmaA) == A:
             # The point at R categorizes as A, set R to R + 1 and recalculate B and A
             R = R + 1
             adjR = R
-            B, A = calcBandA(yValues=yValues, left=left, right=right, cand=(D, R))
+            B, A, sigmaB, sigmaA = newCalcBandA(yValues=yValues, tpList=transitionPoints,
+                                                left=left, right=right, cand=(D, R))
             # It's possible that this new point qualifies as M --- so we check
             if aicModelValue(
                     obsValue=yValues[R], B=B, A=A, sigmaB=sigmaB,
                     sigmaA=sigmaA) == yValues[R]:
                 adjR = adjustR()
+                transitionPoints.append(R)
         elif aicModelValue(obsValue=yValues[R - 1], B=B, A=A, sigmaB=sigmaB,
                            sigmaA=sigmaA) == yValues[R - 1]:
             # The point at R categorizes as B, and we have found
@@ -449,9 +544,11 @@ def subFrameAdjusted(*, eventType=None, cand=None, B=None, A=None,
             # recalculate B and A
             R = R - 1
             adjR = adjustR()
-            B, A = calcBandA(yValues=yValues, left=left, right=right,
-                             cand=(D, R))
-        return [adjD, adjR], B, A
+            transitionPoints.append(R)
+            B, A, sigmaB, sigmaA = newCalcBandA(yValues=yValues, tpList=transitionPoints,
+                                                left=left, right=right, cand=(D, R))
+
+        return [adjD, adjR], B, A, sigmaB, sigmaA
 
     else:
         raise Exception('Unrecognized event type')
@@ -486,7 +583,6 @@ def solver(*, eventType=None, yValues=None,
      
     counter = 0
     for cand in candGen:
-        # score, B, A = scoreCandidate(yValues, left, right, cand, sigmaB, sigmaA)
         score, B, A = scoreSubFrame(yValues, left, right, cand, sigmaB, sigmaA)
         if score > bestScore:
             bestScore = score

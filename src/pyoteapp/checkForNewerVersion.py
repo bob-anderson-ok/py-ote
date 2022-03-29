@@ -1,6 +1,9 @@
-import subprocess
-import json, re
-import urllib.request, urllib.error, urllib.parse
+# import subprocess
+import json
+import re
+import urllib.request
+import urllib.error
+import urllib.parse
 from distutils.version import StrictVersion
 
 

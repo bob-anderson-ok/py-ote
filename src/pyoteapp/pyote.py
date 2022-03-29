@@ -154,12 +154,12 @@ class CustomViewBox(pg.ViewBox):
         
     # re-implement right-click to zoom out
     def mouseClickEvent(self, ev):
-        if ev.button() == QtCore.Qt.RightButton:
+        if ev.button() == QtCore.Qt.MouseButton.RightButton:
             self.autoRange()
             mouseSignal.emit()
 
     def mouseDragEvent(self, ev, axis=None):
-        if ev.button() == QtCore.Qt.RightButton:
+        if ev.button() == QtCore.Qt.MouseButton.RightButton:
             ev.ignore()
         else:
             pg.ViewBox.mouseDragEvent(self, ev, axis)
@@ -615,7 +615,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.verticalCursor = pg.InfiniteLine(angle=90, movable=False, pen=(0, 0, 0))
         self.mainPlot.addItem(self.verticalCursor)
         self.blankCursor = True
-        self.mainPlot.viewport().setProperty("cursor", QtGui.QCursor(QtCore.Qt.BlankCursor))
+        self.mainPlot.viewport().setProperty("cursor", QtGui.QCursor(QtCore.Qt.CursorShape.BlankCursor))
         mouseSignal.connect(self.mouseEvent)
 
         # Set up handler for clicks on data plot
@@ -1490,7 +1490,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         # Currently PyMovie uses nn.00 for frame number
         # Limovie uses nn.0 for frame number
         # We use the 'starts with' flag so that we pick up both forms
-        items = self.table.findItems(f'{frame:0.1f}', QtCore.Qt.MatchStartsWith)
+        items = self.table.findItems(f'{frame:0.1f}', QtCore.Qt.MatchFlag.MatchStartsWith)
         for item in items:
             if item.column() == 0:  # Avoid a possible match from a data column
                 ts = self.table.item(item.row(), 1).text()
@@ -1649,15 +1649,15 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         if self.allowNewVersionPopupCheckbox.isChecked():
             self.helperThing.raise_()
         #     self.firstEvent = False
-        if event.type() == QtCore.QEvent.KeyPress:
+        if event.type() == QtCore.QEvent.Type.KeyPress:
             handled = self.processKeystroke(event)
             if handled:
                 return True
             else:
                 return super(SimplePlot, self).eventFilter(obj, event)
 
-        if event.type() == QtCore.QEvent.MouseButtonPress:
-            if event.button() == QtCore.Qt.RightButton:
+        if event.type() == QtCore.QEvent.Type.MouseButtonPress:
+            if event.button() == QtCore.Qt.MouseButton.RightButton:
                 if obj.toolTip():
                     self.helperThing.raise_()
                     self.helperThing.show()
@@ -1668,7 +1668,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             return super(SimplePlot, self).eventFilter(obj, event)
             # return False
 
-        if event.type() == QtCore.QEvent.ToolTip:
+        if event.type() == QtCore.QEvent.Type.ToolTip:
             return True
 
         return super(SimplePlot, self).eventFilter(obj, event)
@@ -1814,17 +1814,17 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         if not self.blankCursor:
             # self.showMsg('Mouse event')
             self.blankCursor = True
-            self.mainPlot.viewport().setProperty("cursor", QtGui.QCursor(QtCore.Qt.BlankCursor))
+            self.mainPlot.viewport().setProperty("cursor", QtGui.QCursor(QtCore.Qt.CursorShape.BlankCursor))
 
     def keyPressEvent(self, ev):
-        if ev.key() == QtCore.Qt.Key_Shift:
+        if ev.key() == QtCore.Qt.Key.Key_Shift:
             # self.showMsg('Shift key pressed')
             if self.blankCursor:
-                self.mainPlot.viewport().setProperty("cursor", QtGui.QCursor(QtCore.Qt.ArrowCursor))
+                self.mainPlot.viewport().setProperty("cursor", QtGui.QCursor(QtCore.Qt.CursorShape.ArrowCursor))
                 self.blankCursor = False
             else:
                 self.blankCursor = True
-                self.mainPlot.viewport().setProperty("cursor", QtGui.QCursor(QtCore.Qt.BlankCursor))
+                self.mainPlot.viewport().setProperty("cursor", QtGui.QCursor(QtCore.Qt.CursorShape.BlankCursor))
 
     @staticmethod
     def timestampListIsEmpty(alist):
@@ -2209,6 +2209,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.locateEvent.setEnabled(True)
 
         self.dLimits = [leftEdge, rightEdge]
+        self.minEventEdit.clear()
+        self.maxEventEdit.clear()
         
         if self.rLimits:
             self.eventType = 'DandR'
@@ -2266,7 +2268,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.locateEvent.setEnabled(True)
 
         self.rLimits = [leftEdge, rightEdge]
-        
+        self.minEventEdit.clear()
+        self.maxEventEdit.clear()
+
         if self.dLimits:
             # self.DandR.setChecked(True)
             self.eventType = 'DandR'
@@ -4189,9 +4193,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
             self.processBaselineNoiseFromIterativeSolution(self.left, D - 1)
 
-            self.processBaselineNoiseFromIterativeSolution(R + 1, self.right)
+            self.processBaselineNoiseFromIterativeSolution(R, self.right)
 
-            self.processEventNoiseFromIterativeSolution(D + 1, R - 1)
+            self.processEventNoiseFromIterativeSolution(D, R - 1)
 
             # Try to warn user about the possible need for block integration by testing the lag 1
             # and lag 2 correlation coefficients.  The tests are just guesses on my part, so only
@@ -4217,18 +4221,16 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.sigmaA = self.sigmaB
         elif D:
             self.sigmaA = None
-            # self.corCoefs = []
 
             self.processBaselineNoiseFromIterativeSolution(self.left, D - 1)
 
-            self.processEventNoiseFromIterativeSolution(D + 1, self.right)
+            self.processEventNoiseFromIterativeSolution(D, self.right)
             if self.sigmaA is None:
                 self.sigmaA = self.sigmaB
         else:  # R only
             self.sigmaA = None
-            # self.corCoefs = []
 
-            self.processBaselineNoiseFromIterativeSolution(R + 1, self.right)
+            self.processBaselineNoiseFromIterativeSolution(R, self.right)
 
             self.processEventNoiseFromIterativeSolution(self.left, R - 1)
             if self.sigmaA is None:
@@ -4828,7 +4830,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 blankLine=False)
             self.displaySolution(subframe=False)  # First solution
 
-            # This fills in self.sigmaB and self.sigmaA
+            # This fills in self.sigmaB and self.sigmaA (incorrectly) but is useful
+            # because it tests correlation coefficients to warn of the need for block integration
             self.extract_noise_parameters_from_iterative_solution()
 
             DfitMetric = RfitMetric = 0.0
@@ -4846,7 +4849,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 if not resultFound:
                     return
 
-            subDandR, new_b, new_a = subFrameAdjusted(
+            # Here is where we get sigmaB and sigmaA with the transition points excluded
+            subDandR, new_b, new_a, newSigmaB, newSigmaA = subFrameAdjusted(
                 eventType=self.eventType, cand=(d, r), B=b, A=a,
                 sigmaB=self.sigmaB, sigmaA=self.sigmaA, yValues=self.yValues,
                 left=self.left, right=self.right)
@@ -4905,17 +4909,19 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.showMsg('Subframe adjusted solution...', blankLine=False)
             self.showMsg(
                 'sigB:%.2f  sigA:%.2f B:%.2f A:%.2f' %
-                (self.sigmaB, self.sigmaA, new_b, new_a),
+                (newSigmaB, newSigmaA, new_b, new_a),
                 blankLine=False)
 
             need_to_invite_user_to_verify_timestamps = self.displaySolution()  # Adjusted solution
 
             if not self.userDeterminedBaselineStats:
                 self.B = new_b
+                self.sigmaB = newSigmaB
             if self.userTrimInEffect:
                 self.B = new_b
             if not self.userDeterminedEventStats:
                 self.A = new_a
+                self.sigmaA = newSigmaA
 
             self.dRegion = None
             self.rRegion = None
@@ -5936,12 +5942,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         def plotGeometricShadowAtD():
             if self.showEdgesCheckBox.isChecked() and self.exponentialDtheoryPts is None:
-                pen = pg.mkPen(color=(255, 0, 0), style=QtCore.Qt.DashLine, width=self.lineWidthSpinner.value())
+                pen = pg.mkPen(color=(255, 0, 0), style=QtCore.Qt.PenStyle.DashLine, width=self.lineWidthSpinner.value())
                 self.mainPlot.plot([D, D], [lo_int, hi_int], pen=pen, symbol=None)
 
         def plotGeometricShadowAtR():
             if self.showEdgesCheckBox.isChecked() and self.exponentialRtheoryPts is None:
-                pen = pg.mkPen(color=(0, 200, 0), style=QtCore.Qt.DashLine, width=self.lineWidthSpinner.value())
+                pen = pg.mkPen(color=(0, 200, 0), style=QtCore.Qt.PenStyle.DashLine, width=self.lineWidthSpinner.value())
                 self.mainPlot.plot([R, R], [lo_int, hi_int], pen=pen, symbol=None)
 
         hi_int = max(self.yValues[self.left:self.right])
@@ -6009,12 +6015,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         def plotGeometricShadowAtD(d):
             if self.showErrBarsCheckBox.isChecked():
-                pen = pg.mkPen(color=(255, 0, 0), style=QtCore.Qt.DotLine, width=self.lineWidthSpinner.value())
+                pen = pg.mkPen(color=(255, 0, 0), style=QtCore.Qt.PenStyle.DotLine, width=self.lineWidthSpinner.value())
                 self.mainPlot.plot([d, d], [lo_int, hi_int], pen=pen, symbol=None)
 
         def plotGeometricShadowAtR(r):
             if self.showErrBarsCheckBox.isChecked():
-                pen = pg.mkPen(color=(0, 200, 0), style=QtCore.Qt.DotLine, width=self.lineWidthSpinner.value())
+                pen = pg.mkPen(color=(0, 200, 0), style=QtCore.Qt.PenStyle.DotLine, width=self.lineWidthSpinner.value())
                 self.mainPlot.plot([r, r], [lo_int, hi_int], pen=pen, symbol=None)
         
         if self.solution is None:
@@ -6058,10 +6064,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             return
 
     def newRedrawMainPlot(self):
-        QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.BusyCursor))
+        QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.BusyCursor))
         QtWidgets.QApplication.processEvents()
         self.reDrawMainPlot()
-        QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+        QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.ArrowCursor))
         # QtWidgets.QApplication.processEvents()
 
     def reDrawMainPlot(self):
@@ -6144,7 +6150,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                                symbolBrush=(160, 128, 96), symbolSize=dotSize+4)
             hi_int = max(self.yValues[self.left:self.right])
             lo_int = min(self.yValues[self.left:self.right])
-            pen = pg.mkPen(color=(200, 0, 0), style=QtCore.Qt.DashLine, width=self.lineWidthSpinner.value())
+            pen = pg.mkPen(color=(200, 0, 0), style=QtCore.Qt.PenStyle.DashLine, width=self.lineWidthSpinner.value())
             self.mainPlot.plot([self.solution[0], self.solution[0]], [lo_int, hi_int], pen=pen, symbol=None)
 
         if self.exponentialRtheoryPts is not None:
@@ -6155,7 +6161,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                                symbolBrush=(160, 128, 96), symbolSize=dotSize+4)
             hi_int = max(self.yValues[self.left:self.right])
             lo_int = min(self.yValues[self.left:self.right])
-            pen = pg.mkPen(color=(0, 200, 0), style=QtCore.Qt.DashLine, width=self.lineWidthSpinner.value())
+            pen = pg.mkPen(color=(0, 200, 0), style=QtCore.Qt.PenStyle.DashLine, width=self.lineWidthSpinner.value())
             self.mainPlot.plot([self.solution[1], self.solution[1]], [lo_int, hi_int], pen=pen, symbol=None)
 
         if len(self.yRefStar) == self.dataLen:
