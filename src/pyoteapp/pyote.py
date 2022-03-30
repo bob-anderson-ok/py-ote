@@ -498,7 +498,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         # Button: Accept integration
         self.acceptBlockIntegration.clicked.connect(self.applyIntegration)
         self.acceptBlockIntegration.installEventFilter(self)
-        
+
+        # Button: Validate a potential single point event
+        self.singlePointDropButton.clicked.connect(self.validateSinglePointDrop)
+        self.singlePointDropButton.installEventFilter(self)
+
         # Button: Mark D zone
         self.markDzone.clicked.connect(self.showDzone)
         self.markDzone.installEventFilter(self)
@@ -2683,6 +2687,40 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             # self.acceptBlockIntegration.setEnabled(False)
             self.applyIntegration()
 
+    def validateSinglePointDrop(self):
+        if not self.userDeterminedBaselineStats:
+            self.showInfo(f'You need to select baseline points and calculate statistics first. '
+                          f'\n\nGo to the Noise anlaysis tab to do this.')
+            return
+
+        if len(self.selectedPoints) != 1:
+            self.showInfo('Exactly one point must be selected for this operation.')
+            return
+        selectedPoints = [key for key in self.selectedPoints.keys()]
+        selectedPoint = selectedPoints[0]
+        # self.showInfo(f'{selectedPoint} was selected.')
+
+        self.errBarWin = pg.GraphicsWindow(
+            title='simulated drop distribution for single point event')
+        self.errBarWin.resize(1200, 500)
+        layout = QtWidgets.QGridLayout()
+        self.errBarWin.setLayout(layout)
+        drop = self.B - self.yValues[selectedPoint]
+        pw, falsePositive, probability = self.falsePositiveReport(
+            event_duration=1, num_trials=100000, observation_size=self.right - self.left + 1,
+            observed_drop=drop,
+            posCoefs=self.corCoefs, sigma=self.sigmaB)
+        layout.addWidget(pw, 0, 0)
+
+        self.showMsg(f"Reading number {selectedPoint} with drop {drop:0.2f} was selected for validation", color='blue',
+                     bold=True, blankLine=False)
+        if falsePositive:
+            self.showMsg(f'==== The single point event is NOT valid - it has non-zero chance of being due to noise',
+                         color='red', bold=True)
+        else:
+            self.showMsg(f'==== The single point event is valid - it is unlikely to stem from noise',
+                         color='blue', bold=True)
+
     def applyIntegration(self):
         if self.bint_left is None:
             if self.outliers:
@@ -3840,7 +3878,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             return
 
         if not self.userDeterminedBaselineStats:
-            self.showInfo(f'Baseline statistics have been extracted yet.')
+            self.showInfo(f'Baseline statistics have not been extracted yet.')
             return
 
         posCoefs = self.newCorCoefs
@@ -4064,40 +4102,37 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         observed_drop = self.B - self.A
         num_trials = 50_000
 
+        return self.falsePositiveReport(event_duration, num_trials, observation_size, observed_drop, posCoefs, sigma)
+
+    @staticmethod
+    def falsePositiveReport(event_duration, num_trials, observation_size, observed_drop, posCoefs, sigma):
         drops = compute_drops(event_duration=event_duration, observation_size=observation_size,
                               noise_sigma=sigma, corr_array=np.array(posCoefs), num_trials=num_trials)
-
         pw = PlotWidget(viewBox=CustomViewBox(border=(0, 0, 0)),
                         enableMenu=False,
                         title=f'Distribution of drops found in correlated noise for event duration: {event_duration}',
                         labels={'bottom': 'drop size', 'left': 'number of times noise produced drop'})
         pw.hideButtons()
-
         y, x = np.histogram(drops, bins=50)
-
         pw.plot(x, y, stepMode=True, fillLevel=0, brush=(0, 0, 255, 150))
         pw.plot(x=[observed_drop, observed_drop], y=[0, 1.5 * np.max(y)], pen=pg.mkPen([255, 0, 0], width=6))
         pw.plot(x=[np.max(x), np.max(x)], y=[0, 0.25 * np.max(y)], pen=pg.mkPen([0, 0, 0], width=6))
-
         pw.addLegend()
         pw.plot(name='red line: the drop (B - A) extracted from lightcurve')
         pw.plot(name=f'black line: max drop found in {num_trials} trials against pure noise')
         pw.plot(name='If the red line is to the right of the black line, false positive prob = 0')
-
         sorted_drops = np.sort(drops)
         index_of_observed_drop_inside_sorted_drops = None
         for i, value in enumerate(sorted_drops):
             if value >= observed_drop:
                 index_of_observed_drop_inside_sorted_drops = i
                 break
-
         if index_of_observed_drop_inside_sorted_drops is None:
             false_probability = 0.0
             false_positive = False
         else:
             false_probability = 1.0 - index_of_observed_drop_inside_sorted_drops / drops.size
             false_positive = True
-
         return pw, false_positive, false_probability
 
     def displaySolution(self, subframe=True):
@@ -4721,6 +4756,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.eventType = 'DandR'
             self.dLimits = []
             self.rLimits = []
+        elif not self.dLimits and not self.rLimits:
+            self.showInfo('No search criteria have been entered')
+            return
 
         if not self.ne3NotInUseRadioButton.isChecked():
             yPosition = self.targetStarYpositionSpinBox.value()
@@ -5553,6 +5591,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
                 self.markDzone.setEnabled(True)
                 self.markRzone.setEnabled(True)
+                self.singlePointDropButton.setEnabled(True)
                 self.markEzone.setEnabled(not self.ne3NotInUseRadioButton.isChecked())
 
                 self.calcFlashEdge.setEnabled(True)
@@ -5743,6 +5782,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.locateEvent.setEnabled(True)
         self.markDzone.setEnabled(True)
         self.markRzone.setEnabled(True)
+        self.singlePointDropButton.setEnabled(True)
         self.markEzone.setEnabled(not self.ne3NotInUseRadioButton.isChecked())
 
         self.minEventEdit.setEnabled(True)
@@ -5790,6 +5830,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.startOver.setEnabled(False)
         self.markDzone.setEnabled(False)
         self.markRzone.setEnabled(False)
+        self.singlePointDropButton.setEnabled(False)
         self.markEzone.setEnabled(False)
         # self.numSmoothPointsEdit.setEnabled(False)
         self.minEventEdit.setEnabled(False)
@@ -5832,6 +5873,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.markDzone.setEnabled(True)
         self.markRzone.setEnabled(True)
+        self.singlePointDropButton.setEnabled(True)
         self.markEzone.setEnabled(not self.ne3NotInUseRadioButton.isChecked())
         self.locateEvent.setEnabled(True)
         self.minEventEdit.setEnabled(True)
