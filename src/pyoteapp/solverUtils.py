@@ -473,7 +473,7 @@ def subFrameAdjusted(*, eventType=None, cand=None, B=None, A=None,
                                                     left=left, right=right, cand=(D, R))
         # else (point at D categorizes as A) --- nothing to do
         # TODO remove print
-        print(transitionPoints)
+        # print(transitionPoints)
         return [adjD, adjR], B, A, sigmaB, sigmaA
 
     elif eventType == 'Ronly':
@@ -497,9 +497,18 @@ def subFrameAdjusted(*, eventType=None, cand=None, B=None, A=None,
                 transitionPoints.append(R)
                 B, A, sigmaB, sigmaA = newCalcBandA(yValues=yValues, tpList=transitionPoints,
                                                     left=left, right=right, cand=(D, R))
-        # else (point at R categorizes as B) --- nothing to do
+        elif aicModelValue(obsValue=yValues[R - 1], B=B, A=A, sigmaB=sigmaB,
+                           sigmaA=sigmaA) == yValues[R - 1]:
+            # The point at R categorizes as B, and we have found
+            # that the point at R-1 categorizes as M, so set R to R-1 and
+            # recalculate B and A
+            R = R - 1
+            adjR = adjustR()
+            transitionPoints.append(R)
+            B, A, sigmaB, sigmaA = newCalcBandA(yValues=yValues, tpList=transitionPoints,
+                                                left=left, right=right, cand=(D, R))
         # TODO remove print
-        print(transitionPoints)
+        # print(transitionPoints)
         return [adjD, adjR], B, A, sigmaB, sigmaA
 
     elif eventType == 'DandR':
@@ -568,7 +577,7 @@ def subFrameAdjusted(*, eventType=None, cand=None, B=None, A=None,
             B, A, sigmaB, sigmaA = newCalcBandA(yValues=yValues, tpList=transitionPoints,
                                                 left=left, right=right, cand=(D, R))
         # TODO remove print
-        print(transitionPoints)
+        # print(transitionPoints)
         return [adjD, adjR], B, A, sigmaB, sigmaA
 
     else:
