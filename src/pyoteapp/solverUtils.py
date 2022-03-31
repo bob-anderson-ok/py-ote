@@ -454,6 +454,9 @@ def subFrameAdjusted(*, eventType=None, cand=None, B=None, A=None,
             # If point at D categorizes as M (valid mid-point), do sub-frame
             # adjustment and exit
             adjD = adjustD()
+            transitionPoints.append(D)
+            B, A, sigmaB, sigmaA = newCalcBandA(yValues=yValues, tpList=transitionPoints,
+                                                left=left, right=right, cand=(D, R))
         elif aicModelValue(obsValue=yValues[D], B=B, A=A, sigmaB=sigmaB, sigmaA=sigmaA) == B:
             # else if point at D categorizes as B, set D to D+1 and recalculate B and A
             D = D + 1
@@ -466,13 +469,20 @@ def subFrameAdjusted(*, eventType=None, cand=None, B=None, A=None,
                     sigmaA=sigmaA) == yValues[D]:
                 adjD = adjustD()
                 transitionPoints.append(D)
+                B, A, sigmaB, sigmaA = newCalcBandA(yValues=yValues, tpList=transitionPoints,
+                                                    left=left, right=right, cand=(D, R))
         # else (point at D categorizes as A) --- nothing to do
+        # TODO remove print
+        print(transitionPoints)
         return [adjD, adjR], B, A, sigmaB, sigmaA
 
     elif eventType == 'Ronly':
         if aicModelValue(obsValue=yValues[R], B=B, A=A, sigmaB=sigmaB, sigmaA=sigmaA) == yValues[R]:
             # If point at R categorizes as M, do sub-frame adjustment
             adjR = adjustR()
+            transitionPoints.append(R)
+            B, A, sigmaB, sigmaA = newCalcBandA(yValues=yValues, tpList=transitionPoints,
+                                                left=left, right=right, cand=(D, R))
         elif aicModelValue(obsValue=yValues[R], B=B, A=A, sigmaB=sigmaB, sigmaA=sigmaA) == A:
             # else if point at R categorizes as A, set R to R + 1 and recalculate B and A
             R = R + 1
@@ -485,7 +495,11 @@ def subFrameAdjusted(*, eventType=None, cand=None, B=None, A=None,
                     sigmaA=sigmaA) == yValues[R]:
                 adjR = adjustR()
                 transitionPoints.append(R)
+                B, A, sigmaB, sigmaA = newCalcBandA(yValues=yValues, tpList=transitionPoints,
+                                                    left=left, right=right, cand=(D, R))
         # else (point at R categorizes as B) --- nothing to do
+        # TODO remove print
+        print(transitionPoints)
         return [adjD, adjR], B, A, sigmaB, sigmaA
 
     elif eventType == 'DandR':
@@ -497,6 +511,8 @@ def subFrameAdjusted(*, eventType=None, cand=None, B=None, A=None,
             # (finishes D)
             adjD = adjustD()
             transitionPoints.append(D)
+            B, A, sigmaB, sigmaA = newCalcBandA(yValues=yValues, tpList=transitionPoints,
+                                                left=left, right=right, cand=(D, R))
         elif aicModelValue(obsValue=yValues[D], B=B, A=A, sigmaB=sigmaB, sigmaA=sigmaA) == B:
             # The point at D categorizes as B, set D to D+1 and recalculate B and A
             D = D + 1
@@ -507,8 +523,8 @@ def subFrameAdjusted(*, eventType=None, cand=None, B=None, A=None,
                     sigmaA=sigmaA) == yValues[D]:
                 adjD = adjustD()
                 transitionPoints.append(D)
-            B, A, sigmaB, sigmaA = newCalcBandA(yValues=yValues, tpList=transitionPoints,
-                                                left=left, right=right, cand=(D, R))
+                B, A, sigmaB, sigmaA = newCalcBandA(yValues=yValues, tpList=transitionPoints,
+                                                    left=left, right=right, cand=(D, R))
         elif aicModelValue(obsValue=yValues[D-1], B=B, A=A, sigmaB=sigmaB,
                            sigmaA=sigmaA) == yValues[D-1]:
             # The point at D categorizes as A, and we have found
@@ -525,6 +541,8 @@ def subFrameAdjusted(*, eventType=None, cand=None, B=None, A=None,
             # The point at R categorizes as M, do sub-frame adjustment
             adjR = adjustR()
             transitionPoints.append(R)
+            B, A, sigmaB, sigmaA = newCalcBandA(yValues=yValues, tpList=transitionPoints,
+                                                left=left, right=right, cand=(D, R))
         elif aicModelValue(obsValue=yValues[R], B=B, A=A, sigmaB=sigmaB, sigmaA=sigmaA) == A:
             # The point at R categorizes as A, set R to R + 1 and recalculate B and A
             R = R + 1
@@ -537,6 +555,8 @@ def subFrameAdjusted(*, eventType=None, cand=None, B=None, A=None,
                     sigmaA=sigmaA) == yValues[R]:
                 adjR = adjustR()
                 transitionPoints.append(R)
+                B, A, sigmaB, sigmaA = newCalcBandA(yValues=yValues, tpList=transitionPoints,
+                                                    left=left, right=right, cand=(D, R))
         elif aicModelValue(obsValue=yValues[R - 1], B=B, A=A, sigmaB=sigmaB,
                            sigmaA=sigmaA) == yValues[R - 1]:
             # The point at R categorizes as B, and we have found
@@ -547,7 +567,8 @@ def subFrameAdjusted(*, eventType=None, cand=None, B=None, A=None,
             transitionPoints.append(R)
             B, A, sigmaB, sigmaA = newCalcBandA(yValues=yValues, tpList=transitionPoints,
                                                 left=left, right=right, cand=(D, R))
-
+        # TODO remove print
+        print(transitionPoints)
         return [adjD, adjR], B, A, sigmaB, sigmaA
 
     else:

@@ -2707,7 +2707,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.errBarWin.setLayout(layout)
         drop = self.B - self.yValues[selectedPoint]
         pw, falsePositive, probability = self.falsePositiveReport(
-            event_duration=1, num_trials=100000, observation_size=self.right - self.left + 1,
+            event_duration=1, num_trials=50000, observation_size=self.right - self.left + 1,
             observed_drop=drop,
             posCoefs=self.corCoefs, sigma=self.sigmaB)
         layout.addWidget(pw, 0, 0)
@@ -4114,6 +4114,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                         labels={'bottom': 'drop size', 'left': 'number of times noise produced drop'})
         pw.hideButtons()
         y, x = np.histogram(drops, bins=50)
+        y[0] = y[1] / 2.0
         pw.plot(x, y, stepMode=True, fillLevel=0, brush=(0, 0, 255, 150))
         pw.plot(x=[observed_drop, observed_drop], y=[0, 1.5 * np.max(y)], pen=pg.mkPen([255, 0, 0], width=6))
         pw.plot(x=[np.max(x), np.max(x)], y=[0, 0.25 * np.max(y)], pen=pg.mkPen([0, 0, 0], width=6))
@@ -4806,6 +4807,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     pass
                 else:
                     self.minEvent = self.rLimits[0] - self.left
+                    self.minEvent = max(self.minEvent, 2)
                     self.maxEvent = self.rLimits[1] - self.left
                 solverGen = find_best_r_only_from_min_max_size(
                         self.yValues, self.left, self.right, self.minEvent,
@@ -4818,6 +4820,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     pass
                 else:
                     self.minEvent = self.right - self.dLimits[1]
+                    self.minEvent = max(self.minEvent, 2)
                     self.maxEvent = self.right - self.dLimits[0] - 1
 
                 solverGen = find_best_d_only_from_min_max_size(
