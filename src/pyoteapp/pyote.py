@@ -6109,10 +6109,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             return
 
     def newRedrawMainPlot(self):
-        QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.BusyCursor))
+        # TODO restore this
+        # QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.BusyCursor))
         QtWidgets.QApplication.processEvents()
         self.reDrawMainPlot()
-        QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.ArrowCursor))
+        # TODO restore this
+        # QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.ArrowCursor))
         # QtWidgets.QApplication.processEvents()
 
     def reDrawMainPlot(self):
@@ -6366,24 +6368,23 @@ def main(csv_file_path=None):
     os.environ['QT_MAC_WANTS_LAYER'] = '1'  # This line needed when Mac updated to Big Sur
 
     import traceback
-    # QtGui.QApplication.setStyle('fusion')
-    PyQt5.QtWidgets.QApplication.setStyle('fusion')
-    # app = QtGui.QApplication(sys.argv)
     app = PyQt5.QtWidgets.QApplication(sys.argv)
 
     print(f'PyOTE Version: {version.version()}')
 
     if sys.platform == 'linux':
+        PyQt5.QtWidgets.QApplication.setStyle('macintosh')
         print(f'os: Linux')
     elif sys.platform == 'darwin':
+        PyQt5.QtWidgets.QApplication.setStyle('macintosh')
         print(f'os: MacOS')
     else:
         print(f'os: Windows')
+        PyQt5.QtWidgets.QApplication.setStyle('windows')
         app.setStyleSheet("QLabel, QPushButton, QToolButton, QCheckBox, "
                           "QRadioButton, QLineEdit , QTextEdit {font-size: 8pt}")
     
     # Save the current/proper sys.excepthook object
-    # sys._excepthook = sys.excepthook
     saved_excepthook = sys.excepthook
 
     def exception_hook(exctype, value, tb):
@@ -6395,7 +6396,6 @@ def main(csv_file_path=None):
 
         traceback.print_tb(tb)
         # Call the usual exception processor
-        # sys._excepthook(exctype, value, tb)
         saved_excepthook(exctype, value, tb)
         # Exit if you prefer...
         # sys.exit(1)
