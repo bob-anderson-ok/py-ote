@@ -4994,7 +4994,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                         self.showInfo('The solution is likely incorrect because the max event limit' +
                                       ' was set too low.  Increase that limit and try again.')
                         return
-                    if self.minEvent >= (R - D):
+                    if self.minEvent >= (R - D) and self.minEvent > 2:
                         self.newRedrawMainPlot()
                         self.showMsg('Invalid solution: min event limit constrained solution!', color='red', bold=True)
                         self.showInfo('The solution is likely incorrect because the min event limit' +
