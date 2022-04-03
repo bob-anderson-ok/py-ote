@@ -3904,9 +3904,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         try:
             event_duration_secs = float(durText)
 
-            # 4.6.1 change
-            # event_duration = int(np.ceil(event_duration_secs / self.timeDelta))  # In readings
-            event_duration = round((event_duration_secs / self.timeDelta))  # In readings
+            # 4.6.2 change
+            event_duration = int(np.ceil(event_duration_secs / self.timeDelta))  # In readings
+            # event_duration = round((event_duration_secs / self.timeDelta))  # In readings
 
             if event_duration < 1:
                 self.showInfo(f'The event duration: {event_duration} is too small to use.')
@@ -3963,7 +3963,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.showMsg(f'Using lightcurve: {self.lightcurveTitles[i].text()} ...',
                          blankLine=False, alternateLogFile=self.detectabilityLogFile)
             self.showMsg(f'... processing detectability of magDrop: {event_magDrop:0.2f} '
-                         f'dur(secs): {event_duration_secs:0.2f} event', alternateLogFile=self.detectabilityLogFile)
+                         f'dur(secs): {event_duration_secs:0.3f} event', alternateLogFile=self.detectabilityLogFile,
+                         blankLine=False)
             QtWidgets.QApplication.processEvents()
 
             drops = compute_drops(event_duration=event_duration, observation_size=obs_duration,
@@ -3981,13 +3982,21 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
             y, x = np.histogram(drops, bins=50, density=True, range=(0, np.max(drops)))
 
-            pw.plot(x, y, stepMode=True, fillLevel=0, brush=(0, 0, 255, 150))
-            pw.plot(x=[observed_drop, observed_drop], y=[0, 1.5 * np.max(y)], pen=pg.mkPen([255, 0, 0], width=4))
-            pw.plot(x=[np.max(x), np.max(x)], y=[0, 0.25 * np.max(y)], pen=pg.mkPen([0, 0, 0], width=4))
-
             blackDrop = np.max(x)
             redDrop = observed_drop
+            # 4.6.2 change
+            if event_duration_secs < self.timeDelta:
+                redDrop = observed_drop * (event_duration_secs / self.timeDelta)
+                self.showMsg(f'...drop reduced from {observed_drop:0.2f} to {redDrop:0.2f} due to sub-frame exposure')
+            else:
+                self.showMsg('', blankLine=False)
+            # end 4.6.2 change
             redMinusBlack = redDrop - blackDrop
+
+            pw.plot(x, y, stepMode=True, fillLevel=0, brush=(0, 0, 255, 150))
+            pw.plot(x=[redDrop, redDrop], y=[0, 1.5 * np.max(y)], pen=pg.mkPen([255, 0, 0], width=4))
+            pw.plot(x=[np.max(x), np.max(x)], y=[0, 0.25 * np.max(y)], pen=pg.mkPen([0, 0, 0], width=4))
+
             pw.addLegend()
             pw.plot(name=f'red line @ {redDrop:0.2f} = location of a {event_magDrop} magDrop event in histogram of all detected events due to noise')
             pw.plot(name=f'black line @ {blackDrop:0.2f} = max drop found in {num_trials} trials with correlated noise')
@@ -4014,7 +4023,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             detectibiltyPlotPath = lightCurveDir + '/DetectabilityPlots/'
             if not os.path.exists(detectibiltyPlotPath):
                 os.mkdir(detectibiltyPlotPath)
-            targetFile = detectibiltyPlotPath + f'plot.detectability-dur{event_duration_secs:0.2f}-magDrop{event_magDrop:0.2f}.PYOTE.png'
+            targetFile = detectibiltyPlotPath + f'plot.detectability-dur{event_duration_secs:0.3f}-magDrop{event_magDrop:0.2f}.PYOTE.png'
 
             exporter = FixedImageExporter(pw.getPlotItem())
             exporter.makeWidthHeightInts()
@@ -4028,7 +4037,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 # Only write the final plot for "find minimum duration detectability" requests
                 exporter.export(targetFile)
                 QtWidgets.QApplication.processEvents()
-                self.showMsg(f'Undetectability reached at magDrop: {event_magDrop:0.2f}  duration=: {event_duration_secs:0.2f}')
+                self.showMsg(f'Undetectability reached at magDrop: {event_magDrop:0.2f}  duration=: {event_duration_secs:0.3f}')
                 break
 
             if durStep == 0.0:
@@ -4036,26 +4045,26 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             else:
                 event_duration_secs -= durStep  # Try next smaller duration
 
-                # 4.6.1 change
-                # event_duration = int(np.ceil(event_duration_secs / self.timeDelta))
-                event_duration = round((event_duration_secs / self.timeDelta))  # readings
+                # 4.6.2 change
+                event_duration = int(np.ceil(event_duration_secs / self.timeDelta))
+                # event_duration = round((event_duration_secs / self.timeDelta))  # readings
 
                 if event_duration < 1:
                     # 4.6.1 change
                     event_duration_secs += durStep  # Last successful duration
-                    event_duration = round(np.ceil(event_duration_secs / self.timeDelta))
+                    event_duration = int(np.ceil(event_duration_secs / self.timeDelta))
                     # end 4.6.1 change
 
                     break
 
         if self.minDetectableDurationRdgs is None:
             self.showMsg(
-                f'Undetectable event @ magDrop: {event_magDrop:0.2f}  duration: {event_duration_secs:0.2f}',
+                f'Undetectable event @ magDrop: {event_magDrop:0.2f}  duration: {event_duration_secs:0.3f}',
                 color='red', bold=True
             )
         else:
             self.showMsg(
-                f'An event of duration {self.minDetectableDurationSecs:0.2f} seconds with magDrop: {event_magDrop}'
+                f'An event of duration {self.minDetectableDurationSecs:0.3f} seconds with magDrop: {event_magDrop}'
                 f' is likely detectable.', color='red', bold=True
             )
 
@@ -4064,7 +4073,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             obs = simple_convolve(obs, np.array(self.newCorCoefs))
             title = (f'Example light curve at the minimum detectable duration found ---  '
                      f'Event duration: {event_duration} readings ------ '
-                     f'Event duration:{event_duration_secs + durStep:0.2f} seconds ------ '
+                     f'Event duration:{event_duration_secs + durStep:0.3f} seconds ------ '
                      f'magDrop: {magDropText}'
                      )
             pw = PlotWidget(viewBox=CustomViewBox(border=(0, 0, 0)),
@@ -4090,7 +4099,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
             # 4.6.1 change
             # obs[eventStart:eventStart+event_duration+1] -= observed_drop
-            obs[eventStart:eventStart+event_duration] -= observed_drop
+            obs[eventStart:eventStart+event_duration] -= redDrop
 
             pw.plot(obs)
             pw.plot(obs, pen=None, symbol='o', symbolBrush=(0, 0, 255), symbolSize=6)
