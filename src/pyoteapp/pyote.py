@@ -3987,9 +3987,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             # 4.6.2 change
             if event_duration_secs < self.timeDelta:
                 redDrop = observed_drop * (event_duration_secs / self.timeDelta)
-                self.showMsg(f'...drop reduced from {observed_drop:0.2f} to {redDrop:0.2f} due to sub-frame exposure')
+                self.showMsg(f'... drop reduced from {observed_drop:0.2f} to {redDrop:0.2f} due to sub-frame exposure',
+                             alternateLogFile=self.detectabilityLogFile)
             else:
-                self.showMsg('', blankLine=False)
+                self.showMsg('', alternateLogFile=self.detectabilityLogFile, blankLine=False)
             # end 4.6.2 change
             redMinusBlack = redDrop - blackDrop
 
@@ -4037,7 +4038,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 # Only write the final plot for "find minimum duration detectability" requests
                 exporter.export(targetFile)
                 QtWidgets.QApplication.processEvents()
-                self.showMsg(f'Undetectability reached at magDrop: {event_magDrop:0.2f}  duration=: {event_duration_secs:0.3f}')
+                self.showMsg(f'Undetectability reached at magDrop: {event_magDrop:0.2f}  duration=: {event_duration_secs:0.3f}',
+                             alternateLogFile=self.detectabilityLogFile)
                 break
 
             if durStep == 0.0:
