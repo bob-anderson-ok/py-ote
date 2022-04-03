@@ -3965,9 +3965,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             drops = compute_drops(event_duration=event_duration, observation_size=obs_duration,
                                   noise_sigma=sigma, corr_array=np.array(posCoefs), num_trials=num_trials)
 
-            title = (f'Distribution of drops found in correlated noise:'
-                     f'Event duration(readings): {event_duration}   '
-                     f'Event duration(seconds): {event_duration_secs:0.2f}')
+            title = (f'Distribution of drops found in correlated noise --- '
+                     f'Event duration: {event_duration} readings ------ '
+                     f'Event duration: {event_duration_secs:0.2f} seconds')
 
             pw = PlotWidget(viewBox=CustomViewBox(border=(0, 0, 0)),
                             enableMenu=False,
@@ -4050,8 +4050,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             obs = noise_gen_jit(obs_duration, self.sigmaB)
             obs = simple_convolve(obs, np.array(self.newCorCoefs))
             title = (f'Example light curve at the minimum detectable duration found ---  '
-                     f'Event duration(readings): {event_duration}   '
-                     f'Event duration(seconds): {event_duration_secs + durStep:0.2f}   '
+                     f'Event duration: {event_duration} readings ------ '
+                     f'Event duration:{event_duration_secs + durStep:0.2f} seconds ------ '
                      f'magDrop: {magDropText}'
                      )
             pw = PlotWidget(viewBox=CustomViewBox(border=(0, 0, 0)),
