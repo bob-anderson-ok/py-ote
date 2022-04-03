@@ -3903,7 +3903,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             return
         try:
             event_duration_secs = float(durText)
-            event_duration = int(np.ceil(event_duration_secs / self.timeDelta))
+
+            # 4.6.1 change
+            # event_duration = int(np.ceil(event_duration_secs / self.timeDelta))  # In readings
+            event_duration = round((event_duration_secs / self.timeDelta))  # In readings
+
             if event_duration < 1:
                 self.showInfo(f'The event duration: {event_duration} is too small to use.')
                 return
@@ -4020,7 +4024,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 exporter.export(targetFile)
                 QtWidgets.QApplication.processEvents()
 
-            if redMinusBlack < 0 and not durStep == 0.0:
+            if redMinusBlack < 0 and not durStep == 0.0:  # A failed detect during step down
                 # Only write the final plot for "find minimum duration detectability" requests
                 exporter.export(targetFile)
                 QtWidgets.QApplication.processEvents()
@@ -4030,9 +4034,18 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             if durStep == 0.0:
                 break
             else:
-                event_duration_secs -= durStep
-                event_duration = int(np.ceil(event_duration_secs / self.timeDelta))
+                event_duration_secs -= durStep  # Try next smaller duration
+
+                # 4.6.1 change
+                # event_duration = int(np.ceil(event_duration_secs / self.timeDelta))
+                event_duration = round((event_duration_secs / self.timeDelta))  # readings
+
                 if event_duration < 1:
+                    # 4.6.1 change
+                    event_duration_secs += durStep  # Last successful duration
+                    event_duration = round(np.ceil(event_duration_secs / self.timeDelta))
+                    # end 4.6.1 change
+
                     break
 
         if self.minDetectableDurationRdgs is None:
@@ -4074,7 +4087,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             obs += self.B
             center = int(obs_duration / 2)
             eventStart = center - int(event_duration/2)
-            obs[eventStart:eventStart+event_duration+1] -= observed_drop
+
+            # 4.6.1 change
+            # obs[eventStart:eventStart+event_duration+1] -= observed_drop
+            obs[eventStart:eventStart+event_duration] -= observed_drop
+
             pw.plot(obs)
             pw.plot(obs, pen=None, symbol='o', symbolBrush=(0, 0, 255), symbolSize=6)
             left_marker = pg.InfiniteLine(pos=eventStart, pen='r')
