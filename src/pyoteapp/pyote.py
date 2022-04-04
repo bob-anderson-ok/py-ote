@@ -676,6 +676,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.enableDiffractionCalculationBox.setChecked(usediff)
         doOCRcheck = self.settings.value('doOCRcheck', 'true') == 'true'
         self.showOCRcheckFramesCheckBox.setChecked(doOCRcheck)
+        showCameraResponse = self.settings.value('showCameraResponse', 'false') == 'true'
+        self.showCameraResponseCheckBox.setChecked(showCameraResponse)
         showTimestamps = self.settings.value('showTimestamps', 'true') == 'true'
         self.showTimestampsCheckBox.setChecked(showTimestamps)
 
@@ -2965,6 +2967,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.settings.setValue('usediff', self.enableDiffractionCalculationBox.isChecked())
         self.settings.setValue('doOCRcheck', self.showOCRcheckFramesCheckBox.isChecked())
         self.settings.setValue('showTimestamps', self.showTimestampsCheckBox.isChecked())
+        self.settings.setValue('showCameraResponse', self.showCameraResponseCheckBox.isChecked())
 
         self.settings.setValue('ne3NotInUse', self.ne3NotInUseRadioButton.isChecked())
         self.settings.setValue('dnrOff', self.dnrOffRadioButton.isChecked())
@@ -4733,12 +4736,17 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         need_to_invite_user_to_verify_timestamps = False
 
-        if self.eventType == 'DandR':
-            self.showMsg('Locate a "D and R" event triggered')
-        elif self.eventType == 'Donly':
-            self.showMsg('Locate a "D only" event triggered')
+        if self.dLimits and self.rLimits:
+            self.eventType = "DandR"
+            self.showMsg('Locate a "D and R" event has been selected')
+        elif self.dLimits:
+            self.eventType = "Donly"
+            self.showMsg('Locate a "D only" event has been selected')
+        elif self.rLimits:
+            self.eventType = "Ronly"
+            self.showMsg('Locate an "R only" event has been selected')
         else:
-            self.showMsg('Locate an "R only" event triggered')
+            self.showMsg('Use min/max event to locate a "D and R" event has been selected')
         
         minText = self.minEventEdit.text().strip()
         maxText = self.maxEventEdit.text().strip()
@@ -4779,7 +4787,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             minText = '<blank>'
         if maxText == '':
             maxText = '<blank>'
-        self.showMsg('minEvent: ' + minText + '  maxEvent: ' + maxText)
+
+        if not minText == '<blank>':
+            self.showMsg('minEvent: ' + minText + '  maxEvent: ' + maxText)
 
         if not minText == '<blank>' and not maxText == '<blank>':
             self.eventType = 'DandR'
