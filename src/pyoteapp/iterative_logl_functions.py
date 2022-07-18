@@ -102,7 +102,9 @@ StdAnswer = Tuple[int, int, float, float, float, float, float]
 """StdAnswer is: d, r, b, a, sigmaB, sigmaA, metric """
 
 
-@njit  # cache=True did not work for this function --- gave a pickling error
+# Because njit on locate_fixed_event_position() gave Win11 assert errors, we don't
+# njit that function, so we can't njit this function either because it uses locate_fixed_event_position()
+# @njit  # cache=True did not work for this function --- gave a pickling error
 def find_best_event_from_min_max_size(
         y: np.ndarray, left: int, right: int, min_event: int, max_event: int):
     """Finds the best size and location for an event >=  min and <=  max"""
@@ -153,10 +155,19 @@ def find_best_event_from_min_max_size(
 
         solution_counter += sol_count
 
-        # yield 'fractionDone', solution_counter / num_candidates
+        # if not sigma_b_best >= 0.0:
+        #     print(f'locate_fixed_event_position() returned sigma_b_best == {sigma_b_best} when looking at event size: {event}')
+        #     print(f"d: {d}  r: {r}  d_best: {d_best}  r_best: {r_best}  left: {left}  right: {right}")
+        #     print(f"y[d]: {y[d]}   y[r]: {y[r]}")
+        #     print(f"y[d_best]: {y[d_best]}   y[r_best]: {y[r_best]}\n")
+
         yield 1.0, solution_counter / num_candidates, 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0
 
     # Here we test for solution being better than straight line
+    # if not (sigma_a_best >= 0.0 and sigma_b_best >= 0.0):
+    #     print(f"sigma_b_best: {sigma_b_best}  sigma_a_best: {sigma_a_best}  d_best: {d_best}  r_best: {r_best}")
+    assert(sigma_a_best >= 0.0)
+    assert(sigma_b_best >= 0.0)
     if not solution_is_better_than_straight_line(
             y, left, right, d_best, r_best, b_best, a_best, sigma_b_best, sigma_a_best):
         # yield 'no event present', solution_counter / num_candidates
@@ -362,7 +373,9 @@ def find_best_d_only_from_min_max_size(
     yield 0.0, 1.0, d_best, -1, b_best, a_best, sigma_b, sigma_a, max_metric
 
 
-@njit(cache=True)
+# The njit operator has been removed because it seems to have been the culprit in
+# assert errors occuring on Win11 machines but not Win10
+# @njit(cache=True)
 def locate_fixed_event_position(
         y: np.ndarray, left: int, right: int,
         event_size: int) -> Tuple[int, int, float, float, float, float,
@@ -448,6 +461,8 @@ def locate_fixed_event_position(
         metric = - b_n * log(b_var) - a_n * log(a_var)
         # ========== calc_metric() ===========
 
+        # The calculation above looks ahead 1 position. Before calculating goodSolution,
+        # we therefore advance d and r to correctly refer to the event position calculated.
         # Move to next position
         d += 1
         r += 1

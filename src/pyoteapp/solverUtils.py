@@ -48,6 +48,14 @@ def model(B=0.0, A=0.0,
     
     # D, R = edgeTuple
     assert(numPts > 0 and sigmaA >= 0 and sigmaB >= 0)
+    # TODOnot Remove this experimental code and uncomment the line above
+    # if sigmaA < 0:
+    #     sigmaA = 0.0
+    # if sigmaB < 0:
+    #     sigmaB = 0.0
+    # assert(numPts > 0)
+    # # assert(sigmaA >= 0.0)
+    # # assert(sigmaB >= 0.0)
     m = np.zeros(numPts)
     sigma = np.zeros(numPts)
 
@@ -472,8 +480,6 @@ def subFrameAdjusted(*, eventType=None, cand=None, B=None, A=None,
                 B, A, sigmaB, sigmaA = newCalcBandA(yValues=yValues, tpList=transitionPoints,
                                                     left=left, right=right, cand=(D, R))
         # else (point at D categorizes as A) --- nothing to do
-        # TODO remove print
-        # print(transitionPoints)
         return [adjD, adjR], B, A, sigmaB, sigmaA
 
     elif eventType == 'Ronly':
@@ -507,8 +513,6 @@ def subFrameAdjusted(*, eventType=None, cand=None, B=None, A=None,
             transitionPoints.append(R)
             B, A, sigmaB, sigmaA = newCalcBandA(yValues=yValues, tpList=transitionPoints,
                                                 left=left, right=right, cand=(D, R))
-        # TODO remove print
-        # print(transitionPoints)
         return [adjD, adjR], B, A, sigmaB, sigmaA
 
     elif eventType == 'DandR':
@@ -576,8 +580,6 @@ def subFrameAdjusted(*, eventType=None, cand=None, B=None, A=None,
             transitionPoints.append(R)
             B, A, sigmaB, sigmaA = newCalcBandA(yValues=yValues, tpList=transitionPoints,
                                                 left=left, right=right, cand=(D, R))
-        # TODO remove print
-        # print(transitionPoints)
         return [adjD, adjR], B, A, sigmaB, sigmaA
 
     else:

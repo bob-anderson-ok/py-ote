@@ -1718,6 +1718,9 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.textOut.sizePolicy().hasHeightForWidth())
         self.textOut.setSizePolicy(sizePolicy)
+        font = QtGui.QFont()
+        font.setFamily("Courier New")
+        self.textOut.setFont(font)
         self.textOut.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
         self.textOut.setUndoRedoEnabled(False)
         self.textOut.setLineWrapMode(QtWidgets.QTextEdit.NoWrap)
@@ -1966,6 +1969,4 @@ class Ui_MainWindow(object):
         self.helpLabelForDataGrid.setToolTip(_translate("MainWindow", "<html><head/><body><p>Clicking at the left-edge of a data line will cause the corresponding data point in the main display to be highlighted. Only one such point can be high-lighted at a time.</p><p>Clicking a point in the main data plot will cause this data grid to be positioned at that data point with the row shown in red. Clicking anywhere in this row will \'toggle\' the selection of that point, useful when the main data plot is very dense.</p></body></html>"))
         self.helpLabelForDataGrid.setText(_translate("MainWindow", "Right-click this label to get explanation of data grid below:"))
         self.table.setToolTip(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:18pt;\">The data displayed in this table is read from the input file. The Timestamp column in this table will be filled in in response to a successful Manual Timestamp Entry procedure. The results of smoothing and normalization are NOT reflected in this table. The results of a Block Integration ARE reflected in this table.  This policy allows this table to be used as the source when a user requests that a csv file be written, presumably to capture timestamps filled in by Manual Timestamp Entry and a possible Block Integration, thus speeding future re-analysis efforts.</span></p><p><span style=\" font-size:18pt;\">Clicking on a data row (at the extreme left) in this panel will cause the corresponding point to be highlighted in the light curve plot. The highlighted point is shown as a largish yellow dot with a red rim --- it may be hard to see/find, but look for it.</span></p><p><span style=\" font-size:18pt; font-weight:600;\">Clicking on a data cell in a row will select/deselect that point in the primary (dark blue) light curve plot. This is provided as an alternative method to clicking on points in the main light curve plot to select/deslect them.</span></p><p><span style=\" font-size:18pt;\">Note: Clicking on a point in the primary (dark blue) light curve will cause the data row for that point to be selected/positioned.</span></p></body></html>"))
-
-
 from pyqtgraph import PlotWidget
