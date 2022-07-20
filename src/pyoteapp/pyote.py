@@ -1968,17 +1968,17 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         gotVersion, latestVersion = getMostRecentVersionOfPyOTEViaJson()
         if gotVersion:
             if latestVersion <= version.version():
-                self.showMsg(f'Found the latest version is: {latestVersion}')
+                # self.showMsg(f'Found the latest version is: {latestVersion}')
                 self.showMsg('You are running the most recent version of PyOTE', color='red', bold=True)
             else:
                 self.showMsg('Version ' + latestVersion + ' is available', color='red', bold=True)
-                if self.queryWhetherNewVersionShouldBeInstalled() == QMessageBox.Yes:
-                    self.showMsg('You have opted to install latest version of PyOTE')
-                    self.installLatestVersion(f'pyote=={latestVersion}')
-                    self.allowNewVersionPopupCheckbox.setChecked(True)
-                    self.settings.setValue('allowNewVersionPopup', True)
-                else:
-                    self.showMsg('You have declined the opportunity to install latest PyOTE')
+                # if self.queryWhetherNewVersionShouldBeInstalled() == QMessageBox.Yes:
+                #     self.showMsg('You have opted to install latest version of PyOTE')
+                #     self.installLatestVersion(f'pyote=={latestVersion}')
+                #     self.allowNewVersionPopupCheckbox.setChecked(True)
+                #     self.settings.setValue('allowNewVersionPopup', True)
+                # else:
+                #     self.showMsg('You have declined the opportunity to install latest PyOTE')
         else:
             self.showMsg(f'latestVersion found: {latestVersion}')
 
@@ -3416,7 +3416,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.reportSpecialProcedureUsed()  # This includes use of asteroid distance/speed and star diameter
 
         if false_positive:
-            self.showMsg(f"This 'drop' has a {false_probability} probability of being an artifact of noise.",
+            self.showMsg(f"This 'drop' has a {false_probability:0.5f} probability of being an artifact of noise.",
                          bold=True, color='red', blankLine=False)
         else:
             self.showMsg(f"This 'drop' has a zero probability of being an artifact of noise.",
