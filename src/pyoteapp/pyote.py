@@ -3416,10 +3416,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.reportSpecialProcedureUsed()  # This includes use of asteroid distance/speed and star diameter
 
         if false_positive:
-            self.showMsg(f"This 'drop' has a {false_probability:0.4f} probability of being an artifact of noise.",
+            self.showMsg(f"This 'drop' has a {false_probability} probability of being an artifact of noise.",
                          bold=True, color='red', blankLine=False)
         else:
-            self.showMsg(f"This 'drop' has a {false_probability:0.4f} probability of being an artifact of noise.",
+            self.showMsg(f"This 'drop' has a zero probability of being an artifact of noise.",
                          bold=True, color='green', blankLine=False)
 
         self.showMsg(f">>>> probability > 0.0000 indicates the 'drop' may be spurious (a noise artifact)."

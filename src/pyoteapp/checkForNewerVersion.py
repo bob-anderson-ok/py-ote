@@ -64,7 +64,7 @@ def upgradePyote(pyoteversion):
     # noinspection PyBroadException
     try:
         import pipenv
-        resp = subprocess.run(['python3', '-m', 'pipenv', 'install', '--user', '--upgrade', pyoteversion],
+        resp = subprocess.run(['python3', '-m', 'pipenv', 'install', pyoteversion],
                               stderr=subprocess.PIPE, stdout=subprocess.PIPE)
     except Exception:
         resp = subprocess.run(['python', '-m', 'pip', 'install', '--user', '--upgrade', pyoteversion],
