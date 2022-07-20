@@ -139,10 +139,7 @@ mouseSignal = Signal()
 class TimestampAxis(pg.AxisItem):
 
     def tickStrings(self, values, scale, spacing):
-        strns = []
-        for val in values:
-            strns.append(self.getTimestampString(val))
-        return strns
+        return [self.getTimestampString(val) for val in values]
 
     def setFetcher(self, timestampFetch):
         self.getTimestampString = timestampFetch
@@ -753,7 +750,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.checkForNewVersion()
 
-        self.copy_desktop_icon_file_to_home_directory()
+        # We are removing this procedure in version 4.8.0 and above
+        # so that can use pipenv to install PyOTE without the need
+        # for an Anaconda3 install.
+        # self.copy_desktop_icon_file_to_home_directory()
 
         self.helperThing = HelpDialog()
 
@@ -2617,7 +2617,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 kList.append(k)
                 ans = mean_std_versus_offset(k, self.yValues)
                 progress += 1
-                self.progressBar.setValue((progress / len(integrationSizes)) * 100)
+                self.progressBar.setValue((progress // len(integrationSizes)) * 100)
 
                 QtWidgets.QApplication.processEvents()
                 offsetList.append(np.argmin(ans))

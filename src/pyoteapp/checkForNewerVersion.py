@@ -54,17 +54,20 @@ def getUrlAsText(url):
             print(f"Fetch of `{url}' failed: Unknown reason")
         return None
     html = response.read()
-    text = html.decode("utf-8")
-    return text
+    return html.decode("utf-8")
 
 
 def upgradePyote(pyoteversion):
 
     import subprocess
 
-    resp = subprocess.run(['python', '-m', 'pip', 'install', '--user', '--upgrade', pyoteversion],
-                          stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+    # noinspection PyBroadException
+    try:
+        import pipenv
+        resp = subprocess.run(['python3', '-m', 'pipenv', 'install', '--user', '--upgrade', pyoteversion],
+                              stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+    except Exception:
+        resp = subprocess.run(['python', '-m', 'pip', 'install', '--user', '--upgrade', pyoteversion],
+                              stderr=subprocess.PIPE, stdout=subprocess.PIPE)
 
-    ans = resp.stdout.decode("utf-8").split('\n')
-
-    return ans
+    return resp.stdout.decode("utf-8").split('\n')
