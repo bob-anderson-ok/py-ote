@@ -1970,8 +1970,16 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             if latestVersion <= version.version():
                 # self.showMsg(f'Found the latest version is: {latestVersion}')
                 self.showMsg('You are running the most recent version of PyOTE', color='red', bold=True)
+
             else:
-                self.showMsg('Version ' + latestVersion + ' is available', color='red', bold=True)
+                self.showMsg('Version ' + latestVersion + ' is available.  To get it:',
+                             color='red', bold=True)
+                self.showMsg(
+                    f"==== for pip based installations, in a command window type: pip install pymovie=={latestVersion} (note double = symbols)",
+                    color='red', bold=True)
+                self.showMsg(
+                    f"==== for pipenv based installations, double-click the ChangePyoteVersion.bat file.",
+                    color='red', bold=True)
                 # if self.queryWhetherNewVersionShouldBeInstalled() == QMessageBox.Yes:
                 #     self.showMsg('You have opted to install latest version of PyOTE')
                 #     self.installLatestVersion(f'pyote=={latestVersion}')
