@@ -48,7 +48,7 @@ from pyoteapp import gui
 from pyoteapp import timestampDialog
 from pyoteapp import helpDialog
 from pyoteapp import exponentialEdgeUtilities as ex
-from pyoteapp.checkForNewerVersion import getMostRecentVersionOfPyOTEViaJson
+from pyoteapp.checkForNewerVersion import getLatestPackageVersion
 from pyoteapp.checkForNewerVersion import upgradePyote
 from pyoteapp.csvreader import readLightCurve
 from pyoteapp.errorBarUtils import ciBars
@@ -1965,7 +1965,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.showMsg('Close and reopen pyote to start the new version running.', color='red', bold=True)
 
     def checkForNewVersion(self):
-        gotVersion, latestVersion = getMostRecentVersionOfPyOTEViaJson()
+        latestVersion = getLatestPackageVersion('pyote')
+        gotVersion = True if len(latestVersion) > 2 else False
+        if not gotVersion:
+            self.showMsg(f"Diagnostic: PyPI returned |{latestVersion}| as latest version of PyOTE")
+
         if gotVersion:
             if latestVersion <= version.version():
                 # self.showMsg(f'Found the latest version is: {latestVersion}')
@@ -1975,10 +1979,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.showMsg('Version ' + latestVersion + ' is available.  To get it:',
                              color='red', bold=True)
                 self.showMsg(
-                    f"==== for pip based installations, in a command window type: pip install pymovie=={latestVersion} (note double = symbols)",
+                    f"==== for pip based installations, in a command window type: pip install pyote=={latestVersion} (note double = symbols)",
                     color='red', bold=True)
                 self.showMsg(
-                    f"==== for pipenv based installations, double-click the ChangePyoteVersion.bat file.",
+                    f"==== for pipenv based installations, execute the ChangePyoteVersion.bat file.",
                     color='red', bold=True)
                 # if self.queryWhetherNewVersionShouldBeInstalled() == QMessageBox.Yes:
                 #     self.showMsg('You have opted to install latest version of PyOTE')
