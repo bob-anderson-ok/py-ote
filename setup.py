@@ -35,14 +35,14 @@ CLASSIFIERS = [
     "Topic :: Scientific/Engineering",
 ]
 
-# This is borrowed from pymovie so that an install of pyote following a new Anaconda3 install
+# This is borrowed from pymovie so that an installation of pyote following a new Anaconda3 install
 # makes no complaints about what pymovie needs, that way the order if intalling pymovie and pyote won't matter
 INSTALL_REQUIRES = ['pyqtgraph', 'opencv-python', 'astroquery', 'resource',
                     'scikit-image(>=0.15.0)',
                     'PyQt5',
                     'winshell;platform_system=="Windows"',
-                    'pypiwin32;platform_system=="Windows"', 'matplotlib', 'numpy', 'astropy', 'scikit-image',
-                    'scipy', 'numba>=0.41.0', 'Adv2>=1.2.0', 'openpyxl', 'xlrd']
+                    'pypiwin32;platform_system=="Windows"', 'matplotlib', 'numpy<=1.22', 'astropy', 'scikit-image',
+                    'scipy', 'numba>=0.41.0', 'Adv2>=1.2.0', 'PyQt5', 'openpyxl', 'xlrd']
 
 ###################################################################
 
