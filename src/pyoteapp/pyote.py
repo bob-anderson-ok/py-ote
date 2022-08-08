@@ -718,7 +718,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.pymovieDataColumnPrefixComboBox.addItem("stdbkg")
         self.pymovieDataColumnPrefixComboBox.addItem("nmaskpx")
 
-        self.outliers = []
+        self.droppedFrames = []
+        self.cadenceViolation = []
         self.timeDelta = None
 
         self.selPts = []
@@ -2727,7 +2728,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     def applyIntegration(self):
         if self.bint_left is None:
-            if self.outliers:
+            if self.droppedFrames:
                 self.showInfo('This data set contains some erroneous time steps, which have ' +
                               'been marked with red lines.  Best practice is to ' +
                               'choose an integration block that is ' +
@@ -2841,7 +2842,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.showMsg('Block integration started at entry ' + str(self.selPts[0]) +
                      ' with block size of ' + str(self.selPts[1] - self.selPts[0] + 1) + ' readings')
 
-        self.timeDelta, self.outliers, self.errRate = getTimeStepAndOutliers(self.yTimes)
+        self.timeDelta, self.droppedFrames, self.cadenceViolation, self.errRate = \
+            getTimeStepAndOutliers(self.yTimes)
         self.showMsg('timeDelta: ' + fp.to_precision(self.timeDelta, 6) + ' seconds per block', blankLine=False)
         self.showMsg('timestamp error rate: ' + fp.to_precision(100 * self.errRate, 2) + '%')
 
@@ -5397,7 +5399,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 # then manualTime will be an empty list.
                 if manualTime:
                     self.yTimes = manualTime[:]
-                    self.timeDelta, self.outliers, self.errRate = getTimeStepAndOutliers(
+                    self.timeDelta, self.droppedFrames, self.errRate = getTimeStepAndOutliers(
                         self.yTimes)
                     self.expDurEdit.setText(fp.to_precision(self.timeDelta, 6))
 
@@ -5487,7 +5489,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             columnPrefix = self.pymovieDataColumnPrefixComboBox.currentText()
 
             try:
-                self.outliers = []
+                self.droppedFrames = []
+                self.cadenceViolation = []
                 frame, time, value, self.secondary, self.ref2, self.ref3, self.extra, \
                     self.aperture_names, self.headers = readLightCurve(self.filename, pymovieColumnType=columnPrefix)
                 self.showMsg(f'If the csv file came from PyMovie - columns with prefix: {columnPrefix} will be read.')
@@ -5661,7 +5664,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.startOver.setEnabled(True)
                 self.fillTableViewOfData()
 
-                self.timeDelta, self.outliers, self.errRate = getTimeStepAndOutliers(self.yTimes)
+                self.timeDelta, self.droppedFrames, self.cadenceViolation, self.errRate = \
+                    getTimeStepAndOutliers(self.yTimes)
                 self.expDurEdit.setText(fp.to_precision(self.timeDelta, 6))
 
                 self.showMsg('timeDelta: ' + fp.to_precision(self.timeDelta, 6) + ' seconds per reading',
@@ -5674,7 +5678,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 #     self.newRedrawMainPlot()
                 self.mainPlot.autoRange()
 
-                if self.outliers:
+                if self.droppedFrames or self.cadenceViolation:
                     self.showTimestampErrors.setEnabled(True)
                     self.showTimestampErrors.setChecked(True)
                 self.newRedrawMainPlot()
@@ -5693,8 +5697,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.showMsg(f'This error may be because the data column name {columnPrefix} does not exist.')
 
     def illustrateTimestampOutliers(self):
-        for pos in self.outliers:
-            vLine = pg.InfiniteLine(pos=pos + 0.5, pen=(255, 0, 0))
+        for pos in self.cadenceViolation:
+            vLine = pg.InfiniteLine(pos=pos + 0.5, pen=(255,184,28))  # golden yellow
+            self.mainPlot.addItem(vLine)
+
+        for pos in self.droppedFrames:
+            vLine = pg.InfiniteLine(pos=pos + 0.5, pen=(255, 0, 0))  # red
             self.mainPlot.addItem(vLine)
 
     def prettyPrintCorCoefs(self):
@@ -5919,7 +5927,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.errBarWin.close()
 
         self.dataLen = len(self.yTimes)
-        self.timeDelta, self.outliers, self.errRate = getTimeStepAndOutliers(self.yTimes)
+        self.timeDelta, self.droppedFrames, self.errRate = getTimeStepAndOutliers(self.yTimes)
         self.expDurEdit.setText(fp.to_precision(self.timeDelta, 6))
 
         self.fillTableViewOfData()

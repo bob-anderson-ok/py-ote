@@ -72,7 +72,7 @@
        <widget class="QWidget" name="layoutWidget">
         <layout class="QVBoxLayout" name="verticalLayout_2">
          <property name="spacing">
-          <number>-1</number>
+          <number>6</number>
          </property>
          <item>
           <layout class="QGridLayout" name="gridLayout">
@@ -170,7 +170,7 @@
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_6">
            <property name="spacing">
-            <number>-1</number>
+            <number>6</number>
            </property>
            <item>
             <widget class="QTabWidget" name="tabWidget">
@@ -3308,6 +3308,16 @@
                    </property>
                   </widget>
                  </item>
+                 <item>
+                  <widget class="QPushButton" name="redoFindEvent">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="text">
+                    <string>Re-do fit</string>
+                   </property>
+                  </widget>
+                 </item>
                 </layout>
                </item>
                <item row="8" column="2">
@@ -3452,7 +3462,7 @@
                <item row="1" column="1">
                 <widget class="QCheckBox" name="allowNewVersionPopupCheckbox">
                  <property name="toolTip">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;What's new:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;An option has been added to the Analysis tab that allows a possible single point drop to be evaluated as a potential event.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;A single point event cannot be evaluated by the usual methods because the duration of the event is ambiguous (it only has an upper limit of a reading time, but insufficient information to compute a lower limit) and the noise level of a single point is zero or meaningless (your choice) so error bar calculations are disrupted as well. But it is still possible to ask the question 'is that drop just due to noise or is it more likely caused by a short duration occultation?'. The tool to answer that question is the False-Positive test which addresses that exact question. The new option makes it possible to subject a single point to a False-Positive examination.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;This version also contains new GUI and analysis features. Be sure and read all the applicable help by clicking on applicable HELP buttons and by right-clicking on text labels of new features.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;This popup can be disabled in the Settings/Misc tab. There is a checkbox provided there for this function. Note: right click on that checkbox at any time to see the new version description.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#aa0000;&quot;&gt;What's new:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;Timestamp error lines now distinguish between 'cadence jitter' and 'dropped frames' by using an additional color.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;Cadence jitter happens when high frame rates create a situation where frame recording cannot keep up and the traffic control implemented by the computer changes the arrival/timestamp time of frames so that some appear a little earlier and others a little late.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;Cadence jitter is defined as a timing discrepancy of between 20% and 80% of a frame time and is represented by a yellow line.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;Timing discrepancies greater than 80% of a frame time continue to be shown as a red line and are assumed to come from dropped frames. In any case, they deserve attention.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Older:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;An option has been added to the Analysis tab that allows a possible single point drop to be evaluated as a potential event.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;A single point event (defined as only 1 or possibly 2 readings in the lightcurve that are statistically below baseline) cannot be evaluated by the usual methods because the duration of the event is ambiguous (it only has an upper limit of a reading time, but insufficient information to compute a lower limit) and the noise level of a single point is zero or meaningless (your choice) so error bar calculations are disrupted as well. But it is still possible to ask the question 'is that drop just due to noise or is it more likely caused by a short duration occultation?'. The tool to answer that question is the False-Positive test which addresses that exact question. The new option makes it possible to subject a single point to a False-Positive examination.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                  </property>
                  <property name="text">
                   <string>allow 'new version' information pop-up</string>

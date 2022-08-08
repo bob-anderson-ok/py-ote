@@ -41,8 +41,7 @@ def convertTimeToTimeString(time):
     minutes = int(time // 60)
     time -= minutes * 60
     seconds = time
-    timeStr = '[{:02d}:{:02d}:{:07.4f}]'.format(hours, minutes, seconds)
-    return timeStr
+    return '[{:02d}:{:02d}:{:07.4f}]'.format(hours, minutes, seconds)
 
 
 def improveTimeStep(outliers, deltaTime):
@@ -57,24 +56,27 @@ def improveTimeStep(outliers, deltaTime):
     return betterTimeStep
 
 
-def getTimeStepAndOutliers(timestamps, tolerance=0.1):
-    """
-    The default tolerance is set so that it will work for Tangra
-    which only reports 3 of the 4 digits of VTI fractional seconds
-    """
+def getTimeStepAndOutliers(timestamps):
+
     time = [convertTimeStringToTime(item) for item in timestamps]
     deltaTime = np.diff(time)
     timeStep = np.median(deltaTime)
-    high = timeStep * (1.0 + tolerance)
-    low = timeStep * (1.0 - tolerance)
-    outlierIndices = [i for i, dt in enumerate(deltaTime) if dt < low or dt > high]
+    cadence_high = timeStep * 1.2
+    cadence_low = timeStep * 0.8
+    dropped_frame_high = timeStep * 1.8
+    dropped_frame_low = timeStep * 0.2
+    droppedFrameIndices = [i for i, dt in enumerate(deltaTime)
+                           if dt < dropped_frame_low or dt > dropped_frame_high]
     numEntries = len(timestamps)
-    numOutliers = len(outlierIndices)
+    numOutliers = len(droppedFrameIndices)
     timestampErrorRate = numOutliers / numEntries
     
-    improvedTimeStep = improveTimeStep(outlierIndices, deltaTime)
+    improvedTimeStep = improveTimeStep(droppedFrameIndices, deltaTime)
+
+    cadenceViolationIndices = [i for i, dt in enumerate(deltaTime)
+                               if dt < cadence_low or dt > cadence_high]
     
-    return improvedTimeStep, outlierIndices, timestampErrorRate
+    return improvedTimeStep, droppedFrameIndices, cadenceViolationIndices, timestampErrorRate
 
 
 def isFrameNumberInData(frameToTest, frame):
