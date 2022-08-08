@@ -32,8 +32,7 @@ from pyoteapp.false_positive import compute_drops, noise_gen_jit, simple_convolv
 import numpy as np
 import pyqtgraph as pg
 import pyqtgraph.exporters as pex
-import scipy.signal
-# from scipy.stats import pearsonr as pearson
+import scipy
 import PyQt5
 from PyQt5 import QtCore, QtWidgets
 from PyQt5 import QtGui
@@ -600,7 +599,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                                    viewBox=CustomViewBox(border=(255, 255, 255)),
                                    axisItems={'bottom': timeAxis, 'top': toptimeAxis, 'left': leftAxis},
                                    enableMenu=False, stretch=1)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding,
+                                           QtWidgets.QSizePolicy.Policy.Expanding)
         sizePolicy.setHorizontalStretch(1)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.mainPlot.sizePolicy().hasHeightForWidth())
@@ -3021,6 +3021,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         event.accept()
 
+        print(f"\nThe program has exited normally. Any error messages involving QBasicTimer \n"
+              f"that may be printed following this are harmless artifacts "
+              f"of the order in which various GUI elements are closed.\n")
+
     def rowClick(self, row):
         self.highlightReading(row)
 
@@ -3042,7 +3046,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         if bold:
             htmlmsg = '<b>' + htmlmsg + '</b>'
         htmlmsg = htmlmsg + '<br>'
-        self.textOut.moveCursor(QtGui.QTextCursor.End)
+        self.textOut.moveCursor(QtGui.QTextCursor.MoveOperation.End)
         self.textOut.insertHtml(htmlmsg)
         if blankLine:
             self.textOut.insertHtml('<br>')
@@ -6465,7 +6469,7 @@ def main(csv_file_path=None):
 
     form = SimplePlot(csv_file_path)
     form.show()
-    print(app.exec_())
+    app.exec_()
     quit()
 
 
