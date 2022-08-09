@@ -190,6 +190,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         # This is an externally supplied csv file path (probably from PyMovie)
         self.externalCsvFilePath = csv_file
 
+        self.firstPassPenumbralFit = None
+
         self.homeDir = os.path.split(__file__)[0]
 
         # Change pyqtgraph plots to be black on white
@@ -526,6 +528,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.locateEvent.clicked.connect(self.findEvent)
         self.penumbralFitCheckBox.installEventFilter(self)
 
+        self.penumbralFitCheckBox.clicked.connect(self.handlePenumbralFitCheckBox)
+
+        # Button: Re-do fit (penumbral: on Diffraction tab)
+        self.redoFindEvent.clicked.connect(self.findEvent)
+        self.redoFindEvent.installEventFilter(self)
+
         # Button: Cancel operation
         self.cancelButton.clicked.connect(self.requestCancel)
 
@@ -769,6 +777,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         # self.firstEvent = True
         if self.allowNewVersionPopupCheckbox.isChecked():
             self.showHelp(self.allowNewVersionPopupCheckbox)
+
+    def handlePenumbralFitCheckBox(self):
+        if self.penumbralFitCheckBox.isChecked():
+            self.redoFindEvent.setEnabled(True)
+            self.showHelp(self.penumbralFitCheckBox)
+        else:
+            self.redoFindEvent.setEnabled(False)
 
     def processYoffsetStepBy10(self):
         self.yOffsetStep10radioButton.repaint()
@@ -1384,6 +1399,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 ans.update({'star_diam': None})
                 self.penumbralFitCheckBox.setChecked(False)
                 self.penumbralFitCheckBox.setEnabled(False)
+                self.redoFindEvent.setEnabled(False)
             else:
                 star_diam = float(star_diam_str)
                 if star_diam > 0.0:
@@ -1395,12 +1411,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     ans.update({'success': False})
                     self.penumbralFitCheckBox.setChecked(False)
                     self.penumbralFitCheckBox.setEnabled(False)
+                    self.redoFindEvent.setEnabled(False)
         except ValueError as e:
             self.showMsg(f'{e}', bold=True)
             ans.update({'star_diam': None})
             ans.update({'success': False})
             self.penumbralFitCheckBox.setChecked(False)
             self.penumbralFitCheckBox.setEnabled(False)
+            self.redoFindEvent.setEnabled(False)
 
         # Process D limb angle entry
         d_angle = self.dLimbAngle.value()
@@ -2128,6 +2146,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.penumbralFitCheckBox.setEnabled(False)
         self.penumbralFitCheckBox.setChecked(False)
+        self.redoFindEvent.setEnabled(False)
 
         self.flashEdges = []
         self.normalized = False
@@ -4416,6 +4435,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     def doPenumbralFit(self):
 
+        if self.firstPassPenumbralFit is None:
+            self.showInfo("There is no light-curve data to process.")
+            return
+
         if self.firstPassPenumbralFit:
 
             self.firstPassPenumbralFit = False
@@ -4631,7 +4654,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     d_improved_msg = 'got worse'
                 else:
                     d_improved_msg = 'unchanged'
-            self.showMsg(f'D fit metric: {d_metric:0.1f}  ({d_improved_msg})', bold=True, blankLine=False)
+            self.showMsg(f'D fit metric: {d_metric:0.2f}  ({d_improved_msg})', bold=True, blankLine=False)
         if self.eventType in ['Ronly', 'DandR']:
             if self.penumbralFitIterationNumber > 1:
                 if r_metric < self.lastRmetric:
@@ -4640,7 +4663,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     r_improved_msg = 'got worse'
                 else:
                     r_improved_msg = 'unchanged'
-            self.showMsg(f'R fit metric: {r_metric:0.1f}  ({r_improved_msg})', bold=True)
+            self.showMsg(f'R fit metric: {r_metric:0.2f}  ({r_improved_msg})', bold=True)
 
         self.penumbralFitIterationNumber += 1
 
@@ -4704,6 +4727,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.showMsg(f'dist(AU): {self.asteroidDistanceEdit.text()}', blankLine=False)
         self.showMsg(f'speed(km/sec): {self.shadowSpeedEdit.text()}', blankLine=False)
         self.showMsg(f'Star diam(mas): {self.starDiameterEdit.text()}', blankLine=False)
+        self.showMsg(f'asteroid diameter: {self.astSizeEdit.text()}', blankLine=False)
+        self.showMsg(f'centerline offset: {self.pathOffsetEdit.text()}', blankLine=False)
         self.showMsg(f'D limb angle: {self.dLimbAngle.value()}', blankLine=False)
         self.showMsg(f'R limb angle: {self.rLimbAngle.value()}')
         return
@@ -5698,7 +5723,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     def illustrateTimestampOutliers(self):
         for pos in self.cadenceViolation:
-            vLine = pg.InfiniteLine(pos=pos + 0.5, pen=(255,184,28))  # golden yellow
+            vLine = pg.InfiniteLine(pos=pos + 0.5, pen=(255, 184, 28))  # golden yellow
             self.mainPlot.addItem(vLine)
 
         for pos in self.droppedFrames:
@@ -5917,7 +5942,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.flashEdges = savedFlashEdges
         self.disableAllButtons()
 
-        self.firstPassPenumbralFit = True
+        self.firstPassPenumbralFit = None
 
         # self.lightCurveNumberLabel.setEnabled(True)
         # self.curveToAnalyzeSpinBox.setEnabled(True)
