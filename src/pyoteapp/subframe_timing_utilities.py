@@ -49,7 +49,7 @@ def generate_transition_point_time_correction_look_up_tables(
     :param star_diameter_mas: diameter of star disk (mas - milliarcseconds)
     :param d_limb_angle_degrees: limb angle at disappearance edge (degrees - 90 degrees is head-on)
     :param r_limb_angle_degrees: limb angle at re-appearance edge (degrees - 90 degrees is head-on)
-    :param suppress_diffraction: set this Fale if you want to see diffraction effect
+    :param suppress_diffraction: set this False if you want to see diffraction effect
     :param diff_table_path: path to generic diffraction table
     :return:
     """
@@ -482,7 +482,7 @@ def generate_underlying_lightcurve_plots(
         ax.plot([offset, offset, offset + frame_time, offset + frame_time],
                 [a_value, mid, mid, a_value], label='camera exposure function')
     if ans['graze D'] is not None:
-        ax.plot(ans['time deltas'], ans['graze D'], label='graze D')
+        ax.plot(ans['time deltas'], ans['graze D'], label='diffraction (grazed) D')
     if ans['star D'] is None:
         ax.plot(ans['time deltas'], ans['raw D'], label='underlying lightcurve')
     else:
@@ -517,7 +517,7 @@ def generate_underlying_lightcurve_plots(
         ax.plot([offset, offset, offset + frame_time, offset + frame_time],
                 [a_value, mid, mid, a_value], label='camera exposure function')
     if ans['graze R'] is not None:
-        ax.plot(ans['time deltas'], ans['graze R'], label='graze R')
+        ax.plot(ans['time deltas'], ans['graze R'], label='diffraction (grazed) R')
     if ans['star R'] is None:
         ax.plot(ans['time deltas'], ans['raw R'], label='underlying lightcurve')
     else:

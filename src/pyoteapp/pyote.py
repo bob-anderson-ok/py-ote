@@ -352,6 +352,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.smoothingIntervalSpinBox.editingFinished.connect(self.newRedrawMainPlot)
 
+        self.asteroidDistanceUnitsSelector.addItem('parallax')
+        self.asteroidDistanceUnitsSelector.addItem('AU')
+        self.asteroidDistanceUnitsSelector.setCurrentIndex(0)
+
+        self.asteroidDistanceUnitsSelector.installEventFilter(self)
+
         self.LC1 = []
         self.LC2 = []
         self.LC3 = []
@@ -1318,11 +1324,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         # Process ast_dist entry
         try:
             ast_dist_str = self.asteroidDistanceEdit.text().strip()
+            astDistUnits = self.asteroidDistanceUnitsSelector.currentText()
             if not ast_dist_str:
                 ans.update({'ast_dist': None})
             else:
                 ast_dist = float(ast_dist_str)
                 if ast_dist > 0.0:
+                    if astDistUnits == 'parallax':
+                        ast_dist = 8.7882 / ast_dist  # convert parallax to AU
                     ans.update({'ast_dist': ast_dist})
                 else:
                     self.showMsg(f'ast_dist must be > 0.0', bold=True)
@@ -4724,7 +4733,16 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.showMsg(f'Diffraction effects included', blankLine=False)
         else:
             self.showMsg(f'Diffraction effects suppressed', blankLine=False)
-        self.showMsg(f'dist(AU): {self.asteroidDistanceEdit.text()}', blankLine=False)
+
+        astDistUnits = self.asteroidDistanceUnitsSelector.currentText()
+        if astDistUnits == 'AU':
+            self.showMsg(f'asteroid dist(AU): {self.asteroidDistanceEdit.text()}', blankLine=False)
+        elif astDistUnits == 'parallax':
+            self.showMsg(f'asteroid dist(arcseconds): {self.asteroidDistanceEdit.text()}', blankLine=False)
+        else:
+            self.showInfo(f'Invalid units specifier for asteroid distance: {astDistUnits}')
+            return
+
         self.showMsg(f'speed(km/sec): {self.shadowSpeedEdit.text()}', blankLine=False)
         self.showMsg(f'Star diam(mas): {self.starDiameterEdit.text()}', blankLine=False)
         self.showMsg(f'asteroid diameter: {self.astSizeEdit.text()}', blankLine=False)
