@@ -190,7 +190,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         # This is an externally supplied csv file path (probably from PyMovie)
         self.externalCsvFilePath = csv_file
 
-        self.firstPassPenumbralFit = None
+        self.firstPassPenumbralFit = True
 
         self.homeDir = os.path.split(__file__)[0]
 
@@ -1497,6 +1497,15 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             matplotlib.pyplot.close(self.r_underlying_lightcurve)
         except Exception:
             pass
+
+        # print(f'line 1501 baseline: {baseline}')
+        # print(f'line 1502 event: {event}')
+
+        if baseline is None:
+            baseline = 100.0
+
+        if event is None:
+            event = 0.0
 
         self.d_underlying_lightcurve, self.r_underlying_lightcurve, ans = generate_underlying_lightcurve_plots(
             diff_table_path=diff_table_path,
@@ -4444,8 +4453,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     def doPenumbralFit(self):
 
-        if self.firstPassPenumbralFit is None:
+        if self.yValues is None:
             self.showInfo("There is no light-curve data to process.")
+            return
+
+        if (self.dRegion is None or self.rRegion is None) and self.firstPassPenumbralFit:
+            self.showInfo("You need to mark D and R regions that contain the penumbral transition points")
             return
 
         if self.firstPassPenumbralFit:
@@ -4568,8 +4581,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.snrB = (self.B - self.A) / self.sigmaB
 
         # Get current underlying lightcurve
-        self.underlyingLightcurveAns = self.demoUnderlyingLightcurves(baseline=self.B, event=self.A,
-                                                                      plots_wanted=False)
+        if self.B is not None:
+            self.underlyingLightcurveAns = self.demoUnderlyingLightcurves(baseline=self.B, event=self.A,
+                                                                          plots_wanted=False)
+        else:
+            self.underlyingLightcurveAns = self.demoUnderlyingLightcurves(plots_wanted=False)
 
         # If an error in data entry has occurred, ans will be None
         if self.underlyingLightcurveAns is None:
@@ -5442,8 +5458,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 # then manualTime will be an empty list.
                 if manualTime:
                     self.yTimes = manualTime[:]
-                    self.timeDelta, self.droppedFrames, self.errRate = getTimeStepAndOutliers(
-                        self.yTimes)
+                    self.timeDelta, self.droppedFrames, self.cadenceViolation, self.errRate = \
+                        getTimeStepAndOutliers(self.yTimes)
                     self.expDurEdit.setText(fp.to_precision(self.timeDelta, 6))
 
                     self.fillTableViewOfData()
@@ -5960,7 +5976,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.flashEdges = savedFlashEdges
         self.disableAllButtons()
 
-        self.firstPassPenumbralFit = None
+        self.firstPassPenumbralFit = True
+        self.penumbralFitCheckBox.setChecked(False)
 
         # self.lightCurveNumberLabel.setEnabled(True)
         # self.curveToAnalyzeSpinBox.setEnabled(True)
@@ -5970,7 +5987,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.errBarWin.close()
 
         self.dataLen = len(self.yTimes)
-        self.timeDelta, self.droppedFrames, self.errRate = getTimeStepAndOutliers(self.yTimes)
+        self.timeDelta, self.droppedFrames, self.cadenceViolation, self.errRate = getTimeStepAndOutliers(self.yTimes)
         self.expDurEdit.setText(fp.to_precision(self.timeDelta, 6))
 
         self.fillTableViewOfData()
