@@ -2003,9 +2003,15 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     def checkForNewVersion(self):
         latestVersion = getLatestPackageVersion('pyote')
-        gotVersion = True if len(latestVersion) > 2 else False
+        if latestVersion.startswith("none"):  # 'none' is returned when no Internet connection
+            gotVersion = False
+        else:
+            gotVersion = True if len(latestVersion) > 2 else False
+
         if not gotVersion:
-            self.showMsg(f"Diagnostic: PyPI returned |{latestVersion}| as latest version of PyOTE")
+            self.showMsg(f"Failed to connect to PyPI. Possible Internet connection problem ??",
+                         color='red', bold=True)
+            return
 
         if gotVersion:
             if latestVersion <= version.version():
@@ -2021,13 +2027,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.showMsg(
                     f"==== for pipenv based installations, execute the ChangePyoteVersion.bat file.",
                     color='red', bold=True)
-                # if self.queryWhetherNewVersionShouldBeInstalled() == QMessageBox.Yes:
-                #     self.showMsg('You have opted to install latest version of PyOTE')
-                #     self.installLatestVersion(f'pyote=={latestVersion}')
-                #     self.allowNewVersionPopupCheckbox.setChecked(True)
-                #     self.settings.setValue('allowNewVersionPopup', True)
-                # else:
-                #     self.showMsg('You have declined the opportunity to install latest PyOTE')
         else:
             self.showMsg(f'latestVersion found: {latestVersion}')
 

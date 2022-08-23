@@ -84,7 +84,6 @@ def getLatestPackageVersion(package_name: str) -> str:
     response = subprocess.run(['python', '-m', 'pip', 'install', f"{package_name}==0.0.0"],
                               stderr=subprocess.PIPE, stdout=subprocess.PIPE)
     errorResponse = response.stderr.decode("utf-8")
-
     versions = errorResponse.split('versions: ')
     if len(versions) == 1:  # Because the split above failed
         # Failed to make Internet connection
