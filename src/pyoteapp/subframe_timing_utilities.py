@@ -1,10 +1,11 @@
 from typing import Dict, Tuple
-import numpy as np
 import matplotlib
 import pickle
 matplotlib.use('Qt5Agg')
 import matplotlib.pyplot as plt
 from scipy import interpolate
+from genDiffraction import generalizedDiffraction
+import numpy as np
 
 
 def fresnel_length_km(distance_AU: float, wavelength_nm: float = 500.0) -> float:
@@ -24,6 +25,225 @@ def fresnel_length_km(distance_AU: float, wavelength_nm: float = 500.0) -> float
 
 
 def generate_transition_point_time_correction_look_up_tables(
+        baseline_intensity: float,
+        event_intensity: float,
+        frame_time_sec: float,
+        asteroid_distance_AU: float = None,
+        asteroid_diameter_km: float = None,
+        shadow_speed_km_per_sec: float = None,
+        centerline_offset=None,
+        star_diameter_mas: float = None,
+        d_limb_angle_degrees: float = 90.0,
+        r_limb_angle_degrees: float = 90.0,
+        suppress_diffraction: bool = True,
+        diff_table_path=''
+) -> Dict[str, np.ndarray]:
+    """
+    Compute D and R lookup tables for finding the time offset from the geometrical
+    shadow position of an occultation given a valid transition point
+
+    :param baseline_intensity: B (standard occultation terminology for intensity before occultation)
+    :param event_intensity: A (standard occultation terminology for intensity during occultation)
+    :param frame_time_sec: light accumulation (integration setting) of camera (seconds)
+    :param asteroid_distance_AU: distance to the asteroid/occulting body (in Astronomical Units)
+    :param shadow_speed_km_per_sec: speed of the shadow projected at the observing site (km / second)
+    :param asteroid_diameter_km: asteroid diameter in km
+    :param centerline_offset: distance of observation point from centerline of asteroid path (km)
+    :param star_diameter_mas: diameter of star disk (mas - milliarcseconds)
+    :param d_limb_angle_degrees: limb angle at disappearance edge (degrees - 90 degrees is head-on)
+    :param r_limb_angle_degrees: limb angle at re-appearance edge (degrees - 90 degrees is head-on)
+    :param suppress_diffraction: set this False if you want to see diffraction effect
+    :param diff_table_path: path to generic diffraction table
+    :return:
+    """
+
+    RESOLUTION = 0.0001   # time resolution of lookup tables - 0.1 millisecond
+
+    star_chords_r = None
+    star_chords_d = None
+
+    d_graze_values = None
+    r_graze_values = None
+
+    if asteroid_distance_AU is None:
+        # We cannot calculate a diffraction model lightcurve due to insufficient information,
+        # so we revert to an underlying square wave model lightcurve.  In addition, we cannot
+        # take into account a finite star disk
+
+        assert star_diameter_mas is None, \
+            'Inconsistency: A star diameter was given without the required asteroid distance'
+
+        time_range_seconds = np.ceil(frame_time_sec) + 1.0
+
+        n_points = int(time_range_seconds / RESOLUTION)
+        time_values = np.linspace(-time_range_seconds, time_range_seconds, 2 * n_points + 1)
+        d_values = np.ndarray(time_values.size)
+        r_values = np.ndarray(time_values.size)
+        for i, value in enumerate(time_values):
+            if value < 0.0:
+                r_values[i] = event_intensity
+                d_values[i] = baseline_intensity
+            else:
+                r_values[i] = baseline_intensity
+                d_values[i] = event_intensity
+
+        raw_d_values = d_values[:]
+        raw_r_values = r_values[:]
+
+        # Prepare the 'sample' that performs a box-car integration when convolved with the model lightcurve
+        n_sample_points = round(frame_time_sec / RESOLUTION)
+        sample = np.repeat(1.0 / n_sample_points, n_sample_points)
+
+        # Convolve sample against lightcurve to compute the effect of camera frame-time integration.
+        d_values = lightcurve_convolve(sample=sample, lightcurve=d_values, shift_needed=len(sample) - 1)
+        r_values = lightcurve_convolve(sample=sample, lightcurve=r_values, shift_needed=len(sample) - 1)
+
+        return {'time deltas': time_values, 'D curve': d_values, 'R curve': r_values,
+                'star_chords_d': star_chords_d, 'star_chords_r': star_chords_r,
+                'raw D': raw_d_values, 'raw R': raw_r_values, 'graze D': d_graze_values, 'graze R': r_graze_values,
+                'star D': None, 'star R': None,
+                'B': baseline_intensity, 'A': event_intensity}
+
+    elif shadow_speed_km_per_sec is not None:
+        # This code group utilizes a pre-computed integrated diffraction curve. We know that both asteroid_distance_AU
+        # and shadow_speed_km_per_sec are both available.
+        fresnel_length = fresnel_length_km(distance_AU=asteroid_distance_AU)
+        fresnel_unit_time = fresnel_length / shadow_speed_km_per_sec
+        time_for_10_fresnel_units = 10.0 * fresnel_unit_time
+
+        # Fetch the pre-computed integrated (multi-wavelength) diffraction curve
+        # pickle_file = open(diff_table_path, 'rb')
+        # table = pickle.load(pickle_file)
+        # u_values = table['u']
+        # d_values = table['D'] * (baseline_intensity - event_intensity)
+        # r_values = table['R'] * (baseline_intensity - event_intensity)
+        # d_values += event_intensity
+        # r_values += event_intensity
+
+        # Here we introduce the new diffraction calculation
+        x_avg, y_avg, rho, rho_wavelength, _, _, title = \
+            generalizedDiffraction(asteroid_diam_km=asteroid_diameter_km,
+                                   asteroid_distance_AU=asteroid_distance_AU,
+                                   graze_offset_km=centerline_offset,
+                                   wavelength1=400, wavelength2=600)
+
+        y_avg = y_avg * baseline_intensity
+        y_avg += event_intensity
+
+        # TODO This code cannot be right with the new scheme
+        # if suppress_diffraction:
+        #     for i in range(y_avg.size):
+        #         if u_values <= 0.0:
+        #             d_values[i] = baseline_intensity
+        #         else:
+        #             d_values[i] = event_intensity
+        #
+        #     for i in range(y_avg.size):
+        #         if u_values[i] <= 0.0:
+        #             r_values[i] = event_intensity
+        #         else:
+        #             r_values[i] = baseline_intensity
+
+        if star_diameter_mas is None:
+            time_needed_for_good_curve = 4.0 * frame_time_sec
+        else:
+            # We have to compute the time needed for the star projection to pass, using the
+            # limb angle that is smallest.
+            min_limb_angle_degrees = min(d_limb_angle_degrees, r_limb_angle_degrees)
+            star_diameter_radians = star_diameter_mas * 4.84814e-9
+            distance_to_asteroid_km = asteroid_distance_AU * 149.6e6
+            # print(star_diameter_radians, np.tan(star_diameter_radians), np.sin(star_diameter_radians))
+            star_projection_km = np.tan(star_diameter_radians) * distance_to_asteroid_km
+            star_projection_time_sec = star_projection_km / \
+                shadow_speed_km_per_sec / sin_degrees(min_limb_angle_degrees)
+            # print(f'frame_time: {frame_time_sec}   star_time: {star_projection_time_sec}')
+            if star_projection_time_sec > frame_time_sec:
+                time_needed_for_good_curve = 4.0 * star_projection_time_sec
+            else:
+                time_needed_for_good_curve = 4.0 * frame_time_sec
+
+        # TODO See if this code is still needed
+        # if time_for_10_fresnel_units < time_needed_for_good_curve:
+        #     # We need to extend the arrays loaded from the pickle_file
+        #     time_extension_needed = time_needed_for_good_curve - time_for_10_fresnel_units
+        #     extended_curves = time_extend_lightcurves(
+        #         time_extension_needed, fresnel_unit_time, u_values, d_values, r_values
+        #     )
+        #     u_values = extended_curves['u_values']
+        #     d_values = extended_curves['d_values']
+        #     r_values = extended_curves['r_values']
+
+        raw_d_values = np.copy(y_avg)
+        raw_r_values = np.copy(y_avg)
+
+        # TODO This code should no longer be needed
+        # if ast_diam is not None and centerline_offset is not None:
+        #     d_graze_values = np.ndarray([len(u_values)])
+        #     r_graze_values = np.ndarray([len(u_values)])
+        #     # We need to adjust the diffraction light curves for a possible
+        #     # off centerline observation. First we create two interpolation functions:
+        #     d_interp_func = interpolate.interp1d(
+        #         u_values, d_values, kind='quadratic',
+        #         bounds_error=False, fill_value=(d_values[0], d_values[-1]))
+        #     r_interp_func = interpolate.interp1d(
+        #         u_values, r_values, kind='quadratic',
+        #         bounds_error=False, fill_value=(r_values[0], r_values[-1]))
+        #
+        #     r_ast = ast_diam / 2.0 / fresnel_length
+        #     g = centerline_offset / fresnel_length
+        #     for i in range(len(u_values)):
+        #         r = np.sqrt(r_ast ** 2 + u_values[i] ** 2 + 2 * r_ast * np.abs(u_values[i]) * np.sqrt(
+        #             1.0 - (g ** 2 / r_ast ** 2)))
+        #         d_graze_values[i] = d_interp_func(np.sign(u_values[i]) * (r - r_ast))
+        #         r_graze_values[i] = r_interp_func(np.sign(u_values[i]) * (r - r_ast))
+        #     d_values = d_graze_values
+        #     r_values = r_graze_values
+
+        time_values = x_avg / shadow_speed_km_per_sec
+
+        # Prepare the 'sample' that performs a box-car integration when convolved with the model lightcurve
+        # to produce the effect of the camera integration. We have to convert time values to u values for
+        # this calculation.
+        # TODO Fix this code
+        # n_sample_points = round(frame_time_sec / fresnel_unit_time / (u_values[1] - u_values[0]))
+        # n_sample_points = max(n_sample_points, 1)
+        n_sample_points = round(frame_time_sec / ((x_avg[1] - x_avg[0]) / shadow_speed_km_per_sec))
+        n_sample_points = max(n_sample_points, 1)
+
+        sample = np.repeat(1.0 / n_sample_points, n_sample_points)
+
+        print(f'n_sample: {len(sample)}  x_avg[0]: {x_avg[0]:0.4f}  x_avg[1]: {x_avg[1]:0.4f}')
+
+        star_d_values = None
+        star_r_values = None
+
+        # TODO Reintroduce this code
+        # if star_diameter_mas is not None:
+        #     # We are able to compose star chords to convolve with the curves found so far.
+        #     # We have to do that separately for each limb because the limb angle could be different.
+        #     star_chords_d, star_chords_r = get_star_chord_samples(
+        #         star_diameter_mas, asteroid_distance_AU,
+        #         fresnel_length, u_values[1] - u_values[0], d_limb_angle_degrees, r_limb_angle_degrees)
+        #     # Convolve sample against lightcurve to compute the effect of star chord integration.
+        #     d_values = lightcurve_convolve(sample=star_chords_d, lightcurve=d_values,
+        #                                    shift_needed=len(star_chords_d) // 2)
+        #     r_values = lightcurve_convolve(sample=star_chords_r, lightcurve=r_values,
+        #                                    shift_needed=len(star_chords_r) // 2)
+        #     star_d_values = np.copy(d_values)
+        #     star_r_values = np.copy(r_values)
+        #
+
+        # Convolve sample against lightcurve to compute the effect of camera frame-time integration.
+        y_avg = lightcurve_convolve(sample=sample, lightcurve=y_avg, shift_needed=len(sample) - 1)
+        # r_values = lightcurve_convolve(sample=sample, lightcurve=r_values, shift_needed=len(sample) - 1)
+
+        return {'time deltas': time_values, 'D curve': y_avg, 'R curve': y_avg,
+                'star_chords_d': star_chords_d, 'star_chords_r': star_chords_r,
+                'raw D': raw_d_values, 'raw R': raw_r_values, 'graze D': d_graze_values, 'graze R': r_graze_values,
+                'star D': star_d_values, 'star R': star_r_values, 'B': baseline_intensity, 'A': event_intensity}
+
+
+def old_generate_transition_point_time_correction_look_up_tables(
         baseline_intensity: float, event_intensity: float, frame_time_sec: float,
         asteroid_distance_AU: float = None,
         shadow_speed_km_per_sec: float = None,
@@ -445,8 +665,130 @@ def generate_underlying_lightcurve_plots(
         event_intensity=a_value,
         frame_time_sec=frame_time,
         asteroid_distance_AU=ast_dist,
+        asteroid_diameter_km=ast_diam,
         shadow_speed_km_per_sec=shadow_speed,
-        ast_diam=ast_diam,
+        centerline_offset=centerline_offset,
+        star_diameter_mas=star_diam,
+        d_limb_angle_degrees=d_angle,
+        r_limb_angle_degrees=r_angle,
+        suppress_diffraction=suppress_diffraction,
+        diff_table_path=diff_table_path
+    )
+    fig = plt.figure('Dplot', figsize=(10, 6), tight_layout=True)
+    ax = fig.add_subplot(111)
+    ax.set(xlabel='seconds', ylabel='Intensity')
+    if star_diam is not None:
+        star_comment = f'\nstar diam(mas): {star_diam:0.2f}  limb angle: {d_angle:0.1f}'
+    else:
+        star_comment = ''
+    if ast_diam is not None and centerline_offset is not None:
+        graze_comment = f'\nast diam(km): {ast_diam:0.2f} centerline offset(km): {centerline_offset:0.2f}'
+    else:
+        graze_comment = ''
+    ax.set_title(extra_title + 'Lightcurve composition' + data_summary + star_comment + graze_comment)
+    if frame_time > 0.001:
+        ax.plot(ans['time deltas'], ans['D curve'], label='camera response')
+    if ans['star_chords_d'] is not None:
+        star_chords_d = ans['star_chords_d']
+        star_chords_d[0] = 0.0
+        star_chords_d[-1] = 0.0
+        rescaled_star_chords_d = star_chords_d * (b_value - a_value) / max(star_chords_d) / 2
+        rescaled_star_chords_d += a_value
+        n_star_chords = len(rescaled_star_chords_d)
+        ax.plot(ans['time deltas'][:n_star_chords], rescaled_star_chords_d, label='star disk function')
+    # ax.axvline(0.0, linestyle='--', label='geometrical shadow')
+    right_edge_shadow = (ast_diam / 2) / shadow_speed
+    ax.axvline(right_edge_shadow, linestyle='--', label='geometrical shadow')
+    ax.axvline(-right_edge_shadow, linestyle='--', label='geometrical shadow')
+    if frame_time > 0.001:
+        offset = ans['time deltas'][-1] / 2
+        ax.plot([offset, offset, offset + frame_time, offset + frame_time],
+                [a_value, mid, mid, a_value], label='camera exposure function')
+    if ans['graze D'] is not None:
+        ax.plot(ans['time deltas'], ans['graze D'], label='diffraction (grazed) D')
+    if ans['star D'] is None:
+        ax.plot(ans['time deltas'], ans['raw D'], label='underlying lightcurve')
+    else:
+        ax.plot(ans['time deltas'], ans['star D'], label='underlying lightcurve')
+
+    plt.grid()
+    ax.legend()
+    main_fig = fig
+
+    # fig = plt.figure('Rplot', figsize=(10, 6), tight_layout=True)
+    # ax = fig.add_subplot(111)
+    # ax.set(xlabel='seconds', ylabel='Intensity')
+    # if star_diam is not None:
+    #     star_comment = f'\nstar diam(mas): {star_diam:0.2f}  limb angle: {r_angle:0.1f}'
+    # else:
+    #     star_comment = ''
+    # ax.set_title(extra_title + 'R underlying lightcurve info' + data_summary + star_comment + graze_comment)
+    # if frame_time > 0.001:
+    #     ax.plot(ans['time deltas'], ans['R curve'], label='camera response')
+    # if ans['star_chords_r'] is not None:
+    #     star_chords_r = ans['star_chords_r']
+    #     star_chords_r[0] = 0.0
+    #     star_chords_r[-1] = 0.0
+    #     rescaled_star_chords_r = star_chords_r * (b_value - a_value) / max(star_chords_r) / 2
+    #     rescaled_star_chords_r += a_value
+    #     n_star_chords = len(rescaled_star_chords_r)
+    #     ax.plot(ans['time deltas'][:n_star_chords], rescaled_star_chords_r, label='star disk function')
+    # # ax.axvline(0.0, linestyle='--', label='geometrical shadow')
+    # left_edge_shadow = -(ast_diam / 2) / shadow_speed
+    # ax.axvline(left_edge_shadow, linestyle='--', label='geometrical shadow')
+    # ax.axhline(a_value, linestyle='dotted', label='baseline intensity')
+    # if frame_time > 0.001:
+    #     offset = ans['time deltas'][-1] / 2
+    #     ax.plot([offset, offset, offset + frame_time, offset + frame_time],
+    #             [a_value, mid, mid, a_value], label='camera exposure function')
+    # if ans['graze R'] is not None:
+    #     ax.plot(ans['time deltas'], ans['graze R'], label='diffraction (grazed) R')
+    # if ans['star R'] is None:
+    #     ax.plot(ans['time deltas'], ans['raw R'], label='underlying lightcurve')
+    # else:
+    #     ax.plot(ans['time deltas'], ans['star R'], label='underlying lightcurve')
+    #
+    # plt.grid()
+    # ax.legend()
+    # r_fig = fig
+
+    return main_fig, ans
+
+
+def old_generate_underlying_lightcurve_plots(
+        diff_table_path='',
+        b_value=100.0,
+        a_value=0.0,
+        frame_time=None,
+        ast_dist=None,
+        shadow_speed=None,
+        ast_diam=None,
+        centerline_offset=None,
+        star_diam=None,
+        d_angle=None,
+        r_angle=None,
+        suppress_diffraction=True,
+        title_addon=''
+):
+    mid = (b_value + a_value) / 2
+
+    if frame_time > 0.001:
+        data_summary = f'\nframe time(sec): {frame_time:0.4f} '
+    else:
+        data_summary = '\n'
+    if ast_dist is not None:
+        data_summary += f'  asteroid distance(AU): {ast_dist:0.2f}'
+    if shadow_speed is not None:
+        data_summary += f'  shadow speed(km/sec): {shadow_speed:0.2f}'
+    extra_title = title_addon
+
+    ans = generate_transition_point_time_correction_look_up_tables(
+        baseline_intensity=b_value,
+        event_intensity=a_value,
+        frame_time_sec=frame_time,
+        asteroid_distance_AU=ast_dist,
+        shadow_speed_km_per_sec=shadow_speed,
+        asteroid_diameter_km=ast_diam,
         centerline_offset=centerline_offset,
         star_diameter_mas=star_diam,
         d_limb_angle_degrees=d_angle,
@@ -581,15 +923,19 @@ def demo(diff_table_path):
         d_angle = 30
         r_angle = 90
         ast_dist = 2.5752     # Felicia
+        ast_diam = 5
+        centerline_offset = 0.0
         shadow_speed = 4.55   # Felicia
         title_addon = '(Felicia 01062020 Watec)  '
 
-        d_figure, r_figure, _ = generate_underlying_lightcurve_plots(
+        main_figure, _ = generate_underlying_lightcurve_plots(
             diff_table_path=diff_table_path,
             b_value=100.0,
             a_value=0.0,
             frame_time=frame_time,
             ast_dist=ast_dist,
+            ast_diam=ast_diam,
+            centerline_offset=centerline_offset,
             shadow_speed=shadow_speed,
             star_diam=star_diam,
             d_angle=d_angle,
@@ -602,6 +948,8 @@ def demo(diff_table_path):
             event_intensity=a_value,
             frame_time_sec=frame_time,
             asteroid_distance_AU=ast_dist,
+            asteroid_diameter_km=ast_diam,
+            centerline_offset=centerline_offset,
             shadow_speed_km_per_sec=shadow_speed,
             star_diameter_mas=star_diam,
             d_limb_angle_degrees=d_angle,
@@ -609,23 +957,24 @@ def demo(diff_table_path):
             diff_table_path=diff_table_path
         )
 
-        time_adjustment = time_correction(ans, 80, 'D')
-        print(f'D time_adjustment @ 80: {time_adjustment}')
-        time_adjustment = time_correction(ans, 20, 'D')
-        print(f'D time_adjustment @ 20: {time_adjustment}')
-        time_adjustment = time_correction(ans, 80, 'R')
-        print(f'R time_adjustment @ 80: {time_adjustment}')
-        time_adjustment = time_correction(ans, 20, 'R')
-        print(f'R time_adjustment @ 20: {time_adjustment}')
+        # TODO See how this code is used/needed with new scheme
+        # time_adjustment = time_correction(ans, 80, 'D')
+        # print(f'D time_adjustment @ 80: {time_adjustment}')
+        # time_adjustment = time_correction(ans, 20, 'D')
+        # print(f'D time_adjustment @ 20: {time_adjustment}')
+        # time_adjustment = time_correction(ans, 80, 'R')
+        # print(f'R time_adjustment @ 80: {time_adjustment}')
+        # time_adjustment = time_correction(ans, 20, 'R')
+        # print(f'R time_adjustment @ 20: {time_adjustment}')
 
     print(f'=== end tests')
 
-    return d_figure, r_figure
+    return main_figure
 
 
 if __name__ == "__main__":
     # print(plt.get_backend())
     # plt.switch_backend('Qt5agg')
     # print(plt.get_backend())
-    d_plot, r_plot = demo(diff_table_path='diffraction-table.p')
+    main_plot = demo(diff_table_path='diffraction-table.p')
     matplotlib.pyplot.show()

@@ -20,7 +20,7 @@ def tresterModifiedAperture(aperture, N):
 
 def fresnelLength(wavelength_nm, Z_AU):
     wavelength = wavelength_nm * 1e-9 * 1e-3
-    Z = Z_AU * 150e6
+    Z = Z_AU * 149.6e6
     return np.sqrt(wavelength * Z / 2)
 
 
@@ -207,4 +207,4 @@ def generalizedDiffraction(asteroid_diam_km, asteroid_distance_AU,
             cum_sum += interpolation_function[i](x)
         y_avg.append(cum_sum / k)
 
-    return x_avg, y_avg, rho, rho_wavelength, wavelengths[0], wavelengths[-1], title
+    return np.array(x_avg), np.array(y_avg), rho, rho_wavelength, wavelengths[0], wavelengths[-1], title
