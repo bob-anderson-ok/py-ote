@@ -1,5 +1,6 @@
 from typing import Dict, Tuple
 import matplotlib
+
 matplotlib.use('Qt5Agg')
 import matplotlib.pyplot as plt
 from genDiffraction import generalizedDiffraction
@@ -53,7 +54,7 @@ def generate_transition_point_time_correction_look_up_tables(
     :return:
     """
 
-    RESOLUTION = 0.0001   # time resolution of lookup tables - 0.1 millisecond
+    RESOLUTION = 0.0001  # time resolution of lookup tables - 0.1 millisecond
 
     star_chords_r = None
     star_chords_d = None
@@ -112,8 +113,12 @@ def generate_transition_point_time_correction_look_up_tables(
                                    wavelength1=400, wavelength2=600,
                                    skip_central_flash=skip_central_flash)
 
+        raw_y_avg = np.copy(y_avg)
+
         y_avg = y_avg * baseline_intensity
         y_avg += event_intensity
+
+        scaled_y_avg = np.copy(y_avg)
 
         # TODO This code cannot be right with the new scheme
         # if suppress_diffraction:
@@ -130,6 +135,7 @@ def generate_transition_point_time_correction_look_up_tables(
         #             r_values[i] = baseline_intensity
 
         if star_diameter_mas is not None:
+            # TODO Does this really need to be done??
             # We have to compute the time needed for the star projection to pass, using the
             # limb angle that is smallest.
             min_limb_angle_degrees = min(d_limb_angle_degrees, r_limb_angle_degrees)
@@ -142,9 +148,6 @@ def generate_transition_point_time_correction_look_up_tables(
                 shadow_speed_km_per_sec / sin_degrees(min_limb_angle_degrees)
             print(f'line 145 frame_time: {frame_time_sec}   star_time: {star_projection_time_sec:0.3f}')
 
-        raw_d_values = np.copy(y_avg)
-        raw_r_values = np.copy(y_avg)
-
         time_values = x_avg / shadow_speed_km_per_sec
 
         # Prepare the 'sample' that performs a box-car integration when convolved with the model lightcurve
@@ -154,42 +157,43 @@ def generate_transition_point_time_correction_look_up_tables(
 
         sample = np.repeat(1.0 / n_sample_points, n_sample_points)
 
-        star_d_values = None
-        star_r_values = None
-
         if star_diameter_mas is not None:
             # We are able to compose star chords to convolve with the curves found so far.
             # We have to do that separately for each limb because the limb angle could be different.
-            star_chords_d, star_chords_r = get_star_chord_samples(
-                star_diameter_mas=star_diameter_mas,
-                distance_to_asteroid_AU=asteroid_distance_AU,
-                shadow_speed=shadow_speed_km_per_sec,
-                time_resolution=(x_avg[1] - x_avg[0]) / shadow_speed_km_per_sec,
-                d_limb_angle_degrees=d_limb_angle_degrees,
-                r_limb_angle_degrees=r_limb_angle_degrees,
-                num_points_in_chord_base=len(y_avg)
-            )
+            star_chords_d, \
+                star_chords_r, \
+                star_chords_d_standalone, \
+                star_chords_r_standalone = \
+                get_star_chord_samples(star_diameter_mas=star_diameter_mas,
+                                       distance_to_asteroid_AU=asteroid_distance_AU,
+                                       shadow_speed=shadow_speed_km_per_sec,
+                                       time_resolution=(x_avg[1] - x_avg[0]) / shadow_speed_km_per_sec,
+                                       d_limb_angle_degrees=d_limb_angle_degrees,
+                                       r_limb_angle_degrees=r_limb_angle_degrees,
+                                       num_points_in_chord_base=len(y_avg)
+                                       )
             # print(f'star_chords_d: {star_chords_d}')
             # Convolve sample against lightcurve to compute the effect of star chord integration.
-            # n_points = len(y_avg)
-            # d_values = y_avg[0:n_points // 2 + 1]
-            d_values = y_avg
-            d_values = lightcurve_convolve(sample=star_chords_d, lightcurve=d_values,
-                                           shift_needed=len(star_chords_d) // 2)
-            # r_values = y_avg[n_points // 2:]
-            r_values = y_avg
-            r_values = lightcurve_convolve(sample=star_chords_r, lightcurve=r_values,
-                                           shift_needed=len(star_chords_r) // 2)
-            star_d_values = np.copy(d_values)
-            star_r_values = np.copy(r_values)
+            mid_point = len(y_avg) // 2
+            d_values = y_avg[0:mid_point]
+            d_values = lightcurve_convolve(sample=star_chords_d_standalone, lightcurve=d_values,
+                                           shift_needed=len(star_chords_d_standalone) // 2)
+            r_values = y_avg[mid_point: -1]
+            r_values = lightcurve_convolve(sample=star_chords_r_standalone, lightcurve=r_values,
+                                           shift_needed=len(star_chords_r_standalone) // 2)
+            for i, value in enumerate(d_values):
+                y_avg[i] = value
+
+            for i, value in enumerate(r_values):
+                y_avg[mid_point + i] = value
 
         # Convolve sample against lightcurve to compute the effect of camera frame-time integration.
         y_avg = lightcurve_convolve(sample=sample, lightcurve=y_avg, shift_needed=len(sample) - 1)
 
-        return {'time deltas': time_values, 'D curve': y_avg, 'R curve': y_avg,
+        return {'time deltas': time_values, 'camera response': y_avg,
                 'star_chords_d': star_chords_d, 'star_chords_r': star_chords_r,
-                'raw D': raw_d_values, 'raw R': raw_r_values, 'graze D': d_graze_values, 'graze R': r_graze_values,
-                'star D': raw_d_values, 'star R': raw_r_values, 'B': baseline_intensity, 'A': event_intensity}
+                'raw underlying': raw_y_avg, 'scaled underlying': scaled_y_avg,
+                'B': baseline_intensity, 'A': event_intensity}
 
 
 def intensity_at_time(data, time, edge_type):
@@ -231,6 +235,8 @@ def lightcurve_convolve(sample: np.ndarray, lightcurve: np.ndarray, shift_needed
     # To 'eliminate' the leading edge effect inherent in np.convolve(), we insert a compensating number of
     # duplicate points at the beginning.  This works well only if the lightcurve has already achieved
     # 'steady state' in this region.  We strive to guarantee this everywhere this function is called.
+
+    # TODO Consider providing an 'event' value
     leading_edge_extension = np.ones(len(sample) - 1) * lightcurve[0]
     lightcurve_extended = np.concatenate((leading_edge_extension, lightcurve))
 
@@ -240,7 +246,7 @@ def lightcurve_convolve(sample: np.ndarray, lightcurve: np.ndarray, shift_needed
     # Now perform a left shift to make our convolution consistent with our start-of-exposure convention.
     # shift_count = len(sample) - 1
     shift_count = shift_needed
-    lightcurve_shifted = np.roll(new_lightcurve, -shift_count)   # Do a 'left-roll'
+    lightcurve_shifted = np.roll(new_lightcurve, -shift_count)  # Do a 'left-roll'
     # Fix the points at the right edge that got overwritten by the 'roll'  Here we assume that the
     # lightcurve had already achieved 'steady state' at the end.
     for i in range(1, shift_count + 1):
@@ -264,7 +270,7 @@ def get_star_chord_samples(
         d_limb_angle_degrees: float = 90.0,
         r_limb_angle_degrees: float = 90.0,
         num_points_in_chord_base: int = 0
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
     Computes the array that can be convolved with the diffraction curve to incorporate star diameter effects.
 
@@ -291,50 +297,57 @@ def get_star_chord_samples(
 
     print(f'n_d_limb_chords: {n_d_limb_chords}  n_r_limb_chords: {n_r_limb_chords}')
 
+    d_time_resolution = time_resolution * sin_degrees(d_limb_angle_degrees)
+    r_time_resolution = time_resolution * sin_degrees(r_limb_angle_degrees)
+
     radius_sec = star_diameter_sec / 2
     r2 = radius_sec * radius_sec
 
     print(f'radius_sec**2: {r2:0.4f}')
 
     d_star_chords = np.zeros(num_points_in_chord_base)
+    d_star_chords_standalone = np.zeros(n_d_limb_chords * 2 + 1)
     normalizer = 0.0
+    plot_margin = 20
     j = 0
     for i in range(-n_d_limb_chords, n_d_limb_chords + 1):
-        chord = 2.0 * np.sqrt(r2 - (i * time_resolution/2)**2)
-        d_star_chords[j] = chord
+        chord = 2.0 * np.sqrt(r2 - (i * d_time_resolution / 2) ** 2)
         if j == 0 or j == n_d_limb_chords * 2:
             chord = 0
-        d_star_chords[j] = chord
+        d_star_chords[j + plot_margin] = chord
+        d_star_chords_standalone[j] = chord
         j += 1
         normalizer += chord
 
-    # print('d_star_chords', d_star_chords)
-
     normed_d_chords = [c / normalizer for c in d_star_chords]
+    normed_d_chords_standalone = [c / normalizer for c in d_star_chords_standalone]
 
     r_star_chords = np.zeros(num_points_in_chord_base)
+    r_star_chords_standalone = np.zeros(n_r_limb_chords * 2 + 1)
+
     normalizer = 0.0
-    # TODO make this flexible
-    plot_offset = len(r_star_chords) - n_r_limb_chords * 2 -1
+    plot_offset = len(r_star_chords) - n_r_limb_chords * 2 - plot_margin
     j = 0
     for i in range(-n_r_limb_chords, n_r_limb_chords + 1):
-        chord = 2.0 * np.sqrt(r2 - (i * time_resolution/2) ** 2)
+        chord = 2.0 * np.sqrt(r2 - (i * r_time_resolution / 2) ** 2)
         if j == 0 or j == n_r_limb_chords * 2:
             chord = 0.0
         r_star_chords[j + plot_offset] = chord
+        r_star_chords_standalone[j] = chord
         j += 1
         normalizer += chord
 
-    # print('r_star_chords', r_star_chords)
-
     normed_r_chords = [c / normalizer for c in r_star_chords]
+    normed_r_chords_standalone = [c / normalizer for c in r_star_chords_standalone]
 
-    return np.array(normed_d_chords), np.array(normed_r_chords)
+    return np.array(normed_d_chords), np.array(normed_r_chords), \
+        np.array(normed_d_chords_standalone), np.array(normed_r_chords_standalone)
 
 
 def time_correction(correction_dict, transition_point_intensity, edge_type='D'):
     if not correction_dict['A'] <= transition_point_intensity <= correction_dict['B']:
-        print('Intensity violation encountered: ', correction_dict['A'], transition_point_intensity, correction_dict['B'])
+        print('Intensity violation encountered: ', correction_dict['A'], transition_point_intensity,
+              correction_dict['B'])
     assert edge_type == 'D' or edge_type == 'R'
 
     # We start our search from the middle and work either up or down to find the best matching intensity.
@@ -428,7 +441,8 @@ def generate_underlying_lightcurve_plots(
     ax = fig.add_subplot(111)
     ax.set(xlabel='seconds', ylabel='Intensity')
     if star_diam is not None:
-        star_comment = f'\nstar diam(mas): {star_diam:0.2f}  limb angle: {d_angle:0.1f}'
+        star_comment = f'\nstar diam(mas): {star_diam:0.2f}  D limb angle: {d_angle:0.1f}' \
+                       f'  R limb angle: {r_angle:0.1f}'
     else:
         star_comment = ''
     if ast_diam is not None and centerline_offset is not None:
@@ -458,15 +472,15 @@ def generate_underlying_lightcurve_plots(
         offset = ans['time deltas'][-1] / 2
         ax.plot([offset, offset, offset + frame_time, offset + frame_time],
                 [a_value, mid, mid, a_value], label='camera exposure function', color='red')
-    if ans['graze D'] is not None:
-        ax.plot(ans['time deltas'], ans['graze D'], label='diffraction (grazed) D')
-    if ans['star D'] is None:
-        ax.plot(ans['time deltas'], ans['raw D'], label='underlying lightcurve', color='green')
-    else:
-        ax.plot(ans['time deltas'], ans['star D'], label='underlying lightcurve', color='green')
+    # if ans['graze D'] is not None:
+    #     ax.plot(ans['time deltas'], ans['graze D'], label='diffraction (grazed) D')
+    # if ans['star D'] is None:
+    #     ax.plot(ans['time deltas'], ans['raw D'], label='underlying lightcurve', color='green')
+    # else:
+    ax.plot(ans['time deltas'], ans['scaled underlying'], label='underlying lightcurve', color='green')
 
     if frame_time > 0.001:
-        ax.plot(ans['time deltas'], ans['D curve'], label='camera response', color='red')
+        ax.plot(ans['time deltas'], ans['camera response'], label='camera response', color='red')
 
     plt.grid()
     ax.legend()
@@ -520,16 +534,16 @@ def demo():
         a_value = 0.0
         skip_central_flash = True  # This speeds up computation when the central flash is not needed
         # frame_time = 0.001 # Will show underlying diffraction curve
-        frame_time = 0.0334 * 4
+        frame_time = 0.0334
         # frame_time = 0.001
-        star_diam = 0.1  # mas
+        star_diam = 0.5  # mas
         # star_diam = None
         d_angle = 90
-        r_angle = 90
-        ast_dist = 2.5752     # Felicia
+        r_angle = 45
+        ast_dist = 2.5752  # Felicia
         ast_diam = 5
         centerline_offset = 0.0
-        shadow_speed = 4.55   # Felicia
+        shadow_speed = 4.55  # Felicia
         title_addon = '(Felicia 01062020 Watec)  '
 
         main_figure, _ = generate_underlying_lightcurve_plots(
