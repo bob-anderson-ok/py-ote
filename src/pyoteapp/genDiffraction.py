@@ -93,7 +93,8 @@ def basicCalcField(N, fresnel_length_km, diam_km):
 
 
 def generalizedDiffraction(asteroid_diam_km, asteroid_distance_AU,
-                           graze_offset_km=0, wavelength1=400, wavelength2=600):
+                           graze_offset_km=0, wavelength1=400, wavelength2=600,
+                           skip_central_flash=False):
     # A family of central spot lightcurves are calculated when rho <= 32, otherwise the
     # analytic diffraction equation is used to produce the curve family that is
     # subsequently integrated.
@@ -138,20 +139,11 @@ def generalizedDiffraction(asteroid_diam_km, asteroid_distance_AU,
     else:
         title += f'_{wavelength1}nm'
 
-    # if graze_offset_km == 0:
-    #     right_edge = asteroid_radius_km
-    #     left_edge = -right_edge
-    # elif graze_offset_km > asteroid_radius_km:
-    #     right_edge = left_edge = None
-    # else:
-    #     right_edge = np.sqrt(asteroid_radius_km ** 2 - graze_offset_km ** 2)
-    #     left_edge = -right_edge
-
     asteroid_radius_km = asteroid_diam_km / 2
 
     rho = asteroid_diam_km / fresnelLength(wavelength_nm=rho_wavelength, Z_AU=asteroid_distance_AU)
 
-    if rho <= 32:
+    if rho <= 32 and not skip_central_flash:
         for wavelength in wavelengths:
             fresnel_length_km = fresnelLength(wavelength_nm=wavelength, Z_AU=asteroid_distance_AU)
             if graze_offset_km == 0.0:
