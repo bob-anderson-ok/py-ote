@@ -92,6 +92,25 @@
              </property>
             </widget>
            </item>
+           <item row="0" column="3">
+            <widget class="QPushButton" name="readData">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Ignored" vsizetype="Maximum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;PYOTE reads Limovie, R-OTE, and Tangra files and includes up to four light curves from those file types.  For PyMovie files, PYOTE will read an unlimited number of light curves.&lt;/p&gt;&lt;p&gt;Normally (but not required) object1 is the occulted star; other (optional) objects are reference stars to be used for normalizing the occulted star light curve or flash curves from an LED timer.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;Mouse button functions within the light curve plot:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#ff0000;&quot;&gt;Left click&lt;/span&gt;: selects/deselects points on the primary (dark blue) light curve that intersect with the vertical hairline (the mouse cursor is disabled).&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#ff0000;&quot;&gt;Left click and drag&lt;/span&gt;: rectangular zoom is available to more clearly see points for selection (but point selection can also be accomplished through clicks in the tabular data display at the lower left)&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Note! The shift key will toggle the mouse cursor on/off in the light curve plot.&lt;/span&gt; This enables the starting corner for the zoom to be seen. (But points cannot be selected/deselected while the mouse cursor is visible. A right click will always 'blank' the mouse cursor.) &lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#ff0000;&quot;&gt;Right click&lt;/span&gt;: undo zoom&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#996633;&quot;&gt;Timestamp errors are shown with vertical red hairlines when a file is first read. These will disappear after the first point is selected so that the working view is as clear as possible. The red hairlines will re-appear permanently after the error bars have been calculated and the final report written to the log.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="toolTipDuration">
+              <number>-1</number>
+             </property>
+             <property name="text">
+              <string>Read light curve</string>
+             </property>
+            </widget>
+           </item>
            <item row="0" column="0">
             <widget class="QPushButton" name="infoButton">
              <property name="sizePolicy">
@@ -114,22 +133,19 @@
              </property>
             </widget>
            </item>
-           <item row="0" column="3">
-            <widget class="QPushButton" name="readData">
+           <item row="0" column="2">
+            <widget class="QPushButton" name="tutorialButton">
              <property name="sizePolicy">
-              <sizepolicy hsizetype="Ignored" vsizetype="Maximum">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
              <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;PYOTE reads Limovie, R-OTE, and Tangra files and includes up to four light curves from those file types.  For PyMovie files, PYOTE will read an unlimited number of light curves.&lt;/p&gt;&lt;p&gt;Normally (but not required) object1 is the occulted star; other (optional) objects are reference stars to be used for normalizing the occulted star light curve or flash curves from an LED timer.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;Mouse button functions within the light curve plot:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#ff0000;&quot;&gt;Left click&lt;/span&gt;: selects/deselects points on the primary (dark blue) light curve that intersect with the vertical hairline (the mouse cursor is disabled).&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#ff0000;&quot;&gt;Left click and drag&lt;/span&gt;: rectangular zoom is available to more clearly see points for selection (but point selection can also be accomplished through clicks in the tabular data display at the lower left)&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Note! The shift key will toggle the mouse cursor on/off in the light curve plot.&lt;/span&gt; This enables the starting corner for the zoom to be seen. (But points cannot be selected/deselected while the mouse cursor is visible. A right click will always 'blank' the mouse cursor.) &lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#ff0000;&quot;&gt;Right click&lt;/span&gt;: undo zoom&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#996633;&quot;&gt;Timestamp errors are shown with vertical red hairlines when a file is first read. These will disappear after the first point is selected so that the working view is as clear as possible. The red hairlines will re-appear permanently after the error bars have been calculated and the final report written to the log.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-             </property>
-             <property name="toolTipDuration">
-              <number>-1</number>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Tip: right-click on buttons and labels. An explanation (help screen) will usually appear. Use that technique to learn about features that are not covered in this basic tutorial/recipe.&lt;/p&gt;&lt;p&gt;1. Start by clicking the&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt; Read light curve&lt;/span&gt; button. (Usually, the camera exposure value will be read from the csv file and automatically inserted in the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;exp:&lt;/span&gt; edit box in the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;parameters&lt;/span&gt; panel. If that did not happen, you will need to manually fill in that value in before trying to find an event fit.)&lt;/p&gt;&lt;p&gt;2. If timestamp errors have been detected during the loading of the csv file, the affected points will be bracketed by vertical redlines and the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Show time err&lt;/span&gt; checkbox will have been set by the program. Those red lines will likely have served their purpose and can/should be turned off so that a clear view of the light-curve is presented.&lt;/p&gt;&lt;p&gt;3. If the csv file contained multiple light-curves (it usually will), use the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Lightcurves&lt;/span&gt; tab/panel to select the target lightcurve (the lightcurve containing the occultation)&lt;/p&gt;&lt;p&gt;4. The next step is to give the 'event finder' information that can speed up the search. &lt;/p&gt;&lt;p&gt;4a. If the event has a wide enough bottom, the quickest way to provide speed-up information is mark the D and R regions. Right-click on those buttons for a how-to.&lt;/p&gt;&lt;p&gt;4b. If the event is so small that it is hard or impossible to mark D and R regions, the speed-up information is then best supplied by placing the smallest event duration in the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;min event duration&lt;/span&gt; edit box and the maximum event duration in the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;max event duration&lt;/span&gt; edit box. The 'finder' will then search for all events in the range of durations given, located anywhere in the light-curve.&lt;/p&gt;&lt;p&gt;5. Next, click the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Find event, then ...&lt;/span&gt; button to initiate the search.&lt;/p&gt;&lt;p&gt;6. Assuming the search was successful, the final step is to click the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;... write report&lt;/span&gt; button.&lt;/p&gt;&lt;p&gt;Every step you took is recorded in a log file in the directory where the light-curve was read from. This is important information to provide to anyone that you might go to for assistance. Give them the csv file and the log file and they will be able to reproduce your session.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
-              <string>Read light curve</string>
+              <string>Tutorial</string>
              </property>
             </widget>
            </item>
@@ -149,22 +165,6 @@
              </property>
             </widget>
            </item>
-           <item row="0" column="2">
-            <widget class="QPushButton" name="tutorialButton">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Tip: right-click on buttons and labels. An explanation (help screen) will usually appear. Use that technique to learn about features that are not covered in this basic tutorial/recipe.&lt;/p&gt;&lt;p&gt;1. Start by clicking the&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt; Read light curve&lt;/span&gt; button. (Usually, the camera exposure value will be read from the csv file and automatically inserted in the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;exp:&lt;/span&gt; edit box in the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;parameters&lt;/span&gt; panel. If that did not happen, you will need to manually fill in that value in before trying to find an event fit.)&lt;/p&gt;&lt;p&gt;2. If timestamp errors have been detected during the loading of the csv file, the affected points will be bracketed by vertical redlines and the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Show time err&lt;/span&gt; checkbox will have been set by the program. Those red lines will likely have served their purpose and can/should be turned off so that a clear view of the light-curve is presented.&lt;/p&gt;&lt;p&gt;3. If the csv file contained multiple light-curves (it usually will), use the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Lightcurves&lt;/span&gt; tab/panel to select the target lightcurve (the lightcurve containing the occultation)&lt;/p&gt;&lt;p&gt;4. The next step is to give the 'event finder' information that can speed up the search. &lt;/p&gt;&lt;p&gt;4a. If the event has a wide enough bottom, the quickest way to provide speed-up information is mark the D and R regions. Right-click on those buttons for a how-to.&lt;/p&gt;&lt;p&gt;4b. If the event is so small that it is hard or impossible to mark D and R regions, the speed-up information is then best supplied by placing the smallest event duration in the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;min event duration&lt;/span&gt; edit box and the maximum event duration in the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;max event duration&lt;/span&gt; edit box. The 'finder' will then search for all events in the range of durations given, located anywhere in the light-curve.&lt;/p&gt;&lt;p&gt;5. Next, click the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Find event, then ...&lt;/span&gt; button to initiate the search.&lt;/p&gt;&lt;p&gt;6. Assuming the search was successful, the final step is to click the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;... write report&lt;/span&gt; button.&lt;/p&gt;&lt;p&gt;Every step you took is recorded in a log file in the directory where the light-curve was read from. This is important information to provide to anyone that you might go to for assistance. Give them the csv file and the log file and they will be able to reproduce your session.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-             </property>
-             <property name="text">
-              <string>Tutorial</string>
-             </property>
-            </widget>
-           </item>
           </layout>
          </item>
          <item>
@@ -175,7 +175,7 @@
            <item>
             <widget class="QTabWidget" name="tabWidget">
              <property name="currentIndex">
-              <number>1</number>
+              <number>3</number>
              </property>
              <property name="movable">
               <bool>true</bool>
@@ -2292,7 +2292,7 @@
                     </size>
                    </property>
                    <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This button is used to select the points in the normalized target lightcurve to be used in calculating the metic that, when minimized, results in the flattest and most level target lightcurve.&lt;/p&gt;&lt;p&gt;It is sometimes useful to only include some regions of the target lightcurve. To do this, click on two points that enclose the points to be included, then click this button. The included points will change color.&lt;/p&gt;&lt;p&gt;Multiple regions can be selected. Just repeat the above procedure.&lt;/p&gt;&lt;p&gt;The selected regions can be cleared by clicking on the button (&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Clear metric points&lt;/span&gt;) to the right of this button.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This button is used to select the points in the normalized target lightcurve to be used in calculating the metric that, when minimized, results in the flattest and most level target lightcurve.&lt;/p&gt;&lt;p&gt;It is sometimes useful to only include some regions of the target lightcurve. To do this, click on two points that enclose the points to be included, then click this button. The included points will change color.&lt;/p&gt;&lt;p&gt;Multiple regions can be selected. Just repeat the above procedure.&lt;/p&gt;&lt;p&gt;The selected regions can be cleared by clicking on the button (&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Clear metric points&lt;/span&gt;) to the right of this button.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="text">
                     <string>Mark metric points</string>
@@ -3350,6 +3350,1028 @@
                 </spacer>
                </item>
               </layout>
+             </widget>
+             <widget class="QWidget" name="tab_3">
+              <attribute name="title">
+               <string>Model lightcurves</string>
+              </attribute>
+              <widget class="QWidget" name="layoutWidget_23">
+               <property name="geometry">
+                <rect>
+                 <x>20</x>
+                 <y>100</y>
+                 <width>110</width>
+                 <height>48</height>
+                </rect>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_41">
+                <item>
+                 <widget class="QLabel" name="frameTimeLabel">
+                  <property name="font">
+                   <font>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Frame time (sec)</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="frameTimeEdit"/>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QWidget" name="layoutWidget_24">
+               <property name="geometry">
+                <rect>
+                 <x>320</x>
+                 <y>220</y>
+                 <width>111</width>
+                 <height>82</height>
+                </rect>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_42">
+                <item>
+                 <widget class="QLabel" name="limbAnglesLabel">
+                  <property name="font">
+                   <font>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Limb angles</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_131">
+                  <item>
+                   <widget class="QLineEdit" name="DdegreesEdit"/>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="DdegreesLabel">
+                    <property name="font">
+                     <font>
+                      <bold>true</bold>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string>D (degrees)</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_132">
+                  <item>
+                   <widget class="QLineEdit" name="RdegreesEdit"/>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="RdegreesLabel">
+                    <property name="font">
+                     <font>
+                      <bold>true</bold>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string>R (degrees)</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QWidget" name="layoutWidget_25">
+               <property name="geometry">
+                <rect>
+                 <x>440</x>
+                 <y>220</y>
+                 <width>121</width>
+                 <height>82</height>
+                </rect>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_43">
+                <item>
+                 <widget class="QLabel" name="chordSizeLabel">
+                  <property name="font">
+                   <font>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Chord size estimate</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_133">
+                  <item>
+                   <widget class="QLineEdit" name="chordSizeSecondsEdit"/>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="chordSizeSecondsLabel">
+                    <property name="font">
+                     <font>
+                      <bold>true</bold>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string>seconds</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_134">
+                  <item>
+                   <widget class="QLineEdit" name="chordSizeKmEdit"/>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="chordSizeKmLabel">
+                    <property name="font">
+                     <font>
+                      <bold>true</bold>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string>km        </string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QWidget" name="layoutWidget_26">
+               <property name="geometry">
+                <rect>
+                 <x>530</x>
+                 <y>100</y>
+                 <width>111</width>
+                 <height>82</height>
+                </rect>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_44">
+                <item>
+                 <widget class="QLabel" name="asteroidDistLabel">
+                  <property name="font">
+                   <font>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Asteroid distance</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_135">
+                  <item>
+                   <widget class="QLineEdit" name="asteroidDistAUedit"/>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="asteroidDistAUlabel">
+                    <property name="font">
+                     <font>
+                      <bold>true</bold>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string>AU     </string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_136">
+                  <item>
+                   <widget class="QLineEdit" name="asteroidDistArcsecEdit"/>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="asteroidDistArcsecLabel">
+                    <property name="font">
+                     <font>
+                      <bold>true</bold>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string>arcsec</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QWidget" name="layoutWidget_27">
+               <property name="geometry">
+                <rect>
+                 <x>680</x>
+                 <y>100</y>
+                 <width>110</width>
+                 <height>78</height>
+                </rect>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_45">
+                <item>
+                 <widget class="QLabel" name="wavelengthLabel">
+                  <property name="font">
+                   <font>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Wavelength (nm)</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="wavelengthEdit"/>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="startOverButton">
+                  <property name="text">
+                   <string>Start over</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QWidget" name="layoutWidget_29">
+               <property name="geometry">
+                <rect>
+                 <x>320</x>
+                 <y>100</y>
+                 <width>171</width>
+                 <height>82</height>
+                </rect>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_47">
+                <item>
+                 <widget class="QLabel" name="asteroidSpeedLabel">
+                  <property name="font">
+                   <font>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Asteroid speed</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_139">
+                  <item>
+                   <widget class="QLineEdit" name="asteroidSpeedShadowEdit"/>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="asteroidSpeedShadowLabel">
+                    <property name="font">
+                     <font>
+                      <bold>true</bold>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string>Shadow(km/sec)</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_140">
+                  <item>
+                   <widget class="QLineEdit" name="asteroidSpeedSkyEdit"/>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="asteroidSpeedSkyLabel">
+                    <property name="font">
+                     <font>
+                      <bold>true</bold>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string>Sky (mas/sec)     </string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QPushButton" name="helpPdfButton">
+               <property name="geometry">
+                <rect>
+                 <x>660</x>
+                 <y>10</y>
+                 <width>131</width>
+                 <height>21</height>
+                </rect>
+               </property>
+               <property name="font">
+                <font>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>Help (pdf)</string>
+               </property>
+              </widget>
+              <widget class="QLabel" name="modelToUseLabel">
+               <property name="geometry">
+                <rect>
+                 <x>40</x>
+                 <y>330</y>
+                 <width>111</width>
+                 <height>16</height>
+                </rect>
+               </property>
+               <property name="font">
+                <font>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>Model to use:</string>
+               </property>
+              </widget>
+              <widget class="QLabel" name="currentEventLabel">
+               <property name="geometry">
+                <rect>
+                 <x>190</x>
+                 <y>30</y>
+                 <width>121</width>
+                 <height>16</height>
+                </rect>
+               </property>
+               <property name="font">
+                <font>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Name this asteroid event for possible future reference and data recovery by using the Past events dropdown selector available at the right..&lt;/p&gt;&lt;p&gt;This makes the entries 'sticky' in the sense that the data entered in this panel can be recovered later.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="text">
+                <string>Current event</string>
+               </property>
+              </widget>
+              <widget class="QLabel" name="pastEventsLabel">
+               <property name="geometry">
+                <rect>
+                 <x>570</x>
+                 <y>30</y>
+                 <width>111</width>
+                 <height>16</height>
+                </rect>
+               </property>
+               <property name="font">
+                <font>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>Past events</string>
+               </property>
+              </widget>
+              <widget class="QWidget" name="layoutWidget">
+               <property name="geometry">
+                <rect>
+                 <x>40</x>
+                 <y>350</y>
+                 <width>96</width>
+                 <height>108</height>
+                </rect>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_48">
+                <item>
+                 <widget class="QRadioButton" name="diffractionRadioButton">
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Tooltip help for radio button&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                  <property name="text">
+                   <string>diffraction</string>
+                  </property>
+                  <property name="checked">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QRadioButton" name="edgeOnDiskRadioButton">
+                  <property name="text">
+                   <string>edge on disk</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QRadioButton" name="diskOnDiskRadioButton">
+                  <property name="text">
+                   <string>disk on disk</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QWidget" name="layoutWidget">
+               <property name="geometry">
+                <rect>
+                 <x>150</x>
+                 <y>340</y>
+                 <width>198</width>
+                 <height>116</height>
+                </rect>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_49">
+                <item>
+                 <widget class="QPushButton" name="demoLightcurveButton">
+                  <property name="text">
+                   <string>Demo the lightcurve</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="initiateFitButton">
+                  <property name="text">
+                   <string>Initiate fit of model to data</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="askAdviceButton">
+                  <property name="text">
+                   <string>Ask advice on model to use</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="showDiffractionButton">
+                  <property name="text">
+                   <string>Show diffraction pattern on ground</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QWidget" name="layoutWidget">
+               <property name="geometry">
+                <rect>
+                 <x>360</x>
+                 <y>370</y>
+                 <width>301</width>
+                 <height>26</height>
+                </rect>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout_142">
+                <property name="spacing">
+                 <number>0</number>
+                </property>
+                <item>
+                 <widget class="QLineEdit" name="fitMetricEdit">
+                  <property name="readOnly">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="fitMetricLabel">
+                  <property name="font">
+                   <font>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>&lt;--Fit metric    change--&gt;</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="fitMetricChangeEdit">
+                  <property name="autoFillBackground">
+                   <bool>false</bool>
+                  </property>
+                  <property name="readOnly">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QWidget" name="layoutWidget">
+               <property name="geometry">
+                <rect>
+                 <x>21</x>
+                 <y>50</y>
+                 <width>771</width>
+                 <height>26</height>
+                </rect>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout_141">
+                <item>
+                 <widget class="QLineEdit" name="currentEventEdit">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Name this asteroid event for possible future reference and data recovery by using the Past events dropdown selector available at the right..&lt;/p&gt;&lt;p&gt;This makes the entries 'sticky' in the sense that the data entered in this panel can be recovered later.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="saveCurrentEventButton">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>80</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>Save event</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QComboBox" name="pastEventsComboBox">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>300</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Can you right click on comboBox&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QWidget" name="layoutWidget">
+               <property name="geometry">
+                <rect>
+                 <x>570</x>
+                 <y>220</y>
+                 <width>111</width>
+                 <height>82</height>
+                </rect>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_50">
+                <item>
+                 <widget class="QLabel" name="starSizeLabel">
+                  <property name="font">
+                   <font>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Star size</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_144">
+                  <item>
+                   <widget class="QLineEdit" name="starSizeMasEdit"/>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="starSizeMasLabel">
+                    <property name="font">
+                     <font>
+                      <bold>true</bold>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string>mas</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_143">
+                  <item>
+                   <widget class="QLineEdit" name="starSizeKmEdit"/>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="starSizeKmLabel">
+                    <property name="font">
+                     <font>
+                      <bold>true</bold>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string>km </string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
+              </widget>
+              <widget class="Line" name="line_4">
+               <property name="geometry">
+                <rect>
+                 <x>20</x>
+                 <y>80</y>
+                 <width>771</width>
+                 <height>20</height>
+                </rect>
+               </property>
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="frameShadow">
+                <enum>QFrame::Plain</enum>
+               </property>
+               <property name="lineWidth">
+                <number>3</number>
+               </property>
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+              </widget>
+              <widget class="Line" name="line_17">
+               <property name="geometry">
+                <rect>
+                 <x>20</x>
+                 <y>190</y>
+                 <width>771</width>
+                 <height>20</height>
+                </rect>
+               </property>
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="frameShadow">
+                <enum>QFrame::Plain</enum>
+               </property>
+               <property name="lineWidth">
+                <number>3</number>
+               </property>
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+              </widget>
+              <widget class="Line" name="line_18">
+               <property name="geometry">
+                <rect>
+                 <x>20</x>
+                 <y>310</y>
+                 <width>771</width>
+                 <height>20</height>
+                </rect>
+               </property>
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="frameShadow">
+                <enum>QFrame::Plain</enum>
+               </property>
+               <property name="lineWidth">
+                <number>3</number>
+               </property>
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+              </widget>
+              <widget class="QCheckBox" name="showAnnotationsCheckBox">
+               <property name="geometry">
+                <rect>
+                 <x>470</x>
+                 <y>340</y>
+                 <width>91</width>
+                 <height>22</height>
+                </rect>
+               </property>
+               <property name="text">
+                <string>Show notes</string>
+               </property>
+              </widget>
+              <widget class="QCheckBox" name="showLegendsCheckBox">
+               <property name="geometry">
+                <rect>
+                 <x>570</x>
+                 <y>340</y>
+                 <width>101</width>
+                 <height>22</height>
+                </rect>
+               </property>
+               <property name="text">
+                <string>Show legends</string>
+               </property>
+              </widget>
+              <widget class="QCheckBox" name="versusTimeCheckBox">
+               <property name="geometry">
+                <rect>
+                 <x>360</x>
+                 <y>340</y>
+                 <width>91</width>
+                 <height>22</height>
+                </rect>
+               </property>
+               <property name="text">
+                <string>versus time</string>
+               </property>
+              </widget>
+              <widget class="QWidget" name="">
+               <property name="geometry">
+                <rect>
+                 <x>170</x>
+                 <y>100</y>
+                 <width>111</width>
+                 <height>82</height>
+                </rect>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout">
+                <item>
+                 <widget class="QLabel" name="asteroidDiameterLabel">
+                  <property name="font">
+                   <font>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Asteroid size</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_8">
+                  <item>
+                   <widget class="QLineEdit" name="asteroidDiameterKmEdit">
+                    <property name="minimumSize">
+                     <size>
+                      <width>66</width>
+                      <height>0</height>
+                     </size>
+                    </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>66</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="asteroidDiameterKmLabel">
+                    <property name="font">
+                     <font>
+                      <bold>true</bold>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string>Km</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_38">
+                  <item>
+                   <widget class="QLineEdit" name="asteroidDiameterMasEdit">
+                    <property name="maximumSize">
+                     <size>
+                      <width>66</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="asteroidDiameterMasLabel">
+                    <property name="font">
+                     <font>
+                      <bold>true</bold>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string>mas</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QWidget" name="">
+               <property name="geometry">
+                <rect>
+                 <x>21</x>
+                 <y>221</y>
+                 <width>141</width>
+                 <height>80</height>
+                </rect>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_9">
+                <item>
+                 <widget class="QLabel" name="baselineADUlabel">
+                  <property name="font">
+                   <font>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Baseline ADU</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="baselineADUedit"/>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_40">
+                  <item>
+                   <widget class="QPushButton" name="baselineADUbutton">
+                    <property name="text">
+                     <string>Select</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="calcBaselineADUbutton">
+                    <property name="text">
+                     <string>Calc</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="clearBaselineADUselectionButton">
+                    <property name="text">
+                     <string>Clear</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QWidget" name="">
+               <property name="geometry">
+                <rect>
+                 <x>170</x>
+                 <y>220</y>
+                 <width>141</width>
+                 <height>80</height>
+                </rect>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_10">
+                <item>
+                 <widget class="QLabel" name="bottomADUlabel">
+                  <property name="font">
+                   <font>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Bottom ADU</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="bottomADUedit"/>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_41">
+                  <item>
+                   <widget class="QPushButton" name="bottomADUbutton">
+                    <property name="text">
+                     <string>Select</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="calcBottomADUbutton">
+                    <property name="text">
+                     <string>Calc</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="clearBottomADUselectionButton">
+                    <property name="text">
+                     <string>Clear</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QWidget" name="">
+               <property name="geometry">
+                <rect>
+                 <x>690</x>
+                 <y>220</y>
+                 <width>101</width>
+                 <height>82</height>
+                </rect>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_11">
+                <item>
+                 <widget class="QLabel" name="fresnelSizeLabel">
+                  <property name="font">
+                   <font>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Fresnel size</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_138">
+                  <item>
+                   <widget class="QLineEdit" name="fresnelSizeSecondsEdit">
+                    <property name="readOnly">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="fresnelSizeSecondsLabel">
+                    <property name="font">
+                     <font>
+                      <bold>true</bold>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string>seconds</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_137">
+                  <item>
+                   <widget class="QLineEdit" name="fresnelSizeKmEdit">
+                    <property name="readOnly">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="fresnelSizeKmLabel">
+                    <property name="font">
+                     <font>
+                      <bold>true</bold>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string>km        </string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
+              </widget>
              </widget>
              <widget class="QWidget" name="tab_9">
               <attribute name="title">
@@ -4824,6 +5846,193 @@
    <header>pyqtgraph</header>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>plotHelpButton</tabstop>
+  <tabstop>infoButton</tabstop>
+  <tabstop>readData</tabstop>
+  <tabstop>helpButton</tabstop>
+  <tabstop>tutorialButton</tabstop>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>lightcurvesHelpButton</tabstop>
+  <tabstop>yOffsetStep10radioButton</tabstop>
+  <tabstop>yOffsetStep100radioButton</tabstop>
+  <tabstop>yOffsetStep1000radioButton</tabstop>
+  <tabstop>targetCheckBox_1</tabstop>
+  <tabstop>referenceCheckBox_1</tabstop>
+  <tabstop>showCheckBox_1</tabstop>
+  <tabstop>lightcurveTitle_1</tabstop>
+  <tabstop>yOffsetSpinBox_1</tabstop>
+  <tabstop>xOffsetSpinBox_1</tabstop>
+  <tabstop>targetCheckBox_2</tabstop>
+  <tabstop>referenceCheckBox_2</tabstop>
+  <tabstop>showCheckBox_2</tabstop>
+  <tabstop>lightcurveTitle_2</tabstop>
+  <tabstop>yOffsetSpinBox_2</tabstop>
+  <tabstop>xOffsetSpinBox_2</tabstop>
+  <tabstop>targetCheckBox_3</tabstop>
+  <tabstop>referenceCheckBox_3</tabstop>
+  <tabstop>showCheckBox_3</tabstop>
+  <tabstop>lightcurveTitle_3</tabstop>
+  <tabstop>yOffsetSpinBox_3</tabstop>
+  <tabstop>xOffsetSpinBox_3</tabstop>
+  <tabstop>targetCheckBox_4</tabstop>
+  <tabstop>referenceCheckBox_4</tabstop>
+  <tabstop>showCheckBox_4</tabstop>
+  <tabstop>lightcurveTitle_4</tabstop>
+  <tabstop>yOffsetSpinBox_4</tabstop>
+  <tabstop>xOffsetSpinBox_4</tabstop>
+  <tabstop>targetCheckBox_5</tabstop>
+  <tabstop>referenceCheckBox_5</tabstop>
+  <tabstop>showCheckBox_5</tabstop>
+  <tabstop>lightcurveTitle_5</tabstop>
+  <tabstop>yOffsetSpinBox_5</tabstop>
+  <tabstop>xOffsetSpinBox_5</tabstop>
+  <tabstop>targetCheckBox_6</tabstop>
+  <tabstop>referenceCheckBox_6</tabstop>
+  <tabstop>showCheckBox_6</tabstop>
+  <tabstop>lightcurveTitle_6</tabstop>
+  <tabstop>yOffsetSpinBox_6</tabstop>
+  <tabstop>xOffsetSpinBox_6</tabstop>
+  <tabstop>targetCheckBox_7</tabstop>
+  <tabstop>referenceCheckBox_7</tabstop>
+  <tabstop>showCheckBox_7</tabstop>
+  <tabstop>lightcurveTitle_7</tabstop>
+  <tabstop>yOffsetSpinBox_7</tabstop>
+  <tabstop>xOffsetSpinBox_7</tabstop>
+  <tabstop>targetCheckBox_8</tabstop>
+  <tabstop>referenceCheckBox_8</tabstop>
+  <tabstop>showCheckBox_8</tabstop>
+  <tabstop>lightcurveTitle_8</tabstop>
+  <tabstop>yOffsetSpinBox_8</tabstop>
+  <tabstop>xOffsetSpinBox_8</tabstop>
+  <tabstop>targetCheckBox_9</tabstop>
+  <tabstop>referenceCheckBox_9</tabstop>
+  <tabstop>showCheckBox_9</tabstop>
+  <tabstop>lightcurveTitle_9</tabstop>
+  <tabstop>yOffsetSpinBox_9</tabstop>
+  <tabstop>xOffsetSpinBox_9</tabstop>
+  <tabstop>targetCheckBox_10</tabstop>
+  <tabstop>referenceCheckBox_10</tabstop>
+  <tabstop>showCheckBox_10</tabstop>
+  <tabstop>lightcurveTitle_10</tabstop>
+  <tabstop>yOffsetSpinBox_10</tabstop>
+  <tabstop>xOffsetSpinBox_10</tabstop>
+  <tabstop>smoothingIntervalSpinBox</tabstop>
+  <tabstop>stepBy2radioButton</tabstop>
+  <tabstop>stepBy10radioButton</tabstop>
+  <tabstop>stepBy100radioButton</tabstop>
+  <tabstop>normMarkBaselineRegionButton</tabstop>
+  <tabstop>clearMetricPointsButton</tabstop>
+  <tabstop>minEventEdit</tabstop>
+  <tabstop>maxEventEdit</tabstop>
+  <tabstop>markDzone</tabstop>
+  <tabstop>markRzone</tabstop>
+  <tabstop>markEzone</tabstop>
+  <tabstop>doBlockIntegration</tabstop>
+  <tabstop>acceptBlockIntegration</tabstop>
+  <tabstop>setDataLimits</tabstop>
+  <tabstop>locateEvent</tabstop>
+  <tabstop>calcErrBars</tabstop>
+  <tabstop>fillExcelReportButton</tabstop>
+  <tabstop>cancelButton</tabstop>
+  <tabstop>writePlot</tabstop>
+  <tabstop>writeBarPlots</tabstop>
+  <tabstop>writeCSVButton</tabstop>
+  <tabstop>startOver</tabstop>
+  <tabstop>singlePointDropButton</tabstop>
+  <tabstop>expDurEdit</tabstop>
+  <tabstop>asteroidDistanceUnitsSelector</tabstop>
+  <tabstop>asteroidDistanceEdit</tabstop>
+  <tabstop>shadowSpeedEdit</tabstop>
+  <tabstop>astSizeEdit</tabstop>
+  <tabstop>pathOffsetEdit</tabstop>
+  <tabstop>starDiameterEdit</tabstop>
+  <tabstop>dLimbAngle</tabstop>
+  <tabstop>rLimbAngle</tabstop>
+  <tabstop>demoUnderlyingLighturvesButton</tabstop>
+  <tabstop>enableDiffractionCalculationBox</tabstop>
+  <tabstop>penumbralFitCheckBox</tabstop>
+  <tabstop>redoFindEvent</tabstop>
+  <tabstop>currentEventEdit</tabstop>
+  <tabstop>frameTimeEdit</tabstop>
+  <tabstop>asteroidDiameterKmEdit</tabstop>
+  <tabstop>asteroidDiameterMasEdit</tabstop>
+  <tabstop>asteroidSpeedShadowEdit</tabstop>
+  <tabstop>asteroidSpeedSkyEdit</tabstop>
+  <tabstop>asteroidDistAUedit</tabstop>
+  <tabstop>asteroidDistArcsecEdit</tabstop>
+  <tabstop>wavelengthEdit</tabstop>
+  <tabstop>baselineADUedit</tabstop>
+  <tabstop>baselineADUbutton</tabstop>
+  <tabstop>bottomADUedit</tabstop>
+  <tabstop>bottomADUbutton</tabstop>
+  <tabstop>DdegreesEdit</tabstop>
+  <tabstop>RdegreesEdit</tabstop>
+  <tabstop>chordSizeSecondsEdit</tabstop>
+  <tabstop>chordSizeKmEdit</tabstop>
+  <tabstop>starSizeMasEdit</tabstop>
+  <tabstop>starSizeKmEdit</tabstop>
+  <tabstop>fresnelSizeKmEdit</tabstop>
+  <tabstop>fresnelSizeSecondsEdit</tabstop>
+  <tabstop>helpPdfButton</tabstop>
+  <tabstop>diffractionRadioButton</tabstop>
+  <tabstop>edgeOnDiskRadioButton</tabstop>
+  <tabstop>diskOnDiskRadioButton</tabstop>
+  <tabstop>demoLightcurveButton</tabstop>
+  <tabstop>initiateFitButton</tabstop>
+  <tabstop>askAdviceButton</tabstop>
+  <tabstop>showDiffractionButton</tabstop>
+  <tabstop>fitMetricEdit</tabstop>
+  <tabstop>fitMetricChangeEdit</tabstop>
+  <tabstop>pastEventsComboBox</tabstop>
+  <tabstop>calcFlashEdge</tabstop>
+  <tabstop>manualTimestampCheckBox</tabstop>
+  <tabstop>manualEntryPushButton</tabstop>
+  <tabstop>allowNewVersionPopupCheckbox</tabstop>
+  <tabstop>showTimestampErrors</tabstop>
+  <tabstop>showCameraResponseCheckBox</tabstop>
+  <tabstop>showUnderlyingLightcurveCheckBox</tabstop>
+  <tabstop>showErrBarsCheckBox</tabstop>
+  <tabstop>showEdgesCheckBox</tabstop>
+  <tabstop>showOCRcheckFramesCheckBox</tabstop>
+  <tabstop>showTimestampsCheckBox</tabstop>
+  <tabstop>viewFrameButton</tabstop>
+  <tabstop>frameNumSpinBox</tabstop>
+  <tabstop>fieldViewCheckBox</tabstop>
+  <tabstop>flipYaxisCheckBox</tabstop>
+  <tabstop>flipXaxisCheckBox</tabstop>
+  <tabstop>lineWidthSpinner</tabstop>
+  <tabstop>dotSizeSpinner</tabstop>
+  <tabstop>pymovieDataColumnPrefixComboBox</tabstop>
+  <tabstop>detectabilityHelpButton</tabstop>
+  <tabstop>markBaselineRegionButton</tabstop>
+  <tabstop>clearBaselineRegionsButton</tabstop>
+  <tabstop>calcStatsFromBaselineRegionsButton</tabstop>
+  <tabstop>observationDurEdit</tabstop>
+  <tabstop>eventDurationEdit</tabstop>
+  <tabstop>durStepEdit</tabstop>
+  <tabstop>detectabilityMagDropEdit</tabstop>
+  <tabstop>calcDetectabilityButton</tabstop>
+  <tabstop>writeExampleLightcurveCheckBox</tabstop>
+  <tabstop>ne3ExplanationButton</tabstop>
+  <tabstop>ne3NotInUseRadioButton</tabstop>
+  <tabstop>dnrOffRadioButton</tabstop>
+  <tabstop>dnrLowRadioButton</tabstop>
+  <tabstop>dnrLowDspinBox</tabstop>
+  <tabstop>dnrLowRspinBox</tabstop>
+  <tabstop>dnrMiddleRadioButton</tabstop>
+  <tabstop>dnrMiddleDspinBox</tabstop>
+  <tabstop>dnrMiddleRspinBox</tabstop>
+  <tabstop>dnrHighRadioButton</tabstop>
+  <tabstop>dnrHighDspinBox</tabstop>
+  <tabstop>dnrHighRspinBox</tabstop>
+  <tabstop>targetStarYpositionSpinBox</tabstop>
+  <tabstop>mainPlot</tabstop>
+  <tabstop>table</tabstop>
+  <tabstop>textOut</tabstop>
+  <tabstop>startOverButton</tabstop>
+  <tabstop>saveCurrentEventButton</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

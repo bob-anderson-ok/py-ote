@@ -3,7 +3,7 @@ import matplotlib
 
 matplotlib.use('Qt5Agg')
 import matplotlib.pyplot as plt
-from genDiffraction import generalizedDiffraction
+from genDiffraction import generalizedDiffraction, decide_model_to_use
 import numpy as np
 
 
@@ -146,7 +146,7 @@ def generate_transition_point_time_correction_look_up_tables(
             star_projection_km = np.tan(star_diameter_radians) * distance_to_asteroid_km
             star_projection_time_sec = star_projection_km / \
                 shadow_speed_km_per_sec / sin_degrees(min_limb_angle_degrees)
-            print(f'line 145 frame_time: {frame_time_sec}   star_time: {star_projection_time_sec:0.3f}')
+            print(f'line 149 frame_time: {frame_time_sec}   star_time: {star_projection_time_sec:0.3f}')
 
         time_values = x_avg / shadow_speed_km_per_sec
 
@@ -287,15 +287,16 @@ def get_star_chord_samples(
     distance_to_asteroid_km = distance_to_asteroid_AU * 149.6e6
 
     # print(star_diameter_radians, np.tan(star_diameter_radians), np.sin(star_diameter_radians))
-    star_projection_km = np.tan(star_diameter_radians) * distance_to_asteroid_km
+    star_projection_km = 2 * np.tan(star_diameter_radians / 2) * distance_to_asteroid_km
     star_diameter_sec = star_projection_km / shadow_speed
 
-    n_star_chords = int(star_diameter_sec / time_resolution)
-    print(f'time_resolution: {time_resolution:0.4f}  n_star_chords: {n_star_chords}')
-    n_r_limb_chords = int(n_star_chords / sin_degrees(r_limb_angle_degrees))
-    n_d_limb_chords = int(n_star_chords / sin_degrees(d_limb_angle_degrees))
+    n_star_chords_in_radius = int(star_diameter_sec / 2 / time_resolution)
+    print(f'time_resolution: {time_resolution:0.4f}  n_star_chords: {n_star_chords_in_radius}')
+    n_r_limb_chords_in_radius = int(n_star_chords_in_radius / sin_degrees(r_limb_angle_degrees))
+    n_d_limb_chords_in_radius = int(n_star_chords_in_radius / sin_degrees(d_limb_angle_degrees))
 
-    print(f'n_d_limb_chords: {n_d_limb_chords}  n_r_limb_chords: {n_r_limb_chords}')
+    print(f'n_d_limb_chords_in_radius: {n_d_limb_chords_in_radius}  '
+          f'n_r_limb_chords_in_radius: {n_r_limb_chords_in_radius}')
 
     d_time_resolution = time_resolution * sin_degrees(d_limb_angle_degrees)
     r_time_resolution = time_resolution * sin_degrees(r_limb_angle_degrees)
@@ -306,13 +307,13 @@ def get_star_chord_samples(
     print(f'radius_sec**2: {r2:0.4f}')
 
     d_star_chords = np.zeros(num_points_in_chord_base)
-    d_star_chords_standalone = np.zeros(n_d_limb_chords * 2 + 1)
+    d_star_chords_standalone = np.zeros(n_d_limb_chords_in_radius * 2 + 1)
     normalizer = 0.0
     plot_margin = 20
     j = 0
-    for i in range(-n_d_limb_chords, n_d_limb_chords + 1):
-        chord = 2.0 * np.sqrt(r2 - (i * d_time_resolution / 2) ** 2)
-        if j == 0 or j == n_d_limb_chords * 2:
+    for i in range(-n_d_limb_chords_in_radius, n_d_limb_chords_in_radius + 1):
+        chord = 2.0 * np.sqrt(r2 - (i * d_time_resolution) ** 2)
+        if j == 0 or j == n_d_limb_chords_in_radius * 2:
             chord = 0
         d_star_chords[j + plot_margin] = chord
         d_star_chords_standalone[j] = chord
@@ -323,14 +324,14 @@ def get_star_chord_samples(
     normed_d_chords_standalone = [c / normalizer for c in d_star_chords_standalone]
 
     r_star_chords = np.zeros(num_points_in_chord_base)
-    r_star_chords_standalone = np.zeros(n_r_limb_chords * 2 + 1)
+    r_star_chords_standalone = np.zeros(n_r_limb_chords_in_radius * 2 + 1)
 
     normalizer = 0.0
-    plot_offset = len(r_star_chords) - n_r_limb_chords * 2 - plot_margin
+    plot_offset = len(r_star_chords) - n_r_limb_chords_in_radius * 2 - plot_margin
     j = 0
-    for i in range(-n_r_limb_chords, n_r_limb_chords + 1):
-        chord = 2.0 * np.sqrt(r2 - (i * r_time_resolution / 2) ** 2)
-        if j == 0 or j == n_r_limb_chords * 2:
+    for i in range(-n_r_limb_chords_in_radius, n_r_limb_chords_in_radius + 1):
+        chord = 2.0 * np.sqrt(r2 - (i * r_time_resolution) ** 2)
+        if j == 0 or j == n_r_limb_chords_in_radius * 2:
             chord = 0.0
         r_star_chords[j + plot_offset] = chord
         r_star_chords_standalone[j] = chord
@@ -345,11 +346,16 @@ def get_star_chord_samples(
 
 
 def time_correction(correction_dict, transition_point_intensity, edge_type='D'):
-    if not correction_dict['A'] <= transition_point_intensity <= correction_dict['B']:
-        print('Intensity violation encountered: ', correction_dict['A'], transition_point_intensity,
-              correction_dict['B'])
+
+    # TODO Remove this test code that neuters time_correction()
+    return 0.0
+
+    # if not correction_dict['A'] <= transition_point_intensity <= correction_dict['B']:
+    #     print('Intensity violation encountered: ', correction_dict['A'], transition_point_intensity,
+    #           correction_dict['B'])
     assert edge_type == 'D' or edge_type == 'R'
 
+    intensity_fraction = (transition)
     # We start our search from the middle and work either up or down to find the best matching intensity.
     # We return the negative of the corresponding time_delta as the needed time correction
     middle_intensity = (correction_dict['B'] + correction_dict['A']) / 2
@@ -534,17 +540,25 @@ def demo():
         a_value = 0.0
         skip_central_flash = True  # This speeds up computation when the central flash is not needed
         # frame_time = 0.001 # Will show underlying diffraction curve
-        frame_time = 0.0334
+        frame_time = 0.08
         # frame_time = 0.001
-        star_diam = 0.5  # mas
+        star_diam = 14.2  # mas
         # star_diam = None
-        d_angle = 90
-        r_angle = 45
-        ast_dist = 2.5752  # Felicia
-        ast_diam = 5
+        d_angle = 75
+        r_angle = 90
+        # ast_dist = 2.5752  # Felicia
+        ast_dist = 1.978
+        ast_diam = 45
         centerline_offset = 0.0
-        shadow_speed = 4.55  # Felicia
-        title_addon = '(Felicia 01062020 Watec)  '
+        shadow_speed = 6.49
+
+        decide_model_to_use(asteroid_diameter_km=ast_diam,
+                            asteroid_distance_AU=ast_dist,
+                            star_diameter_mas=star_diam,
+                            shadow_speed=shadow_speed,
+                            frame_time=frame_time)
+
+        title_addon = '(Roma)  '
 
         main_figure, _ = generate_underlying_lightcurve_plots(
             b_value=100.0,

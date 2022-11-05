@@ -3,7 +3,8 @@ Created on Sat May 20 15:32:13 2017
 
 @author: Bob Anderson
 """
-# import pickle
+import pickle
+import glob
 # import math
 import subprocess
 from pathlib import Path
@@ -16,6 +17,11 @@ import sys
 import platform
 
 from openpyxl import load_workbook
+
+from pyoteapp.pyote_modelling_utility_functions import LightcurveParameters
+from pyoteapp.pyote_modelling_utility_functions import decide_model_to_use
+from pyoteapp.pyote_modelling_utility_functions import demo_event
+from pyoteapp.pyote_modelling_utility_functions import demo_diffraction_field
 
 from math import trunc, floor
 import matplotlib.pyplot as plt
@@ -352,6 +358,131 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.smoothingIntervalSpinBox.editingFinished.connect(self.newRedrawMainPlot)
 
+        # Model lightcurves widgets
+
+        self.currentEventLabel.installEventFilter(self)
+        self.currentEventEdit.installEventFilter(self)
+        self.currentEventEdit.editingFinished.connect(self.processNewCurrentEventEdit)
+
+        self.saveCurrentEventButton.installEventFilter(self)
+        self.saveCurrentEventButton.clicked.connect(self.saveCurrentEvent)
+
+        self.startOverButton.installEventFilter(self)
+        self.startOverButton.clicked.connect(self.intializeModelLightcurvesPanel)
+
+        self.pastEventsLabel.installEventFilter(self)
+        self.pastEventsComboBox.installEventFilter(self)
+        self.pastEventsComboBox.activated.connect(self.handlePastEventSelection)
+
+        self.baselineADUlabel.installEventFilter(self)
+        self.baselineADUedit.installEventFilter(self)
+        self.baselineADUbutton.installEventFilter(self)
+        self.baselineADUbutton.clicked.connect(self.modelMarkBaselineRegion)
+        self.calcBaselineADUbutton.clicked.connect(self.calcBaselineADU)
+        self.clearBaselineADUselectionButton.clicked.connect(self.clearBaselineRegions)
+        self.baselineADUedit.editingFinished.connect(self.processModelLightcurveCoreEdit)
+
+        self.bottomADUlabel.installEventFilter(self)
+        self.bottomADUedit.installEventFilter(self)
+        self.bottomADUbutton.installEventFilter(self)
+        self.bottomADUbutton.clicked.connect(self.modelMarkBottomRegion)
+        self.calcBottomADUbutton.clicked.connect(self.calcBottomADU)
+        self.clearBottomADUselectionButton.clicked.connect(self.clearEventRegions)
+        self.bottomADUedit.editingFinished.connect(self.processModelLightcurveCoreEdit)
+
+        self.frameTimeLabel.installEventFilter(self)
+        self.frameTimeEdit.installEventFilter(self)
+        self.frameTimeEdit.editingFinished.connect(self.processModelLightcurveCoreEdit)
+
+        self.asteroidDiameterLabel.installEventFilter(self)
+        self.asteroidDiameterKmLabel.installEventFilter(self)
+        self.asteroidDiameterMasLabel.installEventFilter(self)
+
+        self.asteroidDiameterKmEdit.installEventFilter(self)
+        self.asteroidDiameterKmEdit.editingFinished.connect(self.processModelLightcurveCoreEdit)
+        self.asteroidDiameterMasEdit.installEventFilter(self)
+        self.asteroidDiameterMasEdit.editingFinished.connect(self.processModelLightcurveCoreEdit)
+
+        self.asteroidSpeedLabel.installEventFilter(self)
+        self.asteroidSpeedShadowEdit.installEventFilter(self)
+        self.asteroidSpeedShadowLabel.installEventFilter(self)
+        self.asteroidSpeedSkyEdit.installEventFilter(self)
+        self.asteroidSpeedSkyLabel.installEventFilter(self)
+        self.asteroidSpeedShadowEdit.editingFinished.connect(self.processModelLightcurveCoreEdit)
+        self.asteroidSpeedSkyEdit.editingFinished.connect(self.processModelLightcurveCoreEdit)
+
+        self.asteroidDistLabel.installEventFilter(self)
+        self.asteroidDistAUedit.installEventFilter(self)
+        self.asteroidDistAUlabel.installEventFilter(self)
+        self.asteroidDistArcsecEdit.installEventFilter(self)
+        self.asteroidDistArcsecLabel.installEventFilter(self)
+        self.asteroidDistAUedit.editingFinished.connect(self.processModelLightcurveCoreEdit)
+        self.asteroidDistArcsecEdit.editingFinished.connect(self.processModelLightcurveCoreEdit)
+
+        self.wavelengthLabel.installEventFilter(self)
+        self.wavelengthEdit.installEventFilter(self)
+        self.wavelengthEdit.editingFinished.connect(self.processModelLightcurveCoreEdit)
+
+        self.limbAnglesLabel.installEventFilter(self)
+        self.DdegreesEdit.installEventFilter(self)
+        self.DdegreesEdit.editingFinished.connect(self.processModelLightcurveEdit)
+        self.DdegreesLabel.installEventFilter(self)
+
+        self.RdegreesEdit.installEventFilter(self)
+        self.RdegreesEdit.editingFinished.connect(self.processModelLightcurveEdit)
+        self.RdegreesLabel.installEventFilter(self)
+
+        self.fresnelSizeLabel.installEventFilter(self)
+        self.fresnelSizeKmEdit.installEventFilter(self)
+        self.fresnelSizeKmLabel.installEventFilter(self)
+        self.fresnelSizeSecondsEdit.installEventFilter(self)
+        self.fresnelSizeSecondsLabel.installEventFilter(self)
+
+        self.starSizeLabel.installEventFilter(self)
+        self.starSizeMasEdit.installEventFilter(self)
+        self.starSizeMasEdit.editingFinished.connect(self.processStarSizeMasChange)
+        self.starSizeMasLabel.installEventFilter(self)
+
+        self.chordSizeLabel.installEventFilter(self)
+        self.chordSizeSecondsLabel.installEventFilter(self)
+        self.chordSizeKmEdit.installEventFilter(self)
+        self.chordSizeKmEdit.editingFinished.connect(self.processChordSizeKmChange)
+        self.chordSizeSecondsEdit.editingFinished.connect(self.processChordSizeSecondsChange)
+
+        self.starSizeKmEdit.installEventFilter(self)
+        self.starSizeKmEdit.editingFinished.connect(self.processStarSizeKmChange)
+        self.starSizeKmLabel.installEventFilter(self)
+
+        self.modelToUseLabel.installEventFilter(self)
+        self.diffractionRadioButton.installEventFilter(self)
+        self.diffractionRadioButton.clicked.connect(self.handleModelSelectionRadioButtonClick)
+
+        self.edgeOnDiskRadioButton.installEventFilter(self)
+        self.edgeOnDiskRadioButton.clicked.connect(self.handleModelSelectionRadioButtonClick)
+
+        self.diskOnDiskRadioButton.installEventFilter(self)
+        self.diskOnDiskRadioButton.clicked.connect(self.handleModelSelectionRadioButtonClick)
+
+        self.demoLightcurveButton.installEventFilter(self)
+        self.initiateFitButton.installEventFilter(self)
+        self.askAdviceButton.installEventFilter(self)
+        self.showDiffractionButton.installEventFilter(self)
+
+        self.askAdviceButton.clicked.connect(self.showModelChoiceAdvice)
+        self.demoLightcurveButton.clicked.connect(self.demoModelLightcurve)
+        self.showDiffractionButton.clicked.connect(self.plotDiffractionPatternOnGround)
+
+        self.versusTimeCheckBox.installEventFilter(self)
+        self.showAnnotationsCheckBox.installEventFilter(self)
+        self.showLegendsCheckBox.installEventFilter(self)
+
+        self.fitMetricEdit.installEventFilter(self)
+        self.fitMetricLabel.installEventFilter(self)
+        self.fitMetricChangeEdit.installEventFilter(self)
+
+        self.helpPdfButton.installEventFilter(self)
+
+        # TODO remove the next four lines when Diffraction tab is removed
         self.asteroidDistanceUnitsSelector.addItem('parallax')
         self.asteroidDistanceUnitsSelector.addItem('AU')
         self.asteroidDistanceUnitsSelector.setCurrentIndex(0)
@@ -659,6 +790,15 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.lineWidthSpinner.setValue(int(lineWidth))
         self.dotSizeSpinner.setValue(int(dotSize))
 
+        versusTime = self.settings.value('versusTime', 'true')
+        self.versusTimeCheckBox.setChecked(versusTime == 'true')
+
+        showLegend = self.settings.value('showLegend', 'true')
+        self.showLegendsCheckBox.setChecked(showLegend == 'true')
+
+        showNotes = self.settings.value('showNotes', 'true')
+        self.showAnnotationsCheckBox.setChecked(showNotes == 'true')
+
         allowNewVersionPopup = self.settings.value('allowNewVersionPopup', 'true')
         if allowNewVersionPopup == 'true':
             self.allowNewVersionPopupCheckbox.setChecked(True)
@@ -783,6 +923,552 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         # self.firstEvent = True
         if self.allowNewVersionPopupCheckbox.isChecked():
             self.showHelp(self.allowNewVersionPopupCheckbox)
+
+        self.Lcp: LightcurveParameters = None
+
+        self.newEventDataBeingEntered = False
+
+        self.intializeModelLightcurvesPanel()
+
+    def modelMarkBaselineRegion(self):
+        self.baselineADUedit.clear()
+        self.markBaselineRegion()
+
+    def modelMarkBottomRegion(self):
+        self.bottomADUedit.clear()
+        self.markEventRegion()
+
+    def calcBaselineADU(self):
+        if self.baselinePointsMarked():
+            self.calcBaselineStatisticsFromMarkedRegions()
+            if self.B is not None:
+                self.baselineADUedit.setText(f'{self.B:0.1f}')
+        else:
+            self.showInfo('Less than 3 baseline points are selected.')
+
+    def calcBottomADU(self):
+        if self.eventPointsMarked():
+            self.calcEventStatisticsFromMarkedRegion()
+            if self.A is not None:
+                self.bottomADUedit.setText(f'{self.A:0.1f}')
+        else:
+            self.showInfo('Less than 3 bottom points are selected.')
+
+    def processChordSizeKmChange(self):
+        try:
+            newValue = float(self.chordSizeKmEdit.text())
+        except ValueError as e:
+            self.showInfo(f'{e}')
+            return
+        try:
+            self.chordSizeSecondsEdit.clear()
+            self.Lcp.set('chord_length_sec', None)
+            self.Lcp.set('chord_length_km', newValue)
+            self.chordSizeSecondsEdit.setText(f'{self.Lcp.chord_length_sec:0.5f}')
+        except ValueError as e:
+            self.showInfo(f'{e}')
+            return
+
+    def processChordSizeSecondsChange(self):
+        try:
+            newValue = float(self.chordSizeSecondsEdit.text())
+        except ValueError as e:
+            self.showInfo(f'{e}')
+            return
+        try:
+            self.chordSizeKmEdit.clear()
+            self.Lcp.set('chord_length_km', None)
+            self.Lcp.set('chord_length_sec', newValue)
+            self.chordSizeKmEdit.setText(f'{self.Lcp.chord_length_km:0.5f}')
+        except ValueError as e:
+            self.showInfo(f'{e}')
+            return
+
+    def processStarSizeMasChange(self):
+        try:
+            newValue = float(self.starSizeMasEdit.text())
+        except ValueError as e:
+            self.showInfo(f'{e}')
+            return
+        try:
+            self.starSizeKmEdit.clear()
+            self.Lcp.set('star_diameter_km', None)
+            self.Lcp.set('star_diameter_mas', newValue)
+            self.starSizeKmEdit.setText(f'{self.Lcp.star_diameter_km:0.5f}')
+        except ValueError as e:
+            self.showInfo(f'{e}')
+            return
+
+    def processStarSizeKmChange(self):
+        try:
+            newValue = float(self.starSizeKmEdit.text())
+        except ValueError as e:
+            self.showInfo(f'{e}')
+            return
+        try:
+            self.starSizeMasEdit.clear()
+            self.Lcp.set('star_diameter_mas', None)
+            self.Lcp.set('star_diameter_km', newValue)
+            self.starSizeMasEdit.setText(f'{self.Lcp.star_diameter_mas:0.5f}')
+        except ValueError as e:
+            self.showInfo(f'{e}')
+            return
+
+    def showModelChoiceAdvice(self):
+        self.showInfo(decide_model_to_use(self.Lcp))
+
+    def plotDiffractionPatternOnGround(self):
+        self.showDiffractionButton.setText('... computation in progress')
+        QtWidgets.QApplication.processEvents()
+        demo_diffraction_field(self.Lcp, title_adder=self.currentEventEdit.text())
+        self.showDiffractionButton.setText('Show diffraction pattern on the ground')
+
+    def demoModelLightcurve(self):
+        showLegend = self.showLegendsCheckBox.isChecked()
+        showNotes = self.showAnnotationsCheckBox.isChecked()
+        versusTime = self.versusTimeCheckBox.isChecked()
+
+        if self.diffractionRadioButton.isChecked():
+            self.demoLightcurveButton.setText('... computation in progress')
+            QtWidgets.QApplication.processEvents()
+
+            demo_event(LCP=self.Lcp, model='diffraction', showLegend=showLegend,
+                       title=self.currentEventEdit.text(),
+                       showNotes=showNotes, plot_versus_time=versusTime)
+            self.demoLightcurveButton.setText('Demo the lightcurve')
+
+            return
+
+        if self.edgeOnDiskRadioButton.isChecked():
+            demo_event(LCP=self.Lcp, model='edge-on-disk',
+                       title=self.currentEventEdit.text(),
+                       showLegend=showLegend, showNotes=showNotes, plot_versus_time=versusTime)
+            return
+
+        if self.diskOnDiskRadioButton.isChecked():
+            demo_event(LCP=self.Lcp, model='disk-on-disk',
+                       title=self.currentEventEdit.text(),
+                       showLegend=showLegend, showNotes=showNotes, plot_versus_time=versusTime)
+            return
+
+    def handleModelSelectionRadioButtonClick(self):
+        self.showDiffractionButton.setEnabled(self.diffractionRadioButton.isChecked())
+
+    def fillLightcurvePanelEditBoxes(self):
+        self.frameTimeEdit.setText(f'{self.Lcp.frame_time:0.5f}')
+
+        self.asteroidDiameterKmEdit.setText(f'{self.Lcp.asteroid_diameter_km:0.5f}')
+        self.asteroidDiameterMasEdit.setText(f'{self.Lcp.asteroid_diameter_mas:0.5f}')
+
+        self.asteroidSpeedShadowEdit.setText(f'{self.Lcp.shadow_speed:0.5f}')
+        self.asteroidSpeedSkyEdit.setText(f'{self.Lcp.sky_motion_mas_per_sec:0.5f}')
+
+        self.asteroidDistAUedit.setText(f'{self.Lcp.asteroid_distance_AU:0.5f}')
+        self.asteroidDistArcsecEdit.setText(f'{self.Lcp.asteroid_distance_arcsec:0.5f}')
+
+        self.wavelengthEdit.setText(f'{self.Lcp.wavelength_nm}')
+
+        self.baselineADUedit.setText(f'{self.Lcp.baseline_ADU:0.1f}')
+        self.bottomADUedit.setText(f'{self.Lcp.bottom_ADU:0.1f}')
+
+        self.DdegreesEdit.setText(f'{self.Lcp.D_limb_angle_degrees}')
+        self.RdegreesEdit.setText(f'{self.Lcp.R_limb_angle_degrees}')
+
+        self.chordSizeSecondsEdit.setText(f'{self.Lcp.chord_length_sec:0.5f}')
+        self.chordSizeKmEdit.setText(f'{self.Lcp.chord_length_km:0.5f}')
+
+        self.starSizeMasEdit.setText(f'{self.Lcp.star_diameter_mas:0.5}')
+        self.starSizeKmEdit.setText(f'{self.Lcp.star_diameter_km:0.5f}')
+
+        self.fresnelSizeKmEdit.setText(f'{self.Lcp.fresnel_length_km:0.5f}')
+        self.fresnelSizeSecondsEdit.setText(f'{self.Lcp.fresnel_length_sec:0.5f}')
+
+        self.disablePrimaryEntryEditBoxes()
+
+        self.baselineADUedit.setEnabled(True)
+        self.bottomADUedit.setEnabled(True)
+        self.baselineADUbutton.setEnabled(True)
+        self.clearBaselineADUselectionButton.setEnabled(True)
+
+        self.calcBaselineADUbutton.setEnabled(True)
+        self.bottomADUbutton.setEnabled(True)
+        self.calcBottomADUbutton.setEnabled(True)
+        self.clearBottomADUselectionButton.setEnabled(True)
+
+    def handlePastEventSelection(self):
+        file_selected = self.pastEventsComboBox.currentText()
+        # self.showInfo(f'A past event named {file_selected} has been selected')
+        full_name = f'LCP_{file_selected}.p'
+        try:
+            pickle_file = open(full_name, "rb")
+            lcp_item = pickle.load(pickle_file)
+            self.Lcp = lcp_item
+            self.fillLightcurvePanelEditBoxes()
+            self.enableLightcurveButtons()
+            self.currentEventEdit.setText(file_selected)
+        except FileNotFoundError:
+            self.showInfo(f'{full_name} could not be found.')
+
+    def saveCurrentEvent(self):
+        if self.Lcp is None:
+            self.showInfo('There is no event data to save')
+            return
+
+        if self.currentEventEdit.text() == '':
+            self.showInfo('An event name is required before a "save" can be performed')
+            return
+
+        if self.Lcp.check_for_none():
+            self.showInfo('One or more event parameters remain to be set!')
+            return
+
+        # We overwrite without warning an event file woth the same name
+        filename = f'LCP_{self.currentEventEdit.text()}.p'
+        pickle.dump(self.Lcp, open(filename, 'wb'))
+        self.showInfo(f'The current event data was written to '
+                      f'\n\n{filename}\n\n'
+                      f'in your current working directory.')
+
+    def processNewCurrentEventEdit(self):
+        self.newEventDataBeingEntered = True
+
+        self.baselineADUedit.setEnabled(True)
+        self.baselineADUbutton.setEnabled(True)
+        self.calcBaselineADUbutton.setEnabled(True)
+
+        self.bottomADUedit.setEnabled(True)
+        self.bottomADUbutton.setEnabled(True)
+        self.calcBottomADUbutton.setEnabled(True)
+
+        self.frameTimeEdit.setEnabled(True)
+
+        self.asteroidDiameterKmEdit.setEnabled(True)
+        self.asteroidDiameterMasEdit.setEnabled(True)
+
+        self.asteroidSpeedShadowEdit.setEnabled(True)
+        self.asteroidSpeedSkyEdit.setEnabled(True)
+
+        self.asteroidDistAUedit.setEnabled(True)
+        self.asteroidDistArcsecEdit.setEnabled(True)
+
+        self.wavelengthEdit.setEnabled(True)
+
+    def processModelLightcurveEdit(self):
+        try:
+            empty = ''
+            if not self.DdegreesEdit.text() == empty:
+                self.Lcp.set('D_limb_angle_degrees', float(self.DdegreesEdit.text()))
+            if not self.RdegreesEdit.text() == empty:
+                self.Lcp.set('R_limb_angle_degrees', float(self.RdegreesEdit.text()))
+
+            if not self.chordSizeSecondsEdit.text() == empty and self.chordSizeSecondsEdit.isEnabled():
+                self.Lcp.set('chord_length_km', None)
+                self.Lcp.set('chord_length_sec', float(self.chordSizeSecondsEdit.text()))
+                self.chordSizeKmEdit.setText(f'{self.Lcp.chord_length_km:0.5f}')
+                self.chordSizeKmEdit.setEnabled(False)
+            elif not self.chordSizeKmEdit.text() == empty and self.chordSizeKmEdit.isEnabled():
+                self.Lcp.set('chord_length_sec', None)
+                self.Lcp.set('chord_length_km', float(self.chordSizeKmEdit.text()))
+                self.chordSizeSecondsEdit.setText(f'{self.Lcp.chord_length_sec:0.5f}')
+                self.chordSizeSecondsEdit.setEnabled(False)
+
+            if not self.starSizeMasEdit.text() == empty and self.starSizeMasEdit.isEnabled():
+                self.Lcp.set('star_diameter_km', None)
+                self.Lcp.set('star_diameter_mas', float(self.starSizeMasEdit.text()))
+                self.starSizeKmEdit.setText(f'{self.Lcp.star_diameter_km:0.5f}')
+                self.starSizeKmEdit.setEnabled(False)
+            elif not self.starSizeKmEdit.text() == empty and self.starSizeKmEdit.isEnabled():
+                self.Lcp.set('star_diameter_mas', None)
+                self.Lcp.set('star_diameter_km', float(self.starSizeKmEdit.text()))
+                self.starSizeMasEdit.setText(f'{self.Lcp.star_diameter_mas:0.5f}')
+                self.starSizeMasEdit.setEnabled(False)
+
+            if not self.Lcp.check_for_none():
+                self.enableLightcurveButtons()
+
+        except ValueError as e:  # noqc
+            self.showInfo(f'{e}')
+
+    def processModelLightcurveCoreEdit(self):
+        try:
+            empty = ''
+            baselineAduEntered = not self.baselineADUedit.text() == empty
+            bottomAduEntered = not self.bottomADUedit.text() == empty
+            frameTimeEntered = not self.frameTimeEdit.text() == empty
+
+            if self.Lcp is not None:
+                # self.showInfo('An update to ADU levels has been entered.')
+                if baselineAduEntered and bottomAduEntered and frameTimeEntered:
+                    self.Lcp.set('baseline_ADU', float(self.baselineADUedit.text()))
+                    self.Lcp.set('bottom_ADU', float(self.bottomADUedit.text()))
+                    self.Lcp.set('frame_time', float(self.frameTimeEdit.text()))
+                    # self.showInfo('An update to changeable LCP values has been entered.')
+                    return
+                else:
+                    self.showInfo('There must be a value provided for baseline, bottom, and frame_time!')
+                    return
+
+            frameTimeEntered = not self.frameTimeEdit.text() == empty
+            try:
+                _ = float(self.frameTimeEdit.text())
+            except ValueError as e:
+                self.showInfo(f'{e}')
+                return
+
+            asteroidDiameterKmEntered = not self.asteroidDiameterKmEdit.text() == empty
+            if asteroidDiameterKmEntered:
+                try:
+                    _ = float(self.asteroidDiameterKmEdit.text())
+                except ValueError as e:
+                    self.showInfo(f'{e}')
+                    return
+                self.asteroidDiameterMasEdit.setEnabled(False)
+
+            asteroidDiameterMasEntered = not self.asteroidDiameterMasEdit.text() == empty
+            if asteroidDiameterMasEntered:
+                try:
+                    _ = float(self.asteroidDiameterMasEdit.text())
+                except ValueError as e:
+                    self.showInfo(f'{e}')
+                    return
+                self.asteroidDiameterKmEdit.setEnabled(False)
+
+            asteroidShadowSpeedEntered = not self.asteroidSpeedShadowEdit.text() == empty
+            if asteroidShadowSpeedEntered:
+                try:
+                    _ = float(self.asteroidSpeedShadowEdit.text())
+                except ValueError as e:
+                    self.showInfo(f'{e}')
+                    return
+                self.asteroidSpeedSkyEdit.setEnabled(False)
+
+            asteroidSkySpeedEntered = not self.asteroidSpeedSkyEdit.text() == empty
+            if asteroidSkySpeedEntered:
+                try:
+                    _ = float(self.asteroidSpeedSkyEdit.text())
+                except ValueError as e:
+                    self.showInfo(f'{e}')
+                    return
+                self.asteroidSpeedShadowEdit.setEnabled(False)
+
+            asteroidDistAUentered = not self.asteroidDistAUedit.text() == empty
+            if asteroidDistAUentered:
+                try:
+                    _ = float(self.asteroidDistAUedit.text())
+                except ValueError as e:
+                    self.showInfo(f'{e}')
+                    return
+                self.asteroidDistArcsecEdit.setEnabled(False)
+
+            asteroidDistArcsecEntered = not self.asteroidDistArcsecEdit.text() == empty
+            if asteroidDistArcsecEntered:
+                try:
+                    _ = float(self.asteroidDistArcsecEdit.text())
+                except ValueError as e:
+                    self.showInfo(f'{e}')
+                    return
+                self.asteroidDistAUedit.setEnabled(False)
+
+            wavelengthEntered = not self.wavelengthEdit.text() == empty
+            if wavelengthEntered:
+                try:
+                    _ = int(self.wavelengthEdit.text())
+                except ValueError as e:
+                    self.showInfo(f'{e}')
+                    return
+
+            allCoreElementsEntered = frameTimeEntered
+            allCoreElementsEntered = allCoreElementsEntered and wavelengthEntered
+            allCoreElementsEntered = allCoreElementsEntered and (asteroidShadowSpeedEntered or asteroidSkySpeedEntered)
+            allCoreElementsEntered = allCoreElementsEntered and (asteroidDistAUentered or asteroidDistArcsecEntered)
+            allCoreElementsEntered = allCoreElementsEntered and (asteroidDiameterMasEntered or asteroidDiameterKmEntered)
+
+            if not allCoreElementsEntered:
+                return
+                # self.showInfo('All core elements in the Model lightcurve panel have been entered')
+
+            baselineADU = self.baselineADUedit.text()
+            if baselineADU == empty:
+                baselineADU = 100.0
+                self.baselineADUedit.setText('100.0')
+            else:
+                baselineADU = float(baselineADU)
+
+            bottomADU = self.bottomADUedit.text()
+            if bottomADU == empty:
+                bottomADU = 0.0
+                self.bottomADUedit.setText('0.0')
+            else:
+                bottomADU = float(bottomADU)
+
+            if asteroidShadowSpeedEntered:
+                self.Lcp = LightcurveParameters(
+                    baseline_ADU=baselineADU,
+                    bottom_ADU=bottomADU,
+                    frame_time=float(self.frameTimeEdit.text()),
+                    wavelength_nm=int(self.wavelengthEdit.text()),
+                    shadow_speed=float(self.asteroidSpeedShadowEdit.text()),
+                    sky_motion_mas_per_sec=None
+                )
+
+                if asteroidDistAUentered:
+                    self.Lcp.set('asteroid_distance_AU', float(self.asteroidDistAUedit.text()))
+                    self.asteroidDistArcsecEdit.setText(f'{self.Lcp.asteroid_distance_arcsec:0.5f}')
+                else:
+                    self.Lcp.set('asteroid_distance_arcsec', float(self.asteroidDistArcsecEdit.text()))
+                    self.asteroidDistAUedit.setText(f'{self.Lcp.asteroid_distance_AU:0.5f}')
+
+                if asteroidDiameterKmEntered:
+                    self.Lcp.set('asteroid_diameter_km', float(self.asteroidDiameterKmEdit.text()))
+                    self.asteroidDiameterMasEdit.setText(f'{self.Lcp.asteroid_diameter_mas:0.5f}')
+                else:
+                    self.Lcp.set('asteroid_diameter_mas', float(self.asteroidDiameterMasEdit.text()))
+                    self.asteroidDiameterKmEdit.setText(f'{self.Lcp.asteroid_diameter_km:0.5f}')
+
+                self.asteroidSpeedSkyEdit.setText(f'{self.Lcp.sky_motion_mas_per_sec:0.5f}')
+
+            else:
+                self.Lcp = LightcurveParameters(
+                    baseline_ADU=baselineADU,
+                    bottom_ADU=bottomADU,
+                    frame_time=float(self.frameTimeEdit.text()),
+                    wavelength_nm=int(self.wavelengthEdit.text()),
+                    shadow_speed=None,
+                    sky_motion_mas_per_sec=float(self.asteroidSpeedSkyEdit.text())
+                )
+
+                if asteroidDistAUentered:
+                    self.Lcp.set('asteroid_distance_AU', float(self.asteroidDistAUedit.text()))
+                    self.asteroidDistArcsecEdit.setText(f'{self.Lcp.asteroid_distance_arcsec:0.5f}')
+                else:
+                    self.Lcp.set('asteroid_distance_arcsec', float(self.asteroidDistArcsecEdit.text()))
+                    self.asteroidDistAUedit.setText(f'{self.Lcp.asteroid_distance_AU:0.5f}')
+
+                if asteroidDiameterKmEntered:
+                    self.Lcp.set('asteroid_diameter_km', float(self.asteroidDiameterKmEdit.text()))
+                    self.asteroidDiameterMasEdit.setText(f'{self.Lcp.asteroid_diameter_mas:0.5f}')
+                else:
+                    self.Lcp.set('asteroid_diameter_mas', float(self.asteroidDiameterMasEdit.text()))
+                    self.asteroidDiameterKmEdit.setText(f'{self.Lcp.asteroid_diameter_km:0.5f}')
+
+                self.asteroidSpeedShadowEdit.setText(f'{self.Lcp.shadow_speed:0.5f}')
+
+            self.disablePrimaryEntryEditBoxes()
+
+            self.fresnelSizeKmEdit.setText(f'{self.Lcp.fresnel_length_km:0.5f}')
+            self.fresnelSizeSecondsEdit.setText(f'{self.Lcp.fresnel_length_sec:0.5f}')
+
+        except ValueError as e:  # noqc
+            self.showInfo(f'{e}')
+
+    def enableSecondaryEditBoxes(self):
+        self.DdegreesEdit.setEnabled(True)
+        self.RdegreesEdit.setEnabled(True)
+        self.chordSizeKmEdit.setEnabled(True)
+        self.chordSizeSecondsEdit.setEnabled(True)
+        self.starSizeMasEdit.setEnabled(True)
+        self.starSizeKmEdit.setEnabled(True)
+
+    def disablePrimaryEntryEditBoxes(self):
+        self.asteroidDiameterKmEdit.setEnabled(False)
+        self.asteroidDiameterMasEdit.setEnabled(False)
+        self.asteroidSpeedShadowEdit.setEnabled(False)
+        self.asteroidSpeedSkyEdit.setEnabled(False)
+        self.asteroidDistAUedit.setEnabled(False)
+        self.asteroidDistArcsecEdit.setEnabled(False)
+        self.wavelengthEdit.setEnabled(False)
+
+        self.enableSecondaryEditBoxes()
+
+    def fillPastEventsComboBox(self):
+        # TODO Fill this from pickled past event files of the form LCP_*.p
+        file_list = glob.glob(f'LCP_*.p')
+        for filename in file_list:
+            clean_name = filename[4:-2]
+            self.pastEventsComboBox.addItem(clean_name)
+
+    def intializeModelLightcurvesPanel(self):
+
+        self.Lcp = None
+
+        self.currentEventEdit.clear()
+        self.currentEventEdit.setEnabled(True)
+
+        self.pastEventsComboBox.clear()
+        self.fillPastEventsComboBox()
+
+        self.baselineADUedit.setEnabled(False)
+        self.baselineADUedit.clear()
+        self.baselineADUbutton.setEnabled(False)
+        self.calcBaselineADUbutton.setEnabled(False)
+        self.clearBaselineADUselectionButton.setEnabled(False)
+
+        self.bottomADUedit.setEnabled(False)
+        self.bottomADUedit.clear()
+        self.bottomADUbutton.setEnabled(False)
+        self.calcBottomADUbutton.setEnabled(False)
+        self.clearBottomADUselectionButton.setEnabled(False)
+
+        self.frameTimeEdit.setEnabled(False)
+        self.frameTimeEdit.clear()
+
+        self.asteroidDiameterKmEdit.setEnabled(False)
+        self.asteroidDiameterKmEdit.clear()
+
+        self.asteroidDiameterMasEdit.setEnabled(False)
+        self.asteroidDiameterMasEdit.clear()
+
+        self.asteroidSpeedShadowEdit.setEnabled(False)
+        self.asteroidSpeedShadowEdit.clear()
+        self.asteroidSpeedSkyEdit.setEnabled(False)
+        self.asteroidSpeedSkyEdit.clear()
+
+        self.asteroidDistAUedit.setEnabled(False)
+        self.asteroidDistAUedit.clear()
+        self.asteroidDistArcsecEdit.setEnabled(False)
+        self.asteroidDistArcsecEdit.clear()
+
+        self.wavelengthEdit.setEnabled(False)
+        self.wavelengthEdit.clear()
+
+        self.DdegreesEdit.setEnabled(False)
+        self.DdegreesEdit.clear()
+        self.RdegreesEdit.setEnabled(False)
+        self.RdegreesEdit.clear()
+
+        self.chordSizeSecondsEdit.setEnabled(False)
+        self.chordSizeSecondsEdit.clear()
+        self.chordSizeKmEdit.setEnabled(False)
+        self.chordSizeKmEdit.clear()
+
+        self.fresnelSizeKmEdit.clear()
+        self.fresnelSizeKmEdit.setEnabled(False)
+        self.fresnelSizeSecondsEdit.clear()
+        self.fresnelSizeSecondsEdit.setEnabled(False)
+
+        self.starSizeMasEdit.setEnabled(False)
+        self.starSizeMasEdit.clear()
+        self.starSizeKmEdit.setEnabled(False)
+        self.starSizeKmEdit.clear()
+
+        self.demoLightcurveButton.setEnabled(False)
+        self.initiateFitButton.setEnabled(False)
+        self.askAdviceButton.setEnabled(False)
+        self.showDiffractionButton.setEnabled(False)
+
+        self.diffractionRadioButton.setEnabled(False)
+        self.edgeOnDiskRadioButton.setEnabled(False)
+        self.diskOnDiskRadioButton.setEnabled(False)
+
+    def enableLightcurveButtons(self):
+        self.diffractionRadioButton.setEnabled(True)
+        self.edgeOnDiskRadioButton.setEnabled(True)
+        self.diskOnDiskRadioButton.setEnabled(True)
+
+        self.demoLightcurveButton.setEnabled(True)
+        self.initiateFitButton.setEnabled(True)
+        self.askAdviceButton.setEnabled(True)
+        self.showDiffractionButton.setEnabled(self.diffractionRadioButton.isChecked())
 
     def handlePenumbralFitCheckBox(self):
         if self.penumbralFitCheckBox.isChecked():
@@ -1063,6 +1749,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.yStatus[i] = INCLUDED
         self.newRedrawMainPlot()
 
+    def clearEventRegions(self):
+        x = [i for i in range(self.dataLen) if self.yStatus[i] == EVENT]
+        for i in x:
+            self.yStatus[i] = INCLUDED
+        self.newRedrawMainPlot()
+
     def markEventRegion(self):
         if len(self.selectedPoints) == 0:
             x = [i for i in range(self.dataLen) if self.yStatus[i] == EVENT]
@@ -1127,6 +1819,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.showMsg('Background region selected: ' + str([leftEdge, rightEdge]))
         self.newRedrawMainPlot()
+
+    def eventPointsMarked(self):
+        y = [self.yValues[i] for i in range(self.dataLen) if self.yStatus[i] == EVENT]
+        return len(y) > 2
+
+    def baselinePointsMarked(self):
+        y = [self.yValues[i] for i in range(self.dataLen) if self.yStatus[i] == BASELINE]
+        return len(y) > 2
 
     def calcEventStatisticsFromMarkedRegion(self):
         y = [self.yValues[i] for i in range(self.dataLen) if self.yStatus[i] == EVENT]
@@ -1498,17 +2198,15 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         except Exception:
             pass
 
-        # print(f'line 1501 baseline: {baseline}')
-        # print(f'line 1502 event: {event}')
-
         if baseline is None:
             baseline = 100.0
 
         if event is None:
             event = 0.0
 
-        self.d_underlying_lightcurve, self.r_underlying_lightcurve, ans = generate_underlying_lightcurve_plots(
-            diff_table_path=diff_table_path,
+        # self.d_underlying_lightcurve, self.r_underlying_lightcurve, ans = generate_underlying_lightcurve_plots(
+        _, ans = generate_underlying_lightcurve_plots(
+            # diff_table_path=diff_table_path,
             b_value=baseline,
             a_value=event,
             frame_time=frame_time,
@@ -1519,15 +2217,15 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             star_diam=ans['star_diam'],
             d_angle=ans['d_angle'],
             r_angle=ans['r_angle'],
-            suppress_diffraction=not self.enableDiffractionCalculationBox.isChecked(),
+            # suppress_diffraction=not self.enableDiffractionCalculationBox.isChecked(),
             title_addon=''
         )
-        if plots_wanted:
-            self.d_underlying_lightcurve.show()
-            self.r_underlying_lightcurve.show()
-        else:
-            matplotlib.pyplot.close(self.d_underlying_lightcurve)
-            matplotlib.pyplot.close(self.r_underlying_lightcurve)
+        # if plots_wanted:
+        #     self.d_underlying_lightcurve.show()
+        #     self.r_underlying_lightcurve.show()
+        # else:
+        #     matplotlib.pyplot.close(self.d_underlying_lightcurve)
+        #     matplotlib.pyplot.close(self.r_underlying_lightcurve)
 
         return ans
 
@@ -2986,6 +3684,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
     def closeEvent(self, event):
         # Open (or create) file for holding 'sticky' stuff
         self.settings = QSettings('pyote.ini', QSettings.IniFormat)
+
+        self.settings.setValue('versusTime', self.versusTimeCheckBox.isChecked())
+        self.settings.setValue('showLegend', self.showLegendsCheckBox.isChecked())
+        self.settings.setValue('showNotes', self.showAnnotationsCheckBox.isChecked())
 
         self.settings.setValue('allowNewVersionPopup', self.allowNewVersionPopupCheckbox.isChecked())
 
@@ -4767,24 +5469,28 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         return
 
     def rEdgeCorrected(self, r_best_value, r_best_value_index):
-        r_time_corr = time_correction(correction_dict=self.underlyingLightcurveAns,
-                                      transition_point_intensity=r_best_value, edge_type='R')
-        if r_time_corr is not None:
-            r_delta = r_time_corr / self.timeDelta
-            r_adj = r_best_value_index + r_delta
-            return r_adj
-        else:
-            return None
+        # r_time_corr = time_correction(correction_dict=self.underlyingLightcurveAns,
+        #                               transition_point_intensity=r_best_value, edge_type='R')
+        r_delta = (r_best_value - self.A) / (self.B - self.A)
+        return r_best_value_index - r_delta
+        # if r_time_corr is not None:
+        #     r_delta = r_time_corr / self.timeDelta
+        #     r_adj = r_best_value_index + r_delta
+        #     return r_adj
+        # else:
+        #     return None
 
     def dEdgeCorrected(self, d_best_value, d_best_value_index):
-        d_time_corr = time_correction(correction_dict=self.underlyingLightcurveAns,
-                                      transition_point_intensity=d_best_value, edge_type='D')
-        if d_time_corr is not None:
-            d_delta = d_time_corr / self.timeDelta
-            d_adj = d_best_value_index + d_delta
-            return d_adj
-        else:
-            return None
+        # d_time_corr = time_correction(correction_dict=self.underlyingLightcurveAns,
+        #                               transition_point_intensity=d_best_value, edge_type='D')
+        d_delta = (d_best_value - self.A) / (self.B - self.a)
+        return d_best_value_index - d_delta
+        # if d_time_corr is not None:
+        #     d_delta = d_time_corr / self.timeDelta
+        #     d_adj = d_best_value_index + d_delta
+        #     return d_adj
+        # else:
+        #     return None
 
     def getUnderlyingLightCurveTimeRanges(self):
         # We use this routine to find the 'range' of times that are covered by the underlying lightcurve.
@@ -5028,13 +5734,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             else:
                 BtoUse = new_b
 
-            self.underlyingLightcurveAns = self.demoUnderlyingLightcurves(baseline=BtoUse, event=AtoUse,
-                                                                          plots_wanted=False)
+            # self.underlyingLightcurveAns = self.demoUnderlyingLightcurves(baseline=BtoUse, event=AtoUse,
+            #                                                               plots_wanted=False)
 
             # If an error in data entry has occurred, ans will be None
-            if self.underlyingLightcurveAns is None:
-                self.showMsg(f'An error in the underlying lightcurve parameters has occurred.', bold=True, color='red')
-                return
+            # if self.underlyingLightcurveAns is None:
+            #     self.showMsg(f'An error in the underlying lightcurve parameters has occurred.', bold=True, color='red')
+            #     return
 
             D = R = 0
             if self.eventType == 'Donly' or self.eventType == 'DandR':
@@ -5044,23 +5750,25 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
             if (self.eventType == 'Donly' or self.eventType == 'DandR') and not D == subDandR[0]:
                 if self.exponentialDtheoryPts is None:
-                    d_time_corr = time_correction(correction_dict=self.underlyingLightcurveAns,
-                                                  transition_point_intensity=self.yValues[D], edge_type='D')
+                    pass
+                    # d_time_corr = time_correction(correction_dict=self.underlyingLightcurveAns,
+                    #                               transition_point_intensity=self.yValues[D], edge_type='D')
 
-                    d_delta = d_time_corr / self.timeDelta
-                    d_adj = D + d_delta
+                    # d_delta = d_time_corr / self.timeDelta
+                    # d_adj = D + d_delta
                     # self.showMsg(f'd_time_correction: {d_time_corr:0.4f}  new D: {d_adj:0.4f}')
-                    subDandR[0] = d_adj
+                    # subDandR[0] = d_adj
 
             if (self.eventType == 'Ronly' or self.eventType == 'DandR') and not R == subDandR[1]:
                 if self.exponentialRtheoryPts is None:
-                    r_time_corr = time_correction(correction_dict=self.underlyingLightcurveAns,
-                                                  transition_point_intensity=self.yValues[R], edge_type='R')
+                    pass
+                    # r_time_corr = time_correction(correction_dict=self.underlyingLightcurveAns,
+                    #                               transition_point_intensity=self.yValues[R], edge_type='R')
 
-                    r_delta = r_time_corr / self.timeDelta
-                    r_adj = R + r_delta
+                    # r_delta = r_time_corr / self.timeDelta
+                    # r_adj = R + r_delta
                     # self.showMsg(f'r_time_correction: {r_time_corr:0.4f}  new R: {r_adj:0.4f}')
-                    subDandR[1] = r_adj
+                    # subDandR[1] = r_adj
 
             if self.exponentialDtheoryPts is None and self.exponentialRtheoryPts is None:
                 self.solution = subDandR
@@ -6025,6 +6733,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.mainPlot.autoRange()
         self.showMsg('*' * 20 + ' starting over ' + '*' * 20, color='blue')
 
+    def drawModelLightcurve(self, x, y):
+        self.mainPlot.plot(x, y, pen=pg.mkPen(150, 100, 100), symbol=None)
+
     def drawSolution(self):
         def plot(x, y, pen):
             self.mainPlot.plot(x, y, pen=pen, symbol=None)
@@ -6124,21 +6835,22 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         lo_int = min(self.yValues[self.left:self.right])
 
         if self.eventType == 'DandR':
-            # if self.exponentialDtheoryPts is None:
-            D = self.solution[0]
-            R = self.solution[1]
-            # else:
-            #     D = self.exponentialDedge
-            #     R = self.exponentialRedge
-            #     D = self.solution[0]
-            #     R = self.solution[1]
+            if self.exponentialDtheoryPts is None:
+                D = self.solution[0]
+                R = self.solution[1]
+            else:
+                D = self.exponentialDedge
+                R = self.exponentialRedge
+                D = self.solution[0]
+                R = self.solution[1]
 
             max_x = min_x = (D + R) / 2.0
 
-            plotDcurve()
-            plotGeometricShadowAtD()
-            plotRcurve()
-            plotGeometricShadowAtR()
+            # TODO Remove the neutering of the following lines
+            # plotDcurve()
+            # plotGeometricShadowAtD()
+            # plotRcurve()
+            # plotGeometricShadowAtR()
 
         elif self.eventType == 'Donly':
             # if self.exponentialDtheoryPts is None:

@@ -200,3 +200,55 @@ def generalizedDiffraction(asteroid_diam_km, asteroid_distance_AU,
         y_avg.append(cum_sum / k)
 
     return np.array(x_avg), np.array(y_avg), rho, rho_wavelength, wavelengths[0], wavelengths[-1], title
+
+
+# ############################## Utility functions ###############################
+def asteroid_mas(diameter_km, distance_AU):
+    milli_arcseconds = 1000 * 206265 * diameter_km / (1.496e8 * distance_AU)
+    return milli_arcseconds
+
+
+def distance_AU_from_parallax_arcsec(parallax_arcsec):
+    return 8.7882 / parallax_arcsec
+
+
+def projected_star_diameter_km(star_mas, asteroid_distance_AU):
+    diam = 1.496e8 * asteroid_distance_AU * star_mas / (1000 * 206265)
+    return diam
+
+
+def star_diameter_fresnel(wavelength_nm, star_mas, asteroid_distance_AU):
+    fresnel_length_km = fresnelLength(wavelength_nm=wavelength_nm, Z_AU=asteroid_distance_AU)
+    star_diam_km = projected_star_diameter_km(star_mas=star_mas, asteroid_distance_AU=asteroid_distance_AU)
+    return star_diam_km / fresnel_length_km
+
+
+# Here we codify the decision process as to which lightcurve model to use
+def decide_model_to_use(asteroid_diameter_km=5,
+                        asteroid_distance_AU=2,
+                        star_diameter_mas=0.0,
+                        shadow_speed=5,
+                        frame_time=0.0334):
+
+    print(f'asteroid_diameter_km: {asteroid_diameter_km:0.3f}')
+    star_diameter_km = projected_star_diameter_km(star_diameter_mas, asteroid_distance_AU)
+    print(f'star_diameter_km: {star_diameter_km:0.3f}')
+
+    fresnel_length = fresnelLength(wavelength_nm=500, Z_AU=asteroid_distance_AU)
+    print(f'fresnel_length: {fresnel_length:0.3f}')
+
+    fresnel_time_sec = fresnel_length / shadow_speed
+    print(f'\n')
+    print(f'fresnel_time_sec: {fresnel_time_sec:0.3f}')
+    print(f'frame_time: {frame_time:0.3f} sec')
+    print(f'\n')
+
+    if star_diameter_km > fresnel_length:  # This integrates away diffraction wiggles
+        if asteroid_diameter_km >= 10 * star_diameter_km:
+            print('Use edge-on-disk model because asteroid diameter is at least 10 times the star diameter')
+        else:
+            print('Use disk-on-disk model because asteroid diameter is less than 10 time the star diameter')
+    elif frame_time < fresnel_time_sec:  # We are sampling fast enough to see diffraction wiggles
+        print('Use diffraction model')
+    else:
+        print('Use square-wave model because diffraction effects are integrated away')
