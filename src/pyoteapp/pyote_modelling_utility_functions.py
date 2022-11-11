@@ -101,13 +101,15 @@ def scaleToADU(y_values, LCP):
     # Scale y_values to ADU (modify in place)
 
     # Adjust for a possible graze (in a graze, min(y) is greater than zero)
-    minY = np.min(y_values)
-    y_values -= minY
-    y_values *= (1.0 / (1.0 - minY))
+    # minY = np.min(y_values)
+    # y_values -= minY
+    # y_values *= (1.0 / (1.0 - minY))
 
     # Now scale to ADU
-    y_values *= (LCP.baseline_ADU - LCP.bottom_ADU)
-    y_values += LCP.bottom_ADU
+    # y_values *= (LCP.baseline_ADU - LCP.bottom_ADU)
+    # y_values += LCP.bottom_ADU
+
+    y_values *= LCP.baseline_ADU
 
     return y_values
 
@@ -422,6 +424,8 @@ class LightcurveParameters:
 
     sky_motion_mas_per_sec: float
 
+    sigmaB: float = None  # standard deviation of baseline points (needed for metric)
+
     asteroid_diameter_km: float = None
     asteroid_diameter_mas: float = None
     asteroid_rho: float = None
@@ -437,8 +441,8 @@ class LightcurveParameters:
     star_radius_km: float = None
     star_rho: float = None  # star diameter expressed in fresnel units (no setter)
 
-    D_limb_angle_degrees: float = 90
-    R_limb_angle_degrees: float = 90
+    D_limb_angle_degrees: float = 89.999  # To avoid possible infinities we avoid 90
+    R_limb_angle_degrees: float = 89.999  # "
 
     chord_length_km: float = None
     chord_length_sec: float = None
@@ -562,8 +566,8 @@ class LightcurveParameters:
     def check_for_none(self):
         for name in self.name_list:
             if self.__dict__[name] is None:
-                return True
-        return False
+                return True, name
+        return False, 'all needed parameters are set'
 
     def document(self):
         if self.check_for_none():
@@ -759,9 +763,6 @@ def plot_diffraction(x, y, first_wavelength, last_wavelength, LCP, figsize=(14, 
         sample = np.repeat(1.0 / n_sample_points, n_sample_points)
         camera_y = lightcurve_convolve(sample=sample, lightcurve=y,
                                        shift_needed=len(sample) - 1)
-
-    # if not LCP.star_diameter_km == 0.0:
-    #     scaleToADU(star_disk_y, LCP=LCP)
 
     ax2.set_ylim(-0.1 * LCP.baseline_ADU, 1.5 * LCP.baseline_ADU)
 
@@ -962,6 +963,7 @@ def generalizedDiffraction(LCP, wavelength1=None, wavelength2=None, skip_central
         y_avg.append(my_sum / k)
 
     y_ADU = scaleToADU(np.array(y_avg), LCP=LCP)
+    # y_ADU = np.array(y_avg)
 
     return np.array(x_avg), y_ADU, left_edge, right_edge
 
@@ -1122,6 +1124,7 @@ def dodModel(margin, LCP):
         Itemp.append(Istar(asteroid_radius, star_radius, d))
 
     y_ADU = scaleToADU(np.array(Itemp), LCP=LCP)
+    # y_ADU = np.array(Itemp)
 
     return x, y_ADU, dvalues, EntryContact_x, ExitContact_x
 
@@ -1418,6 +1421,7 @@ def eodModel(LCP: LightcurveParameters, star_master_x, star_master_y):
 
     y_array = np.array(y)
     y_ADU = scaleToADU(y_array, LCP=LCP)
+    # y_ADU = np.array(y)
 
     return np.array(x), y_ADU
 
@@ -1483,25 +1487,29 @@ def plot_edge_on_disk(x, y, D_edge, R_edge, LCP, figsize=(10, 6),
     plt.show()
 
 
-def demo_event(LCP, model, title='Generic model', showLegend=False, showNotes=False, plot_versus_time=False):
+def demo_event(LCP, model, title='Generic model', showLegend=False, showNotes=False,
+               plot_versus_time=False, plots_wanted=True):
     if model == 'disk-on-disk':
         x, y, D_edge, R_edge = dodLightcurve(LCP=LCP)
-        plot_disk_on_disk(x=x, y=y, LCP=LCP, title=title,
-                          showLegend=showLegend, showNotes=showNotes,
-                          plot_versus_time=plot_versus_time)
+        if plots_wanted:
+            plot_disk_on_disk(x=x, y=y, LCP=LCP, title=title,
+                              showLegend=showLegend, showNotes=showNotes,
+                              plot_versus_time=plot_versus_time)
     elif model == 'edge-on-disk':
         x, y, D_edge, R_edge = eodLightcurve(LCP=LCP)
-        plot_edge_on_disk(x=x, y=y, D_edge=D_edge, R_edge=R_edge, LCP=LCP,
-                          title=title, showLegend=showLegend, showNotes=showNotes,
-                          plot_versus_time=plot_versus_time)
+        if plots_wanted:
+            plot_edge_on_disk(x=x, y=y, D_edge=D_edge, R_edge=R_edge, LCP=LCP,
+                              title=title, showLegend=showLegend, showNotes=showNotes,
+                              plot_versus_time=plot_versus_time)
     elif model == 'diffraction':
         x, y, D_edge, R_edge = generalizedDiffraction(LCP=LCP, wavelength1=None, wavelength2=None,
                                                       skip_central_calc=False)
         wavelength1 = LCP.wavelength_nm - 100
         wavelength2 = LCP.wavelength_nm + 100
-        plot_diffraction(x=x, y=y, first_wavelength=wavelength1,
-                         last_wavelength=wavelength2, LCP=LCP, title=title,
-                         showLegend=showLegend, showNotes=showNotes, plot_versus_time=plot_versus_time)
+        if plots_wanted:
+            plot_diffraction(x=x, y=y, first_wavelength=wavelength1,
+                             last_wavelength=wavelength2, LCP=LCP, title=title,
+                             showLegend=showLegend, showNotes=showNotes, plot_versus_time=plot_versus_time)
     else:
         raise Exception(f"Model '{model}' is unknown.")
 

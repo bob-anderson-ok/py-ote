@@ -9,6 +9,7 @@ import glob
 import subprocess
 from pathlib import Path
 
+# from numba import jit
 MIN_SIGMA = 0.1
 
 import datetime
@@ -70,7 +71,7 @@ from pyoteapp.iterative_logl_functions import locate_event_from_d_and_r_ranges
 from pyoteapp.iterative_logl_functions import find_best_event_from_min_max_size
 from pyoteapp.iterative_logl_functions import find_best_r_only_from_min_max_size
 from pyoteapp.iterative_logl_functions import find_best_d_only_from_min_max_size
-from pyoteapp.subframe_timing_utilities import generate_underlying_lightcurve_plots, fresnel_length_km
+# from pyoteapp.subframe_timing_utilities import generate_underlying_lightcurve_plots, fresnel_length_km
 from pyoteapp.subframe_timing_utilities import time_correction, intensity_at_time
 
 cursorAlert = pyqtSignal()
@@ -103,6 +104,20 @@ acfCoefThreshold = 0.05  # To match what is being done in R-OTE 4.5.4+
 # float values for image rectangles.  Those floats were being given to numpy to create a matrix,
 # and that was raising an exception.  Below is my 'cure', effected by overriding the internal
 # methods of ImageExporter that manipulate width and height
+
+class TimestampAxis(pg.AxisItem):
+
+    def tickStrings(self, values, scale, spacing):
+        return [self.getTimestampString(val) for val in values]
+
+    def setFetcher(self, timestampFetch):
+        self.getTimestampString = timestampFetch
+
+
+class TSdialog(QDialog, timestampDialog.Ui_manualTimestampDialog):
+    def __init__(self):
+        super(TSdialog, self).__init__()
+        self.setupUi(self)
 
 
 class FixedImageExporter(pex.ImageExporter):
@@ -141,15 +156,6 @@ class Signal:
 mouseSignal = Signal()
 
 
-class TimestampAxis(pg.AxisItem):
-
-    def tickStrings(self, values, scale, spacing):
-        return [self.getTimestampString(val) for val in values]
-
-    def setFetcher(self, timestampFetch):
-        self.getTimestampString = timestampFetch
-
-
 class CustomViewBox(pg.ViewBox):
     def __init__(self, *args, **kwds):
         pg.ViewBox.__init__(self, *args, **kwds)
@@ -169,12 +175,6 @@ class CustomViewBox(pg.ViewBox):
             mouseSignal.emit()
 
 
-class TSdialog(QDialog, timestampDialog.Ui_manualTimestampDialog):
-    def __init__(self):
-        super(TSdialog, self).__init__()
-        self.setupUi(self)
-
-
 class HelpDialog(QDialog, helpDialog.Ui_Dialog):
     def __init__(self):
         super(HelpDialog, self).__init__()
@@ -191,7 +191,31 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.dataLen = None
         self.left = None
         self.right = None
-        self.yValues = None
+
+        self.yValues = None            # observation data
+
+        self.modelX = None             # model demo x values (in km)
+        self.modelY = None             # model demo y values
+        self.modelDedge = None         # model D edge location (in km)
+        self.modelRedge = None         # model R edge location (in km)
+
+        self.modelYsamples = None
+
+        self.modelDuration = None      # duraton of model lightcurve (seconds)
+
+        self.modelMetric = None        # sum((y[i] - model[i])**2) / n
+
+        # This variable controls where the left edge of the computed model lightcurve
+        # starts relative to the beginning of the obervation
+        self.modelTimeOffset = 0.0     # time offset of model lightcurve from obs start
+
+        # modelXvalues are in reading number units
+        self.modelXvalues = None       # model x values extended or trimmed to match obs
+        self.modelYvalues = None       # model y values extended or trimmed to match obs
+        self.modelDedgeValue = None    # D edge from model (in reading number units)
+        self.modelRedgeValue = None    # R edge from model (in reading number units)
+
+        self.allowShowDetails = False
 
         # This is an externally supplied csv file path (probably from PyMovie)
         self.externalCsvFilePath = csv_file
@@ -384,11 +408,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.bottomADUlabel.installEventFilter(self)
         self.bottomADUedit.installEventFilter(self)
-        self.bottomADUbutton.installEventFilter(self)
-        self.bottomADUbutton.clicked.connect(self.modelMarkBottomRegion)
-        self.calcBottomADUbutton.clicked.connect(self.calcBottomADU)
         self.clearBottomADUselectionButton.clicked.connect(self.clearEventRegions)
-        self.bottomADUedit.editingFinished.connect(self.processModelLightcurveCoreEdit)
 
         self.frameTimeLabel.installEventFilter(self)
         self.frameTimeEdit.installEventFilter(self)
@@ -440,17 +460,17 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.starSizeLabel.installEventFilter(self)
         self.starSizeMasEdit.installEventFilter(self)
-        self.starSizeMasEdit.editingFinished.connect(self.processStarSizeMasChange)
+        self.starSizeMasEdit.editingFinished.connect(self.processModelLightcurveEdit)
         self.starSizeMasLabel.installEventFilter(self)
 
         self.chordSizeLabel.installEventFilter(self)
         self.chordSizeSecondsLabel.installEventFilter(self)
         self.chordSizeKmEdit.installEventFilter(self)
-        self.chordSizeKmEdit.editingFinished.connect(self.processChordSizeKmChange)
-        self.chordSizeSecondsEdit.editingFinished.connect(self.processChordSizeSecondsChange)
+        self.chordSizeKmEdit.editingFinished.connect(self.processModelLightcurveEdit)
+        self.chordSizeSecondsEdit.editingFinished.connect(self.processModelLightcurveEdit)
 
         self.starSizeKmEdit.installEventFilter(self)
-        self.starSizeKmEdit.editingFinished.connect(self.processStarSizeKmChange)
+        self.starSizeKmEdit.editingFinished.connect(self.processModelLightcurveEdit)
         self.starSizeKmLabel.installEventFilter(self)
 
         self.modelToUseLabel.installEventFilter(self)
@@ -463,15 +483,19 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.diskOnDiskRadioButton.installEventFilter(self)
         self.diskOnDiskRadioButton.clicked.connect(self.handleModelSelectionRadioButtonClick)
 
+        self.squareWaveRadioButton.installEventFilter(self)
+
         self.demoLightcurveButton.installEventFilter(self)
         self.initiateFitButton.installEventFilter(self)
+        self.initiateFitButton.clicked.connect(self.initiateModelFit)
         self.askAdviceButton.installEventFilter(self)
         self.showDiffractionButton.installEventFilter(self)
 
         self.askAdviceButton.clicked.connect(self.showModelChoiceAdvice)
-        self.demoLightcurveButton.clicked.connect(self.demoModelLightcurve)
+        self.demoLightcurveButton.clicked.connect(self.computeModelLightcurveButtonClicked)
         self.showDiffractionButton.clicked.connect(self.plotDiffractionPatternOnGround)
 
+        self.showDetailsCheckBox.installEventFilter(self)
         self.versusTimeCheckBox.installEventFilter(self)
         self.showAnnotationsCheckBox.installEventFilter(self)
         self.showLegendsCheckBox.installEventFilter(self)
@@ -481,13 +505,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.fitMetricChangeEdit.installEventFilter(self)
 
         self.helpPdfButton.installEventFilter(self)
-
-        # TODO remove the next four lines when Diffraction tab is removed
-        self.asteroidDistanceUnitsSelector.addItem('parallax')
-        self.asteroidDistanceUnitsSelector.addItem('AU')
-        self.asteroidDistanceUnitsSelector.setCurrentIndex(0)
-
-        self.asteroidDistanceUnitsSelector.installEventFilter(self)
 
         self.LC1 = []
         self.LC2 = []
@@ -663,13 +680,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         # Button: Locate event
         self.locateEvent.clicked.connect(self.findEvent)
-        self.penumbralFitCheckBox.installEventFilter(self)
-
-        self.penumbralFitCheckBox.clicked.connect(self.handlePenumbralFitCheckBox)
-
-        # Button: Re-do fit (penumbral: on Diffraction tab)
-        self.redoFindEvent.clicked.connect(self.findEvent)
-        self.redoFindEvent.installEventFilter(self)
 
         # Button: Cancel operation
         self.cancelButton.clicked.connect(self.requestCancel)
@@ -689,20 +699,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.fieldViewCheckBox.installEventFilter(self)
         self.flipYaxisCheckBox.installEventFilter(self)
         self.flipXaxisCheckBox.installEventFilter(self)
-
-        # Underlying lightcurve controls
-        self.underlyingLightcurveLabel.installEventFilter(self)
-        self.enableDiffractionCalculationBox.installEventFilter(self)
-        self.demoUnderlyingLighturvesButton.installEventFilter(self)
-        self.demoUnderlyingLighturvesButton.clicked.connect(self.demoClickedUnderlyingLightcurves)
-        self.exposureTimeLabel.installEventFilter(self)
-        self.asteroidDistanceLabel.installEventFilter(self)
-        self.shadowSpeedLabel.installEventFilter(self)
-        self.asteroidSizeLabel.installEventFilter(self)
-        self.pathOffsetLabel.installEventFilter(self)
-        self.starDiameterLabel.installEventFilter(self)
-        self.dLimbAngleLabel.installEventFilter(self)
-        self.rLimbAngleLabel.installEventFilter(self)
 
         # Button: Write error bar plot to file
         self.writeBarPlots.clicked.connect(self.exportBarPlots)
@@ -790,6 +786,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.lineWidthSpinner.setValue(int(lineWidth))
         self.dotSizeSpinner.setValue(int(dotSize))
 
+        showDetails = self.settings.value('showDetails', 'true')
+        self.showDetailsCheckBox.setChecked(showDetails == 'true')
+
         versusTime = self.settings.value('versusTime', 'true')
         self.versusTimeCheckBox.setChecked(versusTime == 'true')
 
@@ -824,8 +823,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         # Use 'sticky' settings to size and position the main screen
         self.resize(self.settings.value('size', QSize(800, 800)))
         self.move(self.settings.value('pos', QPoint(50, 50)))
-        usediff = self.settings.value('usediff', 'true') == 'true'
-        self.enableDiffractionCalculationBox.setChecked(usediff)
         doOCRcheck = self.settings.value('doOCRcheck', 'true') == 'true'
         self.showOCRcheckFramesCheckBox.setChecked(doOCRcheck)
         showCameraResponse = self.settings.value('showCameraResponse', 'false') == 'true'
@@ -834,6 +831,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.showTimestampsCheckBox.setChecked(showTimestamps)
 
         self.ne3NotInUseRadioButton.setChecked(self.settings.value('ne3NotInUse', 'false') == 'true')
+        self.ne3NotInUseRadioButton.clicked.connect(self.clearNe3SolutionPoints)
         self.dnrOffRadioButton.setChecked(self.settings.value('dnrOff', 'false') == 'true')
         self.dnrLowRadioButton.setChecked(self.settings.value('dnrLow', 'false') == 'true')
         self.dnrMiddleRadioButton.setChecked(self.settings.value('dnrMiddle', 'false') == 'true')
@@ -930,89 +928,86 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.intializeModelLightcurvesPanel()
 
+    # @jit(nopython=True)
+    def sampleModelLightcurve(self):
+        ans = np.ndarray(len(self.yValues), dtype='float')
+        ans[0] = self.modelYvalues[0]
+        k = 1
+        rdgNumToFind = 1
+        while k < len(self.modelYvalues):
+            if self.modelXvalues[k] >= rdgNumToFind:
+                ans[rdgNumToFind] = self.modelYvalues[k]
+                rdgNumToFind += 1
+            k += 1
+        return ans
+
+    # @jit(nopython=True)
+    def calcModelFitMetric(self):
+        modelYsamples = self.sampleModelLightcurve()
+        self.modelYsamples = modelYsamples
+        self.reDrawMainPlot()
+        modelSigmaB = self.Lcp.sigmaB
+        newMetric = np.sum(((modelYsamples - self.yValues) / modelSigmaB)**2) / len(modelYsamples)
+        if self.modelMetric is None:
+            self.modelMetric = newMetric
+        else:
+            change = newMetric - self.modelMetric
+
+            if change < 0:
+                self.fitMetricChangeEdit.setStyleSheet("background: green")
+            else:
+                self.fitMetricChangeEdit.setStyleSheet("background: red")
+
+            self.modelMetric = newMetric
+            self.fitMetricChangeEdit.setText(f'{change:0.6f}')
+        self.fitMetricEdit.setText(f'{newMetric:0.6f}')
+
+    def initiateModelFit(self):
+        if not len(self.selectedPoints) == 1:
+            self.showInfo('Select a single point that will be used\n'
+                          'for the initial placement of the model lightcurve.')
+            return
+
+        selIndex = [key for key, _ in self.selectedPoints.items()]
+        # self.showInfo(f'{selIndex}')
+        tObsStart = convertTimeStringToTime(self.yTimes[0])
+        timeAtPointSelectd = convertTimeStringToTime(self.yTimes[selIndex[0]])
+        relativeTime = timeAtPointSelectd - tObsStart
+        if relativeTime < 0:  # The lightcurve acquisition passed through midnight
+            relativeTime += 24 * 60 * 60  # And a days worth of seconds
+
+        self.modelTimeOffset = relativeTime - self.modelDuration / 2
+        self.reDrawMainPlot()  # This will display the model lightcurve at the desired position.
+
+        # Now we can calculate the metric
+        self.calcModelFitMetric()
+
+    def clearNe3SolutionPoints(self):
+        try:
+            self.exponentialDtheoryPts = None
+            self.exponentialRtheoryPts = None
+            self.reDrawMainPlot()
+        except Exception as e:
+            self.showInfo(f'{e}')
+
     def modelMarkBaselineRegion(self):
         self.baselineADUedit.clear()
+        self.clearBaselineADUselectionButton.setEnabled(True)
         self.markBaselineRegion()
-
-    def modelMarkBottomRegion(self):
-        self.bottomADUedit.clear()
-        self.markEventRegion()
 
     def calcBaselineADU(self):
         if self.baselinePointsMarked():
             self.calcBaselineStatisticsFromMarkedRegions()
             if self.B is not None:
                 self.baselineADUedit.setText(f'{self.B:0.1f}')
+                self.Lcp.set('baseline_ADU', self.B)
+                self.computeModelLightcurve()
         else:
             self.showInfo('Less than 3 baseline points are selected.')
 
-    def calcBottomADU(self):
-        if self.eventPointsMarked():
-            self.calcEventStatisticsFromMarkedRegion()
-            if self.A is not None:
-                self.bottomADUedit.setText(f'{self.A:0.1f}')
-        else:
-            self.showInfo('Less than 3 bottom points are selected.')
-
-    def processChordSizeKmChange(self):
-        try:
-            newValue = float(self.chordSizeKmEdit.text())
-        except ValueError as e:
-            self.showInfo(f'{e}')
-            return
-        try:
-            self.chordSizeSecondsEdit.clear()
-            self.Lcp.set('chord_length_sec', None)
-            self.Lcp.set('chord_length_km', newValue)
-            self.chordSizeSecondsEdit.setText(f'{self.Lcp.chord_length_sec:0.5f}')
-        except ValueError as e:
-            self.showInfo(f'{e}')
-            return
-
-    def processChordSizeSecondsChange(self):
-        try:
-            newValue = float(self.chordSizeSecondsEdit.text())
-        except ValueError as e:
-            self.showInfo(f'{e}')
-            return
-        try:
-            self.chordSizeKmEdit.clear()
-            self.Lcp.set('chord_length_km', None)
-            self.Lcp.set('chord_length_sec', newValue)
-            self.chordSizeKmEdit.setText(f'{self.Lcp.chord_length_km:0.5f}')
-        except ValueError as e:
-            self.showInfo(f'{e}')
-            return
-
-    def processStarSizeMasChange(self):
-        try:
-            newValue = float(self.starSizeMasEdit.text())
-        except ValueError as e:
-            self.showInfo(f'{e}')
-            return
-        try:
-            self.starSizeKmEdit.clear()
-            self.Lcp.set('star_diameter_km', None)
-            self.Lcp.set('star_diameter_mas', newValue)
-            self.starSizeKmEdit.setText(f'{self.Lcp.star_diameter_km:0.5f}')
-        except ValueError as e:
-            self.showInfo(f'{e}')
-            return
-
-    def processStarSizeKmChange(self):
-        try:
-            newValue = float(self.starSizeKmEdit.text())
-        except ValueError as e:
-            self.showInfo(f'{e}')
-            return
-        try:
-            self.starSizeMasEdit.clear()
-            self.Lcp.set('star_diameter_mas', None)
-            self.Lcp.set('star_diameter_km', newValue)
-            self.starSizeMasEdit.setText(f'{self.Lcp.star_diameter_mas:0.5f}')
-        except ValueError as e:
-            self.showInfo(f'{e}')
-            return
+    @staticmethod
+    def calcBottomADU(baselineADU, magDrop):
+        return 1.23456 + 0 * baselineADU + 0 * magDrop
 
     def showModelChoiceAdvice(self):
         self.showInfo(decide_model_to_use(self.Lcp))
@@ -1023,32 +1018,55 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         demo_diffraction_field(self.Lcp, title_adder=self.currentEventEdit.text())
         self.showDiffractionButton.setText('Show diffraction pattern on the ground')
 
-    def demoModelLightcurve(self):
+    def computeModelLightcurveButtonClicked(self):
+        self.allowShowDetails = True
+        self.computeModelLightcurve()
+
+    def computeModelLightcurve(self):
         showLegend = self.showLegendsCheckBox.isChecked()
         showNotes = self.showAnnotationsCheckBox.isChecked()
         versusTime = self.versusTimeCheckBox.isChecked()
+        plots_wanted = self.showDetailsCheckBox.isChecked() and self.allowShowDetails
+
+        self.allowShowDetails = False
 
         if self.diffractionRadioButton.isChecked():
+            self.demoLightcurveButton.setStyleSheet("background-color: red")
             self.demoLightcurveButton.setText('... computation in progress')
             QtWidgets.QApplication.processEvents()
 
-            demo_event(LCP=self.Lcp, model='diffraction', showLegend=showLegend,
-                       title=self.currentEventEdit.text(),
-                       showNotes=showNotes, plot_versus_time=versusTime)
-            self.demoLightcurveButton.setText('Demo the lightcurve')
+            self.modelX, self.modelY, self.modelDedge, self.modelRedge =\
+                demo_event(LCP=self.Lcp, model='diffraction', showLegend=showLegend,
+                           title=self.currentEventEdit.text(),
+                           showNotes=showNotes, plot_versus_time=versusTime,
+                           plots_wanted=plots_wanted)
+            self.demoLightcurveButton.setText('Compute model lightcurve')
+            self.demoLightcurveButton.setStyleSheet(None)
 
+            self.reDrawMainPlot()
+            self.initiateFitButton.setEnabled(True)
             return
 
         if self.edgeOnDiskRadioButton.isChecked():
-            demo_event(LCP=self.Lcp, model='edge-on-disk',
-                       title=self.currentEventEdit.text(),
-                       showLegend=showLegend, showNotes=showNotes, plot_versus_time=versusTime)
+            self.modelX, self.modelY, self.modelDedge, self.modelRedge =\
+                demo_event(LCP=self.Lcp, model='edge-on-disk',
+                           title=self.currentEventEdit.text(),
+                           showLegend=showLegend, showNotes=showNotes,
+                           plot_versus_time=versusTime,
+                           plots_wanted=plots_wanted)
+            self.reDrawMainPlot()
+            self.initiateFitButton.setEnabled(True)
             return
 
         if self.diskOnDiskRadioButton.isChecked():
-            demo_event(LCP=self.Lcp, model='disk-on-disk',
-                       title=self.currentEventEdit.text(),
-                       showLegend=showLegend, showNotes=showNotes, plot_versus_time=versusTime)
+            self.modelX, self.modelY, self.modelDedge, self.modelRedge =\
+                demo_event(LCP=self.Lcp, model='disk-on-disk',
+                           title=self.currentEventEdit.text(),
+                           showLegend=showLegend, showNotes=showNotes,
+                           plot_versus_time=versusTime,
+                           plots_wanted=plots_wanted)
+            self.reDrawMainPlot()
+            self.initiateFitButton.setEnabled(True)
             return
 
     def handleModelSelectionRadioButtonClick(self):
@@ -1086,12 +1104,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.disablePrimaryEntryEditBoxes()
 
         self.baselineADUedit.setEnabled(True)
-        self.bottomADUedit.setEnabled(True)
+        self.bottomADUedit.setEnabled(False)
         self.baselineADUbutton.setEnabled(True)
         self.clearBaselineADUselectionButton.setEnabled(True)
 
         self.calcBaselineADUbutton.setEnabled(True)
-        self.bottomADUbutton.setEnabled(True)
         self.calcBottomADUbutton.setEnabled(True)
         self.clearBottomADUselectionButton.setEnabled(True)
 
@@ -1118,8 +1135,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.showInfo('An event name is required before a "save" can be performed')
             return
 
-        if self.Lcp.check_for_none():
-            self.showInfo('One or more event parameters remain to be set!')
+        anUnsetParameterFound, parameterName = self.Lcp.check_for_none()
+        if anUnsetParameterFound:
+            self.showInfo(f'{parameterName} has not been set.\n\n'
+                          f'There may be others.')
             return
 
         # We overwrite without warning an event file woth the same name
@@ -1136,9 +1155,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.baselineADUbutton.setEnabled(True)
         self.calcBaselineADUbutton.setEnabled(True)
 
-        self.bottomADUedit.setEnabled(True)
-        self.bottomADUbutton.setEnabled(True)
-        self.calcBottomADUbutton.setEnabled(True)
+        self.bottomADUedit.setEnabled(False)
 
         self.frameTimeEdit.setEnabled(True)
 
@@ -1156,10 +1173,18 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
     def processModelLightcurveEdit(self):
         try:
             empty = ''
+
             if not self.DdegreesEdit.text() == empty:
-                self.Lcp.set('D_limb_angle_degrees', float(self.DdegreesEdit.text()))
+                valueEntered = float(self.DdegreesEdit.text())
+                if valueEntered >= 90.0:
+                    valueEntered = 89.999
+                self.Lcp.set('D_limb_angle_degrees', valueEntered)
+
             if not self.RdegreesEdit.text() == empty:
-                self.Lcp.set('R_limb_angle_degrees', float(self.RdegreesEdit.text()))
+                valueEntered = float(self.RdegreesEdit.text())
+                if valueEntered >= 90.0:
+                    valueEntered = 89.999
+                self.Lcp.set('R_limb_angle_degrees', valueEntered)
 
             if not self.chordSizeSecondsEdit.text() == empty and self.chordSizeSecondsEdit.isEnabled():
                 self.Lcp.set('chord_length_km', None)
@@ -1183,8 +1208,22 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.starSizeMasEdit.setText(f'{self.Lcp.star_diameter_mas:0.5f}')
                 self.starSizeMasEdit.setEnabled(False)
 
-            if not self.Lcp.check_for_none():
+            anUnsetParameterFound, _ = self.Lcp.check_for_none()
+
+            if not anUnsetParameterFound:
                 self.enableLightcurveButtons()
+                self.DdegreesEdit.setText(f'{self.Lcp.D_limb_angle_degrees:0.0f}')
+                self.RdegreesEdit.setText(f'{self.Lcp.R_limb_angle_degrees:0.0f}')
+
+                # Compute new model lightcurve
+                self.computeModelLightcurve()
+
+                # Recompute modelYvalues
+                self.reDrawMainPlot()
+
+                # Recenter model if a centering point is available
+                if len(self.selectedPoints) == 1:
+                    self.initiateModelFit()
 
         except ValueError as e:  # noqc
             self.showInfo(f'{e}')
@@ -1193,19 +1232,21 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         try:
             empty = ''
             baselineAduEntered = not self.baselineADUedit.text() == empty
-            bottomAduEntered = not self.bottomADUedit.text() == empty
             frameTimeEntered = not self.frameTimeEdit.text() == empty
+            magDropEntered = not self.magDropEdit.text() == empty
 
             if self.Lcp is not None:
                 # self.showInfo('An update to ADU levels has been entered.')
-                if baselineAduEntered and bottomAduEntered and frameTimeEntered:
+                if baselineAduEntered and magDropEntered and frameTimeEntered:
+                    # TODO Calculate bottom_ from magDrop
                     self.Lcp.set('baseline_ADU', float(self.baselineADUedit.text()))
                     self.Lcp.set('bottom_ADU', float(self.bottomADUedit.text()))
                     self.Lcp.set('frame_time', float(self.frameTimeEdit.text()))
                     # self.showInfo('An update to changeable LCP values has been entered.')
+                    self.computeModelLightcurve()
                     return
                 else:
-                    self.showInfo('There must be a value provided for baseline, bottom, and frame_time!')
+                    self.showInfo('There must be a value provided for baseline, magDrop, and frame_time!')
                     return
 
             frameTimeEntered = not self.frameTimeEdit.text() == empty
@@ -1389,6 +1430,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     def intializeModelLightcurvesPanel(self):
 
+        self.modelTimeOffset = 0.0
+
+        self.allowShowDetails = False
+
+        self.modelMetric = None
+
         self.Lcp = None
 
         self.currentEventEdit.clear()
@@ -1405,7 +1452,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.bottomADUedit.setEnabled(False)
         self.bottomADUedit.clear()
-        self.bottomADUbutton.setEnabled(False)
         self.calcBottomADUbutton.setEnabled(False)
         self.clearBottomADUselectionButton.setEnabled(False)
 
@@ -1460,22 +1506,27 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.edgeOnDiskRadioButton.setEnabled(False)
         self.diskOnDiskRadioButton.setEnabled(False)
 
+        self.modelX = None
+        self.modelY = None
+
+        self.reDrawMainPlot()
+
     def enableLightcurveButtons(self):
         self.diffractionRadioButton.setEnabled(True)
         self.edgeOnDiskRadioButton.setEnabled(True)
         self.diskOnDiskRadioButton.setEnabled(True)
 
         self.demoLightcurveButton.setEnabled(True)
-        self.initiateFitButton.setEnabled(True)
+        self.initiateFitButton.setEnabled(False)
         self.askAdviceButton.setEnabled(True)
         self.showDiffractionButton.setEnabled(self.diffractionRadioButton.isChecked())
 
-    def handlePenumbralFitCheckBox(self):
-        if self.penumbralFitCheckBox.isChecked():
-            self.redoFindEvent.setEnabled(True)
-            self.showHelp(self.penumbralFitCheckBox)
-        else:
-            self.redoFindEvent.setEnabled(False)
+    # def handlePenumbralFitCheckBox(self):
+    #     if self.penumbralFitCheckBox.isChecked():
+    #         self.redoFindEvent.setEnabled(True)
+    #         self.showHelp(self.penumbralFitCheckBox)
+    #     else:
+    #         self.redoFindEvent.setEnabled(False)
 
     def processYoffsetStepBy10(self):
         self.yOffsetStep10radioButton.repaint()
@@ -1860,6 +1911,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         np.copyto(self.corCoefs, self.newCorCoefs)
         self.numPtsInCorCoefs = self.numNApts
         self.sigmaB = sigB
+        self.Lcp.set('sigmaB', self.sigmaB)
 
         self.userDeterminedBaselineStats = True
 
@@ -2000,226 +2052,226 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         else:
             return
 
-    def validateLightcurveDataInput(self):
-        ans = {'success': True}
-
-        # Process exp dur entry
-        try:
-            exp_dur_str = self.expDurEdit.text().strip()
-            if not exp_dur_str:
-                ans.update({'exp_dur': None})
-            else:
-                exp_dur = float(exp_dur_str)
-                if exp_dur > 0.0:
-                    ans.update({'exp_dur': exp_dur})
-                else:
-                    self.showMsg(f'exposure duration must be > 0.0', bold=True)
-                    ans.update({'exp_dur': None})
-                    ans.update({'success': False})
-        except ValueError as e:
-            self.showMsg(f'{e}', bold=True)
-            ans.update({'exp_dur': None})
-            ans.update({'success': False})
-
-        # Process ast_dist entry
-        try:
-            ast_dist_str = self.asteroidDistanceEdit.text().strip()
-            astDistUnits = self.asteroidDistanceUnitsSelector.currentText()
-            if not ast_dist_str:
-                ans.update({'ast_dist': None})
-            else:
-                ast_dist = float(ast_dist_str)
-                if ast_dist > 0.0:
-                    if astDistUnits == 'parallax':
-                        ast_dist = 8.7882 / ast_dist  # convert parallax to AU
-                    ans.update({'ast_dist': ast_dist})
-                else:
-                    self.showMsg(f'ast_dist must be > 0.0', bold=True)
-                    ans.update({'ast_dist': None})
-                    ans.update({'success': False})
-        except ValueError as e:
-            self.showMsg(f'{e}', bold=True)
-            ans.update({'ast_dist': None})
-            ans.update({'success': False})
-
-        # Process shadow_speed entry
-        try:
-            shadow_speed_str = self.shadowSpeedEdit.text().strip()
-            if not shadow_speed_str:
-                ans.update({'shadow_speed': None})
-            else:
-                shadow_speed = float(shadow_speed_str)
-                if shadow_speed > 0.0:
-                    ans.update({'shadow_speed': shadow_speed})
-                else:
-                    self.showMsg(f'shadow speed must be > 0.0', bold=True)
-                    ans.update({'shadow_speed': None})
-                    ans.update({'success': False})
-        except ValueError as e:
-            self.showMsg(f'{e}', bold=True)
-            ans.update({'shadow_speed': None})
-            ans.update({'success': False})
-
-        # Process asteroid diameter
-        try:
-            ast_diam_str = self.astSizeEdit.text().strip()
-            if not ast_diam_str:
-                ans.update({'ast_diam': None})
-            else:
-                ast_diam = float(ast_diam_str)
-                if ast_diam > 0.0:
-                    ans.update({'ast_diam': ast_diam})
-                else:
-                    self.showMsg(f'asteroid diameter must be > 0.0 or missing', bold=True)
-                    ans.update({'ast_diam': None})
-                    ans.update({'success': False})
-        except ValueError as e:
-            self.showMsg(f'{e}', bold=True)
-            ans.update({'ast_diam': None})
-            ans.update({'success': False})
-
-        # Process centerline offset
-        try:
-            centerline_offset_str = self.pathOffsetEdit.text().strip()
-            if not centerline_offset_str:
-                ans.update({'centerline_offset': None})
-            else:
-                if ans['ast_diam'] is None:
-                    ans.update({'centerline_offset': None})
-                    ans.update({'success': False})
-                    self.showMsg(f'centerline offset requires an asteroid diameter to be specified', bold=True)
-                else:
-                    centerline_offset = float(centerline_offset_str)
-                    if 0.0 <= centerline_offset < ans['ast_diam'] / 2:
-                        ans.update({'centerline_offset': centerline_offset})
-                    else:
-                        self.showMsg(f'centerline offset must be positive and less than the asteroid radius', bold=True)
-                        ans.update({'centerline_offset': None})
-                        ans.update({'success': False})
-        except ValueError as e:
-            self.showMsg(f'{e}', bold=True)
-            ans.update({'centerline_offset': None})
-            ans.update({'success': False})
-
-        # Process star diam entry
-        try:
-            star_diam_str = self.starDiameterEdit.text().strip()
-            if not star_diam_str:
-                ans.update({'star_diam': None})
-                self.penumbralFitCheckBox.setChecked(False)
-                self.penumbralFitCheckBox.setEnabled(False)
-                self.redoFindEvent.setEnabled(False)
-            else:
-                star_diam = float(star_diam_str)
-                if star_diam > 0.0:
-                    ans.update({'star_diam': star_diam})
-                    self.penumbralFitCheckBox.setEnabled(True)
-                else:
-                    self.showMsg(f'star diameter must be > 0.0 or missing', bold=True)
-                    ans.update({'star_diam': None})
-                    ans.update({'success': False})
-                    self.penumbralFitCheckBox.setChecked(False)
-                    self.penumbralFitCheckBox.setEnabled(False)
-                    self.redoFindEvent.setEnabled(False)
-        except ValueError as e:
-            self.showMsg(f'{e}', bold=True)
-            ans.update({'star_diam': None})
-            ans.update({'success': False})
-            self.penumbralFitCheckBox.setChecked(False)
-            self.penumbralFitCheckBox.setEnabled(False)
-            self.redoFindEvent.setEnabled(False)
-
-        # Process D limb angle entry
-        d_angle = self.dLimbAngle.value()
-        ans.update({'d_angle': d_angle})
-
-        # Process R limb angle entry
-        r_angle = self.rLimbAngle.value()
-        ans.update({'r_angle': r_angle})
-
-        return ans
+    # def validateLightcurveDataInput(self):
+    #     ans = {'success': True}
+    #
+    #     # Process exp dur entry
+    #     try:
+    #         exp_dur_str = self.expDurEdit.text().strip()
+    #         if not exp_dur_str:
+    #             ans.update({'exp_dur': None})
+    #         else:
+    #             exp_dur = float(exp_dur_str)
+    #             if exp_dur > 0.0:
+    #                 ans.update({'exp_dur': exp_dur})
+    #             else:
+    #                 self.showMsg(f'exposure duration must be > 0.0', bold=True)
+    #                 ans.update({'exp_dur': None})
+    #                 ans.update({'success': False})
+    #     except ValueError as e:
+    #         self.showMsg(f'{e}', bold=True)
+    #         ans.update({'exp_dur': None})
+    #         ans.update({'success': False})
+    #
+    #     # Process ast_dist entry
+    #     try:
+    #         ast_dist_str = self.asteroidDistanceEdit.text().strip()
+    #         astDistUnits = self.asteroidDistanceUnitsSelector.currentText()
+    #         if not ast_dist_str:
+    #             ans.update({'ast_dist': None})
+    #         else:
+    #             ast_dist = float(ast_dist_str)
+    #             if ast_dist > 0.0:
+    #                 if astDistUnits == 'parallax':
+    #                     ast_dist = 8.7882 / ast_dist  # convert parallax to AU
+    #                 ans.update({'ast_dist': ast_dist})
+    #             else:
+    #                 self.showMsg(f'ast_dist must be > 0.0', bold=True)
+    #                 ans.update({'ast_dist': None})
+    #                 ans.update({'success': False})
+    #     except ValueError as e:
+    #         self.showMsg(f'{e}', bold=True)
+    #         ans.update({'ast_dist': None})
+    #         ans.update({'success': False})
+    #
+    #     # Process shadow_speed entry
+    #     try:
+    #         shadow_speed_str = self.shadowSpeedEdit.text().strip()
+    #         if not shadow_speed_str:
+    #             ans.update({'shadow_speed': None})
+    #         else:
+    #             shadow_speed = float(shadow_speed_str)
+    #             if shadow_speed > 0.0:
+    #                 ans.update({'shadow_speed': shadow_speed})
+    #             else:
+    #                 self.showMsg(f'shadow speed must be > 0.0', bold=True)
+    #                 ans.update({'shadow_speed': None})
+    #                 ans.update({'success': False})
+    #     except ValueError as e:
+    #         self.showMsg(f'{e}', bold=True)
+    #         ans.update({'shadow_speed': None})
+    #         ans.update({'success': False})
+    #
+    #     # Process asteroid diameter
+    #     try:
+    #         ast_diam_str = self.astSizeEdit.text().strip()
+    #         if not ast_diam_str:
+    #             ans.update({'ast_diam': None})
+    #         else:
+    #             ast_diam = float(ast_diam_str)
+    #             if ast_diam > 0.0:
+    #                 ans.update({'ast_diam': ast_diam})
+    #             else:
+    #                 self.showMsg(f'asteroid diameter must be > 0.0 or missing', bold=True)
+    #                 ans.update({'ast_diam': None})
+    #                 ans.update({'success': False})
+    #     except ValueError as e:
+    #         self.showMsg(f'{e}', bold=True)
+    #         ans.update({'ast_diam': None})
+    #         ans.update({'success': False})
+    #
+    #     # Process centerline offset
+    #     try:
+    #         centerline_offset_str = self.pathOffsetEdit.text().strip()
+    #         if not centerline_offset_str:
+    #             ans.update({'centerline_offset': None})
+    #         else:
+    #             if ans['ast_diam'] is None:
+    #                 ans.update({'centerline_offset': None})
+    #                 ans.update({'success': False})
+    #                 self.showMsg(f'centerline offset requires an asteroid diameter to be specified', bold=True)
+    #             else:
+    #                 centerline_offset = float(centerline_offset_str)
+    #                 if 0.0 <= centerline_offset < ans['ast_diam'] / 2:
+    #                     ans.update({'centerline_offset': centerline_offset})
+    #                 else:
+    #                     self.showMsg(f'centerline offset must be positive and less than the asteroid radius', bold=True)
+    #                     ans.update({'centerline_offset': None})
+    #                     ans.update({'success': False})
+    #     except ValueError as e:
+    #         self.showMsg(f'{e}', bold=True)
+    #         ans.update({'centerline_offset': None})
+    #         ans.update({'success': False})
+    #
+    #     # Process star diam entry
+    #     try:
+    #         star_diam_str = self.starDiameterEdit.text().strip()
+    #         if not star_diam_str:
+    #             ans.update({'star_diam': None})
+    #             self.penumbralFitCheckBox.setChecked(False)
+    #             self.penumbralFitCheckBox.setEnabled(False)
+    #             self.redoFindEvent.setEnabled(False)
+    #         else:
+    #             star_diam = float(star_diam_str)
+    #             if star_diam > 0.0:
+    #                 ans.update({'star_diam': star_diam})
+    #                 self.penumbralFitCheckBox.setEnabled(True)
+    #             else:
+    #                 self.showMsg(f'star diameter must be > 0.0 or missing', bold=True)
+    #                 ans.update({'star_diam': None})
+    #                 ans.update({'success': False})
+    #                 self.penumbralFitCheckBox.setChecked(False)
+    #                 self.penumbralFitCheckBox.setEnabled(False)
+    #                 self.redoFindEvent.setEnabled(False)
+    #     except ValueError as e:
+    #         self.showMsg(f'{e}', bold=True)
+    #         ans.update({'star_diam': None})
+    #         ans.update({'success': False})
+    #         self.penumbralFitCheckBox.setChecked(False)
+    #         self.penumbralFitCheckBox.setEnabled(False)
+    #         self.redoFindEvent.setEnabled(False)
+    #
+    #     # Process D limb angle entry
+    #     d_angle = self.dLimbAngle.value()
+    #     ans.update({'d_angle': d_angle})
+    #
+    #     # Process R limb angle entry
+    #     r_angle = self.rLimbAngle.value()
+    #     ans.update({'r_angle': r_angle})
+    #
+    #     return ans
 
     # This method is needed because you cannot pass parameters from a clicked-connect
-    def demoClickedUnderlyingLightcurves(self):
-        if self.B is None or self.A is None:
-            self.demoUnderlyingLightcurves(baseline=100.0, event=0.0, plots_wanted=True, ignore_timedelta=True)
-        else:
-            self.demoUnderlyingLightcurves(baseline=self.B, event=self.A, plots_wanted=True, ignore_timedelta=True)
+    # def demoClickedUnderlyingLightcurves(self):
+    #     if self.B is None or self.A is None:
+    #         self.demoUnderlyingLightcurves(baseline=100.0, event=0.0, plots_wanted=True, ignore_timedelta=True)
+    #     else:
+    #         self.demoUnderlyingLightcurves(baseline=self.B, event=self.A, plots_wanted=True, ignore_timedelta=True)
 
-    def demoUnderlyingLightcurves(self, baseline=None, event=None, plots_wanted=False, ignore_timedelta=False):
-
-        diff_table_name = f'diffraction-table.p'
-        diff_table_path = os.path.join(self.homeDir, diff_table_name)
-
-        ans = self.validateLightcurveDataInput()
-
-        if not ans['success']:
-            self.showInfo('There is a problem with the data entry.\n\nCheck log for details.')
-            return
-
-        if not ignore_timedelta:
-            if self.timeDelta is None or self.timeDelta < 0.001:
-                if ans['exp_dur'] is not None:
-                    frame_time = ans['exp_dur']
-                else:
-                    frame_time = 0.001
-            else:
-                frame_time = self.timeDelta
-        else:
-            if ans['exp_dur'] is not None:
-                frame_time = ans['exp_dur']
-            else:
-                frame_time = 0.001
-
-        if ans['exp_dur'] is not None and ans['ast_dist'] is None and ans['shadow_speed'] is None:
-            pass  # User wants to ignore diffraction effects
-        else:
-            if self.enableDiffractionCalculationBox.isChecked() and \
-                    (ans['ast_dist'] is None or ans['shadow_speed'] is None):
-                self.showMsg(f'Cannot compute diffraction curve without both ast distance and shadow speed!', bold=True)
-                return None
-
-        if ans['ast_dist'] is not None:
-            fresnel_length_at_500nm = fresnel_length_km(distance_AU=ans['ast_dist'], wavelength_nm=500.0)
-            if plots_wanted:
-                self.showMsg(f'Fresnel length @ 500nm: {fresnel_length_at_500nm:.4f} km', bold=True, color='green')
-
-        if ans['star_diam'] is not None and (ans['d_angle'] is None or ans['r_angle'] is None):
-            ans.update({'star_diam': None})
-            self.showMsg(f'An incomplete set of star parameters was entered --- treating star_diam as None!', bold=True)
-        elif ans['star_diam'] is not None and (ans['ast_dist'] is None or ans['shadow_speed'] is None):
-            ans.update({'star_diam': None})
-            self.showMsg(f'Need dist and shadow speed to utilize star diam --- treating star_diam as None!', bold=True)
-
+    # def demoUnderlyingLightcurves(self, baseline=None, event=None, plots_wanted=False, ignore_timedelta=False):
+    #
+    #     diff_table_name = f'diffraction-table.p'
+    #     diff_table_path = os.path.join(self.homeDir, diff_table_name)
+    #
+    #     ans = self.validateLightcurveDataInput()
+    #
+    #     if not ans['success']:
+    #         self.showInfo('There is a problem with the data entry.\n\nCheck log for details.')
+    #         return
+    #
+    #     if not ignore_timedelta:
+    #         if self.timeDelta is None or self.timeDelta < 0.001:
+    #             if ans['exp_dur'] is not None:
+    #                 frame_time = ans['exp_dur']
+    #             else:
+    #                 frame_time = 0.001
+    #         else:
+    #             frame_time = self.timeDelta
+    #     else:
+    #         if ans['exp_dur'] is not None:
+    #             frame_time = ans['exp_dur']
+    #         else:
+    #             frame_time = 0.001
+    #
+    #     if ans['exp_dur'] is not None and ans['ast_dist'] is None and ans['shadow_speed'] is None:
+    #         pass  # User wants to ignore diffraction effects
+    #     else:
+    #         if self.enableDiffractionCalculationBox.isChecked() and \
+    #                 (ans['ast_dist'] is None or ans['shadow_speed'] is None):
+    #             self.showMsg(f'Cannot compute diffraction curve without both ast distance and shadow speed!', bold=True)
+    #             return None
+    #
+    #     if ans['ast_dist'] is not None:
+    #         fresnel_length_at_500nm = fresnel_length_km(distance_AU=ans['ast_dist'], wavelength_nm=500.0)
+    #         if plots_wanted:
+    #             self.showMsg(f'Fresnel length @ 500nm: {fresnel_length_at_500nm:.4f} km', bold=True, color='green')
+    #
+    #     if ans['star_diam'] is not None and (ans['d_angle'] is None or ans['r_angle'] is None):
+    #         ans.update({'star_diam': None})
+    #         self.showMsg(f'An incomplete set of star parameters was entered --- treating star_diam as None!', bold=True)
+    #     elif ans['star_diam'] is not None and (ans['ast_dist'] is None or ans['shadow_speed'] is None):
+    #         ans.update({'star_diam': None})
+    #         self.showMsg(f'Need dist and shadow speed to utilize star diam --- treating star_diam as None!', bold=True)
+    #
         # noinspection PyBroadException
-        try:
-            matplotlib.pyplot.close(self.d_underlying_lightcurve)
-            matplotlib.pyplot.close(self.r_underlying_lightcurve)
-        except Exception:
-            pass
-
-        if baseline is None:
-            baseline = 100.0
-
-        if event is None:
-            event = 0.0
-
+        # try:
+        #     matplotlib.pyplot.close(self.d_underlying_lightcurve)
+        #     matplotlib.pyplot.close(self.r_underlying_lightcurve)
+        # except Exception:
+        #     pass
+        #
+        # if baseline is None:
+        #     baseline = 100.0
+        #
+        # if event is None:
+        #     event = 0.0
+        #
         # self.d_underlying_lightcurve, self.r_underlying_lightcurve, ans = generate_underlying_lightcurve_plots(
-        _, ans = generate_underlying_lightcurve_plots(
+        # _, ans = generate_underlying_lightcurve_plots(
             # diff_table_path=diff_table_path,
-            b_value=baseline,
-            a_value=event,
-            frame_time=frame_time,
-            ast_dist=ans['ast_dist'],
-            shadow_speed=ans['shadow_speed'],
-            ast_diam=ans['ast_diam'],
-            centerline_offset=ans['centerline_offset'],
-            star_diam=ans['star_diam'],
-            d_angle=ans['d_angle'],
-            r_angle=ans['r_angle'],
+            # b_value=baseline,
+            # a_value=event,
+            # frame_time=frame_time,
+            # ast_dist=ans['ast_dist'],
+            # shadow_speed=ans['shadow_speed'],
+            # ast_diam=ans['ast_diam'],
+            # centerline_offset=ans['centerline_offset'],
+            # star_diam=ans['star_diam'],
+            # d_angle=ans['d_angle'],
+            # r_angle=ans['r_angle'],
             # suppress_diffraction=not self.enableDiffractionCalculationBox.isChecked(),
-            title_addon=''
-        )
+            # title_addon=''
+        # )
         # if plots_wanted:
         #     self.d_underlying_lightcurve.show()
         #     self.r_underlying_lightcurve.show()
@@ -2227,7 +2279,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         #     matplotlib.pyplot.close(self.d_underlying_lightcurve)
         #     matplotlib.pyplot.close(self.r_underlying_lightcurve)
 
-        return ans
+        # return ans
 
     def findTimestampFromFrameNumber(self, frame):
         # Currently PyMovie uses nn.00 for frame number
@@ -2539,6 +2591,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
     def toggleManualEntryButton(self):
         if self.manualTimestampCheckBox.isChecked():
             self.manualEntryPushButton.setEnabled(True)
+            self.doManualTimestampEntry()
         else:
             self.manualEntryPushButton.setEnabled(False)
 
@@ -2580,53 +2633,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 ans = False
                 break
         return ans
-
-    # def changeSecondary(self):
-    #     if len(self.aperture_names) > 0:
-    #         self.secondarySelector.setMaximum(len(self.aperture_names))
-    #     else:
-    #         self.secondarySelector.setMaximum(self.getNumberOfUnnamedLightCurves())
-    #
-    #     secondarySelText = self.secondarySelector.text()
-    #     normNum = int(secondarySelText)
-    #
-    #     primarySelText = self.curveToAnalyzeSpinBox.text()
-    #     refNum = int(primarySelText)
-    #
-    #     if len(self.aperture_names) > 0:
-    #         pymovieColumnType = self.pymovieDataColumnPrefixComboBox.currentText()
-    #         if not refNum == 0:
-    #             if (refNum - 1) < len(self.aperture_names):
-    #                 self.lightCurveNameEdit.setText(self.aperture_names[refNum - 1])
-    #         if normNum == 0:
-    #             self.showMsg('There is no secondary reference selected.')
-    #         elif (normNum - 1) < len(self.aperture_names):
-    #             self.normalizationLightCurveNameEdit.setText(self.aperture_names[normNum - 1])
-    #             self.showMsg('Secondary reference ' + secondarySelText + ' selected - PyMovie aperture name: ' +
-    #                          self.aperture_names[normNum - 1] + f" ({pymovieColumnType})")
-    #     else:
-    #         if not normNum == 0:
-    #             self.showMsg('Secondary reference ' + secondarySelText + ' selected.')
-    #         else:
-    #             self.showMsg('There is no secondary reference selected.')
-    #
-    #     if normNum == 0:
-    #         self.yRefStar = []
-    #         self.normalizationLightCurveNameEdit.setText('')
-    #     if normNum == 1:
-    #         self.yRefStar = self.LC1
-    #     if normNum == 2:
-    #         self.yRefStar = self.LC2
-    #     if normNum == 3:
-    #         self.yRefStar = self.LC3
-    #     if normNum == 4:
-    #         self.yRefStar = self.LC4
-    #     if normNum > 4:
-    #         self.yRefStar = self.extra[normNum - 4 - 1]
-    #
-    #     self.smoothSecondary = []
-    #     self.newRedrawMainPlot()
-    #     self.mainPlot.autoRange()
 
     def getNumberOfUnnamedLightCurves(self):
         if len(self.LC1) == 0:
@@ -2858,10 +2864,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.exponentialDtheoryPts = None
         self.exponentialRtheoryPts = None
-
-        self.penumbralFitCheckBox.setEnabled(False)
-        self.penumbralFitCheckBox.setChecked(False)
-        self.redoFindEvent.setEnabled(False)
 
         self.flashEdges = []
         self.normalized = False
@@ -3581,7 +3583,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.showMsg('timeDelta: ' + fp.to_precision(self.timeDelta, 6) + ' seconds per block', blankLine=False)
         self.showMsg('timestamp error rate: ' + fp.to_precision(100 * self.errRate, 2) + '%')
 
-        self.expDurEdit.setText(fp.to_precision(self.timeDelta, 6))
+        self.frameTimeEdit.setText(fp.to_precision(self.timeDelta, 6))
 
         self.illustrateTimestampOutliers()
 
@@ -3685,6 +3687,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         # Open (or create) file for holding 'sticky' stuff
         self.settings = QSettings('pyote.ini', QSettings.IniFormat)
 
+        self.settings.setValue('showDetails', self.showDetailsCheckBox.isChecked())
         self.settings.setValue('versusTime', self.versusTimeCheckBox.isChecked())
         self.settings.setValue('showLegend', self.showLegendsCheckBox.isChecked())
         self.settings.setValue('showNotes', self.showAnnotationsCheckBox.isChecked())
@@ -3706,7 +3709,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         # Capture the close request and update 'sticky' settings
         self.settings.setValue('size', self.size())
         self.settings.setValue('pos', self.pos())
-        self.settings.setValue('usediff', self.enableDiffractionCalculationBox.isChecked())
         self.settings.setValue('doOCRcheck', self.showOCRcheckFramesCheckBox.isChecked())
         self.settings.setValue('showTimestamps', self.showTimestampsCheckBox.isChecked())
         self.settings.setValue('showCameraResponse', self.showCameraResponseCheckBox.isChecked())
@@ -3832,35 +3834,35 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.showMsg('', blankLine=False)
 
-        ans = self.validateLightcurveDataInput()
-        if ans['success']:
-            self.showMsg(f'The following lightcurve parameters were utilized:',
-                         color='blue', bold=True)
-
-            if self.enableDiffractionCalculationBox.isChecked():
-                self.showMsg(f"==== use diff: is checked", bold=True, blankLine=False)
-            else:
-                self.showMsg(f"==== use diff: is NOT checked", bold=True, blankLine=False)
-
-            if ans['exp_dur'] is not None:
-                self.showMsg(f"==== exp: {ans['exp_dur']:0.6f}", bold=True, blankLine=False)
-
-            if ans['ast_dist'] is not None:
-                self.showMsg(f"==== dist(AU): {ans['ast_dist']:0.4f}", bold=True, blankLine=False)
-
-            if ans['shadow_speed'] is not None:
-                self.showMsg(f"==== speed(km/sec): {ans['shadow_speed']:0.4f}", bold=True, blankLine=False)
-
-            if ans['star_diam'] is not None:
-                self.showMsg(f"==== Star diam(mas): {ans['star_diam']:0.4f}", bold=True, blankLine=False)
-                if ans['d_angle'] is not None:
-                    self.showMsg(f"==== D limb angle: {ans['d_angle']:0.1f}", bold=True, blankLine=False)
-                if ans['r_angle'] is not None:
-                    self.showMsg(f"==== R limb angle: {ans['r_angle']:0.1f}", bold=True, blankLine=False)
-
-        else:
-            self.showMsg(f'Some invalid entries were found in the lightcurve parameters panel',
-                         color='blue', bold=True, blankLine=False)
+        # ans = self.validateLightcurveDataInput()
+        # if ans['success']:
+        #     self.showMsg(f'The following lightcurve parameters were utilized:',
+        #                  color='blue', bold=True)
+        #
+        #     if self.enableDiffractionCalculationBox.isChecked():
+        #         self.showMsg(f"==== use diff: is checked", bold=True, blankLine=False)
+        #     else:
+        #         self.showMsg(f"==== use diff: is NOT checked", bold=True, blankLine=False)
+        #
+        #     if ans['exp_dur'] is not None:
+        #         self.showMsg(f"==== exp: {ans['exp_dur']:0.6f}", bold=True, blankLine=False)
+        #
+        #     if ans['ast_dist'] is not None:
+        #         self.showMsg(f"==== dist(AU): {ans['ast_dist']:0.4f}", bold=True, blankLine=False)
+        #
+        #     if ans['shadow_speed'] is not None:
+        #         self.showMsg(f"==== speed(km/sec): {ans['shadow_speed']:0.4f}", bold=True, blankLine=False)
+        #
+        #     if ans['star_diam'] is not None:
+        #         self.showMsg(f"==== Star diam(mas): {ans['star_diam']:0.4f}", bold=True, blankLine=False)
+        #         if ans['d_angle'] is not None:
+        #             self.showMsg(f"==== D limb angle: {ans['d_angle']:0.1f}", bold=True, blankLine=False)
+        #         if ans['r_angle'] is not None:
+        #             self.showMsg(f"==== R limb angle: {ans['r_angle']:0.1f}", bold=True, blankLine=False)
+        #
+        # else:
+        #     self.showMsg(f'Some invalid entries were found in the lightcurve parameters panel',
+        #                  color='blue', bold=True, blankLine=False)
 
         if not self.ne3NotInUseRadioButton.isChecked():
             self.writeNe3UsageReport()
@@ -4409,9 +4411,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     def computeErrorBars(self):
 
-        if self.penumbralFitCheckBox.isChecked():
-            self.finalReportPenumbral()
-            return
+        # if self.penumbralFitCheckBox.isChecked():
+        #     self.finalReportPenumbral()
+        #     return
 
         if self.sigmaB == 0.0:
             self.sigmaB = MIN_SIGMA
@@ -5152,251 +5154,251 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         return B, Bnoise, numBpts, A, Anoise, numApts
 
-    def doPenumbralFit(self):
-
-        if self.yValues is None:
-            self.showInfo("There is no light-curve data to process.")
-            return
-
-        if (self.dRegion is None or self.rRegion is None) and self.firstPassPenumbralFit:
-            self.showInfo("You need to mark D and R regions that contain the penumbral transition points")
-            return
-
-        if self.firstPassPenumbralFit:
-
-            self.firstPassPenumbralFit = False
-            self.lastDmetric = self.lastRmetric = 0.0
-            self.penumbralFitIterationNumber = 1
-            b_intensity, b_noise, num_b_pts, a_intensity, a_noise, num_a_pts = self.extractBaselineAndEventData()
-
-            if b_intensity is None:
-                return  # An info message will have already been raised.  No need to do anything else.
-
-            # Get current underlying lightcurve
-            self.underlyingLightcurveAns = self.demoUnderlyingLightcurves(baseline=b_intensity, event=a_intensity,
-                                                                          plots_wanted=False)
-            # Adjust b_intensity and a_intensity to match the underlying lightcurve table
-            b_intensity = self.underlyingLightcurveAns['B']
-            a_intensity = self.underlyingLightcurveAns['A']
-            self.showMsg(
-                f'B: {b_intensity:0.2f}  A: {a_intensity:0.2f}   B noise: {b_noise:0.3f}  A noise: {a_noise:0.3f}')
-
-            d_candidates = []
-            r_candidates = []
-            d_candidate_entry_nums = []
-            r_candidate_entry_nums = []
-
-            if self.dLimits:
-                self.eventType = 'Donly'
-                d_region_intensities = self.yValues[self.dLimits[0]:self.dLimits[1] + 1]
-                d_region_entry_nums = range(self.dLimits[0], self.dLimits[1] + 1)
-
-                middle = len(d_region_intensities) // 2
-                i = middle
-                while d_region_intensities[i] > a_intensity:
-                    d_candidates.append(d_region_intensities[i])
-                    d_candidate_entry_nums.append(d_region_entry_nums[i])
-                    i += 1
-                    if i == len(d_region_intensities):
-                        break
-                i = middle - 1
-                while d_region_intensities[i] < b_intensity:
-                    d_candidates.append(d_region_intensities[i])
-                    d_candidate_entry_nums.append(d_region_entry_nums[i])
-                    i -= 1
-                    if i < 0:
-                        break
-
-                if not d_candidates:
-                    self.showMsg('No valid transition points found in designated D region.', bold=True, color='red')
-                    return
-
-                # Sort the parallel lists into ascending entry number order
-                zipped_lists = zip(d_candidate_entry_nums, d_candidates)
-                sorted_pairs = sorted(zipped_lists)
-                tuples = zip(*sorted_pairs)
-                d_candidate_entry_nums, d_candidates = [list(item) for item in tuples]
-                print("d_candidates", d_candidates)
-                print("D entry nums", d_candidate_entry_nums)
-
-            if self.rLimits:
-                self.eventType = 'Ronly'
-                r_region_intensities = self.yValues[self.rLimits[0]:self.rLimits[1] + 1]
-                r_region_entry_nums = range(self.rLimits[0], self.rLimits[1] + 1)
-
-                middle = len(r_region_intensities) // 2
-                i = middle
-                while r_region_intensities[i] < b_intensity:
-                    r_candidates.append(r_region_intensities[i])
-                    r_candidate_entry_nums.append(r_region_entry_nums[i])
-                    i += 1
-                    if i == len(r_region_intensities):
-                        break
-                i = middle - 1
-                while r_region_intensities[i] > a_intensity:
-                    r_candidates.append(r_region_intensities[i])
-                    r_candidate_entry_nums.append(r_region_entry_nums[i])
-                    i -= 1
-                    if i < 0:
-                        break
-
-                if not r_candidates:
-                    self.showMsg('No valid transition points found in designated R region.', bold=True, color='red')
-
-                # Sort the parallel lists into ascending entry number order
-                zipped_lists = zip(r_candidate_entry_nums, r_candidates)
-                sorted_pairs = sorted(zipped_lists)
-                tuples = zip(*sorted_pairs)
-                r_candidate_entry_nums, r_candidates = [list(item) for item in tuples]
-                print("r_candidates", r_candidates)
-                print("R entry nums", r_candidate_entry_nums)
-
-            if self.dLimits and self.rLimits:
-                self.eventType = 'DandR'
-
-            self.dRegion = None  # Erases the coloring of the D region (when self.newRedrawMainPlot is called)
-            self.rRegion = None  # Erases the coloring of the R region (when self.newRedrawMainPlot is called)
-            self.eRegion = None  # Erases the coloring of the E region (when self.newRedrawMainPlot is called)
-
-            # Preserve these for possible next pass
-            self.d_candidates = d_candidates
-            self.d_candidate_entry_nums = d_candidate_entry_nums
-            self.r_candidates = r_candidates
-            self.r_candidate_entry_nums = r_candidate_entry_nums
-            self.penumbral_noise = (b_noise + a_noise) / 2.0
-
-            if not self.userDeterminedEventStats:
-                self.A = a_intensity
-                self.sigmaA = a_noise
-
-            self.nBpts = num_b_pts
-            self.nApts = num_a_pts
-
-            if not self.userDeterminedBaselineStats:
-                self.sigmaB = b_noise
-                self.B = b_intensity
-            if self.userTrimInEffect:
-                self.B = b_intensity
-
-            self.snrA = (self.B - self.A) / self.sigmaA
-            self.snrB = (self.B - self.A) / self.sigmaB
-
-        # Get current underlying lightcurve
-        if self.B is not None:
-            self.underlyingLightcurveAns = self.demoUnderlyingLightcurves(baseline=self.B, event=self.A,
-                                                                          plots_wanted=False)
-        else:
-            self.underlyingLightcurveAns = self.demoUnderlyingLightcurves(plots_wanted=False)
-
-        # If an error in data entry has occurred, ans will be None
-        if self.underlyingLightcurveAns is None:
-            self.showMsg(f'An error in the underlying lightcurve parameters has occurred.', bold=True, color='red')
-            return
-
-        if len(self.d_candidates) > 0 and len(self.r_candidates) > 0:
-            self.eventType = 'DandR'
-        elif len(self.d_candidates) > 0:
-            self.eventType = 'Donly'
-        else:
-            self.eventType = 'Ronly'
-
-        if self.eventType in ['Donly', 'DandR']:
-            d_list = []
-            for i in range(len(self.d_candidates)):
-                newD = self.dEdgeCorrected(self.d_candidates[i], self.d_candidate_entry_nums[i])
-                if newD is not None:
-                    d_list.append(newD)
-                else:
-                    print('newD came back as None')
-            d_mean = np.mean(d_list)
-            # print(d_list, d_mean)
-        else:
-            d_mean = None
-
-        if self.eventType in ['Ronly', 'DandR']:
-            r_list = []
-            for i in range(len(self.r_candidates)):
-                newR = self.rEdgeCorrected(self.r_candidates[i], self.r_candidate_entry_nums[i])
-                if newR is not None:
-                    r_list.append(newR)
-                else:
-                    print('newR came back as None')
-            r_mean = np.mean(r_list)
-            # print(r_list, r_mean)
-        else:
-            r_mean = None
-
-        self.solution = [None, None]  # Convert from tuple so that next line will be accepted
-        self.solution[0] = d_mean
-        self.solution[1] = r_mean
-
-        d_time_err_bar = r_time_err_bar = 0.0
-
-        if self.eventType in ['Donly', 'DandR']:
-            d_noise = self.penumbral_noise / np.sqrt(len(self.d_candidates))
-            mid_intensity = (self.B + self.A) / 2.0
-            d_time1 = time_correction(correction_dict=self.underlyingLightcurveAns,
-                                      transition_point_intensity=mid_intensity - 2 * d_noise, edge_type='D')
-            d_time2 = time_correction(correction_dict=self.underlyingLightcurveAns,
-                                      transition_point_intensity=mid_intensity + 2 * d_noise, edge_type='D')
-            d_time_err_bar = abs(d_time1 - d_time2) / 2.0
-
-        if self.eventType in ['Ronly', 'DandR']:
-            r_noise = self.penumbral_noise / np.sqrt(len(self.r_candidates))
-            mid_intensity = (self.B + self.A) / 2.0
-            r_time1 = time_correction(correction_dict=self.underlyingLightcurveAns,
-                                      transition_point_intensity=mid_intensity - 2 * r_noise, edge_type='R')
-            r_time2 = time_correction(correction_dict=self.underlyingLightcurveAns,
-                                      transition_point_intensity=mid_intensity + 2 * r_noise, edge_type='R')
-            r_time_err_bar = abs(r_time1 - r_time2) / 2.0
-
-        self.minusD = self.plusD = None
-        self.minusR = self.plusR = None
-
-        self.penumbralDerrBar = d_time_err_bar
-        self.penumbralRerrBar = r_time_err_bar
-
-        self.doPenumbralFitIterationReport()
-
-        if self.eventType in ['Donly', 'DandR']:
-            self.Dreport(d_time_err_bar, -d_time_err_bar)
-        if self.eventType in ['Ronly', 'DandR']:
-            self.Rreport(r_time_err_bar, -r_time_err_bar)
-
-        self.newRedrawMainPlot()
-        self.drawSolution()
-        self.calcErrBars.setEnabled(True)
-
-        d_improved_msg = 'starting value'
-        r_improved_msg = 'starting value'
-
-        d_metric, r_metric = self.calculatePenumbralMetrics(d_mean, r_mean)
-
-        if self.eventType in ['Donly', 'DandR']:
-            if self.penumbralFitIterationNumber > 1:
-                if d_metric < self.lastDmetric:
-                    d_improved_msg = 'improved'
-                elif d_metric > self.lastDmetric:
-                    d_improved_msg = 'got worse'
-                else:
-                    d_improved_msg = 'unchanged'
-            self.showMsg(f'D fit metric: {d_metric:0.2f}  ({d_improved_msg})', bold=True, blankLine=False)
-        if self.eventType in ['Ronly', 'DandR']:
-            if self.penumbralFitIterationNumber > 1:
-                if r_metric < self.lastRmetric:
-                    r_improved_msg = 'improved'
-                elif r_metric > self.lastRmetric:
-                    r_improved_msg = 'got worse'
-                else:
-                    r_improved_msg = 'unchanged'
-            self.showMsg(f'R fit metric: {r_metric:0.2f}  ({r_improved_msg})', bold=True)
-
-        self.penumbralFitIterationNumber += 1
-
-        self.lastDmetric = d_metric
-        self.lastRmetric = r_metric
-
-        return
+    # def doPenumbralFit(self):
+    #
+    #     if self.yValues is None:
+    #         self.showInfo("There is no light-curve data to process.")
+    #         return
+    #
+    #     if (self.dRegion is None or self.rRegion is None) and self.firstPassPenumbralFit:
+    #         self.showInfo("You need to mark D and R regions that contain the penumbral transition points")
+    #         return
+    #
+    #     if self.firstPassPenumbralFit:
+    #
+    #         self.firstPassPenumbralFit = False
+    #         self.lastDmetric = self.lastRmetric = 0.0
+    #         self.penumbralFitIterationNumber = 1
+    #         b_intensity, b_noise, num_b_pts, a_intensity, a_noise, num_a_pts = self.extractBaselineAndEventData()
+    #
+    #         if b_intensity is None:
+    #             return  # An info message will have already been raised.  No need to do anything else.
+    #
+    #         # Get current underlying lightcurve
+    #         self.underlyingLightcurveAns = self.demoUnderlyingLightcurves(baseline=b_intensity, event=a_intensity,
+    #                                                                       plots_wanted=False)
+    #         # Adjust b_intensity and a_intensity to match the underlying lightcurve table
+    #         b_intensity = self.underlyingLightcurveAns['B']
+    #         a_intensity = self.underlyingLightcurveAns['A']
+    #         self.showMsg(
+    #             f'B: {b_intensity:0.2f}  A: {a_intensity:0.2f}   B noise: {b_noise:0.3f}  A noise: {a_noise:0.3f}')
+    #
+    #         d_candidates = []
+    #         r_candidates = []
+    #         d_candidate_entry_nums = []
+    #         r_candidate_entry_nums = []
+    #
+    #         if self.dLimits:
+    #             self.eventType = 'Donly'
+    #             d_region_intensities = self.yValues[self.dLimits[0]:self.dLimits[1] + 1]
+    #             d_region_entry_nums = range(self.dLimits[0], self.dLimits[1] + 1)
+    #
+    #             middle = len(d_region_intensities) // 2
+    #             i = middle
+    #             while d_region_intensities[i] > a_intensity:
+    #                 d_candidates.append(d_region_intensities[i])
+    #                 d_candidate_entry_nums.append(d_region_entry_nums[i])
+    #                 i += 1
+    #                 if i == len(d_region_intensities):
+    #                     break
+    #             i = middle - 1
+    #             while d_region_intensities[i] < b_intensity:
+    #                 d_candidates.append(d_region_intensities[i])
+    #                 d_candidate_entry_nums.append(d_region_entry_nums[i])
+    #                 i -= 1
+    #                 if i < 0:
+    #                     break
+    #
+    #             if not d_candidates:
+    #                 self.showMsg('No valid transition points found in designated D region.', bold=True, color='red')
+    #                 return
+    #
+    #             # Sort the parallel lists into ascending entry number order
+    #             zipped_lists = zip(d_candidate_entry_nums, d_candidates)
+    #             sorted_pairs = sorted(zipped_lists)
+    #             tuples = zip(*sorted_pairs)
+    #             d_candidate_entry_nums, d_candidates = [list(item) for item in tuples]
+    #             print("d_candidates", d_candidates)
+    #             print("D entry nums", d_candidate_entry_nums)
+    #
+    #         if self.rLimits:
+    #             self.eventType = 'Ronly'
+    #             r_region_intensities = self.yValues[self.rLimits[0]:self.rLimits[1] + 1]
+    #             r_region_entry_nums = range(self.rLimits[0], self.rLimits[1] + 1)
+    #
+    #             middle = len(r_region_intensities) // 2
+    #             i = middle
+    #             while r_region_intensities[i] < b_intensity:
+    #                 r_candidates.append(r_region_intensities[i])
+    #                 r_candidate_entry_nums.append(r_region_entry_nums[i])
+    #                 i += 1
+    #                 if i == len(r_region_intensities):
+    #                     break
+    #             i = middle - 1
+    #             while r_region_intensities[i] > a_intensity:
+    #                 r_candidates.append(r_region_intensities[i])
+    #                 r_candidate_entry_nums.append(r_region_entry_nums[i])
+    #                 i -= 1
+    #                 if i < 0:
+    #                     break
+    #
+    #             if not r_candidates:
+    #                 self.showMsg('No valid transition points found in designated R region.', bold=True, color='red')
+    #
+    #             # Sort the parallel lists into ascending entry number order
+    #             zipped_lists = zip(r_candidate_entry_nums, r_candidates)
+    #             sorted_pairs = sorted(zipped_lists)
+    #             tuples = zip(*sorted_pairs)
+    #             r_candidate_entry_nums, r_candidates = [list(item) for item in tuples]
+    #             print("r_candidates", r_candidates)
+    #             print("R entry nums", r_candidate_entry_nums)
+    #
+    #         if self.dLimits and self.rLimits:
+    #             self.eventType = 'DandR'
+    #
+    #         self.dRegion = None  # Erases the coloring of the D region (when self.newRedrawMainPlot is called)
+    #         self.rRegion = None  # Erases the coloring of the R region (when self.newRedrawMainPlot is called)
+    #         self.eRegion = None  # Erases the coloring of the E region (when self.newRedrawMainPlot is called)
+    #
+    #         # Preserve these for possible next pass
+    #         self.d_candidates = d_candidates
+    #         self.d_candidate_entry_nums = d_candidate_entry_nums
+    #         self.r_candidates = r_candidates
+    #         self.r_candidate_entry_nums = r_candidate_entry_nums
+    #         self.penumbral_noise = (b_noise + a_noise) / 2.0
+    #
+    #         if not self.userDeterminedEventStats:
+    #             self.A = a_intensity
+    #             self.sigmaA = a_noise
+    #
+    #         self.nBpts = num_b_pts
+    #         self.nApts = num_a_pts
+    #
+    #         if not self.userDeterminedBaselineStats:
+    #             self.sigmaB = b_noise
+    #             self.B = b_intensity
+    #         if self.userTrimInEffect:
+    #             self.B = b_intensity
+    #
+    #         self.snrA = (self.B - self.A) / self.sigmaA
+    #         self.snrB = (self.B - self.A) / self.sigmaB
+    #
+    #     # Get current underlying lightcurve
+    #     if self.B is not None:
+    #         self.underlyingLightcurveAns = self.demoUnderlyingLightcurves(baseline=self.B, event=self.A,
+    #                                                                       plots_wanted=False)
+    #     else:
+    #         self.underlyingLightcurveAns = self.demoUnderlyingLightcurves(plots_wanted=False)
+    #
+    #     # If an error in data entry has occurred, ans will be None
+    #     if self.underlyingLightcurveAns is None:
+    #         self.showMsg(f'An error in the underlying lightcurve parameters has occurred.', bold=True, color='red')
+    #         return
+    #
+    #     if len(self.d_candidates) > 0 and len(self.r_candidates) > 0:
+    #         self.eventType = 'DandR'
+    #     elif len(self.d_candidates) > 0:
+    #         self.eventType = 'Donly'
+    #     else:
+    #         self.eventType = 'Ronly'
+    #
+    #     if self.eventType in ['Donly', 'DandR']:
+    #         d_list = []
+    #         for i in range(len(self.d_candidates)):
+    #             newD = self.dEdgeCorrected(self.d_candidates[i], self.d_candidate_entry_nums[i])
+    #             if newD is not None:
+    #                 d_list.append(newD)
+    #             else:
+    #                 print('newD came back as None')
+    #         d_mean = np.mean(d_list)
+    #         # print(d_list, d_mean)
+    #     else:
+    #         d_mean = None
+    #
+    #     if self.eventType in ['Ronly', 'DandR']:
+    #         r_list = []
+    #         for i in range(len(self.r_candidates)):
+    #             newR = self.rEdgeCorrected(self.r_candidates[i], self.r_candidate_entry_nums[i])
+    #             if newR is not None:
+    #                 r_list.append(newR)
+    #             else:
+    #                 print('newR came back as None')
+    #         r_mean = np.mean(r_list)
+    #         # print(r_list, r_mean)
+    #     else:
+    #         r_mean = None
+    #
+    #     self.solution = [None, None]  # Convert from tuple so that next line will be accepted
+    #     self.solution[0] = d_mean
+    #     self.solution[1] = r_mean
+    #
+    #     d_time_err_bar = r_time_err_bar = 0.0
+    #
+    #     if self.eventType in ['Donly', 'DandR']:
+    #         d_noise = self.penumbral_noise / np.sqrt(len(self.d_candidates))
+    #         mid_intensity = (self.B + self.A) / 2.0
+    #         d_time1 = time_correction(correction_dict=self.underlyingLightcurveAns,
+    #                                   transition_point_intensity=mid_intensity - 2 * d_noise, edge_type='D')
+    #         d_time2 = time_correction(correction_dict=self.underlyingLightcurveAns,
+    #                                   transition_point_intensity=mid_intensity + 2 * d_noise, edge_type='D')
+    #         d_time_err_bar = abs(d_time1 - d_time2) / 2.0
+    #
+    #     if self.eventType in ['Ronly', 'DandR']:
+    #         r_noise = self.penumbral_noise / np.sqrt(len(self.r_candidates))
+    #         mid_intensity = (self.B + self.A) / 2.0
+    #         r_time1 = time_correction(correction_dict=self.underlyingLightcurveAns,
+    #                                   transition_point_intensity=mid_intensity - 2 * r_noise, edge_type='R')
+    #         r_time2 = time_correction(correction_dict=self.underlyingLightcurveAns,
+    #                                   transition_point_intensity=mid_intensity + 2 * r_noise, edge_type='R')
+    #         r_time_err_bar = abs(r_time1 - r_time2) / 2.0
+    #
+    #     self.minusD = self.plusD = None
+    #     self.minusR = self.plusR = None
+    #
+    #     self.penumbralDerrBar = d_time_err_bar
+    #     self.penumbralRerrBar = r_time_err_bar
+    #
+    #     self.doPenumbralFitIterationReport()
+    #
+    #     if self.eventType in ['Donly', 'DandR']:
+    #         self.Dreport(d_time_err_bar, -d_time_err_bar)
+    #     if self.eventType in ['Ronly', 'DandR']:
+    #         self.Rreport(r_time_err_bar, -r_time_err_bar)
+    #
+    #     self.newRedrawMainPlot()
+    #     self.drawSolution()
+    #     self.calcErrBars.setEnabled(True)
+    #
+    #     d_improved_msg = 'starting value'
+    #     r_improved_msg = 'starting value'
+    #
+    #     d_metric, r_metric = self.calculatePenumbralMetrics(d_mean, r_mean)
+    #
+    #     if self.eventType in ['Donly', 'DandR']:
+    #         if self.penumbralFitIterationNumber > 1:
+    #             if d_metric < self.lastDmetric:
+    #                 d_improved_msg = 'improved'
+    #             elif d_metric > self.lastDmetric:
+    #                 d_improved_msg = 'got worse'
+    #             else:
+    #                 d_improved_msg = 'unchanged'
+    #         self.showMsg(f'D fit metric: {d_metric:0.2f}  ({d_improved_msg})', bold=True, blankLine=False)
+    #     if self.eventType in ['Ronly', 'DandR']:
+    #         if self.penumbralFitIterationNumber > 1:
+    #             if r_metric < self.lastRmetric:
+    #                 r_improved_msg = 'improved'
+    #             elif r_metric > self.lastRmetric:
+    #                 r_improved_msg = 'got worse'
+    #             else:
+    #                 r_improved_msg = 'unchanged'
+    #         self.showMsg(f'R fit metric: {r_metric:0.2f}  ({r_improved_msg})', bold=True)
+    #
+    #     self.penumbralFitIterationNumber += 1
+    #
+    #     self.lastDmetric = d_metric
+    #     self.lastRmetric = r_metric
+    #
+    #     return
 
     def calculatePenumbralMetrics(self, D=None, R=None):
         d_metric = r_metric = None
@@ -5434,63 +5436,63 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         return d_metric, r_metric
 
-    def doPenumbralFitIterationReport(self):
-        self.showMsg(f'Penumbral fit iteration {self.penumbralFitIterationNumber}:', bold=True, color='green')
-        if self.eventType == 'DandR':
-            self.showMsg(f'(in entryNum units) D: {self.solution[0]:0.4f}  R: {self.solution[1]:0.4f}')
-        elif self.eventType == 'Donly':
-            self.showMsg(f'(in entryNum units) D: {self.solution[0]:0.4f}')
-        else:  # Ronly
-            self.showMsg(f'(in entryNum units) R: {self.solution[1]:0.4f}')
-        self.doLightcurveParameterReport()
-        return
+    # def doPenumbralFitIterationReport(self):
+    #     self.showMsg(f'Penumbral fit iteration {self.penumbralFitIterationNumber}:', bold=True, color='green')
+    #     if self.eventType == 'DandR':
+    #         self.showMsg(f'(in entryNum units) D: {self.solution[0]:0.4f}  R: {self.solution[1]:0.4f}')
+    #     elif self.eventType == 'Donly':
+    #         self.showMsg(f'(in entryNum units) D: {self.solution[0]:0.4f}')
+    #     else:  # Ronly
+    #         self.showMsg(f'(in entryNum units) R: {self.solution[1]:0.4f}')
+    #     self.doLightcurveParameterReport()
+    #     return
 
-    def doLightcurveParameterReport(self):
-        if self.enableDiffractionCalculationBox.isChecked():
-            self.showMsg(f'Diffraction effects included', blankLine=False)
-        else:
-            self.showMsg(f'Diffraction effects suppressed', blankLine=False)
+    # def doLightcurveParameterReport(self):
+    #     if self.enableDiffractionCalculationBox.isChecked():
+    #         self.showMsg(f'Diffraction effects included', blankLine=False)
+    #     else:
+    #         self.showMsg(f'Diffraction effects suppressed', blankLine=False)
+    #
+    #     astDistUnits = self.asteroidDistanceUnitsSelector.currentText()
+    #     if astDistUnits == 'AU':
+    #         self.showMsg(f'asteroid dist(AU): {self.asteroidDistanceEdit.text()}', blankLine=False)
+    #     elif astDistUnits == 'parallax':
+    #         self.showMsg(f'asteroid dist(arcseconds): {self.asteroidDistanceEdit.text()}', blankLine=False)
+    #     else:
+    #         self.showInfo(f'Invalid units specifier for asteroid distance: {astDistUnits}')
+    #         return
+    #
+    #     self.showMsg(f'speed(km/sec): {self.shadowSpeedEdit.text()}', blankLine=False)
+    #     self.showMsg(f'Star diam(mas): {self.starDiameterEdit.text()}', blankLine=False)
+    #     self.showMsg(f'asteroid diameter: {self.astSizeEdit.text()}', blankLine=False)
+    #     self.showMsg(f'centerline offset: {self.pathOffsetEdit.text()}', blankLine=False)
+    #     self.showMsg(f'D limb angle: {self.dLimbAngle.value()}', blankLine=False)
+    #     self.showMsg(f'R limb angle: {self.rLimbAngle.value()}')
+    #     return
 
-        astDistUnits = self.asteroidDistanceUnitsSelector.currentText()
-        if astDistUnits == 'AU':
-            self.showMsg(f'asteroid dist(AU): {self.asteroidDistanceEdit.text()}', blankLine=False)
-        elif astDistUnits == 'parallax':
-            self.showMsg(f'asteroid dist(arcseconds): {self.asteroidDistanceEdit.text()}', blankLine=False)
-        else:
-            self.showInfo(f'Invalid units specifier for asteroid distance: {astDistUnits}')
-            return
+    # def rEdgeCorrected(self, r_best_value, r_best_value_index):
+    #     # r_time_corr = time_correction(correction_dict=self.underlyingLightcurveAns,
+    #     #                               transition_point_intensity=r_best_value, edge_type='R')
+    #     r_delta = (r_best_value - self.A) / (self.B - self.A)
+    #     return r_best_value_index - r_delta
+    #     # if r_time_corr is not None:
+    #     #     r_delta = r_time_corr / self.timeDelta
+    #     #     r_adj = r_best_value_index + r_delta
+    #     #     return r_adj
+    #     # else:
+    #     #     return None
 
-        self.showMsg(f'speed(km/sec): {self.shadowSpeedEdit.text()}', blankLine=False)
-        self.showMsg(f'Star diam(mas): {self.starDiameterEdit.text()}', blankLine=False)
-        self.showMsg(f'asteroid diameter: {self.astSizeEdit.text()}', blankLine=False)
-        self.showMsg(f'centerline offset: {self.pathOffsetEdit.text()}', blankLine=False)
-        self.showMsg(f'D limb angle: {self.dLimbAngle.value()}', blankLine=False)
-        self.showMsg(f'R limb angle: {self.rLimbAngle.value()}')
-        return
-
-    def rEdgeCorrected(self, r_best_value, r_best_value_index):
-        # r_time_corr = time_correction(correction_dict=self.underlyingLightcurveAns,
-        #                               transition_point_intensity=r_best_value, edge_type='R')
-        r_delta = (r_best_value - self.A) / (self.B - self.A)
-        return r_best_value_index - r_delta
-        # if r_time_corr is not None:
-        #     r_delta = r_time_corr / self.timeDelta
-        #     r_adj = r_best_value_index + r_delta
-        #     return r_adj
-        # else:
-        #     return None
-
-    def dEdgeCorrected(self, d_best_value, d_best_value_index):
-        # d_time_corr = time_correction(correction_dict=self.underlyingLightcurveAns,
-        #                               transition_point_intensity=d_best_value, edge_type='D')
-        d_delta = (d_best_value - self.A) / (self.B - self.a)
-        return d_best_value_index - d_delta
-        # if d_time_corr is not None:
-        #     d_delta = d_time_corr / self.timeDelta
-        #     d_adj = d_best_value_index + d_delta
-        #     return d_adj
-        # else:
-        #     return None
+    # def dEdgeCorrected(self, d_best_value, d_best_value_index):
+    #     # d_time_corr = time_correction(correction_dict=self.underlyingLightcurveAns,
+    #     #                               transition_point_intensity=d_best_value, edge_type='D')
+    #     d_delta = (d_best_value - self.A) / (self.B - self.A)
+    #     return d_best_value_index - d_delta
+    #     # if d_time_corr is not None:
+    #     #     d_delta = d_time_corr / self.timeDelta
+    #     #     d_adj = d_best_value_index + d_delta
+    #     #     return d_adj
+    #     # else:
+    #     #     return None
 
     def getUnderlyingLightCurveTimeRanges(self):
         # We use this routine to find the 'range' of times that are covered by the underlying lightcurve.
@@ -5515,9 +5517,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.showInfo(f'time per reading (timeDelta) has an invalid value of 0.0\n\nCannot proceed.')
             return
 
-        if self.penumbralFitCheckBox.isChecked():
-            self.doPenumbralFit()
-            return
+        # if self.penumbralFitCheckBox.isChecked():
+        #     self.doPenumbralFit()
+        #     return
 
         need_to_invite_user_to_verify_timestamps = False
 
@@ -5724,23 +5726,15 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     subDandR = self.solution
 
             # Here we apply the correction from our computed underlying lightcurves.
-            if self.userDeterminedEventStats:
-                AtoUse = self.A
-            else:
-                AtoUse = new_a
-
-            if self.userDeterminedBaselineStats:
-                BtoUse = self.B
-            else:
-                BtoUse = new_b
-
-            # self.underlyingLightcurveAns = self.demoUnderlyingLightcurves(baseline=BtoUse, event=AtoUse,
-            #                                                               plots_wanted=False)
-
-            # If an error in data entry has occurred, ans will be None
-            # if self.underlyingLightcurveAns is None:
-            #     self.showMsg(f'An error in the underlying lightcurve parameters has occurred.', bold=True, color='red')
-            #     return
+            # if self.userDeterminedEventStats:
+            #     AtoUse = self.A
+            # else:
+            #     AtoUse = new_a
+            #
+            # if self.userDeterminedBaselineStats:
+            #     BtoUse = self.B
+            # else:
+            #     BtoUse = new_b
 
             D = R = 0
             if self.eventType == 'Donly' or self.eventType == 'DandR':
@@ -5751,24 +5745,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             if (self.eventType == 'Donly' or self.eventType == 'DandR') and not D == subDandR[0]:
                 if self.exponentialDtheoryPts is None:
                     pass
-                    # d_time_corr = time_correction(correction_dict=self.underlyingLightcurveAns,
-                    #                               transition_point_intensity=self.yValues[D], edge_type='D')
-
-                    # d_delta = d_time_corr / self.timeDelta
-                    # d_adj = D + d_delta
-                    # self.showMsg(f'd_time_correction: {d_time_corr:0.4f}  new D: {d_adj:0.4f}')
-                    # subDandR[0] = d_adj
 
             if (self.eventType == 'Ronly' or self.eventType == 'DandR') and not R == subDandR[1]:
                 if self.exponentialRtheoryPts is None:
                     pass
-                    # r_time_corr = time_correction(correction_dict=self.underlyingLightcurveAns,
-                    #                               transition_point_intensity=self.yValues[R], edge_type='R')
-
-                    # r_delta = r_time_corr / self.timeDelta
-                    # r_adj = R + r_delta
-                    # self.showMsg(f'r_time_correction: {r_time_corr:0.4f}  new R: {r_adj:0.4f}')
-                    # subDandR[1] = r_adj
 
             if self.exponentialDtheoryPts is None and self.exponentialRtheoryPts is None:
                 self.solution = subDandR
@@ -6167,7 +6147,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     self.yTimes = manualTime[:]
                     self.timeDelta, self.droppedFrames, self.cadenceViolation, self.errRate = \
                         getTimeStepAndOutliers(self.yTimes)
-                    self.expDurEdit.setText(fp.to_precision(self.timeDelta, 6))
+                    self.frameTimeEdit.setText(fp.to_precision(self.timeDelta, 6))
 
                     self.fillTableViewOfData()
                     self.newRedrawMainPlot()
@@ -6432,7 +6412,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
                 self.timeDelta, self.droppedFrames, self.cadenceViolation, self.errRate = \
                     getTimeStepAndOutliers(self.yTimes)
-                self.expDurEdit.setText(fp.to_precision(self.timeDelta, 6))
+                self.frameTimeEdit.setText(fp.to_precision(self.timeDelta, 6))
 
                 self.showMsg('timeDelta: ' + fp.to_precision(self.timeDelta, 6) + ' seconds per reading',
                              blankLine=False)
@@ -6683,9 +6663,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.flashEdges = savedFlashEdges
         self.disableAllButtons()
 
-        self.firstPassPenumbralFit = True
-        self.penumbralFitCheckBox.setChecked(False)
-
         # self.lightCurveNumberLabel.setEnabled(True)
         # self.curveToAnalyzeSpinBox.setEnabled(True)
         # self.normLabel.setEnabled(True)
@@ -6695,7 +6672,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.dataLen = len(self.yTimes)
         self.timeDelta, self.droppedFrames, self.cadenceViolation, self.errRate = getTimeStepAndOutliers(self.yTimes)
-        self.expDurEdit.setText(fp.to_precision(self.timeDelta, 6))
+        self.frameTimeEdit.setText(fp.to_precision(self.timeDelta, 6))
 
         self.fillTableViewOfData()
 
@@ -6734,7 +6711,97 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.showMsg('*' * 20 + ' starting over ' + '*' * 20, color='blue')
 
     def drawModelLightcurve(self, x, y):
-        self.mainPlot.plot(x, y, pen=pg.mkPen(150, 100, 100), symbol=None)
+
+        # The following variable is useful for debugging ...
+        visibilityOffset = 0  # Used to produce a 'jog' at the edge of model lightcurve
+
+        time_translation = self.modelTimeOffset
+
+        if not self.timestampListIsEmpty(self.yTimes):
+            # Compute time duration of lightcurve observation
+            tObsStart = convertTimeStringToTime(self.yTimes[0])
+            tObsEnd = convertTimeStringToTime(self.yTimes[-1])
+            tObsDur = tObsEnd - tObsStart
+            if tObsDur < 0:  # The lightcurve acquisition passed through midnight
+                tObsDur += 24 * 60 * 60  # And a days worth of seconds
+
+            tModelDur = (x[-1] - x[0]) / self.Lcp.shadow_speed
+            self.modelDuration = tModelDur
+            tModelBegin = time_translation  # Leftmost edge of model lightcurve
+            tModelEnd = time_translation + tModelDur
+
+            # Compute resolution of model lightcurve - needed for adding extensions
+            modelTimeResolution = (x[1] - x[0]) / self.Lcp.shadow_speed
+
+            # Convert model edge location from km to time - relative to model center
+            modelDedgeSecs = self.modelDedge / self.Lcp.shadow_speed
+            modelRedgeSecs = self.modelRedge / self.Lcp.shadow_speed
+
+            # Convert edge locations from time in model space to time in observation space
+            modelDedgeSecs += time_translation + tModelDur / 2.0
+            modelRedgeSecs += time_translation + tModelDur / 2.0
+
+            # self.showInfo(f'Time span of observation: {tDeltaObservation:0.4f} seconds\n\n'
+            #               f'Time span of model lightcurve: {tModelDur:0.4} seconds\n\n'
+            #               f'model resolution: {modelTimeResolution:0.6f} seconds')
+
+            # Initially set indices to extract every point of the model lightcurve.
+            # These will be changed if trimming is needed/
+            leftIndex = 0
+            rightIndex = len(y) - 1
+
+            # Check for exension to model needed on left edge
+            if tModelBegin >= 0:  # An extension is needed
+                nExtensionPoints = round(tModelBegin / modelTimeResolution)
+                leftExtension = [self.Lcp.baseline_ADU + visibilityOffset
+                                 for _ in range(nExtensionPoints)]
+            else:  # A trim is needed
+                leftIndex = round(abs(tModelBegin) / modelTimeResolution)
+                leftExtension = []
+
+            # Check for extension to model on right edge
+            if tObsDur > tModelEnd:  # An extension is needed
+                nExtensionPoints = round((tObsDur - tModelEnd) / modelTimeResolution)
+                rightExtension = [self.Lcp.baseline_ADU + visibilityOffset
+                                  for _ in range(nExtensionPoints)]
+            else:  # A trim is needed
+                rightIndex = len(y) - round((tModelEnd - tObsDur) / modelTimeResolution)
+                rightExtension = []
+
+            modelPts = list(y[leftIndex:rightIndex+1])
+            normedModelY = leftExtension + modelPts + rightExtension
+
+            modelRdgNum = [i * self.dataLen / len(normedModelY) for i in range(len(normedModelY))]
+            mPen = pg.mkPen(color=(255, 0, 0), width=self.lineWidthSpinner.value())
+            self.mainPlot.plot(modelRdgNum, normedModelY, pen=mPen, symbol=None)
+
+            # Add D and R edge positions to plot.
+            ePen = pg.mkPen(color=(100, 100, 100), style=QtCore.Qt.PenStyle.DashLine,
+                            width=self.lineWidthSpinner.value())
+
+            # Convert edge times to reading number units
+            self.modelDedgeValue = modelDedgeSecs * (self.dataLen - 1) / tObsDur
+            self.modelRedgeValue = modelRedgeSecs * (self.dataLen - 1) / tObsDur
+
+            D = self.modelDedgeValue
+            R = self.modelRedgeValue
+            lo_int = self.Lcp.bottom_ADU
+            hi_int = self.Lcp.baseline_ADU
+            span = hi_int - lo_int
+            lo_int -= 0.1 * span
+            hi_int += 0.1 * span
+            if D >= 0:
+                self.mainPlot.plot([D, D], [lo_int, hi_int], pen=ePen, symbol=None)
+            if R <= self.dataLen - 1:
+                self.mainPlot.plot([R, R], [lo_int, hi_int], pen=ePen, symbol=None)
+
+            # self.showInfo(f'D edge (rdg num): {self.modelDedgeValue:0.3f}\n\n'
+            #               f'R edge (rdg num): {self.modelRedgeValue:0.3f}')
+
+            self.modelXvalues = np.array(modelRdgNum)
+            self.modelYvalues = np.array(normedModelY)
+        else:
+            self.showInfo(f'Timestamps are required for model lightcurves')
 
     def drawSolution(self):
         def plot(x, y, pen):
@@ -6833,6 +6900,42 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         hi_int = max(self.yValues[self.left:self.right])
         lo_int = min(self.yValues[self.left:self.right])
+
+        if self.squareWaveRadioButton.isChecked():
+            # Plot the camera response for a square wave solution
+            hi_int = max(self.yValues[self.left:self.right])
+            lo_int = min(self.yValues[self.left:self.right])
+
+            D = self.solution[0]
+            R = self.solution[1]
+            solutionPen = pg.mkPen((150, 100, 100), width=self.lineWidthSpinner.value())
+            dPen = pg.mkPen((255, 0, 0), width=self.lineWidthSpinner.value())
+            rPen = pg.mkPen((0, 255, 0), width=self.lineWidthSpinner.value())
+            if self.eventType == 'DandR':
+                plot([self.left, D - 1], [self.B, self.B], pen=solutionPen)
+                plot([D-1, D], [self.B, self.A], pen=solutionPen)
+                plot([D, R], [self.A, self.A], pen=solutionPen)
+                plot([R, R+1], [self.A, self.B], pen=solutionPen)
+                plot([R+1, self.right], [self.B, self.B], pen=solutionPen)
+                plot([D, D], [lo_int, hi_int], pen=dPen)
+                plot([R, R], [lo_int, hi_int], pen=rPen)
+            elif self.eventType == 'Donly':
+                plot([self.left, D - 1], [self.B, self.B], pen=solutionPen)
+                plot([D - 1, D], [self.B, self.A], pen=solutionPen)
+                plot([D, self.right], [self.A, self.A], pen=solutionPen)
+                plot([D, D], [lo_int, hi_int], pen=dPen)
+            else:
+                plot([self.left, R], [self.A, self.A], pen=solutionPen)
+                plot([R, R + 1], [self.A, self.B], pen=solutionPen)
+                plot([R + 1, self.right], [self.B, self.B], pen=solutionPen)
+                plot([R, R], [lo_int, hi_int], pen=rPen)
+
+            return
+        elif self.exponentialDtheoryPts is None:
+            if self.modelY is not None:
+                ePen = pg.mkPen((0, 255, 0), width=self.lineWidthSpinner.value())
+                plot(self.modelX, self.modelY, pen=ePen)
+                return
 
         if self.eventType == 'DandR':
             if self.exponentialDtheoryPts is None:
@@ -6961,6 +7064,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             left = self.left
 
         self.mainPlot.clear()
+
+        # if self.modelYsamples is not None:
+        #     dotSize = self.dotSizeSpinner.value()
+        #     self.mainPlot.plot(self.modelYsamples, pen=None, symbol='o',
+        #                        symbolBrush=(0, 0, 0), symbolSize=dotSize + 2)
 
         if self.yValues is None:
             return
@@ -7143,6 +7251,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         if self.bkgndRegions is not []:
             for region in self.bkgndRegions:
                 self.mainPlot.addItem(region)
+
+        if self.exponentialDtheoryPts is None and not self.squareWaveRadioButton.isChecked():
+            if self.modelX is not None and self.modelY is not None:
+                self.drawModelLightcurve(self.modelX, self.modelY)
 
         if self.solution:
             self.drawSolution()
