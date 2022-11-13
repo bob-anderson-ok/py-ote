@@ -3360,7 +3360,7 @@
                 <item>
                  <widget class="QPushButton" name="initiateFitButton">
                   <property name="text">
-                   <string>Initiate fit of model to data</string>
+                   <string>Position model lightcurve</string>
                   </property>
                  </widget>
                 </item>
@@ -3828,9 +3828,9 @@
               <widget class="QWidget" name="layoutWidget">
                <property name="geometry">
                 <rect>
-                 <x>170</x>
+                 <x>180</x>
                  <y>220</y>
-                 <width>141</width>
+                 <width>131</width>
                  <height>80</height>
                 </rect>
                </property>
@@ -3854,27 +3854,21 @@
                  <widget class="QLineEdit" name="bottomADUedit"/>
                 </item>
                 <item>
-                 <layout class="QHBoxLayout" name="horizontalLayout_41">
+                 <layout class="QHBoxLayout" name="horizontalLayout_13">
                   <item>
-                   <widget class="QPushButton" name="bottomADUbutton">
+                   <widget class="QLabel" name="magdropLabel">
+                    <property name="font">
+                     <font>
+                      <bold>true</bold>
+                     </font>
+                    </property>
                     <property name="text">
-                     <string>Select</string>
+                     <string>MagDrop</string>
                     </property>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QPushButton" name="calcBottomADUbutton">
-                    <property name="text">
-                     <string>Calc</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QPushButton" name="clearBottomADUselectionButton">
-                    <property name="text">
-                     <string>Clear</string>
-                    </property>
-                   </widget>
+                   <widget class="QLineEdit" name="magDropEdit"/>
                   </item>
                  </layout>
                 </item>
@@ -3950,27 +3944,18 @@
                 </item>
                </layout>
               </widget>
-              <widget class="QWidget" name="">
+              <widget class="QCheckBox" name="traceCheckBox">
                <property name="geometry">
                 <rect>
-                 <x>400</x>
-                 <y>410</y>
-                 <width>110</width>
-                 <height>48</height>
+                 <x>690</x>
+                 <y>430</y>
+                 <width>77</width>
+                 <height>22</height>
                 </rect>
                </property>
-               <layout class="QVBoxLayout" name="verticalLayout_12">
-                <item>
-                 <widget class="QLabel" name="magdropLabel">
-                  <property name="text">
-                   <string>MagDrop</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLineEdit" name="magDropEdit"/>
-                </item>
-               </layout>
+               <property name="text">
+                <string>Trace</string>
+               </property>
               </widget>
              </widget>
              <widget class="QWidget" name="tab_9">
@@ -5550,17 +5535,17 @@
   <tabstop>asteroidDistArcsecEdit</tabstop>
   <tabstop>wavelengthEdit</tabstop>
   <tabstop>baselineADUedit</tabstop>
-  <tabstop>baselineADUbutton</tabstop>
   <tabstop>bottomADUedit</tabstop>
-  <tabstop>bottomADUbutton</tabstop>
+  <tabstop>magDropEdit</tabstop>
   <tabstop>DdegreesEdit</tabstop>
   <tabstop>RdegreesEdit</tabstop>
   <tabstop>chordSizeSecondsEdit</tabstop>
   <tabstop>chordSizeKmEdit</tabstop>
   <tabstop>starSizeMasEdit</tabstop>
   <tabstop>starSizeKmEdit</tabstop>
-  <tabstop>fresnelSizeKmEdit</tabstop>
   <tabstop>fresnelSizeSecondsEdit</tabstop>
+  <tabstop>fresnelSizeKmEdit</tabstop>
+  <tabstop>baselineADUbutton</tabstop>
   <tabstop>helpPdfButton</tabstop>
   <tabstop>diffractionRadioButton</tabstop>
   <tabstop>edgeOnDiskRadioButton</tabstop>
@@ -5619,6 +5604,13 @@
   <tabstop>textOut</tabstop>
   <tabstop>startOverButton</tabstop>
   <tabstop>saveCurrentEventButton</tabstop>
+  <tabstop>squareWaveRadioButton</tabstop>
+  <tabstop>showAnnotationsCheckBox</tabstop>
+  <tabstop>showLegendsCheckBox</tabstop>
+  <tabstop>versusTimeCheckBox</tabstop>
+  <tabstop>showDetailsCheckBox</tabstop>
+  <tabstop>calcBaselineADUbutton</tabstop>
+  <tabstop>clearBaselineADUselectionButton</tabstop>
  </tabstops>
  <resources/>
  <connections/>

@@ -109,7 +109,9 @@ def scaleToADU(y_values, LCP):
     # y_values *= (LCP.baseline_ADU - LCP.bottom_ADU)
     # y_values += LCP.bottom_ADU
 
-    y_values *= LCP.baseline_ADU
+    compression = 1.0 - LCP.bottom_ADU / LCP.baseline_ADU
+    y_values = ((y_values - 1.0) * compression + 1.0) * LCP.baseline_ADU
+    # y_values *= LCP.baseline_ADU
 
     return y_values
 
@@ -425,6 +427,8 @@ class LightcurveParameters:
     sky_motion_mas_per_sec: float
 
     sigmaB: float = None  # standard deviation of baseline points (needed for metric)
+
+    magDrop: float = None
 
     asteroid_diameter_km: float = None
     asteroid_diameter_mas: float = None
