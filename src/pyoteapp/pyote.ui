@@ -3146,9 +3146,9 @@
                  <widget class="QLineEdit" name="wavelengthEdit"/>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="startOverButton">
+                 <widget class="QPushButton" name="editButton">
                   <property name="text">
-                   <string>Start over</string>
+                   <string>Edit</string>
                   </property>
                  </widget>
                 </item>
@@ -3346,7 +3346,7 @@
                  <x>150</x>
                  <y>340</y>
                  <width>198</width>
-                 <height>116</height>
+                 <height>146</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_49">
@@ -3361,6 +3361,13 @@
                  <widget class="QPushButton" name="initiateFitButton">
                   <property name="text">
                    <string>Position model lightcurve</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="automaticFitButton">
+                  <property name="text">
+                   <string>Find best time position</string>
                   </property>
                  </widget>
                 </item>
@@ -3414,6 +3421,12 @@
                 </item>
                 <item>
                  <widget class="QLineEdit" name="fitMetricChangeEdit">
+                  <property name="maximumSize">
+                   <size>
+                    <width>16777215</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
                   <property name="autoFillBackground">
                    <bool>false</bool>
                   </property>
@@ -3796,7 +3809,11 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QLineEdit" name="baselineADUedit"/>
+                 <widget class="QLineEdit" name="baselineADUedit">
+                  <property name="readOnly">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
                 </item>
                 <item>
                  <layout class="QHBoxLayout" name="horizontalLayout_40">
@@ -3947,8 +3964,8 @@
               <widget class="QCheckBox" name="traceCheckBox">
                <property name="geometry">
                 <rect>
-                 <x>690</x>
-                 <y>430</y>
+                 <x>800</x>
+                 <y>10</y>
                  <width>77</width>
                  <height>22</height>
                 </rect>
@@ -3956,6 +3973,160 @@
                <property name="text">
                 <string>Trace</string>
                </property>
+              </widget>
+              <widget class="QWidget" name="">
+               <property name="geometry">
+                <rect>
+                 <x>360</x>
+                 <y>410</y>
+                 <width>343</width>
+                 <height>76</height>
+                </rect>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_15">
+                <item>
+                 <widget class="QLabel" name="fitPrecisionLabel">
+                  <property name="font">
+                   <font>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Precision of 'fit' parameters:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_41">
+                  <item>
+                   <layout class="QVBoxLayout" name="verticalLayout_12">
+                    <item>
+                     <widget class="QLabel" name="edgeTimePrecisionLabel">
+                      <property name="font">
+                       <font>
+                        <bold>true</bold>
+                       </font>
+                      </property>
+                      <property name="text">
+                       <string>Edge time</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <layout class="QHBoxLayout" name="horizontalLayout_14">
+                      <item>
+                       <widget class="QLineEdit" name="edgeTimePrecisionEdit">
+                        <property name="maximumSize">
+                         <size>
+                          <width>50</width>
+                          <height>16777215</height>
+                         </size>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QLabel" name="edgeTimePrecisionUnitsLabel">
+                        <property name="font">
+                         <font>
+                          <bold>true</bold>
+                         </font>
+                        </property>
+                        <property name="text">
+                         <string>seconds</string>
+                        </property>
+                       </widget>
+                      </item>
+                     </layout>
+                    </item>
+                   </layout>
+                  </item>
+                  <item>
+                   <layout class="QVBoxLayout" name="verticalLayout_13">
+                    <item>
+                     <widget class="QLabel" name="chordDurationPrecisionLabel">
+                      <property name="font">
+                       <font>
+                        <bold>true</bold>
+                       </font>
+                      </property>
+                      <property name="text">
+                       <string>Chord duration</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <layout class="QHBoxLayout" name="horizontalLayout_15">
+                      <item>
+                       <widget class="QLineEdit" name="chordDurationPrecisionEdit">
+                        <property name="maximumSize">
+                         <size>
+                          <width>50</width>
+                          <height>16777215</height>
+                         </size>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QLabel" name="chordDurationUnitsLabel">
+                        <property name="font">
+                         <font>
+                          <bold>true</bold>
+                         </font>
+                        </property>
+                        <property name="text">
+                         <string>seconds</string>
+                        </property>
+                       </widget>
+                      </item>
+                     </layout>
+                    </item>
+                   </layout>
+                  </item>
+                  <item>
+                   <layout class="QVBoxLayout" name="verticalLayout_14">
+                    <item>
+                     <widget class="QLabel" name="limbAnglePrecisionLabel">
+                      <property name="font">
+                       <font>
+                        <bold>true</bold>
+                       </font>
+                      </property>
+                      <property name="text">
+                       <string>Limb angle</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <layout class="QHBoxLayout" name="horizontalLayout_16">
+                      <item>
+                       <widget class="QLineEdit" name="limbAnglePrecisionEdit">
+                        <property name="maximumSize">
+                         <size>
+                          <width>50</width>
+                          <height>16777215</height>
+                         </size>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QLabel" name="limbAnglePrecisionUnitsLabel">
+                        <property name="font">
+                         <font>
+                          <bold>true</bold>
+                         </font>
+                        </property>
+                        <property name="text">
+                         <string>degrees</string>
+                        </property>
+                       </widget>
+                      </item>
+                     </layout>
+                    </item>
+                   </layout>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
               </widget>
              </widget>
              <widget class="QWidget" name="tab_9">
@@ -5602,7 +5773,7 @@
   <tabstop>mainPlot</tabstop>
   <tabstop>table</tabstop>
   <tabstop>textOut</tabstop>
-  <tabstop>startOverButton</tabstop>
+  <tabstop>editButton</tabstop>
   <tabstop>saveCurrentEventButton</tabstop>
   <tabstop>squareWaveRadioButton</tabstop>
   <tabstop>showAnnotationsCheckBox</tabstop>

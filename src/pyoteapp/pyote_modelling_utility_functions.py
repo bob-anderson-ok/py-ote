@@ -430,6 +430,8 @@ class LightcurveParameters:
 
     magDrop: float = None
 
+    sourceFile: str = field(default='?')
+
     asteroid_diameter_km: float = None
     asteroid_diameter_mas: float = None
     asteroid_rho: float = None
@@ -465,8 +467,11 @@ class LightcurveParameters:
                 self.name_list.append(name)
 
     def set(self, name, value):
-        if value is not None and value < 0.0:
-            raise ValueError(f'{name} cannot be negative.')
+        if type(value) is not str:
+            if value is not None and value < 0.0:
+                raise ValueError(f'{name} cannot be negative.')
+        else:
+            pass
 
         if name not in self.name_list:
             raise ValueError(f'{name} is not a valid lightcurve parameter name or is not settable after creation.')
@@ -745,7 +750,6 @@ def plot_diffraction(x, y, first_wavelength, last_wavelength, LCP, figsize=(14, 
 
     # Get star disk chords
     star_disk_y = None
-    d_chords = None
     if not LCP.star_diameter_km == 0.0:
         d_chords, d_chords_alone, *_ = get_star_chord_samples(x=x, plot_margin=20, LCP=LCP)
         star_disk_y = lightcurve_convolve(sample=d_chords_alone,

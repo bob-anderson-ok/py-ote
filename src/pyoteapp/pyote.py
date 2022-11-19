@@ -188,6 +188,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.trace = False
 
+        self.csvFilePath = None
+
         self.suppressRedrawMainPlot = False
         self.suppressParameterChange = False
         self.parameterChangeEntryCount = 0
@@ -199,6 +201,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.right = None
 
         self.yValues = None            # observation data
+
+        self.editMode = False
 
         self.chordSizeSecondsEditted = False
         self.chordSizeKmEditted = False
@@ -227,8 +231,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         # modelXvalues are in reading number units
         self.modelXvalues = None       # model x values extended or trimmed to match obs
         self.modelYvalues = None       # model y values extended or trimmed to match obs
-        self.modelDedgeValue = None    # D edge from model (in reading number units)
-        self.modelRedgeValue = None    # R edge from model (in reading number units)
+        self.modelDedgeRdgValue = None    # D edge from model (in reading number units)
+        self.modelRedgeRdgValue = None    # R edge from model (in reading number units)
 
         self.allowShowDetails = False
 
@@ -406,8 +410,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.saveCurrentEventButton.installEventFilter(self)
         self.saveCurrentEventButton.clicked.connect(self.saveCurrentEvent)
 
-        self.startOverButton.installEventFilter(self)
-        self.startOverButton.clicked.connect(self.intializeModelLightcurvesPanel)
+        self.editButton.installEventFilter(self)
+        self.editButton.clicked.connect(self.enablePrimaryEntryEditBoxes)
 
         self.pastEventsLabel.installEventFilter(self)
         self.pastEventsComboBox.installEventFilter(self)
@@ -439,9 +443,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.asteroidDiameterMasLabel.installEventFilter(self)
 
         self.asteroidDiameterKmEdit.installEventFilter(self)
-        self.asteroidDiameterKmEdit.editingFinished.connect(self.processModelLightcurveCoreEdit)
+        self.asteroidDiameterKmEdit.editingFinished.connect(self.processAsteroidDiameterKmFinish)
         self.asteroidDiameterMasEdit.installEventFilter(self)
-        self.asteroidDiameterMasEdit.editingFinished.connect(self.processModelLightcurveCoreEdit)
+        self.asteroidDiameterMasEdit.editingFinished.connect(self.processAsteroidDiameterMasFinish)
 
         self.asteroidSpeedLabel.installEventFilter(self)
         self.asteroidSpeedShadowEdit.installEventFilter(self)
@@ -479,20 +483,20 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.fresnelSizeSecondsLabel.installEventFilter(self)
 
         self.starSizeLabel.installEventFilter(self)
-        self.starSizeMasEdit.installEventFilter(self)
-        self.starSizeMasEdit.editingFinished.connect(self.processStarSizeMasFinish)
+        self.starSizeKmLabel.installEventFilter(self)
         self.starSizeMasLabel.installEventFilter(self)
+        self.starSizeMasEdit.installEventFilter(self)
+        self.starSizeKmEdit.installEventFilter(self)
+        self.starSizeMasEdit.editingFinished.connect(self.processStarSizeMasFinish)
+        self.starSizeKmEdit.editingFinished.connect(self.processStarSizeKmFinish)
 
         self.traceCheckBox.clicked.connect(self.traceControl)
+
         self.chordSizeLabel.installEventFilter(self)
         self.chordSizeSecondsLabel.installEventFilter(self)
         self.chordSizeKmEdit.installEventFilter(self)
         self.chordSizeKmEdit.editingFinished.connect(self.processChordSizeKmFinish)
         self.chordSizeSecondsEdit.editingFinished.connect(self.processChordSizeSecondsFinish)
-
-        self.starSizeKmEdit.installEventFilter(self)
-        self.starSizeKmEdit.editingFinished.connect(self.processStarSizeKmFinish)
-        self.starSizeKmLabel.installEventFilter(self)
 
         self.modelToUseLabel.installEventFilter(self)
         self.diffractionRadioButton.installEventFilter(self)
@@ -526,6 +530,18 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.fitMetricChangeEdit.installEventFilter(self)
 
         self.helpPdfButton.installEventFilter(self)
+
+        self.fitPrecisionLabel.installEventFilter(self)
+        self.edgeTimePrecisionLabel.installEventFilter(self)
+        self.chordDurationPrecisionLabel.installEventFilter(self)
+        self.limbAnglePrecisionLabel.installEventFilter(self)
+
+        self.automaticFitButton.installEventFilter(self)
+        self.automaticFitButton.clicked.connect(self.findBestPosition)
+
+        self.edgeTimePrecisionEdit.installEventFilter(self)
+        self.chordDurationPrecisionEdit.installEventFilter(self)
+        self.limbAnglePrecisionEdit.installEventFilter(self)
 
         self.LC1 = []
         self.LC2 = []
@@ -801,6 +817,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.settings = QSettings('pyote.ini', QSettings.IniFormat)
         self.settings.setFallbacksEnabled(False)
 
+        self.edgeTimePrecisionEdit.setText(self.settings.value('edgeTimeFitPrecision', ''))
+        self.chordDurationPrecisionEdit.setText(self.settings.value('chordDurationFitPrecision', ''))
+        self.limbAnglePrecisionEdit.setText(self.settings.value('limbAngleFitPrecision', ''))
+
         lineWidth = self.settings.value('lineWidth', '5')
         dotSize = self.settings.value('dotSize', '8')
 
@@ -947,12 +967,112 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.newEventDataBeingEntered = False
 
-        self.intializeModelLightcurvesPanel()
+        self.initializeModelLightcurvesPanel()
 
 # ====  New method entry point ===
 
+    def convertDandRrdgValueToTimestamp(self):
+        tObsStart = convertTimeStringToTime(self.yTimes[0])
+        tDedge = tObsStart + self.modelDedgeRdgValue * self.timeDelta
+        tRedge = tObsStart + self.modelRedgeRdgValue * self.timeDelta
+        return convertTimeToTimeString(tDedge), convertTimeToTimeString(tRedge)
+
+    def findBestPosition(self):
+        if not len(self.selectedPoints) == 1:
+            self.showInfo('Select a point to be used\n'
+                          'as the starting point for the\n'
+                          'position search.')
+            return
+
+        selIndex = [key for key, _ in self.selectedPoints.items()]
+
+        tObsStart = convertTimeStringToTime(self.yTimes[0])
+        timeAtPointSelected = convertTimeStringToTime(self.yTimes[selIndex[0]])
+        relativeTime = timeAtPointSelected - tObsStart
+        if relativeTime < 0:  # The lightcurve acquisition passed through midnight
+            relativeTime += 24 * 60 * 60  # And a days worth of seconds
+
+        self.modelTimeOffset = relativeTime - self.modelDuration / 2
+
+        positionPrecision = float(self.edgeTimePrecisionEdit.text())
+
+        # self.showInfo(f'precision to be used: {positionPrecision}\n\n'
+        #               f'Starting from: {selIndex}\n\n'
+        #               f'model time offset: {self.modelTimeOffset:0.4f}')
+
+        self.automaticFitButton.setStyleSheet("background-color: red")
+        self.automaticFitButton.setText('... computation in progress')
+        QtWidgets.QApplication.processEvents()
+
+        # self.redrawMainPlot()  # This will display the model lightcurve at the desired position.
+
+        timeOffsetsToUse = [i * positionPrecision + self.modelTimeOffset for i in range(-10, 11)]
+        # self.showInfo(f'{timeOffsetsToUse}')
+
+        metrics = []
+        for timeOffset in timeOffsetsToUse:
+            self.modelTimeOffset = timeOffset
+            self.extendAndDrawModelLightcurve(self.modelX, self.modelY)
+            metric = self.calcModelFitMetric()
+            metrics.append(metric)
+
+        # self.showInfo(f'{metrics}')
+
+        # Find smallest metric
+        smallestMetric = metrics[0]
+        k = 0
+        for i, value in enumerate(metrics):
+            if value < smallestMetric:
+                smallestMetric = value
+                k = i
+
+        # self.showInfo(f'k: {k}  metric: {smallestMetric}')
+
+        self.modelTimeOffset = timeOffsetsToUse[k]
+        self.extendAndDrawModelLightcurve(self.modelX, self.modelY)
+        self.automaticFitButton.setStyleSheet(None)
+
+        self.calcModelFitMetric()
+        self.fitMetricChangeEdit.clear()
+        self.automaticFitButton.setText('Find best time position')
+        self.removePointSelections()
+        self.redrawMainPlot()
+        self.fitMetricChangeEdit.setStyleSheet(None)
+
+        Dtimestamp, Rtimestamp = self.convertDandRrdgValueToTimestamp()
+        # self.showInfo(f'D time: {Dtimestamp}  R time: {Rtimestamp}')
+        self.showMsg(f'Optimized edge times:  D: {Dtimestamp}  R: {Rtimestamp}', color='black', bold=True)
+
     def traceControl(self):
         self.trace = self.traceCheckBox.isChecked()
+
+    def processAsteroidDiameterKmFinish(self):
+        if not self.editMode:
+            self.processModelLightcurveCoreEdit()
+        else:
+            try:
+                value = float(self.asteroidDiameterKmEdit.text())
+                self.Lcp.set('asteroid_diameter_mas', None)
+                self.Lcp.set('asteroid_diameter_km', value)
+                self.asteroidDiameterMasEdit.setText(f'{self.Lcp.asteroid_diameter_mas:0.4f}')
+                self.disablePrimaryEntryEditBoxes()
+                self.editMode = False
+            except ValueError as e:
+                self.showInfo(f'{e}')
+
+    def processAsteroidDiameterMasFinish(self):
+        if not self.editMode:
+            self.processModelLightcurveCoreEdit()
+        else:
+            try:
+                value = float(self.asteroidDiameterMasEdit.text())
+                self.Lcp.set('asteroid_diameter_km', None)
+                self.Lcp.set('asteroid_diameter_mas', value)
+                self.asteroidDiameterKmEdit.setText(f'{self.Lcp.asteroid_diameter_km:0.4f}')
+                self.disablePrimaryEntryEditBoxes()
+                self.editMode = False
+            except ValueError as e:
+                self.showInfo(f'{e}')
 
     def processChordSizeSecondsFinish(self):
         self.chordSizeSecondsEditted = True
@@ -976,10 +1096,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     # @jit(nopython=True)
     def sampleModelLightcurve(self):
-        # ans = np.ndarray(len(self.yValues), dtype='float')
-        # ans[0] = self.modelYvalues[0]
-        # k = 1
-        # rdgNumToFind = 1
         ansY = []
         ansX = []
         k = 0
@@ -992,19 +1108,16 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 ansX.append(rdgNumToFind)
                 rdgNumToFind += 1
             k += 1
-        # return ans
         return ansX, np.array(ansY)
 
     # @jit(nopython=True)
     def calcModelFitMetric(self):
-        # modelYsamples = self.sampleModelLightcurve()
         modelXsamples, modelYsamples = self.sampleModelLightcurve()
         self.modelYsamples = modelYsamples
         self.modelXsamples = modelXsamples
         self.redrawMainPlot()
         modelSigmaB = self.Lcp.sigmaB
-        matchingYvalues = self.yValues[self.modelXsamples[0]:self.modelXsamples[-1] + 1]
-        # newMetric = np.sum(((modelYsamples - self.yValues) / modelSigmaB)**2) / len(modelYsamples)
+        matchingYvalues = self.yValues[self.modelXsamples[0]:(self.modelXsamples[-1] + 1)]
         newMetric = np.sum(((modelYsamples - matchingYvalues) / modelSigmaB)**2) / len(modelYsamples)
 
         if self.modelMetric is None:
@@ -1020,6 +1133,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.modelMetric = newMetric
             self.fitMetricChangeEdit.setText(f'{change:0.6f}')
         self.fitMetricEdit.setText(f'{newMetric:0.6f}')
+
+        return newMetric
 
     def initiateModelFit(self):
         if not len(self.selectedPoints) == 1:
@@ -1091,12 +1206,22 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         if self.trace:
             self.showInfo(f'Entered computeModelLightcurve()')
 
+        if not len(self.selectedPoints) == 1:
+            self.showInfo(f'Select a single point to give a good initial\n'
+                          f'placement for the model lightcurve')
+            return
+
         showLegend = self.showLegendsCheckBox.isChecked()
         showNotes = self.showAnnotationsCheckBox.isChecked()
         versusTime = self.versusTimeCheckBox.isChecked()
         plots_wanted = self.showDetailsCheckBox.isChecked() and self.allowShowDetails
 
         self.allowShowDetails = False
+
+        self.modelMetric = None
+        self.fitMetricEdit.clear()
+        self.fitMetricChangeEdit.clear()
+        self.fitMetricChangeEdit.setStyleSheet(None)
 
         if self.diffractionRadioButton.isChecked():
             self.demoLightcurveButton.setStyleSheet("background-color: red")
@@ -1113,8 +1238,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
             self.redrawMainPlot()
             self.initiateFitButton.setEnabled(True)
+            self.automaticFitButton.setEnabled(True)
             if len(self.selectedPoints) == 1:
                 self.initiateModelFit()
+            self.findBestPosition()
+            Dtimestamp, Rtimestamp = self.convertDandRrdgValueToTimestamp()
+            # self.showInfo(f'D time: {Dtimestamp}  R time: {Rtimestamp}')
+            self.showMsg(f'D time: {Dtimestamp}  R time: {Rtimestamp}', color='black', bold=True)
+
             return
 
         if self.edgeOnDiskRadioButton.isChecked():
@@ -1128,6 +1259,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.initiateFitButton.setEnabled(True)
             if len(self.selectedPoints) == 1:
                 self.initiateModelFit()
+
+            Dtimestamp, Rtimestamp = self.convertDandRrdgValueToTimestamp()
+            # self.showInfo(f'D time: {Dtimestamp}  R time: {Rtimestamp}')
+            self.showMsg(f'D time: {Dtimestamp}  R time: {Rtimestamp}', color='black', bold=True)
             return
 
         if self.diskOnDiskRadioButton.isChecked():
@@ -1141,6 +1276,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.initiateFitButton.setEnabled(True)
             if len(self.selectedPoints) == 1:
                 self.initiateModelFit()
+
+            Dtimestamp, Rtimestamp = self.convertDandRrdgValueToTimestamp()
+            # self.showInfo(f'D time: {Dtimestamp}  R time: {Rtimestamp}')
+            self.showMsg(f'D time: {Dtimestamp}  R time: {Rtimestamp}', color='black', bold=True)
+
             return
 
     def handleModelSelectionRadioButtonClick(self):
@@ -1178,7 +1318,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.disablePrimaryEntryEditBoxes()
 
-        self.baselineADUedit.setEnabled(True)
+        self.baselineADUedit.setEnabled(False)
         self.bottomADUedit.setEnabled(False)
         self.magDropEdit.setEnabled(True)
         self.baselineADUbutton.setEnabled(True)
@@ -1187,6 +1327,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.calcBaselineADUbutton.setEnabled(True)
 
     def handlePastEventSelection(self):
+        if self.csvFilePath is None:
+            self.showInfo(f'You must select a csv file first!')
+            return
+
         file_selected = self.pastEventsComboBox.currentText()
         # self.showInfo(f'A past event named {file_selected} has been selected')
         self.demoLightcurveButton.setStyleSheet("background-color: yellow")
@@ -1198,6 +1342,17 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.fillLightcurvePanelEditBoxes()
             self.enableLightcurveButtons()
             self.currentEventEdit.setText(file_selected)
+            eventSourceFile = self.Lcp.sourceFile
+
+            _, currentSourceFile = os.path.split(self.csvFilePath)
+            if not currentSourceFile == eventSourceFile:
+                self.showInfo(f'event source file: {eventSourceFile}\n\n'
+                              f'does not match !!! ....\n\n'
+                              f'current source file: {currentSourceFile}')
+            else:
+                # self.showInfo(f'event source file: {eventSourceFile}')
+                pass
+
         except FileNotFoundError:
             self.showInfo(f'{full_name} could not be found.')
 
@@ -1224,9 +1379,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                       f'in your current working directory.')
 
     def processNewCurrentEventEdit(self):
+        if self.csvFilePath is None:
+            self.showInfo(f'A csv file must be present before entering\n'
+                          f'of event data is allowed.')
+            return
+
         self.newEventDataBeingEntered = True
 
-        self.baselineADUedit.setEnabled(True)
+        self.baselineADUedit.setEnabled(False)
         self.baselineADUbutton.setEnabled(True)
         self.calcBaselineADUbutton.setEnabled(True)
 
@@ -1249,14 +1409,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
     def processModelParameterChange(self):
         self.parameterChangeEntryCount += 1
 
-        if self.suppressParameterChange:
-            self.suppressParameterChange = False
-            # if self.trace:
-            #     self.showInfo(f'at entry to processModelParameterChange but found it suppressed.\n\n'
-            #                   f'entry count: {self.parameterChangeEntryCount}')
-            return
-
-        self.suppressParameterChange = True
+        # if self.suppressParameterChange:
+        #     self.suppressParameterChange = False
+        #     if self.trace:
+        #         self.showInfo(f'at entry to processModelParameterChange but found it suppressed.\n\n'
+        #                       f'entry count: {self.parameterChangeEntryCount}')
+        #     return
+        #
+        # self.suppressParameterChange = True
 
         if self.trace:
             self.showInfo(f'entering processModelParameterChange with\n\n'
@@ -1313,6 +1473,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 except Exception as e:  # noqc
                     self.showInfo(f'{e}')
 
+            QtWidgets.QApplication.processEvents()
+
             anUnsetParameterFound, _ = self.Lcp.check_for_none()
 
             if not anUnsetParameterFound:
@@ -1351,8 +1513,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             frameTimeEntered = not self.frameTimeEdit.text() == empty
             magDropEntered = not self.magDropEdit.text() == empty
 
-            if self.Lcp is not None:
-                # self.showInfo('An update to ADU levels has been entered.')
+            if self.Lcp is not None and not self.editMode:
                 if baselineAduEntered and magDropEntered and frameTimeEntered:
                     magDrop = float(self.magDropEdit.text())
                     baselineADU = float(self.baselineADUedit.text())
@@ -1362,8 +1523,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     self.Lcp.set('baseline_ADU', float(self.baselineADUedit.text()))
                     self.Lcp.set('bottom_ADU', float(self.bottomADUedit.text()))
                     self.Lcp.set('frame_time', float(self.frameTimeEdit.text()))
-                    # self.showInfo('An update to changeable LCP values has been entered.')
-                    self.computeModelLightcurve()
+                    # self.computeModelLightcurve()
                     return
                 else:
                     self.showInfo('There must be a value provided for baseline, magDrop, and frame_time!')
@@ -1446,21 +1606,41 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
             if not allCoreElementsEntered:
                 return
-                # self.showInfo('All core elements in the Model lightcurve panel have been entered')
 
-            baselineADU = self.baselineADUedit.text()
-            if baselineADU == empty:
-                baselineADU = 100.0
-                self.baselineADUedit.setText('100.0')
-            else:
-                baselineADU = float(baselineADU)
+            self.editButton.setEnabled(True)
+            self.editMode = False
 
-            bottomADU = self.bottomADUedit.text()
-            if bottomADU == empty:
-                bottomADU = 0.0
-                self.bottomADUedit.setText('0.0')
-            else:
-                bottomADU = float(bottomADU)
+            self.showInfo(f'Set baselineADU by selecting points to be\n'
+                          f'included in the calculation - multiple regions can be\n'
+                          f'selected.\n\n'
+                          f'When all regions have been selected, click on th Calc button.\n\n'
+                          f'If desired, the selected points can be returned to their\n'
+                          f'normal color by clicking the Clear button')
+
+            # TODO Fix proper initialization of baseline ADU and magDrop
+            # baselineADU = self.baselineADUedit.text()
+            # if baselineADU == empty:
+            #     self.showInfo(f'Select baseline points and calc')
+            #     return
+            #     baselineADU = 100.0
+            #     self.baselineADUedit.setText('100.0')
+            #     self.magDropEdit.setText('1.0')
+            # else:
+            #     baselineADU = float(baselineADU)
+            #
+            # bottomADU = self.bottomADUedit.text()
+            # if bottomADU == empty:
+            #     bottomADU = 0.0
+            #     self.bottomADUedit.setText('0.0')
+            # else:
+            #     bottomADU = float(bottomADU)
+            #
+
+            baselineADU = 100.0
+            bottomADU = 0.0
+
+            self.DdegreesEdit.setText('90')
+            self.RdegreesEdit.setText('90')
 
             if asteroidShadowSpeedEntered:
                 self.Lcp = LightcurveParameters(
@@ -1471,6 +1651,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     shadow_speed=float(self.asteroidSpeedShadowEdit.text()),
                     sky_motion_mas_per_sec=None
                 )
+
+                _, filenameWithoutPath = os.path.split(self.csvFilePath)
+                self.Lcp.set('sourceFile', filenameWithoutPath)
+                # self.showInfo(f'file name: {filenameWithoutPath}')
 
                 if asteroidDistAUentered:
                     self.Lcp.set('asteroid_distance_AU', float(self.asteroidDistAUedit.text()))
@@ -1497,6 +1681,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     shadow_speed=None,
                     sky_motion_mas_per_sec=float(self.asteroidSpeedSkyEdit.text())
                 )
+
+                _, filenameWithoutPath = os.path.split(self.csvFilePath)
+                self.Lcp.set('sourceFile', filenameWithoutPath)
+                self.showInfo(f'file name: {filenameWithoutPath}')
 
                 if asteroidDistAUentered:
                     self.Lcp.set('asteroid_distance_AU', float(self.asteroidDistAUedit.text()))
@@ -1530,7 +1718,20 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.starSizeMasEdit.setEnabled(True)
         self.starSizeKmEdit.setEnabled(True)
 
+    def enablePrimaryEntryEditBoxes(self):
+        if not self.editMode:
+            self.editMode = True
+            self.frameTimeEdit.setEnabled(True)
+            self.asteroidDiameterKmEdit.setEnabled(True)
+            self.asteroidDiameterMasEdit.setEnabled(True)
+            self.asteroidSpeedShadowEdit.setEnabled(False)
+            self.asteroidSpeedSkyEdit.setEnabled(False)
+            self.asteroidDistAUedit.setEnabled(False)
+            self.asteroidDistArcsecEdit.setEnabled(False)
+            self.wavelengthEdit.setEnabled(True)
+
     def disablePrimaryEntryEditBoxes(self):
+        self.frameTimeEdit.setEnabled(False)
         self.asteroidDiameterKmEdit.setEnabled(False)
         self.asteroidDiameterMasEdit.setEnabled(False)
         self.asteroidSpeedShadowEdit.setEnabled(False)
@@ -1547,7 +1748,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             clean_name = filename[4:-2]
             self.pastEventsComboBox.addItem(clean_name)
 
-    def intializeModelLightcurvesPanel(self):
+    def initializeModelLightcurvesPanel(self):
 
         self.modelTimeOffset = 0.0
 
@@ -1597,6 +1798,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.wavelengthEdit.setEnabled(False)
         self.wavelengthEdit.clear()
 
+        self.editButton.setEnabled(False)
+
         self.DdegreesEdit.setEnabled(False)
         self.DdegreesEdit.clear()
         self.RdegreesEdit.setEnabled(False)
@@ -1619,6 +1822,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.demoLightcurveButton.setEnabled(False)
         self.initiateFitButton.setEnabled(False)
+        self.automaticFitButton.setEnabled(False)
         self.askAdviceButton.setEnabled(False)
         self.showDiffractionButton.setEnabled(False)
 
@@ -1632,6 +1836,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.redrawMainPlot()
 
     def enableLightcurveButtons(self):
+
+        self.editButton.setEnabled(True)
+
         self.diffractionRadioButton.setEnabled(True)
         self.edgeOnDiskRadioButton.setEnabled(True)
         self.diskOnDiskRadioButton.setEnabled(True)
@@ -1885,7 +2092,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
     def handlePymovieColumnChange(self):
         # self.showInfo('Got a changed column!')
         if self.pymovieFileInUse:
-            self.externalCsvFilePath = self.filename
+            self.externalCsvFilePath = self.csvFilePath
             self.readDataFromFile()
 
     def redoTabOrder(self, tabnames):
@@ -2589,7 +2796,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         return super(SimplePlot, self).eventFilter(obj, event)
 
     def writeCSVfile(self):
-        _, name = os.path.split(self.filename)
+        _, name = os.path.split(self.csvFilePath)
         name = self.removeCsvExtension(name)
 
         name += '.PYOTE.csv'
@@ -2649,7 +2856,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         return f'{hours:02d}:{minutes:02d}:{timeValue:0.4f}'
 
     def writeExampleLightcurveToFile(self, lgtCurve, timeDelta):
-        _, name = os.path.split(self.filename)
+        _, name = os.path.split(self.csvFilePath)
         name = self.removeCsvExtension(name)
 
         name += 'PYOTE.example-lightcurve.csv'
@@ -2883,7 +3090,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.verticalCursor.setPos(round(mousePoint.x()))
 
     def writeDefaultGraphicsPlots(self):
-        self.graphicFile, _ = os.path.splitext(self.filename)
+        self.graphicFile, _ = os.path.splitext(self.csvFilePath)
 
         exporter = FixedImageExporter(self.dBarPlotItem)
         exporter.makeWidthHeightInts()
@@ -2910,7 +3117,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.showInfo('No error bar plots available yet')
             return
 
-        _, name = os.path.split(self.filename)
+        _, name = os.path.split(self.csvFilePath)
         name = self.removeCsvExtension(name)
 
         myOptions = QFileDialog.Options()
@@ -2954,7 +3161,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     def exportGraphic(self):
 
-        _, name = os.path.split(self.filename)
+        _, name = os.path.split(self.csvFilePath)
         name = self.removeCsvExtension(name)
 
         myOptions = QFileDialog.Options()
@@ -3811,6 +4018,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.settings.setValue('versusTime', self.versusTimeCheckBox.isChecked())
         self.settings.setValue('showLegend', self.showLegendsCheckBox.isChecked())
         self.settings.setValue('showNotes', self.showAnnotationsCheckBox.isChecked())
+
+        self.settings.setValue('edgeTimeFitPrecision', self.edgeTimePrecisionEdit.text())
+        self.settings.setValue('chordDurationFitPrecision', self.chordDurationPrecisionEdit.text())
+        self.settings.setValue('limbAngleFitPrecision', self.limbAnglePrecisionEdit.text())
 
         self.settings.setValue('allowNewVersionPopup', self.allowNewVersionPopupCheckbox.isChecked())
 
@@ -4901,7 +5112,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             pw.getPlotItem().setFixedHeight(700)
             pw.getPlotItem().setFixedWidth(1700)
 
-            lightCurveDir = os.path.dirname(self.filename)  # This gets the folder where the light-curve.csv is located
+            lightCurveDir = os.path.dirname(self.csvFilePath)  # This gets the folder where the light-curve.csv is located
             detectibiltyPlotPath = lightCurveDir + '/DetectabilityPlots/'
             if not os.path.exists(detectibiltyPlotPath):
                 os.mkdir(detectibiltyPlotPath)
@@ -6306,30 +6517,30 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         if self.externalCsvFilePath is None:
             # Open a file select dialog
-            self.filename, _ = QFileDialog.getOpenFileName(
+            self.csvFilePath, _ = QFileDialog.getOpenFileName(
                 self,  # parent
                 "Select light curve csv file",  # title for dialog
                 self.settings.value('lightcurvedir', ""),  # starting directory
                 "Csv files (*.csv)")
         else:
-            self.filename = self.externalCsvFilePath
+            self.csvFilePath = self.externalCsvFilePath
             self.externalCsvFilePath = None
 
-        if self.filename:
+        if self.csvFilePath:
             self.initializeLightcurvePanel()
             # self.switchToTabNamed('Lightcurves')
             QtWidgets.QApplication.processEvents()
             self.userDeterminedBaselineStats = False
             self.userDeterminedEventStats = False
-            self.setWindowTitle('PYOTE Version: ' + version.version() + '  File being processed: ' + self.filename)
-            dirpath, _ = os.path.split(self.filename)
-            self.logFile, _ = os.path.splitext(self.filename)
+            self.setWindowTitle('PYOTE Version: ' + version.version() + '  File being processed: ' + self.csvFilePath)
+            dirpath, _ = os.path.split(self.csvFilePath)
+            self.logFile, _ = os.path.splitext(self.csvFilePath)
             self.logFile = self.logFile + '.PYOTE.log'
 
-            self.detectabilityLogFile, _ = os.path.splitext(self.filename)
+            self.detectabilityLogFile, _ = os.path.splitext(self.csvFilePath)
             self.detectabilityLogFile = self.detectabilityLogFile + '.PYOTE.detectabillity.log'
 
-            self.normalizationLogFile, _ = os.path.splitext(self.filename)
+            self.normalizationLogFile, _ = os.path.splitext(self.csvFilePath)
             self.normalizationLogFile = self.normalizationLogFile + '.PYOTE.normalization.log'
 
             curDateTime = datetime.datetime.today().ctime()
@@ -6350,7 +6561,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             # Make the directory 'sticky'
             self.settings.setValue('lightcurvedir', dirpath)
             self.settings.sync()
-            self.showMsg('filename: ' + self.filename, bold=True, color="red")
+            self.showMsg('filename: ' + self.csvFilePath, bold=True, color="red")
 
             columnPrefix = self.pymovieDataColumnPrefixComboBox.currentText()
 
@@ -6358,7 +6569,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.droppedFrames = []
                 self.cadenceViolation = []
                 frame, time, value, self.secondary, self.ref2, self.ref3, self.extra, \
-                    self.aperture_names, self.headers = readLightCurve(self.filename, pymovieColumnType=columnPrefix)
+                    self.aperture_names, self.headers = \
+                    readLightCurve(self.csvFilePath, pymovieColumnType=columnPrefix)
                 self.showMsg(f'If the csv file came from PyMovie - columns with prefix: {columnPrefix} will be read.')
                 values = [float(item) for item in value]
                 self.yValues = np.array(values)  # yValues = curve to analyze
@@ -6907,11 +7119,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                             width=self.lineWidthSpinner.value())
 
             # Convert edge times to reading number units
-            self.modelDedgeValue = modelDedgeSecs * (self.dataLen - 1) / tObsDur
-            self.modelRedgeValue = modelRedgeSecs * (self.dataLen - 1) / tObsDur
+            self.modelDedgeRdgValue = modelDedgeSecs * (self.dataLen - 1) / tObsDur
+            self.modelRedgeRdgValue = modelRedgeSecs * (self.dataLen - 1) / tObsDur
 
-            D = self.modelDedgeValue
-            R = self.modelRedgeValue
+            D = self.modelDedgeRdgValue
+            R = self.modelRedgeRdgValue
             lo_int = self.Lcp.bottom_ADU
             hi_int = self.Lcp.baseline_ADU
             span = hi_int - lo_int
@@ -7035,9 +7247,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
             D = self.solution[0]
             R = self.solution[1]
-            solutionPen = pg.mkPen((150, 100, 100), width=self.lineWidthSpinner.value())
-            dPen = pg.mkPen((255, 0, 0), width=self.lineWidthSpinner.value())
-            rPen = pg.mkPen((0, 255, 0), width=self.lineWidthSpinner.value())
+            solutionPen = pg.mkPen((255, 0, 0), width=self.lineWidthSpinner.value())
+            dPen = pg.mkPen((100, 100, 100), width=self.lineWidthSpinner.value(),
+                            style=QtCore.Qt.PenStyle.DashLine,)
+            rPen = pg.mkPen((100, 100, 100), width=self.lineWidthSpinner.value(),
+                            style=QtCore.Qt.PenStyle.DashLine,)
             if self.eventType == 'DandR':
                 plot([self.left, D - 1], [self.B, self.B], pen=solutionPen)
                 plot([D-1, D], [self.B, self.A], pen=solutionPen)
@@ -7202,10 +7416,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.mainPlot.clear()
 
-        # if self.modelYsamples is not None:
-        #     dotSize = self.dotSizeSpinner.value()
-        #     self.mainPlot.plot(self.modelXsamples, self.modelYsamples, pen=None, symbol='o',
-        #                        symbolBrush=(0, 0, 0), symbolSize=dotSize + 2)
+        if self.modelYsamples is not None:
+            dotSize = self.dotSizeSpinner.value()
+            self.mainPlot.plot([self.modelXsamples[0], self.modelXsamples[-1]],
+                               [self.modelYsamples[0], self.modelYsamples[-1]],
+                               pen=None, symbol='s',
+                               symbolBrush=(255, 0, 0), symbolSize=dotSize + 2)
 
         if self.yValues is None:
             return
