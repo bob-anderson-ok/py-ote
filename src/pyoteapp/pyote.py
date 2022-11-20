@@ -9,6 +9,8 @@ import glob
 import subprocess
 from pathlib import Path
 
+from dataclasses import dataclass, field
+
 # from numba import jit
 MIN_SIGMA = 0.1
 
@@ -100,10 +102,22 @@ LINESIZE = 2
 acfCoefThreshold = 0.05  # To match what is being done in R-OTE 4.5.4+
 
 
+@dataclass
+class FitStatus:
+    currentMetric: float = None
+    modelTimeOffset: float = None
+    chordTime: float = None
+    Dangle: float = None
+    Rangle: float = None
+    currentDelta: float = None
+    numIterationsRemaining = 3
+    beingChanged: str = field(default='?')   # 'chord' | 'Dangle' | 'Rangle'
+
 # There is a bug in pyqtgraph ImageExpoter, probably caused by new versions of PyQt5 returning
 # float values for image rectangles.  Those floats were being given to numpy to create a matrix,
 # and that was raising an exception.  Below is my 'cure', effected by overriding the internal
 # methods of ImageExporter that manipulate width and height
+
 
 class TimestampAxis(pg.AxisItem):
 
@@ -189,6 +203,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.trace = False
 
         self.csvFilePath = None
+
+        self.fitStatus = {}
+
+        self.fitInProgress = False
 
         self.suppressRedrawMainPlot = False
         self.suppressParameterChange = False
@@ -685,6 +703,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.doBlockIntegration.clicked.connect(self.doIntegration)
         self.doBlockIntegration.installEventFilter(self)
 
+        self.blockSizeEdit.installEventFilter(self)
+        self.blockSizeLabel.installEventFilter(self)
+
         # Button: Accept integration
         self.acceptBlockIntegration.clicked.connect(self.applyIntegration)
         self.acceptBlockIntegration.installEventFilter(self)
@@ -978,21 +999,28 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         return convertTimeToTimeString(tDedge), convertTimeToTimeString(tRedge)
 
     def findBestPosition(self):
-        if not len(self.selectedPoints) == 1:
+        if not len(self.selectedPoints) == 1 and self.modelTimeOffset == 0.0:
             self.showInfo('Select a point to be used\n'
                           'as the starting point for the\n'
                           'position search.')
             return
 
-        selIndex = [key for key, _ in self.selectedPoints.items()]
+        self.showMsg(f'Starting search for best time position...',
+                     color='red', bold=True, blankLine=False)
 
-        tObsStart = convertTimeStringToTime(self.yTimes[0])
-        timeAtPointSelected = convertTimeStringToTime(self.yTimes[selIndex[0]])
-        relativeTime = timeAtPointSelected - tObsStart
-        if relativeTime < 0:  # The lightcurve acquisition passed through midnight
-            relativeTime += 24 * 60 * 60  # And a days worth of seconds
+        if len(self.selectedPoints) > 0:
+            if not len(self.selectedPoints) == 1:
+                self.showInfo(f'More than one point has been selected as the initial position.')
+                return
+            selIndex = [key for key, _ in self.selectedPoints.items()]
 
-        self.modelTimeOffset = relativeTime - self.modelDuration / 2
+            tObsStart = convertTimeStringToTime(self.yTimes[0])
+            timeAtPointSelected = convertTimeStringToTime(self.yTimes[selIndex[0]])
+            relativeTime = timeAtPointSelected - tObsStart
+            if relativeTime < 0:  # The lightcurve acquisition passed through midnight
+                relativeTime += 24 * 60 * 60  # And a days worth of seconds
+
+            self.modelTimeOffset = relativeTime - self.modelDuration / 2
 
         positionPrecision = float(self.edgeTimePrecisionEdit.text())
 
@@ -1013,8 +1041,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         for timeOffset in timeOffsetsToUse:
             self.modelTimeOffset = timeOffset
             self.extendAndDrawModelLightcurve(self.modelX, self.modelY)
-            metric = self.calcModelFitMetric()
+            metric = self.calcModelFitMetric(showData=False)
+            QtWidgets.QApplication.processEvents()
             metrics.append(metric)
+
+        self.showMsg(f'Finished search for best time position...',
+                     color='red', bold=True, blankLine=True)
 
         # self.showInfo(f'{metrics}')
 
@@ -1041,7 +1073,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         Dtimestamp, Rtimestamp = self.convertDandRrdgValueToTimestamp()
         # self.showInfo(f'D time: {Dtimestamp}  R time: {Rtimestamp}')
-        self.showMsg(f'Optimized edge times:  D: {Dtimestamp}  R: {Rtimestamp}', color='black', bold=True)
+        self.showMsg(f'\nOptimized edge times:  D: {Dtimestamp}  R: {Rtimestamp}', color='black', bold=True)
 
     def traceControl(self):
         self.trace = self.traceCheckBox.isChecked()
@@ -1111,7 +1143,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         return ansX, np.array(ansY)
 
     # @jit(nopython=True)
-    def calcModelFitMetric(self):
+    def calcModelFitMetric(self, showData=True):
         modelXsamples, modelYsamples = self.sampleModelLightcurve()
         self.modelYsamples = modelYsamples
         self.modelXsamples = modelXsamples
@@ -1120,19 +1152,32 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         matchingYvalues = self.yValues[self.modelXsamples[0]:(self.modelXsamples[-1] + 1)]
         newMetric = np.sum(((modelYsamples - matchingYvalues) / modelSigmaB)**2) / len(modelYsamples)
 
+        ans = f'timeOffset: {self.modelTimeOffset:0.5f} chord: {self.Lcp.chord_length_sec:0.5f} '
         if self.modelMetric is None:
+            ans += 'modelMetric: None...  '
             self.modelMetric = newMetric
+            ans += f'newMetric: {newMetric:0.5f} change: None'
         else:
+            ans += f'modelMetric: {self.modelMetric:0.5f} newMetric: {newMetric:0.5f} '
             change = newMetric - self.modelMetric
+            if change < 0:
+                ans += f'change: {change:<8.5f} '
+            else:
+                ans += f'change: +{change:<8.5f} '
 
             if change < 0:
+                ans += 'better'
                 self.fitMetricChangeEdit.setStyleSheet("background: green")
             else:
+                ans += 'worse'
                 self.fitMetricChangeEdit.setStyleSheet("background: red")
 
             self.modelMetric = newMetric
             self.fitMetricChangeEdit.setText(f'{change:0.6f}')
         self.fitMetricEdit.setText(f'{newMetric:0.6f}')
+
+        if showData:
+            self.showMsg(f'{ans}', bold=True, blankLine=False)
 
         return newMetric
 
@@ -1206,10 +1251,15 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         if self.trace:
             self.showInfo(f'Entered computeModelLightcurve()')
 
-        if not len(self.selectedPoints) == 1:
+        if not len(self.selectedPoints) == 1 and self.modelTimeOffset == 0.0:
             self.showInfo(f'Select a single point to give a good initial\n'
                           f'placement for the model lightcurve')
             return
+
+        self.fitInProgress = True
+
+        self.showMsg(f'Starting model lightcurve calculation...',
+                     color='red', bold=True, blankLine=False)
 
         showLegend = self.showLegendsCheckBox.isChecked()
         showNotes = self.showAnnotationsCheckBox.isChecked()
@@ -1244,6 +1294,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.findBestPosition()
             Dtimestamp, Rtimestamp = self.convertDandRrdgValueToTimestamp()
             # self.showInfo(f'D time: {Dtimestamp}  R time: {Rtimestamp}')
+            self.showMsg(f'Finishing model lightcurve calculation...',
+                         color='red', bold=True, blankLine=True)
+
             self.showMsg(f'D time: {Dtimestamp}  R time: {Rtimestamp}', color='black', bold=True)
 
             return
@@ -1262,6 +1315,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
             Dtimestamp, Rtimestamp = self.convertDandRrdgValueToTimestamp()
             # self.showInfo(f'D time: {Dtimestamp}  R time: {Rtimestamp}')
+            self.showMsg(f'Finishing model lightcurve calculation...',
+                         color='red', bold=True, blankLine=True)
+
             self.showMsg(f'D time: {Dtimestamp}  R time: {Rtimestamp}', color='black', bold=True)
             return
 
@@ -1279,6 +1335,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
             Dtimestamp, Rtimestamp = self.convertDandRrdgValueToTimestamp()
             # self.showInfo(f'D time: {Dtimestamp}  R time: {Rtimestamp}')
+            self.showMsg(f'Finishing model lightcurve calculation...',
+                         color='red', bold=True, blankLine=True)
+
             self.showMsg(f'D time: {Dtimestamp}  R time: {Rtimestamp}', color='black', bold=True)
 
             return
@@ -1341,6 +1400,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.Lcp = lcp_item
             self.fillLightcurvePanelEditBoxes()
             self.enableLightcurveButtons()
+            self.modelTimeOffset = 0.0
+            self.fitStatus = FitStatus()
+            self.fitInProgress = False
             self.currentEventEdit.setText(file_selected)
             eventSourceFile = self.Lcp.sourceFile
 
@@ -1377,6 +1439,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.showInfo(f'The current event data was written to '
                       f'\n\n{filename}\n\n'
                       f'in your current working directory.')
+
+        # Update the past events combo box
+        self.pastEventsComboBox.clear()
+        self.fillPastEventsComboBox()
 
     def processNewCurrentEventEdit(self):
         if self.csvFilePath is None:
@@ -1751,6 +1817,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
     def initializeModelLightcurvesPanel(self):
 
         self.modelTimeOffset = 0.0
+        self.fitStatus = {}
+        self.fitInProgress = False
 
         self.allowShowDetails = False
 
@@ -3679,16 +3747,30 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     def doIntegration(self):
 
+        specifiedBlockSize = None
         if len(self.selectedPoints) == 0:
-            self.showMsg('Analysis of all possible block integration sizes and offsets',
-                         color='red', bold=True)
+            if not self.blockSizeEdit.text() == '':
+                try:
+                    specifiedBlockSize = int(self.blockSizeEdit.text())
+                except ValueError as e:
+                    self.showInfo(f'{e}')
+                    return
+                self.showMsg(f'Analysis of specified block size of {specifiedBlockSize}\n'
+                             f'to determine best offset', color='red', bold=True)
+            else:
+                self.showMsg('Analysis of all possible block integration sizes and offsets',
+                             color='red', bold=True)
             notchList = []
             kList = []
             offsetList = []
 
             self.progressBar.setValue(0)
             progress = 0
-            integrationSizes = [2, 4, 8, 16, 32, 48, 64, 96, 128, 256]
+            if specifiedBlockSize is None:
+                integrationSizes = [2, 4, 8, 16, 32, 48, 64, 96, 128, 256]
+            else:
+                integrationSizes = [specifiedBlockSize]
+
             for k in integrationSizes:
                 kList.append(k)
                 ans = mean_std_versus_offset(k, self.yValues)
@@ -3916,6 +3998,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.doBlockIntegration.setEnabled(False)
         self.acceptBlockIntegration.setEnabled(False)
+        self.blockSizeEdit.setEnabled(False)
 
         self.newRedrawMainPlot()
         self.mainPlot.autoRange()
@@ -6739,6 +6822,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.firstPassPenumbralFit = True
 
                 self.doBlockIntegration.setEnabled(True)
+                self.blockSizeEdit.setEnabled(True)
                 self.startOver.setEnabled(True)
                 self.fillTableViewOfData()
 
@@ -6967,6 +7051,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.calcFlashEdge.setEnabled(False)
         self.setDataLimits.setEnabled(False)
         self.doBlockIntegration.setEnabled(False)
+        self.blockSizeEdit.setEnabled(False)
         self.locateEvent.setEnabled(False)
         self.calcErrBars.setEnabled(False)
         self.fillExcelReportButton.setEnabled(False)
@@ -7657,17 +7742,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.selectedPoints = {}
         self.newRedrawMainPlot()
         self.doBlockIntegration.setEnabled(False)
+        self.blockSizeEdit.setEnabled(False)
         self.mainPlot.autoRange()
-
-
-# aTODO Remove this test code
-# def my_trace_func(frame, event, arg):
-#     if not event == 'exception':
-#         return
-#     print(f'event: {event}\n')
-#     print(f'  arg: {arg}\n')
-#     print(f'frame: {frame}')
-#     return my_trace_func
 
 
 def main(csv_file_path=None):

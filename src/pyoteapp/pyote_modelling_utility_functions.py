@@ -470,8 +470,6 @@ class LightcurveParameters:
         if type(value) is not str:
             if value is not None and value < 0.0:
                 raise ValueError(f'{name} cannot be negative.')
-        else:
-            pass
 
         if name not in self.name_list:
             raise ValueError(f'{name} is not a valid lightcurve parameter name or is not settable after creation.')
