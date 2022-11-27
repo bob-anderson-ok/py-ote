@@ -3,7 +3,7 @@ import matplotlib
 
 matplotlib.use('Qt5Agg')
 import matplotlib.pyplot as plt
-from genDiffraction import generalizedDiffraction, decide_model_to_use
+from pyoteapp.genDiffraction import generalizedDiffraction, decide_model_to_use
 import numpy as np
 
 

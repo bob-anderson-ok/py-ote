@@ -1544,6 +1544,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 tModelDur = (self.modelXkm[-1] - self.modelXkm[0]) / self.Lcp.shadow_speed  # in seconds
                 self.modelDuration = tModelDur
                 self.modelTimeOffset = relativeTime - self.modelDuration / 2
+                try:
+                    edgeTimeDelta = float(self.edgeTimePrecisionEdit.text())
+                except ValueError as e:
+                    self.showInfo(f'Error in Edge time precision.\n\n'
+                                  f'{e}')
+                    return
+
+                self.modelTimeOffset = self.modelTimeOffset - self.modelTimeOffset % edgeTimeDelta
 
             self.redrawMainPlot()
             self.fitImprovementControlCenter()
