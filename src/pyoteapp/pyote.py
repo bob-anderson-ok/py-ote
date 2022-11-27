@@ -743,6 +743,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.calcFlashEdge.clicked.connect(self.calculateFlashREdge)
         self.calcFlashEdge.installEventFilter(self)
 
+        self.magDropSqwaveLabel.installEventFilter(self)
+        self.magDropSqwaveEdit.installEventFilter(self)
+        self.magDropSqwaveEdit.editingFinished.connect(self.processSqwaveMagDropEntry)
+
         # Edit box: min event
         self.minEventEdit.installEventFilter(self)
 
@@ -1004,6 +1008,19 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.initializeModelLightcurvesPanel()
 
 # ====  New method entry point ===
+
+    def processSqwaveMagDropEntry(self):
+        try:
+            magDrop = float(self.magDropSqwaveEdit.text())
+            if not magDrop > 0:
+                self.showInfo(f'square wave expected magDrops must be greater than zero\n\n'
+                              f'Clearing the input.')
+                self.magDropSqwaveEdit.clear()
+        except ValueError as e:
+            self.showInfo(f'Error in expected magDrop entry\n\n'
+                          f'{e}\n\n'
+                          f'... so clearing the input.')
+            self.magDropSqwaveEdit.clear()
 
     def printLcp(self):
         if self.Lcp is None:
@@ -1420,6 +1437,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         if self.squareWaveRadioButton.isChecked():
             self.showInfo(f'square model is selected.\n\n'
                           f'That model is handled in the Analysis tab.')
+            self.switchToTabNamed('Analysis')
             return
 
         if self.trace:
@@ -4585,28 +4603,57 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                          (Rtime - Dtime, plusDur, minusDur))
 
     def magDropString(self, B, A, numSigmas):
-        if not 0 < A < B:
-            return 'NA because 0 < A < B is not satisfied'
-        stdB = self.sigmaB / np.sqrt(self.nBpts)
-        stdA = self.sigmaA / np.sqrt(self.nApts)
-        ratio = A / B
-        ratioError = numSigmas * np.sqrt((stdB / B) ** 2 + (stdA / A) ** 2) * ratio
-        lnError = ratioError / ratio
-        magdroperr = (2.5 / np.log(10.0)) * lnError
-        magDrop = (np.log10(B) - np.log10(A)) * 2.5
-        if numSigmas == 1:
-            ciStr = '(0.68 ci)'
-        elif numSigmas == 2:
-            ciStr = '(0.95 ci)'
+        """
+        We always report a percentage drop, dealing with negative A (event bottom below 0)
+        by issuing a report containing only a percent drop of 100.0
+
+        If A is > 0, we calculate the nominal magDrop and it's error bar.
+
+        If the error bar is unreasonable (i.e., grater than the magDrop) we don't
+        otput the error bar and attach a message indicating that the observation
+        was too noisy for a valid error bar.
+
+        If the error bar was reasonable, we report it as usual.
+        """
+        if A > 0:
+            percentDrop = 100.0 * (1.0 - A / B)
         else:
-            ciStr = '(0.9973 ci)'
-        return f'{magDrop:0.3f}  +/- {magdroperr:0.3f}  {ciStr}'
+            percentDrop = 100.0
+
+        # if not 0 < A < B:
+        #     return 'NA because 0 < A < B is not satisfied'
+
+        if not percentDrop == 100.0:
+            # A was > 0.  Attempt error bar calculations
+            stdB = self.sigmaB / np.sqrt(self.nBpts)
+            stdA = self.sigmaA / np.sqrt(self.nApts)
+            ratio = A / B
+            ratioError = numSigmas * np.sqrt((stdB / B) ** 2 + (stdA / A) ** 2) * ratio
+            lnError = ratioError / ratio
+            magdroperr = (2.5 / np.log(10.0)) * lnError
+            magDrop = (np.log10(B) - np.log10(A)) * 2.5
+
+            # Check that error bar is unreasonable (greater than the calculated magDrop)
+            if magdroperr < magDrop:
+                if numSigmas == 1:
+                    ciStr = '(0.68 ci)'
+                elif numSigmas == 2:
+                    ciStr = '(0.95 ci)'
+                else:
+                    ciStr = '(0.9973 ci)'
+            else:
+                ciStr = 'too much noise; cannot calculate error bars'
+                return f'percentDrop: {percentDrop:0.1f}  magDrop: {magDrop:0.3f}  {ciStr}'
+            return f'percentDrop: {percentDrop:0.1f}  magDrop: {magDrop:0.3f}  +/- {magdroperr:0.3f}  {ciStr}'
+        else:
+            # A was <= 0, so we can only report a maximum percent drop of 100
+            return f'percentDrop: {percentDrop:0.1f}'
 
     def magdropReport(self, numSigmas):
         Anom = self.A
         Bnom = self.B
 
-        self.showMsg(f'magDrop: {self.magDropString(Bnom, Anom, numSigmas)}')
+        self.showMsg(f'magDrop report: {self.magDropString(Bnom, Anom, numSigmas)}')
 
     # noinspection PyStringFormat
     def finalReportPenumbral(self):
@@ -4676,8 +4723,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.showMsg("Times are invalid due to corrupted timestamps!",
                          color='red', bold=True)
 
-        self.showMsg(f'magDrop: {self.magDropString(self.B, self.A, 2)}')
-        self.xlsxDict['Comment'] = f'Nominal measured mag drop = {self.magDropString(self.B, self.A, 2)}'
+        self.showMsg(f'magDrop report: {self.magDropString(self.B, self.A, 2)}')
+        self.xlsxDict['Comment'] = f'magDrop report: {self.magDropString(self.B, self.A, 2)}'
 
         self.showMsg('snr: %0.2f' % self.snrB)
 
@@ -4794,8 +4841,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                          'uncorrelated.',
                          bold=True, color='red')
 
-        self.xlsxDict['Comment'] = f'mag drop = {self.magDropString(self.B, self.A, 2)}'
-        self.showMsg(f'magDrop: {self.magDropString(self.B, self.A, 2)}')
+        self.xlsxDict['Comment'] = f'magDrop report: {self.magDropString(self.B, self.A, 2)}'
+        self.showMsg(f'magDrop report: {self.magDropString(self.B, self.A, 2)}')
 
         # noinspection PyStringFormat
         self.showMsg('snr: %0.2f' % self.snrB)
@@ -6988,6 +7035,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.markEzone.setEnabled(not self.ne3NotInUseRadioButton.isChecked())
 
                 self.calcFlashEdge.setEnabled(True)
+                self.magDropSqwaveEdit.setEnabled(True)
                 self.minEventEdit.setEnabled(True)
                 self.maxEventEdit.setEnabled(True)
                 self.locateEvent.setEnabled(True)
@@ -7187,6 +7235,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.minEventEdit.setEnabled(True)
         self.maxEventEdit.setEnabled(True)
+        self.magDropSqwaveEdit.setEnabled(True)
 
     def processBaselineNoiseFromIterativeSolution(self, left, right):
         assert left >= self.left
@@ -7236,6 +7285,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         # self.numSmoothPointsEdit.setEnabled(False)
         self.minEventEdit.setEnabled(False)
         self.maxEventEdit.setEnabled(False)
+        self.magDropSqwaveEdit.setEnabled(False)
         self.writeBarPlots.setEnabled(False)
         self.writeCSVButton.setEnabled(False)
 
@@ -7277,6 +7327,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.locateEvent.setEnabled(True)
         self.minEventEdit.setEnabled(True)
         self.maxEventEdit.setEnabled(True)
+        self.magDropSqwaveEdit.setEnabled(True)
 
         self.clearBaselineRegionsButton.setEnabled(False)
         self.calcStatsFromBaselineRegionsButton.setEnabled(False)
@@ -7530,22 +7581,35 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                             style=QtCore.Qt.PenStyle.DashLine,)
             rPen = pg.mkPen((100, 100, 100), width=self.lineWidthSpinner.value(),
                             style=QtCore.Qt.PenStyle.DashLine,)
+
+            if self.magDropSqwaveEdit.text() == '':
+                bottom = self.A
+            else:
+                try:
+                    magDrop = float(self.magDropSqwaveEdit.text())
+                    bottom = self.calcBottomADU(self.B, magDrop)
+                except ValueError as e:
+                    self.showInfo(f'Error in expected magDrop entry\n\n'
+                                  f'{e}\n\n'
+                                  f'... treating it as "no entry"')
+                    bottom = self.A
+
             if self.eventType == 'DandR':
                 plot([self.left, D - 1], [self.B, self.B], pen=solutionPen)
-                plot([D-1, D], [self.B, self.A], pen=solutionPen)
-                plot([D, R], [self.A, self.A], pen=solutionPen)
-                plot([R, R+1], [self.A, self.B], pen=solutionPen)
+                plot([D-1, D], [self.B, bottom], pen=solutionPen)
+                plot([D, R], [bottom, bottom], pen=solutionPen)
+                plot([R, R+1], [bottom, self.B], pen=solutionPen)
                 plot([R+1, self.right], [self.B, self.B], pen=solutionPen)
                 plot([D, D], [lo_int, hi_int], pen=dPen)
                 plot([R, R], [lo_int, hi_int], pen=rPen)
             elif self.eventType == 'Donly':
                 plot([self.left, D - 1], [self.B, self.B], pen=solutionPen)
-                plot([D - 1, D], [self.B, self.A], pen=solutionPen)
-                plot([D, self.right], [self.A, self.A], pen=solutionPen)
+                plot([D - 1, D], [self.B, bottom], pen=solutionPen)
+                plot([D, self.right], [bottom, bottom], pen=solutionPen)
                 plot([D, D], [lo_int, hi_int], pen=dPen)
             else:
-                plot([self.left, R], [self.A, self.A], pen=solutionPen)
-                plot([R, R + 1], [self.A, self.B], pen=solutionPen)
+                plot([self.left, R], [bottom, bottom], pen=solutionPen)
+                plot([R, R + 1], [bottom, self.B], pen=solutionPen)
                 plot([R + 1, self.right], [self.B, self.B], pen=solutionPen)
                 plot([R, R], [lo_int, hi_int], pen=rPen)
 
