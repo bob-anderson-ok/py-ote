@@ -5,11 +5,13 @@ Created on Sat May 20 15:32:13 2017
 """
 import pickle
 import glob
+import copy
 # import math
 import subprocess
 from pathlib import Path
 
 from dataclasses import dataclass, field
+from scipy import interpolate
 
 # from numba import jit
 MIN_SIGMA = 0.1
@@ -110,7 +112,8 @@ class FitStatus:
     Dangle: float = None
     Rangle: float = None
     currentDelta: float = None
-    numIterationsRemaining = 3
+    numIterationsRemaining = 6
+    failureCount = 0
     beingChanged: str = field(default='?')   # 'chord' | 'Dangle' | 'Rangle'
 
 # There is a bug in pyqtgraph ImageExpoter, probably caused by new versions of PyQt5 returning
@@ -202,13 +205,15 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.trace = False
 
+        self.selectedPoints = {}
+
         self.csvFilePath = None
 
-        self.fitStatus = {}
+        self.fitStatus = None
+        self.bestFitSoFar = None
 
-        self.fitInProgress = False
+        self.fitInProgress = False  # Unused at the moment
 
-        self.suppressRedrawMainPlot = False
         self.suppressParameterChange = False
         self.parameterChangeEntryCount = 0
 
@@ -228,13 +233,17 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.starSizeMasEditted = False
         self.starSizeKmEditted = False
 
-        self.modelX = None             # model demo x values (in km)
-        self.modelY = None             # model demo y values
-        self.modelDedge = None         # model D edge location (in km)
-        self.modelRedge = None         # model R edge location (in km)
+        self.modelXkm = None           # model x values (in km)
+        self.modelY = None             # model y values (ADU)
+        self.modelDedgeKm = None       # model D edge location (in km)
+        self.modelRedgeKm = None       # model R edge location (in km)
+
+        self.modelDedgeSecs = None     # timestamp of D edge in observation
+        self.modelRedgeSecs = None     # timestamp of R edge in observation
 
         self.modelPtsY = None          # the computed model lightcurve (possibly trimmed)
-        self.modelPtsX = None          # with x values translated to observation space
+        self.modelPtsXrdgNum = None    # with x values in redin number uits (startingat 0.0)
+        self.modelPtsXsec = None       # and with x values in time units
 
         self.modelYsamples = None
 
@@ -243,7 +252,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.modelMetric = None        # sum((y[i] - model[i])**2) / n
 
         # This variable controls where the left edge of the computed model lightcurve
-        # starts relative to the beginning of the obervation
+        # starts relative to the beginning of the observation
         self.modelTimeOffset = 0.0     # time offset of model lightcurve from obs start
 
         # modelXvalues are in reading number units
@@ -456,6 +465,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.frameTimeEdit.installEventFilter(self)
         self.frameTimeEdit.editingFinished.connect(self.processModelLightcurveCoreEdit)
 
+        self.missDistanceLabel.installEventFilter(self)
+        self.missDistanceKmEdit.installEventFilter(self)
+        self.missDistanceKmEdit.editingFinished.connect(self.processModelLightcurveCoreEdit)
+
         self.asteroidDiameterLabel.installEventFilter(self)
         self.asteroidDiameterKmLabel.installEventFilter(self)
         self.asteroidDiameterMasLabel.installEventFilter(self)
@@ -529,8 +542,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.squareWaveRadioButton.installEventFilter(self)
 
         self.demoLightcurveButton.installEventFilter(self)
-        self.initiateFitButton.installEventFilter(self)
-        self.initiateFitButton.clicked.connect(self.initiateModelFit)
         self.askAdviceButton.installEventFilter(self)
         self.showDiffractionButton.installEventFilter(self)
 
@@ -538,6 +549,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.demoLightcurveButton.clicked.connect(self.computeModelLightcurveButtonClicked)
         self.showDiffractionButton.clicked.connect(self.plotDiffractionPatternOnGround)
 
+        self.showLcpButton.installEventFilter(self)
+        self.showLcpButton.clicked.connect(self.printLcp)
         self.showDetailsCheckBox.installEventFilter(self)
         self.versusTimeCheckBox.installEventFilter(self)
         self.showAnnotationsCheckBox.installEventFilter(self)
@@ -555,7 +568,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.limbAnglePrecisionLabel.installEventFilter(self)
 
         self.automaticFitButton.installEventFilter(self)
-        self.automaticFitButton.clicked.connect(self.findBestPosition)
+        self.automaticFitButton.clicked.connect(self.findBestModelLightcurvePosition)
 
         self.edgeTimePrecisionEdit.installEventFilter(self)
         self.chordDurationPrecisionEdit.installEventFilter(self)
@@ -992,13 +1005,22 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
 # ====  New method entry point ===
 
+    def printLcp(self):
+        if self.Lcp is None:
+            self.showInfo(f'There is no lightcurve parameter structure to print.')
+        else:
+            self.showInfo('Here we will add an LCP printout.')
+
     def convertDandRrdgValueToTimestamp(self):
         tObsStart = convertTimeStringToTime(self.yTimes[0])
         tDedge = tObsStart + self.modelDedgeRdgValue * self.timeDelta
         tRedge = tObsStart + self.modelRedgeRdgValue * self.timeDelta
         return convertTimeToTimeString(tDedge), convertTimeToTimeString(tRedge)
 
-    def findBestPosition(self):
+    def findBestModelLightcurvePosition(self):
+        # If we are just starting a fitting procedure, the modelTimeOffset will be 0.00
+        # In that case, we require the user to have selected a good location for
+        # the initial placement of the lightcurve
         if not len(self.selectedPoints) == 1 and self.modelTimeOffset == 0.0:
             self.showInfo('Select a point to be used\n'
                           'as the starting point for the\n'
@@ -1008,6 +1030,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.showMsg(f'Starting search for best time position...',
                      color='red', bold=True, blankLine=False)
 
+        # If the user has selected a placement point, we will use is to calculate the
+        # modelTimeOffset, otherwise we just use the current value of that variable.
+        # This would be the normal case of a continuing 'fitting' procedure - use the last
+        # time position as the starting point for the next search.
         if len(self.selectedPoints) > 0:
             if not len(self.selectedPoints) == 1:
                 self.showInfo(f'More than one point has been selected as the initial position.')
@@ -1024,28 +1050,21 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         positionPrecision = float(self.edgeTimePrecisionEdit.text())
 
-        # self.showInfo(f'precision to be used: {positionPrecision}\n\n'
-        #               f'Starting from: {selIndex}\n\n'
-        #               f'model time offset: {self.modelTimeOffset:0.4f}')
-
         self.automaticFitButton.setStyleSheet("background-color: red")
         self.automaticFitButton.setText('... computation in progress')
         QtWidgets.QApplication.processEvents()
 
-        # self.redrawMainPlot()  # This will display the model lightcurve at the desired position.
-
         timeOffsetsToUse = [i * positionPrecision + self.modelTimeOffset for i in range(-10, 11)]
-        # self.showInfo(f'{timeOffsetsToUse}')
 
         metrics = []
         for timeOffset in timeOffsetsToUse:
             self.modelTimeOffset = timeOffset
-            self.extendAndDrawModelLightcurve(self.modelX, self.modelY)
+            self.extendAndDrawModelLightcurve(self.modelXkm, self.modelY)
             metric = self.calcModelFitMetric(showData=False)
             QtWidgets.QApplication.processEvents()
             metrics.append(metric)
 
-        self.showMsg(f'Finished search for best time position...',
+        self.showMsg(f'... finished search for best time position.',
                      color='red', bold=True, blankLine=True)
 
         # self.showInfo(f'{metrics}')
@@ -1061,7 +1080,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         # self.showInfo(f'k: {k}  metric: {smallestMetric}')
 
         self.modelTimeOffset = timeOffsetsToUse[k]
-        self.extendAndDrawModelLightcurve(self.modelX, self.modelY)
+        self.extendAndDrawModelLightcurve(self.modelXkm, self.modelY)
         self.automaticFitButton.setStyleSheet(None)
 
         self.calcModelFitMetric()
@@ -1072,8 +1091,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.fitMetricChangeEdit.setStyleSheet(None)
 
         Dtimestamp, Rtimestamp = self.convertDandRrdgValueToTimestamp()
-        # self.showInfo(f'D time: {Dtimestamp}  R time: {Rtimestamp}')
         self.showMsg(f'\nOptimized edge times:  D: {Dtimestamp}  R: {Rtimestamp}', color='black', bold=True)
+
+        self.fitImprovementControlCenter()
 
     def traceControl(self):
         self.trace = self.traceCheckBox.isChecked()
@@ -1127,30 +1147,64 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.processModelParameterChange()
 
     # @jit(nopython=True)
-    def sampleModelLightcurve(self):
+    def oldSampleModelLightcurve(self):
         ansY = []
         ansX = []
         k = 0
-        rdgNumToFind = int(np.ceil(self.modelPtsX[0]))
-        while k < len(self.modelPtsX):
-            # if self.modelXvalues[k] >= rdgNumToFind:
-            if self.modelPtsX[k] >= rdgNumToFind:
-                # ans[rdgNumToFind] = self.modelY[k]
+        rdgNumToFind = max(int(np.ceil(self.modelPtsXrdgNum[0])), 0)
+        while k < len(self.modelPtsXrdgNum):
+            if self.modelPtsXrdgNum[k] >= rdgNumToFind:
                 ansY.append(self.modelPtsY[k])
                 ansX.append(rdgNumToFind)
                 rdgNumToFind += 1
             k += 1
-        return ansX, np.array(ansY)
+        return np.array(ansX), np.array(ansY)
+
+    def sampleModelLightcurve(self):
+        # Build interpolation function. This is done to deal with the finite resolution of
+        # the 2048 point lightcurve
+        interpolator = interpolate.interp1d(self.modelPtsXsec, self.modelY)
+
+        # Compute the time of the first observation reading
+        # tObsStart = convertTimeStringToTime(self.yTimes[0])
+        sample_time = 0.0
+
+        x_vals = []
+        y_vals = []
+
+        while sample_time <= self.modelPtsXsec[-1]:
+            if sample_time >= self.modelPtsXsec[0]:
+                x_vals.append(round(sample_time / self.Lcp.frame_time))  # Convert to reading number
+                y_vals.append(interpolator(sample_time))
+            sample_time += self.Lcp.frame_time
+
+        if len(x_vals) == 0:
+            breakpoint()
+
+        return np.array(x_vals), np.array(y_vals)
 
     # @jit(nopython=True)
     def calcModelFitMetric(self, showData=True):
-        modelXsamples, modelYsamples = self.sampleModelLightcurve()
-        self.modelYsamples = modelYsamples
-        self.modelXsamples = modelXsamples
+        self.modelXsamples, self.modelYsamples = self.sampleModelLightcurve()
         self.redrawMainPlot()
         modelSigmaB = self.Lcp.sigmaB
-        matchingYvalues = self.yValues[self.modelXsamples[0]:(self.modelXsamples[-1] + 1)]
-        newMetric = np.sum(((modelYsamples - matchingYvalues) / modelSigmaB)**2) / len(modelYsamples)
+        # matchingObsYvalues = self.yValues[self.modelXsamples[0]:(self.modelXsamples[-1] + 1)]
+        matchingObsYvalues = []
+        modelYsamples = []
+        i = self.modelXsamples[0]
+        k = 0
+        while i < len(self.yValues) and k < self.modelYsamples.size:
+            matchingObsYvalues.append(self.yValues[i])
+            modelYsamples.append(self.modelYsamples[k])
+            i += 1
+            k += 1
+        matchingObsYvalues = np.array(matchingObsYvalues)
+        modelYsamples = np.array(modelYsamples)
+
+        if not matchingObsYvalues.size == modelYsamples.size:
+            # breakpoint()
+            pass
+        newMetric = np.sum(((modelYsamples - matchingObsYvalues) / modelSigmaB)**2) / modelYsamples.size
 
         ans = f'timeOffset: {self.modelTimeOffset:0.5f} chord: {self.Lcp.chord_length_sec:0.5f} '
         if self.modelMetric is None:
@@ -1181,7 +1235,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         return newMetric
 
-    def initiateModelFit(self):
+    def findBestTimePositionForModel(self):
         if not len(self.selectedPoints) == 1:
             self.showInfo('Select a single point to be used\n'
                           'as the center of the model lightcurve.')
@@ -1201,6 +1255,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         # Now we can calculate the metric
         self.calcModelFitMetric()
 
+        # ... and transfer control to the 'fit' mprovement logic ...
+        self.fitImprovementControlCenter()
+
     def clearNe3SolutionPoints(self):
         try:
             self.exponentialDtheoryPts = None
@@ -1217,9 +1274,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
     def calcBaselineADU(self):
         if self.baselinePointsMarked():
             self.calcBaselineStatisticsFromMarkedRegions()
+            if self.sigmaB < 1.0:
+                self.sigmaB = 1.0
             if self.B is not None:
                 self.baselineADUedit.setText(f'{self.B:0.1f}')
                 self.Lcp.set('baseline_ADU', self.B)
+                self.Lcp.set('sigmaB', self.sigmaB)
                 self.processModelParameterChange()
                 # self.computeModelLightcurve()
         else:
@@ -1238,8 +1298,122 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         demo_diffraction_field(self.Lcp, title_adder=self.currentEventEdit.text())
         self.showDiffractionButton.setText('Show diffraction pattern on the ground')
 
+    def fitImprovementControlCenter(self):
+
+        if self.fitStatus is None:
+            self.fitStatus = FitStatus()
+
+            # Initialize fitStatus
+            self.fitStatus.currentMetric = float('inf')
+            self.fitStatus.chordTime = self.Lcp.chord_length_sec
+            self.fitStatus.Dangle = self.Lcp.D_limb_angle_degrees
+            self.fitStatus.Rangle = self.Lcp.R_limb_angle_degrees
+            self.fitStatus.beingChanged = 'edgeTime'
+            self.fitStatus.currentDelta = float(self.edgeTimePrecisionEdit.text())
+            self.fitStatus.modelTimeOffset = self.modelTimeOffset
+            self.fitStatus.numIterationsRemaining = 80
+
+            # Calculate current metric
+            self.modelMetric = self.calcModelFitMetric(showData=False)
+
+            self.bestFitSoFar = copy.copy(self.fitStatus)
+
+            self.showMsg(f'Fit improvement started with metric: {self.modelMetric:0.5f}', color='red', bold=True)
+
+        QtWidgets.QApplication.processEvents()
+        # TODO Deal with numIterationsRemaining
+        self.fitStatus.numIterationsRemaining -= 0
+        if self.fitStatus.numIterationsRemaining <= 0:
+            self.showMsg(f'Optimized fit found and is being displayed.',
+                         color='black', bold=True)
+            DtimeString = convertTimeToTimeString(self.modelDedgeSecs)
+            RtimeString = convertTimeToTimeString(self.modelRedgeSecs)
+            self.showMsg(f'D edge @ {DtimeString}', color='black', bold=True)
+            self.showMsg(f'R edge @ {RtimeString}', color='black', bold=True)
+            return
+        else:
+            # Diagnose whether change was good or bad
+            metric_to_beat = self.bestFitSoFar.currentMetric
+            if self.modelMetric <= metric_to_beat:
+                self.fitStatus.currentMetric = self.modelMetric
+                self.fitStatus.modelTimeOffset = self.modelTimeOffset
+                self.fitStatus.failureCount = 0
+                self.bestFitSoFar = copy.copy(self.fitStatus)
+            else:
+                self.fitStatus.failureCount += 1
+                if self.fitStatus.failureCount >= 2:
+                    # We return to best known values and change search direction
+                    self.showMsg(f'... reversing search direction ...',
+                                 color='blue', bold=True)
+                    self.bestFitSoFar.currentDelta *= -1
+                    self.fitStatus = copy.copy(self.bestFitSoFar)
+                    self.showMsg(f'Returning to previous best fit at chord: {self.fitStatus.chordTime:0.5f}\n'
+                                 f'and modelTimeOffset: {self.fitStatus.modelTimeOffset:0.5f}')
+                    self.modelTimeOffset = self.fitStatus.modelTimeOffset + self.fitStatus.currentDelta
+                    if self.fitStatus.currentDelta > 0:
+                        self.showMsg('We have reversed direction twice. Returning to best fit so far')
+                        self.fitStatus = copy.copy(self.bestFitSoFar)
+                        self.modelTimeOffset = self.fitStatus.modelTimeOffset
+                        # Force exit after computeModelLightcurve()
+                        self.fitStatus.numIterationsRemaining = 0
+                        self.Lcp.set('chord_length_km', None)
+                        self.Lcp.set('chord_length_sec', self.fitStatus.chordTime)
+                        self.chordSizeKmEdit.setText(f'{self.Lcp.chord_length_km:0.5f}')
+                        self.chordSizeSecondsEdit.setText(f'{self.Lcp.chord_length_sec:0.5f}')
+                        self.computeModelLightcurve()
+                        self.modelXsamples, self.modelYsamples = self.sampleModelLightcurve()
+                        self.redrawMainPlot()
+                        return
+
+                    self.fitStatus.failureCount = 0
+
+            self.showMsg(f'best metric to date: {self.bestFitSoFar.currentMetric:0.5f} '
+                         f'---new metric found: {self.modelMetric:0.5f} '
+                         f'---failure count: {self.fitStatus.failureCount}')
+
+        if self.fitStatus.beingChanged == 'chord':
+
+            # Allow a zero (or negative) chord delta to terminate improvement cycle
+            if self.fitStatus.currentDelta <= 0.0:
+                return
+
+            self.Lcp.set('chord_length_km', None)
+            self.fitStatus.chordTime += self.fitStatus.currentDelta
+
+            # Check that chordTime may have become too large (or too small)
+            chord_size = self.fitStatus.chordTime * self.Lcp.shadow_speed
+            if chord_size > self.Lcp.asteroid_diameter_km:
+                self.showMsg(f'Chord !! LENGTH !! being changed to: {self.Lcp.asteroid_diameter_km:0.5f}',
+                             color='red', bold=True)
+                self.Lcp.set('chord_length_sec', None)
+                self.Lcp.set('chord_length_km', self.Lcp.asteroid_diameter_km)
+            else:
+                if self.fitStatus.chordTime < abs(self.fitStatus.currentDelta):
+                    self.fitStatus.chordTime = abs(self.fitStatus.currentDelta)
+                    self.showMsg(f'Chord time minimum value has been enforced.',
+                                 color='blue', bold=True)
+                self.showMsg(f'Chord time being changed to: {self.fitStatus.chordTime:0.5f}',
+                             color='red', bold=True)
+                self.Lcp.set('chord_length_km', None)
+                self.Lcp.set('chord_length_sec', self.fitStatus.chordTime)
+
+            self.chordSizeKmEdit.setText(f'{self.Lcp.chord_length_km:0.5f}')
+            self.chordSizeSecondsEdit.setText(f'{self.Lcp.chord_length_sec:0.5f}')
+            self.computeModelLightcurve()
+        elif self.fitStatus.beingChanged == 'edgeTime':
+            self.modelTimeOffset += self.fitStatus.currentDelta
+            self.showMsg(f'Trying modelTimeOffset: {self.modelTimeOffset:0.5f}')
+            self.redrawMainPlot()
+            self.modelMetric = self.calcModelFitMetric(showData=False)
+            self.fitImprovementControlCenter()
+        else:
+            self.showInfo(f'Only chord changes and edgeTime are implemented')
+            return
+
     def computeModelLightcurveButtonClicked(self):
         self.allowShowDetails = True
+        if self.fitStatus is not None:
+            self.fitStatus.numIterationsRemaining = 80
         self.computeModelLightcurve()
 
     def computeModelLightcurve(self):
@@ -1256,7 +1430,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                           f'placement for the model lightcurve')
             return
 
-        self.fitInProgress = True
+
 
         self.showMsg(f'Starting model lightcurve calculation...',
                      color='red', bold=True, blankLine=False)
@@ -1268,8 +1442,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.allowShowDetails = False
 
-        self.modelMetric = None
-        self.fitMetricEdit.clear()
+        if self.fitStatus is not None:
+            self.modelMetric = self.fitStatus.currentMetric
+            self.fitMetricEdit.setText(f'{self.modelMetric:0.5f}')
+        else:
+            self.modelMetric = None
+            self.fitMetricEdit.clear()
+
         self.fitMetricChangeEdit.clear()
         self.fitMetricChangeEdit.setStyleSheet(None)
 
@@ -1278,67 +1457,80 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.demoLightcurveButton.setText('... computation in progress')
             QtWidgets.QApplication.processEvents()
 
-            self.modelX, self.modelY, self.modelDedge, self.modelRedge =\
+            self.modelXkm, self.modelY, self.modelDedgeKm, self.modelRedgeKm =\
                 demo_event(LCP=self.Lcp, model='diffraction', showLegend=showLegend,
                            title=self.currentEventEdit.text(),
                            showNotes=showNotes, plot_versus_time=versusTime,
                            plots_wanted=plots_wanted)
+
             self.demoLightcurveButton.setText('Compute model lightcurve')
             self.demoLightcurveButton.setStyleSheet(None)
 
-            self.redrawMainPlot()
-            self.initiateFitButton.setEnabled(True)
             self.automaticFitButton.setEnabled(True)
-            if len(self.selectedPoints) == 1:
-                self.initiateModelFit()
-            self.findBestPosition()
-            Dtimestamp, Rtimestamp = self.convertDandRrdgValueToTimestamp()
-            # self.showInfo(f'D time: {Dtimestamp}  R time: {Rtimestamp}')
-            self.showMsg(f'Finishing model lightcurve calculation...',
+            self.showMsg(f'... finished model lightcurve calculation.',
                          color='red', bold=True, blankLine=True)
 
-            self.showMsg(f'D time: {Dtimestamp}  R time: {Rtimestamp}', color='black', bold=True)
+            self.redrawMainPlot()
+            self.fitImprovementControlCenter()
+
+            QtWidgets.QApplication.processEvents()
 
             return
 
         if self.edgeOnDiskRadioButton.isChecked():
-            self.modelX, self.modelY, self.modelDedge, self.modelRedge =\
+            self.modelXkm, self.modelY, self.modelDedgeKm, self.modelRedgeKm =\
                 demo_event(LCP=self.Lcp, model='edge-on-disk',
                            title=self.currentEventEdit.text(),
                            showLegend=showLegend, showNotes=showNotes,
                            plot_versus_time=versusTime,
                            plots_wanted=plots_wanted)
-            self.redrawMainPlot()
-            self.initiateFitButton.setEnabled(True)
-            if len(self.selectedPoints) == 1:
-                self.initiateModelFit()
 
-            Dtimestamp, Rtimestamp = self.convertDandRrdgValueToTimestamp()
-            # self.showInfo(f'D time: {Dtimestamp}  R time: {Rtimestamp}')
-            self.showMsg(f'Finishing model lightcurve calculation...',
+            self.demoLightcurveButton.setText('Compute model lightcurve')
+            self.demoLightcurveButton.setStyleSheet(None)
+
+            self.automaticFitButton.setEnabled(True)
+            self.showMsg(f'... finished model lightcurve calculation.',
                          color='red', bold=True, blankLine=True)
 
-            self.showMsg(f'D time: {Dtimestamp}  R time: {Rtimestamp}', color='black', bold=True)
+            self.redrawMainPlot()
+            self.fitImprovementControlCenter()
+
+            QtWidgets.QApplication.processEvents()
+
             return
 
         if self.diskOnDiskRadioButton.isChecked():
-            self.modelX, self.modelY, self.modelDedge, self.modelRedge =\
+            self.modelXkm, self.modelY, self.modelDedgeKm, self.modelRedgeKm =\
                 demo_event(LCP=self.Lcp, model='disk-on-disk',
                            title=self.currentEventEdit.text(),
                            showLegend=showLegend, showNotes=showNotes,
                            plot_versus_time=versusTime,
                            plots_wanted=plots_wanted)
-            self.redrawMainPlot()
-            self.initiateFitButton.setEnabled(True)
-            if len(self.selectedPoints) == 1:
-                self.initiateModelFit()
 
-            Dtimestamp, Rtimestamp = self.convertDandRrdgValueToTimestamp()
-            # self.showInfo(f'D time: {Dtimestamp}  R time: {Rtimestamp}')
-            self.showMsg(f'Finishing model lightcurve calculation...',
+            self.demoLightcurveButton.setText('Compute model lightcurve')
+            self.demoLightcurveButton.setStyleSheet(None)
+
+            self.automaticFitButton.setEnabled(True)
+            self.showMsg(f'... finished model lightcurve calculation.',
                          color='red', bold=True, blankLine=True)
 
-            self.showMsg(f'D time: {Dtimestamp}  R time: {Rtimestamp}', color='black', bold=True)
+            if len(self.selectedPoints) == 1:
+                selIndex = [key for key, _ in self.selectedPoints.items()]
+                self.removePointSelections()
+                tObsStart = convertTimeStringToTime(self.yTimes[0])
+                timeAtPointSelected = convertTimeStringToTime(self.yTimes[selIndex[0]])
+                relativeTime = timeAtPointSelected - tObsStart
+                if relativeTime < 0:  # The lightcurve acquisition passed through midnight
+                    relativeTime += 24 * 60 * 60  # And a days worth of seconds
+
+                tModelDur = (self.modelXkm[-1] - self.modelXkm[0]) / self.Lcp.shadow_speed  # in seconds
+                self.modelDuration = tModelDur
+                self.modelTimeOffset = relativeTime - self.modelDuration / 2
+
+            self.redrawMainPlot()
+            self.fitImprovementControlCenter()
+
+            QtWidgets.QApplication.processEvents()
 
             return
 
@@ -1347,6 +1539,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     def fillLightcurvePanelEditBoxes(self):
         self.frameTimeEdit.setText(f'{self.Lcp.frame_time:0.5f}')
+
+        self.missDistanceKmEdit.setText(f'{self.Lcp.miss_distance_km:0.5f}')
 
         self.asteroidDiameterKmEdit.setText(f'{self.Lcp.asteroid_diameter_km:0.5f}')
         self.asteroidDiameterMasEdit.setText(f'{self.Lcp.asteroid_diameter_mas:0.5f}')
@@ -1361,7 +1555,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.baselineADUedit.setText(f'{self.Lcp.baseline_ADU:0.1f}')
         self.bottomADUedit.setText(f'{self.Lcp.bottom_ADU:0.1f}')
-        self.magDropEdit.setText(f'{self.Lcp.magDrop:0.2f}')
+        self.magDropEdit.setText(f'{self.Lcp.magDrop:0.4f}')
 
         self.DdegreesEdit.setText(f'{self.Lcp.D_limb_angle_degrees:0.0f}')
         self.RdegreesEdit.setText(f'{self.Lcp.R_limb_angle_degrees:0.0f}')
@@ -1400,9 +1594,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.Lcp = lcp_item
             self.fillLightcurvePanelEditBoxes()
             self.enableLightcurveButtons()
-            self.modelTimeOffset = 0.0
-            self.fitStatus = FitStatus()
-            self.fitInProgress = False
+            # TODO Set the testing fudge to 0.0
+            fudge = 0.0
+            self.modelTimeOffset = 0.0 + fudge
+            self.fitStatus = None
             self.currentEventEdit.setText(file_selected)
             eventSourceFile = self.Lcp.sourceFile
 
@@ -1433,7 +1628,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                           f'There may be others.')
             return
 
-        # We overwrite without warning an event file woth the same name
+        # This allows the current filename to be updated
+        self.Lcp.sourceFile = os.path.split(self.csvFilePath)[1]
+
+        # We overwrite without warning an event file with the same name
         filename = f'LCP_{self.currentEventEdit.text()}.p'
         pickle.dump(self.Lcp, open(filename, 'wb'))
         self.showInfo(f'The current event data was written to '
@@ -1460,6 +1658,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.magDropEdit.setEnabled(True)
 
         self.frameTimeEdit.setEnabled(True)
+        self.missDistanceKmEdit.setEnabled(True)
 
         self.asteroidDiameterKmEdit.setEnabled(True)
         self.asteroidDiameterMasEdit.setEnabled(True)
@@ -1475,19 +1674,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
     def processModelParameterChange(self):
         self.parameterChangeEntryCount += 1
 
-        # if self.suppressParameterChange:
-        #     self.suppressParameterChange = False
-        #     if self.trace:
-        #         self.showInfo(f'at entry to processModelParameterChange but found it suppressed.\n\n'
-        #                       f'entry count: {self.parameterChangeEntryCount}')
-        #     return
-        #
-        # self.suppressParameterChange = True
-
         if self.trace:
             self.showInfo(f'entering processModelParameterChange with\n\n'
                           f'entry count: {self.parameterChangeEntryCount}')
-
         try:
             empty = ''
 
@@ -1520,12 +1709,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.Lcp.set('star_diameter_km', None)
                 self.Lcp.set('star_diameter_mas', float(self.starSizeMasEdit.text()))
                 self.starSizeKmEdit.setText(f'{self.Lcp.star_diameter_km:0.5f}')
-                # self.starSizeKmEdit.setEnabled(False)
             elif not self.starSizeKmEdit.text() == empty and self.starSizeKmEditted:
                 self.Lcp.set('star_diameter_mas', None)
                 self.Lcp.set('star_diameter_km', float(self.starSizeKmEdit.text()))
                 self.starSizeMasEdit.setText(f'{self.Lcp.star_diameter_mas:0.5f}')
-                # self.starSizeMasEdit.setEnabled(False)
 
             if not self.magDropEdit.text() == empty:
                 magDrop = float(self.magDropEdit.text())
@@ -1549,15 +1736,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.DdegreesEdit.setText(f'{self.Lcp.D_limb_angle_degrees:0.0f}')
                 self.RdegreesEdit.setText(f'{self.Lcp.R_limb_angle_degrees:0.0f}')
 
-                # Compute new model lightcurve after moving the cursor to keep
-                # from (maybe) triggering a rentry when clicking on another widget
-                # self.currentEventEdit.setFocus()
-                # QtWidgets.QApplication.processEvents()
-
-                # if self.trace:
-                #     self.showInfo(f'in processModelParameterChange calling computeModelLightcurve()')
-                # self.computeModelLightcurve()
-
                 if self.trace:
                     self.showInfo(f'in processModelParameterChange calling reDrawMainPlot()')
                 # Recompute modelYvalues
@@ -1567,7 +1745,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 if len(self.selectedPoints) == 1:
                     if self.trace:
                         self.showInfo(f'in processModelParameterChange calling initiateModelFit()')
-                    self.initiateModelFit()
+                    self.findBestTimePositionForModel()
 
         except ValueError as e:  # noqc
             self.showInfo(f'{e}')
@@ -1589,6 +1767,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     self.Lcp.set('baseline_ADU', float(self.baselineADUedit.text()))
                     self.Lcp.set('bottom_ADU', float(self.bottomADUedit.text()))
                     self.Lcp.set('frame_time', float(self.frameTimeEdit.text()))
+                    self.Lcp.set('miss_distance_km', float(self.missDistanceKmEdit.text()))
                     # self.computeModelLightcurve()
                     return
                 else:
@@ -1683,25 +1862,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                           f'If desired, the selected points can be returned to their\n'
                           f'normal color by clicking the Clear button')
 
-            # TODO Fix proper initialization of baseline ADU and magDrop
-            # baselineADU = self.baselineADUedit.text()
-            # if baselineADU == empty:
-            #     self.showInfo(f'Select baseline points and calc')
-            #     return
-            #     baselineADU = 100.0
-            #     self.baselineADUedit.setText('100.0')
-            #     self.magDropEdit.setText('1.0')
-            # else:
-            #     baselineADU = float(baselineADU)
-            #
-            # bottomADU = self.bottomADUedit.text()
-            # if bottomADU == empty:
-            #     bottomADU = 0.0
-            #     self.bottomADUedit.setText('0.0')
-            # else:
-            #     bottomADU = float(bottomADU)
-            #
-
             baselineADU = 100.0
             bottomADU = 0.0
 
@@ -1788,6 +1948,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         if not self.editMode:
             self.editMode = True
             self.frameTimeEdit.setEnabled(True)
+            self.missDistanceKmEdit.setEnabled(True)
             self.asteroidDiameterKmEdit.setEnabled(True)
             self.asteroidDiameterMasEdit.setEnabled(True)
             self.asteroidSpeedShadowEdit.setEnabled(False)
@@ -1798,6 +1959,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     def disablePrimaryEntryEditBoxes(self):
         self.frameTimeEdit.setEnabled(False)
+        self.missDistanceKmEdit.setEnabled(False)
         self.asteroidDiameterKmEdit.setEnabled(False)
         self.asteroidDiameterMasEdit.setEnabled(False)
         self.asteroidSpeedShadowEdit.setEnabled(False)
@@ -1818,7 +1980,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.modelTimeOffset = 0.0
         self.fitStatus = {}
-        self.fitInProgress = False
 
         self.allowShowDetails = False
 
@@ -1846,6 +2007,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.frameTimeEdit.setEnabled(False)
         self.frameTimeEdit.clear()
+
+        self.missDistanceKmEdit.setEnabled(False)
+        self.missDistanceKmEdit.clear()
 
         self.asteroidDiameterKmEdit.setEnabled(False)
         self.asteroidDiameterKmEdit.clear()
@@ -1889,16 +2053,16 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.starSizeKmEdit.clear()
 
         self.demoLightcurveButton.setEnabled(False)
-        self.initiateFitButton.setEnabled(False)
         self.automaticFitButton.setEnabled(False)
         self.askAdviceButton.setEnabled(False)
         self.showDiffractionButton.setEnabled(False)
+        self.showLcpButton.setEnabled(False)
 
         self.diffractionRadioButton.setEnabled(False)
         self.edgeOnDiskRadioButton.setEnabled(False)
         self.diskOnDiskRadioButton.setEnabled(False)
 
-        self.modelX = None
+        self.modelXkm = None
         self.modelY = None
 
         self.redrawMainPlot()
@@ -1912,9 +2076,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.diskOnDiskRadioButton.setEnabled(True)
 
         self.demoLightcurveButton.setEnabled(True)
-        self.initiateFitButton.setEnabled(False)
         self.askAdviceButton.setEnabled(True)
         self.showDiffractionButton.setEnabled(self.diffractionRadioButton.isChecked())
+        self.showLcpButton.setEnabled(True)
 
     # def handlePenumbralFitCheckBox(self):
     #     if self.penumbralFitCheckBox.isChecked():
@@ -6611,8 +6775,17 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         if self.csvFilePath:
             self.initializeLightcurvePanel()
-            # self.switchToTabNamed('Lightcurves')
+
+            # Get rid of any previously displayed model and displayed metric info
+            self.modelY = None
+            self.modelYsamples = None
+            self.fitMetricEdit.clear()
+            self.fitMetricChangeEdit.clear()
+            self.fitMetricChangeEdit.setStyleSheet(None)
+            self.fitStatus = None
+
             QtWidgets.QApplication.processEvents()
+
             self.userDeterminedBaselineStats = False
             self.userDeterminedEventStats = False
             self.setWindowTitle('PYOTE Version: ' + version.version() + '  File being processed: ' + self.csvFilePath)
@@ -7127,7 +7300,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.mainPlot.autoRange()
         self.showMsg('*' * 20 + ' starting over ' + '*' * 20, color='blue')
 
-    def extendAndDrawModelLightcurve(self, modelX, modelY):
+    def extendAndDrawModelLightcurve(self, modelXkm, modelY):
 
         # The following variable is useful for debugging ...
         visibilityOffset = 0  # Used to produce a 'jog' at the edge of model lightcurve
@@ -7142,25 +7315,22 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             if tObsDur < 0:  # The lightcurve acquisition passed through midnight
                 tObsDur += 24 * 60 * 60  # And a days worth of seconds
 
-            tModelDur = (modelX[-1] - modelX[0]) / self.Lcp.shadow_speed  # in seconds
+            tModelDur = (modelXkm[-1] - modelXkm[0]) / self.Lcp.shadow_speed  # in seconds
             self.modelDuration = tModelDur
-            tModelBegin = time_translation  # Leftmost edge of model lightcurve
+            tModelBegin = time_translation  # time of leftmost edge of model lightcurve
             tModelEnd = time_translation + tModelDur
 
             # Compute resolution of model lightcurve - needed for adding extensions
-            modelTimeResolution = (modelX[1] - modelX[0]) / self.Lcp.shadow_speed
+            modelTimeResolution = (modelXkm[1] - modelXkm[0]) / self.Lcp.shadow_speed
 
-            # Convert model edge location from km to time - relative to model center
-            modelDedgeSecs = self.modelDedge / self.Lcp.shadow_speed
-            modelRedgeSecs = self.modelRedge / self.Lcp.shadow_speed
+            # Convert model edge D and R locations from km to time - relative to model center
+            # TODO Check that using no frameTime adjustment is correct
+            self.modelDedgeSecs = self.modelDedgeKm / self.Lcp.shadow_speed
+            self.modelRedgeSecs = self.modelRedgeKm / self.Lcp.shadow_speed
 
             # Convert edge locations from time in model space to time in observation space
-            modelDedgeSecs += time_translation + tModelDur / 2.0
-            modelRedgeSecs += time_translation + tModelDur / 2.0
-
-            # self.showInfo(f'Time span of observation: {tDeltaObservation:0.4f} seconds\n\n'
-            #               f'Time span of model lightcurve: {tModelDur:0.4} seconds\n\n'
-            #               f'model resolution: {modelTimeResolution:0.6f} seconds')
+            self.modelDedgeSecs += time_translation + tModelDur / 2.0
+            self.modelRedgeSecs += time_translation + tModelDur / 2.0
 
             # Initially set indices to extract every point of the model lightcurve.
             # These will be changed if trimming is needed/
@@ -7168,35 +7338,58 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             rightIndex = len(modelY) - 1
 
             # Check for exension to model needed on left edge
-            if tModelBegin >= 0:  # An extension is needed
+            if tModelBegin >= 0:  # An extension on the left is needed
                 nExtensionPoints = round(tModelBegin / modelTimeResolution)
                 leftExtension = [self.Lcp.baseline_ADU + visibilityOffset
                                  for _ in range(nExtensionPoints)]
-            else:  # A trim is needed
+            else:  # A trim on the left is needed
                 leftIndex = round(abs(tModelBegin) / modelTimeResolution)
                 leftExtension = []
 
             # Check for extension to model on right edge
-            if tObsDur > tModelEnd:  # An extension is needed
+            if tObsDur > tModelEnd:  # An extension on the right is needed
                 nExtensionPoints = trunc((tObsDur - tModelEnd) / modelTimeResolution)
                 rightExtension = [self.Lcp.baseline_ADU + visibilityOffset
                                   for _ in range(nExtensionPoints)]
-            else:  # A trim is needed
+            else:  # A trim on the right is needed
                 rightIndex = len(modelY) - round((tModelEnd - tObsDur) / modelTimeResolution)
                 rightExtension = []
 
             self.modelPtsY = list(modelY[leftIndex:rightIndex+1])
+            modelPtsXsec = list(modelXkm[leftIndex:rightIndex+1] / self.Lcp.shadow_speed
+                                + self.modelDuration / 2.0)
 
             normedModelY = leftExtension + self.modelPtsY + rightExtension
 
-            leftEdgeOfModelPtsY = len(leftExtension)
-            rightEdgeOfModelPtsY = leftEdgeOfModelPtsY + len(self.modelPtsY)
-            self.modelPtsX = [i * self.dataLen / len(normedModelY)
-                              for i in range(leftEdgeOfModelPtsY, rightEdgeOfModelPtsY)]
+            nLeft = len(leftExtension)
+            nRight = len(rightExtension)
 
-            modelRdgNum = [i * self.dataLen / len(normedModelY) for i in range(len(normedModelY))]
+            leftTimes = []
+            if nLeft > 0:
+                for i in range(nLeft):
+                    leftTimes.append(tModelBegin - (nLeft - i) * modelTimeResolution)
+
+            rightTimes = []
+            if nRight > 0:
+                for i in range(nLeft):
+                    rightTimes.append(tModelEnd + (i + 1) * modelTimeResolution)
+
+            normedModelTimes = leftTimes + modelPtsXsec + rightTimes
+
+            leftEdgeIndexOfModelPts = len(leftExtension)
+            rightEdgeIndexOfModelPts = leftEdgeIndexOfModelPts + len(self.modelPtsY)
+
+            # TODO Experimental
+            modelXsec = modelXkm / self.Lcp.shadow_speed
+            modelXsec -= modelXsec[0]
+            modelXsec += self.modelTimeOffset
+            modelRdgNum = (modelXsec - tObsStart) / self.Lcp.frame_time
+            self.modelPtsXrdgNum = modelRdgNum
+            self.modelPtsXsec = modelXsec
+            self.modelPtsY = modelY
+            normedModelY = modelY
+
             mPen = pg.mkPen(color=(255, 0, 0), width=self.lineWidthSpinner.value())
-            self.suppressRedrawMainPlot = True
             self.mainPlot.plot(modelRdgNum, normedModelY, pen=mPen, symbol=None)
 
             # Add D and R edge positions to plot.
@@ -7204,8 +7397,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                             width=self.lineWidthSpinner.value())
 
             # Convert edge times to reading number units
-            self.modelDedgeRdgValue = modelDedgeSecs * (self.dataLen - 1) / tObsDur
-            self.modelRedgeRdgValue = modelRedgeSecs * (self.dataLen - 1) / tObsDur
+            self.modelDedgeRdgValue = self.modelDedgeSecs * (self.dataLen - 1) / tObsDur
+            self.modelRedgeRdgValue = self.modelRedgeSecs * (self.dataLen - 1) / tObsDur
 
             D = self.modelDedgeRdgValue
             R = self.modelRedgeRdgValue
@@ -7360,7 +7553,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         elif self.exponentialDtheoryPts is None:
             if self.modelY is not None:
                 ePen = pg.mkPen((0, 255, 0), width=self.lineWidthSpinner.value())
-                plot(self.modelX, self.modelY, pen=ePen)
+                plot(self.modelXkm, self.modelY, pen=ePen)
                 return
 
         if self.eventType == 'DandR':
@@ -7480,16 +7673,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     def redrawMainPlot(self):
 
-        # if self.suppressRedrawMainPlot:
-        #     if self.trace:
-        #         self.showInfo(f'in redrawMainPlot but found it suppressed')
-        #         self.suppressRedrawMainPlot = False
-        #     return
-
         if self.trace:
             self.showInfo(f'in redrawMainPlot')
 
-        # QtWidgets.QApplication.processEvents()
         if self.right is not None:
             right = min(self.dataLen, self.right + 1)
         else:
@@ -7503,9 +7689,15 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         if self.modelYsamples is not None:
             dotSize = self.dotSizeSpinner.value()
-            self.mainPlot.plot([self.modelXsamples[0], self.modelXsamples[-1]],
-                               [self.modelYsamples[0], self.modelYsamples[-1]],
-                               pen=None, symbol='s',
+            # Show single square dot at ends of model lightcurve
+            # self.mainPlot.plot([self.modelXsamples[0], self.modelXsamples[-1]],
+            #                    [self.modelYsamples[0], self.modelYsamples[-1]],
+            #                    pen=None, symbol='s',
+            #                    symbolBrush=(255, 0, 0), symbolSize=dotSize + 2)
+
+            # Show all of the model lightcuve sample points
+            self.mainPlot.plot(self.modelXsamples, self.modelYsamples,
+                               pen=None, symbol='o',
                                symbolBrush=(255, 0, 0), symbolSize=dotSize + 2)
 
         if self.yValues is None:
@@ -7691,10 +7883,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.mainPlot.addItem(region)
 
         if self.exponentialDtheoryPts is None and not self.squareWaveRadioButton.isChecked():
-            if self.modelX is not None and self.modelY is not None:
+            if self.modelXkm is not None and self.modelY is not None:
                 if self.trace:
                     self.showInfo(f'in reDrawMainPlot and calling drawModelLightcurve')
-                self.extendAndDrawModelLightcurve(self.modelX, self.modelY)
+                self.extendAndDrawModelLightcurve(self.modelXkm, self.modelY)
 
         if self.solution:
             self.drawSolution()

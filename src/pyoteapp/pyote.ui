@@ -175,7 +175,7 @@
            <item>
             <widget class="QTabWidget" name="tabWidget">
              <property name="currentIndex">
-              <number>1</number>
+              <number>2</number>
              </property>
              <property name="movable">
               <bool>true</bool>
@@ -2377,6 +2377,9 @@
                        <height>16777215</height>
                       </size>
                      </property>
+                     <property name="toolTip">
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If you know the integration level of the observation (block size) but not the offset, enter the known block size here and the block integration routine will find the best offset value for you.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Note: &lt;/span&gt;block sizes are normally powers of 2, but that is not enforced here, so be careful.&lt;/p&gt;&lt;p&gt;We allow for unusual block sizes simply because there might be a use-case.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     </property>
                     </widget>
                    </item>
                    <item>
@@ -2392,6 +2395,9 @@
                        <width>80</width>
                        <height>16777215</height>
                       </size>
+                     </property>
+                     <property name="toolTip">
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If you know the integration level of the observation (block size) but not the offset, enter the known block size here and the block integration routine will find the best offset value for you.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Note:&lt;/span&gt; block sizes are normally powers of 2, but that is not enforced here, so be careful.&lt;/p&gt;&lt;p&gt;We allow for unusual block sizes simply because there might be a use-case.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                      </property>
                      <property name="text">
                       <string>Block size</string>
@@ -2935,7 +2941,7 @@
                  <x>20</x>
                  <y>100</y>
                  <width>110</width>
-                 <height>48</height>
+                 <height>100</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_41">
@@ -2956,6 +2962,21 @@
                 </item>
                 <item>
                  <widget class="QLineEdit" name="frameTimeEdit"/>
+                </item>
+                <item>
+                 <widget class="QLabel" name="missDistanceLabel">
+                  <property name="font">
+                   <font>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Miss distance (km)</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="missDistanceKmEdit"/>
                 </item>
                </layout>
               </widget>
@@ -3377,7 +3398,7 @@
                <property name="geometry">
                 <rect>
                  <x>150</x>
-                 <y>340</y>
+                 <y>330</y>
                  <width>198</width>
                  <height>146</height>
                 </rect>
@@ -3387,13 +3408,6 @@
                  <widget class="QPushButton" name="demoLightcurveButton">
                   <property name="text">
                    <string>Compute model lightcurve</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="initiateFitButton">
-                  <property name="text">
-                   <string>Position model lightcurve</string>
                   </property>
                  </widget>
                 </item>
@@ -3415,6 +3429,13 @@
                  <widget class="QPushButton" name="showDiffractionButton">
                   <property name="text">
                    <string>Show diffraction pattern on ground</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="showLcpButton">
+                  <property name="text">
+                   <string>Show lightcurve parameters</string>
                   </property>
                  </widget>
                 </item>
@@ -3630,7 +3651,7 @@
                <property name="geometry">
                 <rect>
                  <x>20</x>
-                 <y>190</y>
+                 <y>200</y>
                  <width>771</width>
                  <height>20</height>
                 </rect>
@@ -3821,7 +3842,7 @@
                 <rect>
                  <x>21</x>
                  <y>221</y>
-                 <width>141</width>
+                 <width>151</width>
                  <height>80</height>
                 </rect>
                </property>
@@ -4007,7 +4028,7 @@
                 <string>Trace</string>
                </property>
               </widget>
-              <widget class="QWidget" name="">
+              <widget class="QWidget" name="layoutWidget">
                <property name="geometry">
                 <rect>
                  <x>360</x>
@@ -5755,7 +5776,6 @@
   <tabstop>edgeOnDiskRadioButton</tabstop>
   <tabstop>diskOnDiskRadioButton</tabstop>
   <tabstop>demoLightcurveButton</tabstop>
-  <tabstop>initiateFitButton</tabstop>
   <tabstop>askAdviceButton</tabstop>
   <tabstop>showDiffractionButton</tabstop>
   <tabstop>fitMetricEdit</tabstop>

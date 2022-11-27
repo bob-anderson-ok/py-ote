@@ -111,7 +111,6 @@ def scaleToADU(y_values, LCP):
 
     compression = 1.0 - LCP.bottom_ADU / LCP.baseline_ADU
     y_values = ((y_values - 1.0) * compression + 1.0) * LCP.baseline_ADU
-    # y_values *= LCP.baseline_ADU
 
     return y_values
 
@@ -654,7 +653,7 @@ class LightcurveParameters:
             output_str.append(f"chord_length_sec: None\n")
 
         output_str.append(
-            f"miss_distance_km: {self.miss_distance_km:0.2f} (if non-zero, lightcurve is modelled as a partial or complete miss)\n")
+            f"miss_distance_km: {self.miss_distance_km:0.2f} (if non-zero, lightcurve is modeled as a partial or complete miss)\n")
 
         output_str.append(f"wavelength_nm: {self.wavelength_nm} nm")
         output_str.append(f"npoints: {self.npoints} points in model lightcurve")
@@ -1493,6 +1492,17 @@ def plot_edge_on_disk(x, y, D_edge, R_edge, LCP, figsize=(10, 6),
     plt.show()
 
 
+def cameraIntegration(x, y, LCP):
+    # Block integrate y by frame_time
+    span_km = x[-1] - x[0]
+    resolution_km = span_km / LCP.npoints
+    n_sample_points = round(LCP.frame_time * LCP.shadow_speed / resolution_km)
+    sample = np.repeat(1.0 / n_sample_points, n_sample_points)
+    camera_y = lightcurve_convolve(sample=sample, lightcurve=y, shift_needed=len(sample) - 1)
+
+    return camera_y
+
+
 def demo_event(LCP, model, title='Generic model', showLegend=False, showNotes=False,
                plot_versus_time=False, plots_wanted=True):
     if model == 'disk-on-disk':
@@ -1519,7 +1529,7 @@ def demo_event(LCP, model, title='Generic model', showLegend=False, showNotes=Fa
     else:
         raise Exception(f"Model '{model}' is unknown.")
 
-    return x, y, D_edge, R_edge
+    return x, cameraIntegration(x, y, LCP), D_edge, R_edge
 
 
 def timeSampleLightcurve(x_km, y_ADU, D_km, R_km, LCP, start_time=0):
