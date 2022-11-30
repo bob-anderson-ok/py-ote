@@ -1526,6 +1526,29 @@ def demo_event(LCP, model, title='Generic model', showLegend=False, showNotes=Fa
             plot_diffraction(x=x, y=y, first_wavelength=wavelength1,
                              last_wavelength=wavelength2, LCP=LCP, title=title,
                              showLegend=showLegend, showNotes=showNotes, plot_versus_time=plot_versus_time)
+        # Get star disk chords
+        if not LCP.star_diameter_km == 0.0:
+            d_chords, d_chords_alone, *_ = get_star_chord_samples(x=x, plot_margin=20, LCP=LCP)
+            star_disk_y = lightcurve_convolve(sample=d_chords_alone,
+                                              lightcurve=y,
+                                              shift_needed=len(d_chords_alone) - 1)
+
+            # Block integrate star_disk_y by frame_time to get camera_y
+            span_km = x[-1] - x[0]
+            resolution_km = span_km / LCP.npoints
+            n_sample_points = round(LCP.frame_time * LCP.shadow_speed / resolution_km)
+            sample = np.repeat(1.0 / n_sample_points, n_sample_points)
+            camera_y = lightcurve_convolve(sample=sample, lightcurve=star_disk_y,
+                                           shift_needed=len(sample) - 1)
+        else:
+            # Block integrate y by frame_time to get camera_y
+            span_km = x[-1] - x[0]
+            resolution_km = span_km / LCP.npoints
+            n_sample_points = round(LCP.frame_time * LCP.shadow_speed / resolution_km)
+            sample = np.repeat(1.0 / n_sample_points, n_sample_points)
+            camera_y = lightcurve_convolve(sample=sample, lightcurve=y,
+                                           shift_needed=len(sample) - 1)
+        return x, camera_y, D_edge, R_edge
     else:
         raise Exception(f"Model '{model}' is unknown.")
 

@@ -2441,6 +2441,31 @@
                    </property>
                   </widget>
                  </item>
+                 <item>
+                  <widget class="QPushButton" name="singlePointDropButton">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sometimes an occultation event may be so short that there will be only a single point recorded. In this case, because it is not possible to determine the duration of the event (only an upper bound can be stated) and the noise level during the event is also not measurable, the usual light-curve fitting procedure cannot (should not) be carried out.&lt;/p&gt;&lt;p&gt;But, it is possible to use the mechanism of the False-Positive report to determine whether the observed drop is just an artifact of baseline noise or is a deep enough drop that it is statistically unlikely that the drop is due to noise alone and so a positive can be reported with an appropriately chosen duration and error bar to reflect the timing ambiguity inherent in such a single point event.&lt;/p&gt;&lt;p&gt;To use this tool, first go to the Noise Analysis/Detectability tab and use the baseline points selection tool to identify the points that are considered valid baseline points (by multiple applications of the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Mark baseline region &lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt;button&lt;/span&gt;) excluding the point to be tested, then click the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Calc baseline mean/sigma/corr coeff&lt;/span&gt; button.&lt;/p&gt;&lt;p&gt;Then, click on the single point to be tested (the point will change to a red dot), and click this button.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>Validate a potential single point event</string>
+                   </property>
+                  </widget>
+                 </item>
                 </layout>
                </item>
                <item row="2" column="1" colspan="3">
@@ -2459,31 +2484,12 @@
                <item row="3" column="1">
                 <layout class="QHBoxLayout" name="horizontalLayout_43">
                  <item>
-                  <widget class="QPushButton" name="singlePointDropButton">
-                   <property name="enabled">
-                    <bool>false</bool>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>250</width>
-                     <height>16777215</height>
-                    </size>
-                   </property>
-                   <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sometimes an occultation event may be so short that there will be only a single point recorded. In this case, because it is not possible to determine the duration of the event (only an upper bound can be stated) and the noise level during the event is also not measurable, the usual light-curve fitting procedure cannot (should not) be carried out.&lt;/p&gt;&lt;p&gt;But, it is possible to use the mechanism of the False-Positive report to determine whether the observed drop is just an artifact of baseline noise or is a deep enough drop that it is statistically unlikely that the drop is due to noise alone and so a positive can be reported with an appropriately chosen duration and error bar to reflect the timing ambiguity inherent in such a single point event.&lt;/p&gt;&lt;p&gt;To use this tool, first go to the Noise Analysis/Detectability tab and use the baseline points selection tool to identify the points that are considered valid baseline points (by multiple applications of the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Mark baseline region &lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt;button&lt;/span&gt;) excluding the point to be tested, then click the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Calc baseline mean/sigma/corr coeff&lt;/span&gt; button.&lt;/p&gt;&lt;p&gt;Then, click on the single point to be tested (the point will change to a red dot), and click this button.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                   </property>
-                   <property name="text">
-                    <string>Validate a potential single point event</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
                   <widget class="QLabel" name="magDropSqwaveLabel">
                    <property name="toolTip">
                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If you enter a value for the expected magDrop of a squarewave event, it will be used during the display of the 'solution' and will give you a good visual of how your observation matched the expected magDrop.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;NOTE:&lt;/span&gt; This does &lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;NOT&lt;/span&gt; affect the calculation of the actual magDrop of the observation - that calculation and report remains unchanged.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="text">
-                    <string>         expected magDrop:</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Optional: enter the expected magDrop for the event to get a visual of how that event level matches your observation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                   </widget>
                  </item>
@@ -5785,7 +5791,6 @@
   <tabstop>writeBarPlots</tabstop>
   <tabstop>writeCSVButton</tabstop>
   <tabstop>startOver</tabstop>
-  <tabstop>singlePointDropButton</tabstop>
   <tabstop>currentEventEdit</tabstop>
   <tabstop>frameTimeEdit</tabstop>
   <tabstop>asteroidDiameterKmEdit</tabstop>
