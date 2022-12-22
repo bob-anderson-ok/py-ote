@@ -5,12 +5,24 @@ Created on Sat May 20 15:32:13 2017
 """
 import pickle
 import glob
-import copy
-# import math
+
+# TODO Comment these lines out when not investigating memory usage issues
+# from pympler import muppy, summary
+# from resource import getrusage, RUSAGE_SELF
+# import time
+import shutil
+
+import psutil
+# from memory_profiler import profile
+
+import gc
+# import copy
+import math
 import subprocess
 from pathlib import Path
 
 from dataclasses import dataclass, field
+
 from scipy import interpolate
 
 # from numba import jit
@@ -78,6 +90,7 @@ from pyoteapp.iterative_logl_functions import find_best_d_only_from_min_max_size
 # from pyoteapp.subframe_timing_utilities import generate_underlying_lightcurve_plots, fresnel_length_km
 from pyoteapp.subframe_timing_utilities import time_correction, intensity_at_time
 
+
 cursorAlert = pyqtSignal()
 
 # The gui module was created by typing
@@ -105,26 +118,36 @@ acfCoefThreshold = 0.05  # To match what is being done in R-OTE 4.5.4+
 
 
 @dataclass
-class FitStatus:
-    currentMetric: float = None
+class BestFit:
+    thisPassMetric: float = None
+    metricAtStartOfPass: float = None
     modelTimeOffset: float = None
     chordTime: float = None
+    missDistance: float = None
     Dangle: float = None
     Rangle: float = None
+
+
+@dataclass
+class FitStatus:
+    improvementPassCompleted: bool = False
+    currentMetric: float = None
+    metricInUse: str = field(default='?')   # 'd' | 'r' | 'both'
+    modelTimeOffset: float = None
+    chordTime: float = None
+    missDistance: float = None
+    Dangle: float = None
+    Rangle: float = None
+    angleToOptimize: str = field(default='?')  # 'D' | 'R' when edge-on-disk being solved
     currentDelta: float = None
-    startingValueOfChangling = None  # changling means the parameter being searched with
-    # failedToImprove* is set true when a search produces no change in the
-    # parameter. If, during a search, we EdgeTime and ChordSize failed to improve,
-    # we have found the best fit at the precision given, unless this is an
-    # edge_on_disk model in which case we need Dangle and R angle failed to imrpve as well.
-    failedToImproveEdgeTime: bool = False
-    failedToImproveChordSize: bool = False
-    failedToImproveDAngle: bool = False
-    failedToImproveRangle: bool = False
-    finalValueOfParameter: float = None
-    numIterationsRemaining = 6
+    edgeDelta: float = None
+    chordDelta: float = None
+    missDelta: float = None
+    DangleDelta: float = None
+    RangleDelta: float = None
+    fitComplete: bool = False
     failureCount = 0
-    beingChanged: str = field(default='?')   # 'edgeTime' | 'chord' | 'Dangle' | 'Rangle'
+    beingChanged: str = field(default='?')  # 'edgeTime' | 'chord' | 'Dangle' | 'Rangle'
 
 # There is a bug in pyqtgraph ImageExpoter, probably caused by new versions of PyQt5 returning
 # float values for image rectangles.  Those floats were being given to numpy to create a matrix,
@@ -213,16 +236,23 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
     def __init__(self, csv_file):
         super(SimplePlot, self).__init__()
 
-        self.trace = False
+        self.homeDir = os.path.split(__file__)[0]
+
+        self.keepRunning = True
 
         self.selectedPoints = {}
 
         self.csvFilePath = None
 
         self.fitStatus = None
-        self.bestFitSoFar = None
+        self.bestFit = None
 
-        self.fitInProgress = False  # Unused at the moment
+        # The following variable only takes on values of
+        # 'edgeTime' | 'chord' | 'Dangle' | 'Rangle' | '' and is only used when
+        # the checkBox "Single optimization"  on the "Model selection" tab is checked
+        self.singleOptimizationName = ''
+
+        self.pauseFitRequested = False
 
         self.suppressParameterChange = False
         self.parameterChangeEntryCount = 0
@@ -237,11 +267,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.editMode = False
 
-        self.chordSizeSecondsEditted = False
-        self.chordSizeKmEditted = False
+        self.chordSizeSecondsEdited = False
+        self.chordSizeKmEdited = False
 
-        self.starSizeMasEditted = False
-        self.starSizeKmEditted = False
+        self.starSizeMasEdited = False
+        self.starSizeKmEdited = False
 
         self.modelXkm = None           # model x values (in km)
         self.modelY = None             # model y values (ADU)
@@ -263,7 +293,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         # This variable controls where the left edge of the computed model lightcurve
         # starts relative to the beginning of the observation
-        self.modelTimeOffset = 0.0     # time offset of model lightcurve from obs start
+        self.modelTimeOffset = None     # time offset of model lightcurve from obs start
 
         # modelXvalues are in reading number units
         self.modelXvalues = None       # model x values extended or trimmed to match obs
@@ -454,6 +484,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.pastEventsComboBox.installEventFilter(self)
         self.pastEventsComboBox.activated.connect(self.handlePastEventSelection)
 
+        self.deleteEventButton.installEventFilter(self)
+        self.deleteEventButton.clicked.connect(self.deletePastEvent)
+
         self.baselineADUlabel.installEventFilter(self)
         self.baselineADUedit.installEventFilter(self)
 
@@ -469,7 +502,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.bottomADUedit.installEventFilter(self)
 
         self.magDropEdit.installEventFilter(self)
-        self.magDropEdit.editingFinished.connect(self.processModelParameterChange)
+        self.magDropEdit.editingFinished.connect(self.processMagDropFinish)
 
         self.frameTimeLabel.installEventFilter(self)
         self.frameTimeEdit.installEventFilter(self)
@@ -477,7 +510,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.missDistanceLabel.installEventFilter(self)
         self.missDistanceKmEdit.installEventFilter(self)
-        self.missDistanceKmEdit.editingFinished.connect(self.processModelLightcurveCoreEdit)
+        self.missDistanceKmEdit.editingFinished.connect(self.processMissDistanceFinish)
 
         self.asteroidDiameterLabel.installEventFilter(self)
         self.asteroidDiameterKmLabel.installEventFilter(self)
@@ -493,28 +526,28 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.asteroidSpeedShadowLabel.installEventFilter(self)
         self.asteroidSpeedSkyEdit.installEventFilter(self)
         self.asteroidSpeedSkyLabel.installEventFilter(self)
-        self.asteroidSpeedShadowEdit.editingFinished.connect(self.processModelLightcurveCoreEdit)
-        self.asteroidSpeedSkyEdit.editingFinished.connect(self.processModelLightcurveCoreEdit)
+        self.asteroidSpeedShadowEdit.editingFinished.connect(self.processAsteroidSpeedShadowFinish)
+        self.asteroidSpeedSkyEdit.editingFinished.connect(self.processAsteroidSpeedSkyFinish)
 
         self.asteroidDistLabel.installEventFilter(self)
         self.asteroidDistAUedit.installEventFilter(self)
         self.asteroidDistAUlabel.installEventFilter(self)
         self.asteroidDistArcsecEdit.installEventFilter(self)
         self.asteroidDistArcsecLabel.installEventFilter(self)
-        self.asteroidDistAUedit.editingFinished.connect(self.processModelLightcurveCoreEdit)
-        self.asteroidDistArcsecEdit.editingFinished.connect(self.processModelLightcurveCoreEdit)
+        self.asteroidDistAUedit.editingFinished.connect(self.processAsteroidDistAUfinish)
+        self.asteroidDistArcsecEdit.editingFinished.connect(self.processAsteroidDistArcsecFinish)
 
         self.wavelengthLabel.installEventFilter(self)
         self.wavelengthEdit.installEventFilter(self)
-        self.wavelengthEdit.editingFinished.connect(self.processModelLightcurveCoreEdit)
+        self.wavelengthEdit.editingFinished.connect(self.processWavelengthFinish)
 
         self.limbAnglesLabel.installEventFilter(self)
         self.DdegreesEdit.installEventFilter(self)
-        self.DdegreesEdit.editingFinished.connect(self.processModelParameterChange)
+        self.DdegreesEdit.editingFinished.connect(self.processDangleEditFinish)
         self.DdegreesLabel.installEventFilter(self)
 
         self.RdegreesEdit.installEventFilter(self)
-        self.RdegreesEdit.editingFinished.connect(self.processModelParameterChange)
+        self.RdegreesEdit.editingFinished.connect(self.processRangleEditFinish)
         self.RdegreesLabel.installEventFilter(self)
 
         self.fresnelSizeLabel.installEventFilter(self)
@@ -530,8 +563,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.starSizeKmEdit.installEventFilter(self)
         self.starSizeMasEdit.editingFinished.connect(self.processStarSizeMasFinish)
         self.starSizeKmEdit.editingFinished.connect(self.processStarSizeKmFinish)
-
-        self.traceCheckBox.clicked.connect(self.traceControl)
 
         self.chordSizeLabel.installEventFilter(self)
         self.chordSizeSecondsLabel.installEventFilter(self)
@@ -551,16 +582,20 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.squareWaveRadioButton.installEventFilter(self)
 
-        self.demoLightcurveButton.installEventFilter(self)
+        self.fitLightcurveButton.installEventFilter(self)
         self.askAdviceButton.installEventFilter(self)
         self.showDiffractionButton.installEventFilter(self)
 
         self.askAdviceButton.clicked.connect(self.showModelChoiceAdvice)
-        self.demoLightcurveButton.clicked.connect(self.computeModelLightcurveButtonClicked)
+        self.fitLightcurveButton.clicked.connect(self.fitModelLightcurveButtonClicked)
         self.showDiffractionButton.clicked.connect(self.plotDiffractionPatternOnGround)
 
-        self.showLcpButton.installEventFilter(self)
-        self.showLcpButton.clicked.connect(self.printLcp)
+        self.demoModelButton.installEventFilter(self)
+        self.demoModelButton.clicked.connect(self.demoModel)
+
+        self.printEventParametersButton.installEventFilter(self)
+        self.printEventParametersButton.clicked.connect(self.printFinalReport)
+
         self.showDetailsCheckBox.installEventFilter(self)
         self.versusTimeCheckBox.installEventFilter(self)
         self.showAnnotationsCheckBox.installEventFilter(self)
@@ -571,14 +606,16 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.fitMetricChangeEdit.installEventFilter(self)
 
         self.helpPdfButton.installEventFilter(self)
+        self.helpPdfButton.clicked.connect(self.helpPdfButtonClicked)
 
         self.fitPrecisionLabel.installEventFilter(self)
         self.edgeTimePrecisionLabel.installEventFilter(self)
         self.chordDurationPrecisionLabel.installEventFilter(self)
         self.limbAnglePrecisionLabel.installEventFilter(self)
+        self.missDistancePrecisionLabel.installEventFilter(self)
 
-        self.automaticFitButton.installEventFilter(self)
-        self.automaticFitButton.clicked.connect(self.findBestModelLightcurvePosition)
+        self.pauseFitButton.installEventFilter(self)
+        self.pauseFitButton.clicked.connect(self.pauseFitInProgress)
 
         self.edgeTimePrecisionEdit.installEventFilter(self)
         self.edgeTimePrecisionEdit.editingFinished.connect(self.processEdgeTimePrecisionFinish)
@@ -588,6 +625,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.limbAnglePrecisionEdit.installEventFilter(self)
         self.limbAnglePrecisionEdit.editingFinished.connect(self.processLimbAnglePrecisionFinish)
+
+        self.missDistancePrecisionEdit.installEventFilter(self)
+        self.missDistancePrecisionEdit.editingFinished.connect(self.processMissDistancePrecisionFinish)
+
         self.LC1 = []
         self.LC2 = []
         self.LC3 = []
@@ -843,6 +884,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         oldMainPlot.setParent(None)
 
+        self.plotItem = self.mainPlot.getPlotItem()
+
         self.mainPlot.scene().sigMouseMoved.connect(self.reportMouseMoved)
         self.verticalCursor = pg.InfiniteLine(angle=90, movable=False, pen=(0, 0, 0))
         self.mainPlot.addItem(self.verticalCursor)
@@ -869,9 +912,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.settings = QSettings('pyote.ini', QSettings.IniFormat)
         self.settings.setFallbacksEnabled(False)
 
-        self.edgeTimePrecisionEdit.setText(self.settings.value('edgeTimeFitPrecision', ''))
-        self.chordDurationPrecisionEdit.setText(self.settings.value('chordDurationFitPrecision', ''))
-        self.limbAnglePrecisionEdit.setText(self.settings.value('limbAngleFitPrecision', ''))
+        self.edgeTimePrecisionEdit.setText(self.settings.value('edgeTimeFitPrecision', '0.010'))
+        self.chordDurationPrecisionEdit.setText(self.settings.value('chordDurationFitPrecision', '0.010'))
+        self.limbAnglePrecisionEdit.setText(self.settings.value('limbAngleFitPrecision', '1'))
+        self.missDistancePrecisionEdit.setText(self.settings.value('missDistanceFitPrecision', '0.1'))
 
         lineWidth = self.settings.value('lineWidth', '5')
         dotSize = self.settings.value('dotSize', '8')
@@ -1021,27 +1065,114 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.initializeModelLightcurvesPanel()
 
+        self.showMsg(f'Home directory: {self.homeDir}', color='black', bold=True)
+        self.copy_modelExamples_to_desktop()
+
 # ====  New method entry point ===
 
-    def processEdgeTimePrecisionFinish(self):
+    def deletePastEvent(self):
+        currentSelection = self.pastEventsComboBox.currentText()
+        if not currentSelection == '<clear event data>':
+            title = self.tr("Please confirm ...")
+            query = self.tr(
+                f"Are you sure you want to delete {currentSelection} ?"
+            )
+            reply = QMessageBox.question(
+                self,
+                title,
+                query,
+                QMessageBox.Yes,
+                QMessageBox.No
+            )
+
+            if reply == QMessageBox.Yes:
+                filepath = f'pyoteLCP\\LCP_{currentSelection}.p'
+                if os.path.exists(filepath):
+                    os.remove(filepath)
+                    self.showInfo(f'Deleted: {currentSelection}')
+                    # Refill the combo list to show deletion effect
+                    self.pastEventsComboBox.clear()
+                    self.fillPastEventsComboBox()
+                else:
+                    self.showInfo(f"{filepath} does not exist")
+
+    def printFinalReport(self):
+        if self.Lcp is not None:
+            for line in self.Lcp.document():
+                self.showMsg(line, color='black', bold=True, blankLine=False)
+            if self.modelDedgeSecs is not None:
+                self.showMsg('', blankLine=False)
+                self.printEdgeOrMissReport()
+
+    def processDangleEditFinish(self):
         try:
-            _ = float(self.edgeTimePrecisionEdit.text())
+            Dangle = float(self.DdegreesEdit.text())
+            if 0 <= Dangle <= 90:
+                if self.Lcp is not None:
+                    self.Lcp.set("D_limb_angle_degrees", Dangle)
+                else:
+                    self.showInfo(f'D angle must be > 0 and <= 90')
+                    self.DdegreesEdit.clear()
+        except ValueError as e:
+            self.showInfo(f'{e}')
+            self.DdegreesEdit.clear()
+
+    def processRangleEditFinish(self):
+        try:
+            Rangle = float(self.RdegreesEdit.text())
+            if 0 <= Rangle <= 90:
+                if self.Lcp is not None:
+                    self.Lcp.set("R_limb_angle_degrees", Rangle)
+            else:
+                self.showInfo(f'R angle must be > 0 and <= 90')
+                self.RdegreesEdit.clear()
+        except ValueError as e:
+            self.showInfo(f'{e}')
+            self.RdegreesEdit.clear()
+
+    def processEdgeTimePrecisionFinish(self):
+        edgeTimeDelta = None
+        try:
+            edgeTimeDelta = float(self.edgeTimePrecisionEdit.text())
+            if not edgeTimeDelta >= 0.0001:
+                self.showInfo(f'The minimum precision for edgeTime is 0.0001')
+                self.edgeTimePrecisionEdit.clear()
         except ValueError as e:
             self.showInfo(f'Error in Edge time precision.\n\n'
                           f'{e}')
             self.edgeTimePrecisionEdit.clear()
 
+        if self.modelTimeOffset is not None:
+            self.modelTimeOffset = self.modelTimeOffset - self.modelTimeOffset % edgeTimeDelta
+
     def processChordDurationPrecisionFinish(self):
         try:
-            _ = float(self.chordDurationPrecisionEdit.text())
+            value = float(self.chordDurationPrecisionEdit.text())
+            if value < 0:
+                self.showInfo(f'Chord duration precision cannot be negative.')
+                self.chordDurationPrecisionEdit.clear()
         except ValueError as e:
             self.showInfo(f'Error in Chord duration precision.\n\n'
                           f'{e}')
             self.chordDurationPrecisionEdit.clear()
 
+    def processMissDistancePrecisionFinish(self):
+        try:
+            value = float(self.missDistancePrecisionEdit.text())
+            if value < 0:
+                self.showInfo(f'Miss distance precision cannot be negative.')
+                self.missDistancePrecisionEdit.clear()
+        except ValueError as e:
+            self.showInfo(f'Error in Miss distance precision.\n\n'
+                          f'{e}')
+            self.missDistancePrecisionEdit.clear()
+
     def processLimbAnglePrecisionFinish(self):
         try:
-            _ = float(self.limbAnglePrecisionEdit.text())
+            value = float(self.limbAnglePrecisionEdit.text())
+            if value < 0:
+                self.showInfo(f'Limb angle precision cannot be negative.')
+                self.limbAnglePrecisionEdit.clear()
         except ValueError as e:
             self.showInfo(f'Error in Limb angle precision.\n\n'
                           f'{e}')
@@ -1060,11 +1191,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                           f'... so clearing the input.')
             self.magDropSqwaveEdit.clear()
 
-    def printLcp(self):
+    def demoModel(self):
         if self.Lcp is None:
-            self.showInfo(f'There is no lightcurve parameter structure to print.')
+            self.showInfo(f'There is no model lightcurve defined.')
         else:
-            self.showInfo('Here we will add an LCP printout.')
+            self.computeModelLightcurve(demo=True)
 
     def convertDandRrdgValueToTimestamp(self):
         tObsStart = convertTimeStringToTime(self.yTimes[0])
@@ -1072,169 +1203,181 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         tRedge = tObsStart + self.modelRedgeRdgValue * self.timeDelta
         return convertTimeToTimeString(tDedge), convertTimeToTimeString(tRedge)
 
-    def findBestModelLightcurvePosition(self):
-        self.showInfo('This button should be deprecated.')
-        return
-
-    """
-        # If we are just starting a fitting procedure, the modelTimeOffset will be 0.00
-        # In that case, we require the user to have selected a good location for
-        # the initial placement of the lightcurve
-        if not len(self.selectedPoints) == 1 and self.modelTimeOffset == 0.0:
-            self.showInfo('Select a point to be used\n'
-                          'as the starting point for the\n'
-                          'position search.')
-            return
-
-        self.showMsg(f'Starting search for best time position...',
-                     color='red', bold=True, blankLine=False)
-
-        # If the user has selected a placement point, we will use is to calculate the
-        # modelTimeOffset, otherwise we just use the current value of that variable.
-        # This would be the normal case of a continuing 'fitting' procedure - use the last
-        # time position as the starting point for the next search.
-        if len(self.selectedPoints) > 0:
-            if not len(self.selectedPoints) == 1:
-                self.showInfo(f'More than one point has been selected as the initial position.')
-                return
-            selIndex = [key for key, _ in self.selectedPoints.items()]
-
-            tObsStart = convertTimeStringToTime(self.yTimes[0])
-            timeAtPointSelected = convertTimeStringToTime(self.yTimes[selIndex[0]])
-            relativeTime = timeAtPointSelected - tObsStart
-            if relativeTime < 0:  # The lightcurve acquisition passed through midnight
-                relativeTime += 24 * 60 * 60  # And a days worth of seconds
-
-            self.modelTimeOffset = relativeTime - self.modelDuration / 2
-
-        positionPrecision = float(self.edgeTimePrecisionEdit.text())
-
-        self.automaticFitButton.setStyleSheet("background-color: red")
-        self.automaticFitButton.setText('... computation in progress')
-        QtWidgets.QApplication.processEvents()
-
-        timeOffsetsToUse = [i * positionPrecision + self.modelTimeOffset for i in range(-10, 11)]
-
-        metrics = []
-        for timeOffset in timeOffsetsToUse:
-            self.modelTimeOffset = timeOffset
-            self.extendAndDrawModelLightcurve(self.modelXkm, self.modelY)
-            metric = self.calcModelFitMetric(showData=False)
-            QtWidgets.QApplication.processEvents()
-            metrics.append(metric)
-
-        self.showMsg(f'... finished search for best time position.',
-                     color='red', bold=True, blankLine=True)
-
-        # self.showInfo(f'{metrics}')
-
-        # Find smallest metric
-        smallestMetric = metrics[0]
-        k = 0
-        for i, value in enumerate(metrics):
-            if value < smallestMetric:
-                smallestMetric = value
-                k = i
-
-        # self.showInfo(f'k: {k}  metric: {smallestMetric}')
-
-        self.modelTimeOffset = timeOffsetsToUse[k]
-        self.extendAndDrawModelLightcurve(self.modelXkm, self.modelY)
-        self.automaticFitButton.setStyleSheet(None)
-
-        self.calcModelFitMetric()
-        self.fitMetricChangeEdit.clear()
-        self.automaticFitButton.setText('Find best time position')
-        self.removePointSelections()
-        self.redrawMainPlot()
-        self.fitMetricChangeEdit.setStyleSheet(None)
-
-        Dtimestamp, Rtimestamp = self.convertDandRrdgValueToTimestamp()
-        self.showMsg(f'\nOptimized edge times:  D: {Dtimestamp}  R: {Rtimestamp}', color='black', bold=True)
-
-        self.fitImprovementControlCenter()
-    """
-
-    def traceControl(self):
-        self.trace = self.traceCheckBox.isChecked()
+    def pauseFitInProgress(self):
+        self.pauseFitRequested = True
+        self.keepRunning = False
 
     def processAsteroidDiameterKmFinish(self):
-        if not self.editMode:
-            self.processModelLightcurveCoreEdit()
-        else:
-            try:
-                value = float(self.asteroidDiameterKmEdit.text())
-                self.Lcp.set('asteroid_diameter_mas', None)
-                self.Lcp.set('asteroid_diameter_km', value)
-                self.asteroidDiameterMasEdit.setText(f'{self.Lcp.asteroid_diameter_mas:0.4f}')
-                self.disablePrimaryEntryEditBoxes()
-                self.editMode = False
-            except ValueError as e:
-                self.showInfo(f'{e}')
+        try:
+            value = float(self.asteroidDiameterKmEdit.text())
+            if value < 0:
+                self.showInfo(f'Asteroid diameter cannot be negative.')
+                self.asteroidDiameterKmEdit.clear()
+                return
+        except ValueError as e:
+            self.showInfo(f'{e}')
+            return
+
+        self.processModelLightcurveCoreEdit()
 
     def processAsteroidDiameterMasFinish(self):
-        if not self.editMode:
-            self.processModelLightcurveCoreEdit()
-        else:
-            try:
-                value = float(self.asteroidDiameterMasEdit.text())
-                self.Lcp.set('asteroid_diameter_km', None)
-                self.Lcp.set('asteroid_diameter_mas', value)
-                self.asteroidDiameterKmEdit.setText(f'{self.Lcp.asteroid_diameter_km:0.4f}')
-                self.disablePrimaryEntryEditBoxes()
-                self.editMode = False
-            except ValueError as e:
-                self.showInfo(f'{e}')
+        try:
+            value = float(self.asteroidDiameterMasEdit.text())
+            if value < 0:
+                self.showInfo(f'Asteroid diameter cannot be negative.')
+                self.asteroidDiameterMasEdit.clear()
+                return
+        except ValueError as e:
+            self.showInfo(f'{e}')
+            return
+
+        self.processModelLightcurveCoreEdit()
+
+    def processAsteroidSpeedShadowFinish(self):
+        try:
+            value = float(self.asteroidSpeedShadowEdit.text())
+            if value < 0:
+                self.showInfo(f'Asteroid speed cannot be negative.')
+                self.asteroidSpeedShadowEdit.clear()
+                return
+        except ValueError as e:
+            self.showInfo(f'{e}')
+            return
+
+        self.processModelLightcurveCoreEdit()
+
+    def processAsteroidSpeedSkyFinish(self):
+        try:
+            value = float(self.asteroidSpeedSkyEdit.text())
+            if value < 0:
+                self.showInfo(f'Asteroid speed cannot be negative.')
+                self.asteroidSpeedSkyEdit.clear()
+                return
+        except ValueError as e:
+            self.showInfo(f'{e}')
+            return
+
+        self.processModelLightcurveCoreEdit()
 
     def processChordSizeSecondsFinish(self):
-        self.chordSizeSecondsEditted = True
-        self.chordSizeKmEditted = False
+        if self.Lcp is not None:
+            if self.Lcp.miss_distance_km > 0:
+                if self.chordSizeSecondsEdit.text() == '0.0000':
+                    return
+                self.starSizeMasEdit.setFocus()
+                self.chordSizeKmEdit.setText('0.00000')
+                self.chordSizeSecondsEdit.setText('0.00000')
+                self.showInfo(f'When Miss distance (km) is greater than 0,\n\n'
+                              f'Chord estimates must remain at 0.00000')
+        self.chordSizeSecondsEdited = True
+        self.chordSizeKmEdited = False
         self.processModelParameterChange()
 
     def processChordSizeKmFinish(self):
-        self.chordSizeSecondsEditted = False
-        self.chordSizeKmEditted = True
+        if self.Lcp is not None:
+            if self.Lcp.miss_distance_km > 0:
+                if self.chordSizeKmEdit.text() == '0.00000':
+                    return
+                self.starSizeMasEdit.setFocus()
+                self.chordSizeKmEdit.setText('0.00000')
+                self.chordSizeSecondsEdit.setText('0.00000')
+                self.showInfo(f'When Miss distance (km) is greater than 0,\n\n'
+                              f'Chord estimates must remain at 0.00000')
+        self.chordSizeSecondsEdited = False
+        self.chordSizeKmEdited = True
         self.processModelParameterChange()
 
     def processStarSizeMasFinish(self):
-        self.starSizeMasEditted = True
-        self.starSizeKmEditted = False
+        self.starSizeMasEdited = True
+        self.starSizeKmEdited = False
         self.processModelParameterChange()
 
     def processStarSizeKmFinish(self):
-        self.starSizeMasEditted = False
-        self.starSizeKmEditted = True
+        self.starSizeMasEdited = False
+        self.starSizeKmEdited = True
         self.processModelParameterChange()
 
-    # @jit(nopython=True)
-    def oldSampleModelLightcurve(self):
-        ansY = []
-        ansX = []
-        k = 0
-        rdgNumToFind = max(int(np.ceil(self.modelPtsXrdgNum[0])), 0)
-        while k < len(self.modelPtsXrdgNum):
-            if self.modelPtsXrdgNum[k] >= rdgNumToFind:
-                ansY.append(self.modelPtsY[k])
-                ansX.append(rdgNumToFind)
-                rdgNumToFind += 1
-            k += 1
-        return np.array(ansX), np.array(ansY)
+    def processMagDropFinish(self):
+        if self.Lcp is not None:
+            if self.Lcp.baseline_ADU is None:
+                self.showInfo(f'Baseline ADU needs to be set before a '
+                              f'MagDrop value can be entered.')
+                return
+            else:
+                self.processModelParameterChange()
+                return
+
+        self.magDropEdit.clear()
+        self.showInfo(f'An "event" has not been defined yet so '
+                      f'the MagDrop entry has been cleared.')
+
+    def processMissDistanceFinish(self):
+        try:
+            value = float(self.missDistanceKmEdit.text())
+            if value < 0:
+                self.showInfo(f'Miss distance cannot be negative.')
+                self.missDistanceKmEdit.clear()
+                return
+        except ValueError as e:
+            self.showInfo(f'{e}')
+            return
+
+        self.processModelLightcurveCoreEdit()
+
+    def processAsteroidDistAUfinish(self):
+        try:
+            value = float(self.asteroidDistAUedit.text())
+            if value < 0:
+                self.showInfo(f'Asteroid distance cannot be negative.')
+                self.asteroidDistAUedit.clear()
+                return
+        except ValueError as e:
+            self.showInfo(f'{e}')
+            return
+
+        self.processModelLightcurveCoreEdit()
+
+    def processAsteroidDistArcsecFinish(self):
+        try:
+            value = float(self.asteroidDistArcsecEdit.text())
+            if value < 0:
+                self.showInfo(f'Asteroid distance cannot be negative.')
+                self.asteroidDistArcsecEdit.clear()
+                return
+        except ValueError as e:
+            self.showInfo(f'{e}')
+            return
+
+        self.processModelLightcurveCoreEdit()
+
+    def processWavelengthFinish(self):
+        try:
+            value = float(self.wavelengthEdit.text())
+            if value < 0:
+                self.showInfo(f'Wavelength (nm) cannot be negative.')
+                self.wavelengthEdit.clear()
+                return
+        except ValueError as e:
+            self.showInfo(f'{e}')
+            return
+
+        self.processModelLightcurveCoreEdit()
 
     def sampleModelLightcurve(self):
         # Build interpolation function. This is done to deal with the finite resolution of
         # the 2048 point lightcurve
         interpolator = interpolate.interp1d(self.modelPtsXsec, self.modelY)
 
-        # Compute the time of the last observation reading
-        # tObsEnd = convertTimeStringToTime(self.yTimes[-1])
-        sample_time = 0.0
+        tObsStart = convertTimeStringToTime(self.yTimes[0])
+        sample_time = tObsStart
 
         x_vals = []
         y_vals = []
 
         while sample_time <= self.modelPtsXsec[-1]:
             if sample_time >= self.modelPtsXsec[0]:
-                x_vals.append(round(sample_time / self.Lcp.frame_time))  # Convert to reading number
+                # Compute x_vals as reading number
+                x_vals.append(round((sample_time - tObsStart) / self.Lcp.frame_time))
                 y_vals.append(interpolator(sample_time))
             sample_time += self.Lcp.frame_time
             # This keeps us from from sampling the model curve past
@@ -1245,17 +1388,42 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         if len(x_vals) == 0:
             breakpoint()
 
-        return np.array(x_vals), np.array(y_vals)
+        self.modelXsamples = np.array(x_vals)
+        self.modelYsamples = np.array(y_vals)
+
+        del x_vals
+        del y_vals
+        gc.collect()
+
+    # def computeDerivatives(self):
+    #     saveBeingChanged = self.fitStatus.beingChanged
+    #     self.fitStatus.beingChanged = 'edgeTime'
+    #     edgeMetric0 = self.calcModelFitMetric(showData=False, suppressPrint=True)
+    #     delta = abs(self.fitStatus.edgeDelta)
+    #     self.modelTimeOffset += delta
+    #     edgeMetric1 = self.calcModelFitMetric(showData=False, suppressPrint=True)
+    #     self.fitStatus.edgeDerivative = (edgeMetric1 - edgeMetric0) / delta
+    #     self.modelTimeOffset -= delta
+    #     newEdgeTime = self.modelTimeOffset - edgeMetric0 / self.fitStatus.edgeDerivative
+    #     print(f'edgeDerivative: {self.fitStatus.edgeDerivative:>10.5f}  '
+    #           f'newEdgeTime: {newEdgeTime:0.5f}')
+    #     self.fitStatus.beingChanged = saveBeingChanged
 
     # @jit(nopython=True)
-    def calcModelFitMetric(self, showData=True):
-        self.modelXsamples, self.modelYsamples = self.sampleModelLightcurve()
-        self.redrawMainPlot()
+    def calcModelFitMetric(self, showData=True, suppressPrint=True):
+        self.extendAndDrawModelLightcurve()  # This fills self.modelPtsXsec
+        self.sampleModelLightcurve()
+        self.newRedrawMainPlot()
+
+        # Calculate the time at the chord center
+        center_time = (self.modelDedgeSecs + self.modelRedgeSecs) / 2.0
+        tObsStart = convertTimeStringToTime(self.yTimes[0])
+        center_frame = int((center_time - tObsStart) / self.Lcp.frame_time)
+
         modelSigmaB = self.Lcp.sigmaB
-        # matchingObsYvalues = self.yValues[self.modelXsamples[0]:(self.modelXsamples[-1] + 1)]
         matchingObsYvalues = []
         modelYsamples = []
-        i = self.modelXsamples[0]
+        i = self.modelXsamples[0]  # Units: frame number
         k = 0
         while i < len(self.yValues) and k < self.modelYsamples.size:
             matchingObsYvalues.append(self.yValues[i])
@@ -1265,68 +1433,80 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         matchingObsYvalues = np.array(matchingObsYvalues)
         modelYsamples = np.array(modelYsamples)
 
-        if not matchingObsYvalues.size == modelYsamples.size:
-            # breakpoint()
-            pass
-        newMetric = np.sum(((modelYsamples - matchingObsYvalues) / modelSigmaB)**2) / modelYsamples.size
+        # We produce these values as a side effect - only used during edge-on-disk (penumbral) fits
+        self.dMetric = np.sum(((modelYsamples[0:center_frame] - matchingObsYvalues[0:center_frame]) / modelSigmaB)**2) / modelYsamples.size
+        self.rMetric = np.sum(((modelYsamples[center_frame:] - matchingObsYvalues[center_frame:]) / modelSigmaB)**2) / modelYsamples.size
+
+        # totalMetric = np.sum(((modelYsamples - matchingObsYvalues) / modelSigmaB)**2) / modelYsamples.size
+        totalMetric = self.dMetric + self.rMetric
+
+        del matchingObsYvalues
+        del modelYsamples
+        gc.collect()
 
         ans = f'timeOffset: {self.modelTimeOffset:0.5f} chord: {self.Lcp.chord_length_sec:0.5f} '
         if self.modelMetric is None:
             ans += 'modelMetric: None...  '
-            self.modelMetric = newMetric
-            ans += f'newMetric: {newMetric:0.5f} change: None'
+            self.modelMetric = totalMetric
+            ans += f'newMetric: {totalMetric:0.5f} change: None'
         else:
-            ans += f'modelMetric: {self.modelMetric:0.5f} newMetric: {newMetric:0.5f} '
-            change = newMetric - self.modelMetric
+            ans += f'modelMetric: {self.modelMetric:0.5f} totalMetric: {totalMetric:0.5f} '
+            # Note: self.modelMetric is the current (i.e, previous) metric
+            if self.fitStatus.metricInUse == 'd':
+                change = self.dMetric - self.modelMetric
+            elif self.fitStatus.metricInUse == 'r':
+                change = self.rMetric - self.modelMetric
+            else:
+                change = totalMetric - self.modelMetric
+            if not suppressPrint:
+                print(f'changing-> {self.fitStatus.beingChanged:8}  '
+                      f'edgeTime: {self.modelTimeOffset:>10.5f}  '
+                      f'chord: {self.Lcp.chord_length_sec:>10.5f}  '
+                      f'dAngle: {self.Lcp.D_limb_angle_degrees:>10.5f}  '
+                      f'rAngle: {self.Lcp.R_limb_angle_degrees:>10.5f}')
+                print(f'edgeTime: {self.modelTimeOffset:>10.5f} '
+                      f'totalMetric: {totalMetric:>10.5f}  '
+                      f'dMetric: {self.dMetric:>10.5f}  '
+                      f'rMetric: {self.rMetric:>10.5f}  '
+                      f'modelMetric: {self.modelMetric:>10.5f}\n')
             if change < 0:
                 ans += f'change: {change:<8.5f} '
             else:
                 ans += f'change: +{change:<8.5f} '
 
-            if change < 0:
+            if change <= 0:
                 ans += 'better'
                 self.fitMetricChangeEdit.setStyleSheet("background: green")
             else:
                 ans += 'worse'
                 self.fitMetricChangeEdit.setStyleSheet("background: red")
 
-            self.modelMetric = newMetric
+            if self.fitStatus.metricInUse == 'd':
+                self.modelMetric = self.dMetric
+            elif self.fitStatus.metricInUse == 'r':
+                self.modelMetric = self.rMetric
+            else:
+                self.modelMetric = totalMetric
             self.fitMetricChangeEdit.setText(f'{change:0.6f}')
-        self.fitMetricEdit.setText(f'{newMetric:0.6f}')
+
+        if self.fitStatus.metricInUse == 'd':
+            self.fitMetricEdit.setText(f'{self.dMetric:0.6f}')
+        elif self.fitStatus.metricInUse == 'r':
+            self.fitMetricEdit.setText(f'{self.rMetric:0.6f}')
+        else:
+            self.fitMetricEdit.setText(f'{totalMetric:0.6f}')
 
         if showData:
             self.showMsg(f'{ans}', bold=True, blankLine=False)
 
-        return newMetric
-
-    def findBestTimePositionForModel(self):
-        if not len(self.selectedPoints) == 1:
-            self.showInfo('Select a single point to be used\n'
-                          'as the center of the model lightcurve.')
-            return
-
-        selIndex = [key for key, _ in self.selectedPoints.items()]
-        # self.showInfo(f'{selIndex}')
-        tObsStart = convertTimeStringToTime(self.yTimes[0])
-        timeAtPointSelected = convertTimeStringToTime(self.yTimes[selIndex[0]])
-        relativeTime = timeAtPointSelected - tObsStart
-        if relativeTime < 0:  # The lightcurve acquisition passed through midnight
-            relativeTime += 24 * 60 * 60  # And a days worth of seconds
-
-        self.modelTimeOffset = relativeTime - self.modelDuration / 2
-        self.redrawMainPlot()  # This will display the model lightcurve at the desired position.
-
-        # Now we can calculate the metric
-        self.calcModelFitMetric()
-
-        # ... and transfer control to the 'fit' mprovement logic ...
-        self.fitImprovementControlCenter()
+        QtWidgets.QApplication.processEvents()  # to force display of the edit box changes
+        return self.modelMetric
 
     def clearNe3SolutionPoints(self):
         try:
             self.exponentialDtheoryPts = None
             self.exponentialRtheoryPts = None
-            self.redrawMainPlot()
+            self.newRedrawMainPlot()
         except Exception as e:
             self.showInfo(f'{e}')
 
@@ -1359,252 +1539,747 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
     def plotDiffractionPatternOnGround(self):
         self.showDiffractionButton.setText('... computation in progress')
         QtWidgets.QApplication.processEvents()
-        demo_diffraction_field(self.Lcp, title_adder=self.currentEventEdit.text())
+        try:
+            demo_diffraction_field(self.Lcp, title_adder=self.currentEventEdit.text())
+        except ValueError as e:
+            self.showInfo(f'{e}')
         self.showDiffractionButton.setText('Show diffraction pattern on the ground')
 
+    def optimizePosition(self):
+
+        # We set this because it is used in various printouts
+        self.fitStatus.beingChanged = 'x position'
+        self.beingOptimizedEdit.setText('x position')
+
+        eodAlgorithm = self.edgeOnDiskRadioButton.isChecked()
+
+        # Get the starting value of the metric
+        self.calcModelFitMetric(showData=False)
+
+        # TODO Make this able to use self.rMetric as well
+        edgeTimeMetric = self.dMetric if eodAlgorithm else self.modelMetric
+
+        self.fitStatus.failureCount = 0
+
+        while True:   # We loop until there is a need to execute a return
+
+            # if self.pauseFitRequested:
+            #     self.processFitPauseRequest()
+            #     return
+            if not self.keepRunning:
+                return "paused"
+
+            self.makeAnEdgeTimeStep()  # Make a step
+
+            self.calcModelFitMetric(showData=False)
+            # TODO Consider whether this test is needed
+            newMetric = self.dMetric if eodAlgorithm else self.modelMetric
+
+            # Diagnose whether the step taken was an improvement or not
+            if newMetric < edgeTimeMetric:
+                edgeTimeMetric = newMetric
+                self.bestFit.modelTimeOffset = self.fitStatus.modelTimeOffset
+                self.fitStatus.failureCount = 0  # We have an improvement, so reset failure count
+                continue
+            else:
+                self.fitStatus.failureCount += 1
+                if self.fitStatus.failureCount >= 2:
+                    self.fitStatus.failureCount = 0
+                    # We return to best known values and change search direction
+                    self.fitStatus.edgeDelta *= -1  # Change step direction
+                    self.modelTimeOffset = self.bestFit.modelTimeOffset
+                    self.fitStatus.modelTimeOffset = self.bestFit.modelTimeOffset
+                    if self.fitStatus.edgeDelta > 0:
+                        # We do one more call to calcModelFitMetric() for the side-effect
+                        # of updating the self.modelDedgeSecs and self.modelRedgeSecs variables
+                        self.calcModelFitMetric(showData=False)
+                        self.bestFit.thisPassMetric = edgeTimeMetric
+                        return 'success'
+                    continue
+                continue
+
+    def optimizeDangle(self):
+        # Allow a zero (or negative) angle delta to terminate improvement cycle
+        if float(self.limbAnglePrecisionEdit.text()) <= 0:
+            return "skipped"
+
+        self.fitStatus.metricInUse = 'd'
+        bestMetricSoFar = self.dMetric
+        stepPositiveAtEntry = self.fitStatus.DangleDelta >= 0
+        self.beingOptimizedEdit.setText('D angle')
+        failureCount = 0
+
+        while True:
+            # Make an angle change, recompute the model lightcurve and get the new metric
+            stepWasTaken = self.makeDangleStep()
+            if stepWasTaken:
+                self.computeModelLightcurve()
+                self.calcModelFitMetric(showData=False)
+            if (self.dMetric < bestMetricSoFar) and stepWasTaken:
+                failureCount = 0
+                bestMetricSoFar = self.dMetric
+                self.bestFit.Dangle = self.fitStatus.Dangle
+                continue
+            else:
+                failureCount += 1
+                if not stepWasTaken:
+                    failureCount = 99
+                if failureCount >= 2:
+                    # We return to best known values and change search direction
+                    self.fitStatus.DangleDelta *= -1  # Change step direction
+                    self.returnToBestDangleFit()
+                    stepPositiveNow = self.fitStatus.DangleDelta >= 0
+                    if stepPositiveNow == stepPositiveAtEntry:  # We have tried both directions
+                        return "success"
+            continue
+
+    def optimizeRangle(self):
+        # Allow a zero (or negative) angle delta to terminate improvement cycle
+        if float(self.limbAnglePrecisionEdit.text()) <= 0:
+            return "skipped"
+
+        self.fitStatus.metricInUse = 'r'
+        bestMetricSoFar = self.rMetric
+        failureCount = 0
+        stepPositiveAtEntry = self.fitStatus.RangleDelta >= 0
+        self.beingOptimizedEdit.setText('R angle')
+
+        while True:
+            # Make an angle change, recompute the model lightcurve and get the new metric
+            stepWasTaken = self.makeRangleStep()
+            if stepWasTaken:
+                self.computeModelLightcurve()
+                self.calcModelFitMetric(showData=False)
+
+            if (self.rMetric < bestMetricSoFar) and stepWasTaken:
+                self.failureCount = 0
+                bestMetricSoFar = self.rMetric
+                self.bestFit.Rangle = self.fitStatus.Rangle
+                continue
+            else:
+                failureCount += 1
+                if not stepWasTaken:
+                    failureCount = 99
+                if failureCount >= 2:
+                    # We return to best known values and change search direction
+                    self.fitStatus.RangleDelta *= -1  # Change step direction
+                    self.returnToBestRangleFit()
+                    stepPositiveNow = self.fitStatus.RangleDelta >= 0
+                    if stepPositiveNow == stepPositiveAtEntry:  # We have tried both directions
+                        return "success"
+            continue
+
+    def optimizeChord(self):
+        # Allow a zero (or negative) chord delta to terminate improvement cycle
+        if float(self.chordDurationPrecisionEdit.text()) <= 0:
+            return "skipped"
+
+        self.fitStatus.metricInUse = 'both'
+        self.modelMetric = self.dMetric + self.rMetric
+        stepPositiveAtEntry = self.fitStatus.chordDelta >= 0
+        self.beingOptimizedEdit.setText('Chord secs')
+
+        while True:
+            # Make a chord change, recompute the model lightcurve and get the new metric
+            stepWasTaken = self.makeAchordTimeStep()
+            if stepWasTaken:
+                self.computeModelLightcurve()
+                self.calcModelFitMetric(showData=False)
+            if (self.modelMetric < self.bestFit.thisPassMetric) and stepWasTaken:
+                self.fitStatus.failureCount = 0
+                self.bestFit.thisPassMetric = self.modelMetric
+                self.bestFit.chordTime = self.fitStatus.chordTime
+            else:
+                self.fitStatus.failureCount += 1
+                if not stepWasTaken:
+                    self.fitStatus.failureCount = 99
+                if self.fitStatus.failureCount >= 2:
+                    self.fitStatus.failureCount = 0
+                    # We return to best known values and change search direction
+                    self.fitStatus.chordDelta *= -1  # Change step direction
+                    self.returnToBestChordFit()
+                    stepPositiveNow = self.fitStatus.chordDelta >= 0
+                    if stepPositiveNow == stepPositiveAtEntry:  # We have tried both directions
+                        return "success"
+            continue
+
+    def optimizeMissDistance(self):
+        # Allow a zero (or negative) miss distance delta to terminate improvement cycle
+        if float(self.missDistancePrecisionEdit.text()) <= 0:
+            return "skipped"
+
+        self.fitStatus.metricInUse = 'both'
+        self.modelMetric = self.dMetric + self.rMetric
+        stepPositiveAtEntry = self.fitStatus.missDelta >= 0
+        self.beingOptimizedEdit.setText('Miss Km')
+
+        while True:
+            # Make a miss ditance change, recompute the model lightcurve and get the new metric
+            stepWasTaken = self.makeAmissDistanceStep()
+            if stepWasTaken:
+                self.computeModelLightcurve()
+                self.calcModelFitMetric(showData=False)
+            if (self.modelMetric < self.bestFit.thisPassMetric) and stepWasTaken:
+                self.fitStatus.failureCount = 0
+                self.bestFit.thisPassMetric = self.modelMetric
+                self.bestFit.missDistance = self.fitStatus.missDistance
+            else:
+                self.fitStatus.failureCount += 1
+                if not stepWasTaken:
+                    self.fitStatus.failureCount = 99
+                if self.fitStatus.failureCount >= 2:
+                    self.fitStatus.failureCount = 0
+                    # We return to best known values and change search direction
+                    self.fitStatus.missDelta *= -1  # Change step direction
+                    self.returnToBestMissDistanceFit()
+                    stepPositiveNow = self.fitStatus.missDelta >= 0
+                    if stepPositiveNow == stepPositiveAtEntry:  # We have tried both directions
+                        return "success"
+            continue
+
+    # @profile
     def fitImprovementControlCenter(self):
+        # self.showMemoryStats()
+        self.keepRunning = True
 
         if self.fitStatus is None:
-            self.fitStatus = FitStatus()
+            self.showMsg(f'Fit improvement entered for first time.',
+                         color='black', bold=True)
 
-            # Initialize fitStatus
-            self.fitStatus.currentMetric = float('inf')
+            # Create and initialize fitStatus
+            self.fitStatus = FitStatus()
+            self.fitStatus.currentMetric = None  # A signal to calcModelFitMetric that we're starting.
+            self.fitStatus.currentMetric = self.calcModelFitMetric(showData=False)
             self.fitStatus.modelTimeOffset = self.modelTimeOffset
             self.fitStatus.chordTime = self.Lcp.chord_length_sec
+            self.fitStatus.missDistance = self.Lcp.miss_distance_km
             self.fitStatus.Dangle = self.Lcp.D_limb_angle_degrees
             self.fitStatus.Rangle = self.Lcp.R_limb_angle_degrees
-            self.fitStatus.beingChanged = 'edgeTime'
-            self.fitStatus.startingValueOfChangling = self.modelTimeOffset
-            self.fitStatus.currentDelta = float(self.edgeTimePrecisionEdit.text())
-            self.fitStatus.numIterationsRemaining = 80
+            self.fitStatus.edgeDelta = float(self.edgeTimePrecisionEdit.text())
+            self.fitStatus.chordDelta = float(self.chordDurationPrecisionEdit.text())
+            self.fitStatus.missDelta = float(self.missDistancePrecisionEdit.text())
+            self.fitStatus.DangleDelta = float(self.limbAnglePrecisionEdit.text())
+            self.fitStatus.RangleDelta = float(self.limbAnglePrecisionEdit.text())
 
-            # Calculate current metric
-            self.modelMetric = self.calcModelFitMetric(showData=False)
+            self.bestFit = BestFit()
+            self.bestFit.thisPassMetric = self.fitStatus.currentMetric
+            self.bestFit.metricAtStartOfPass = self.bestFit.thisPassMetric
+            self.bestFit.modelTimeOffset = self.fitStatus.modelTimeOffset
+            self.bestFit.chordTime = self.fitStatus.chordTime
+            self.bestFit.missDistance = self.fitStatus.missDistance
+            self.bestFit.Dangle = self.fitStatus.Dangle
+            self.bestFit.Rangle = self.fitStatus.Rangle
 
-            self.bestFitSoFar = copy.copy(self.fitStatus)
+            self.fitLightcurveButton.setStyleSheet("background-color: red")
+            self.fitLightcurveButton.setText('... best fit search in progress')
 
-            self.showMsg(f'Fit improvement started with metric: {self.modelMetric:0.5f}', color='red', bold=True)
+        else:
+            self.showMsg(f'Fit improvement is being re-entered',
+                         color='black', bold=True)
+            self.fitStatus.currentMetric = self.calcModelFitMetric(showData=False)
+            self.bestFit.metricAtStartOfPass = self.fitStatus.currentMetric
+            self.bestFit.thisPassMetric = self.fitStatus.currentMetric
+            self.fitStatus.improvementPassCompleted = False
+            self.fitStatus.failureCount = 0
+            self.fitLightcurveButton.setStyleSheet("background-color: red")
+            self.fitLightcurveButton.setText('... best fit search in progress')
 
-        QtWidgets.QApplication.processEvents()
-        # TODO Deal with numIterationsRemaining as an unneeded thing
-        self.fitStatus.numIterationsRemaining -= 0
-        if self.fitStatus.numIterationsRemaining <= 0:
+        QtWidgets.QApplication.processEvents()  # Updates main plot display
+        gc.collect()
+
+        if self.edgeOnDiskRadioButton.isChecked():
+            self.keepRunning = True
+            self.calcModelFitMetric(showData=False)
+            bestMetricSoFar = self.dMetric + self.rMetric
+            while self.keepRunning:
+
+                self.optimizePosition()
+                if not self.keepRunning:
+                    continue
+                QtWidgets.QApplication.processEvents()
+
+                self.optimizeDangle()
+                if not self.keepRunning:
+                    continue
+                QtWidgets.QApplication.processEvents()
+
+                self.optimizePosition()
+                if not self.keepRunning:
+                    continue
+                QtWidgets.QApplication.processEvents()
+
+                self.optimizeRangle()
+                if not self.keepRunning:
+                    continue
+                QtWidgets.QApplication.processEvents()
+
+                self.optimizePosition()
+                if not self.keepRunning:
+                    continue
+                QtWidgets.QApplication.processEvents()
+
+                if self.Lcp.miss_distance_km > 0:
+                    self.optimizeMissDistance()
+                    if not self.keepRunning:
+                        continue
+                else:
+                    self.optimizeChord()
+                    if not self.keepRunning:
+                        continue
+
+                QtWidgets.QApplication.processEvents()
+
+                if self.dMetric + self.rMetric >= bestMetricSoFar:
+                    self.showFinalEdgePostionReport(paused=False)
+                    self.fitLightcurveButton.setStyleSheet("background-color: yellow")
+                    self.fitLightcurveButton.setText("Fit model to observation points")
+                    self.beingOptimizedEdit.clear()
+                    self.processFitImprovementCompleted()
+                    return
+                else:
+                    bestMetricSoFar = self.dMetric + self.rMetric
+                    continue
+
+        if self.diskOnDiskRadioButton.isChecked() or self.diffractionRadioButton.isChecked():
+            self.keepRunning = True
+            self.calcModelFitMetric(showData=False)
+            bestMetricSoFar = self.dMetric + self.rMetric
+            while self.keepRunning:
+
+                self.optimizePosition()
+                if not self.keepRunning:
+                    continue
+                QtWidgets.QApplication.processEvents()
+
+                if self.Lcp.miss_distance_km == 0:
+                    self.optimizeChord()
+                    if not self.keepRunning:
+                        continue
+                else:
+                    self.optimizeMissDistance()
+                    if not self.keepRunning:
+                        continue
+                QtWidgets.QApplication.processEvents()
+
+                if self.dMetric + self.rMetric >= bestMetricSoFar:
+                    self.showFinalEdgePostionReport(paused=False)
+                    self.fitLightcurveButton.setStyleSheet("background-color: yellow")
+                    self.fitLightcurveButton.setText("Fit model to observation points")
+                    self.beingOptimizedEdit.clear()
+                    self.processFitImprovementCompleted()
+                    return
+                else:
+                    bestMetricSoFar = self.dMetric + self.rMetric
+                    continue
+
+        if self.keepRunning:
+            # This code can only be reached if there is a code error
+            self.showInfo(f'Programming error detected in fitImprovementControlCenter()')
+        else:
+            # We got here by a pause request
+            self.fitLightcurveButton.setStyleSheet("background-color: yellow")
+            self.fitLightcurveButton.setText("Fit model to observation points")
+            self.pauseFitButton.setEnabled(False)
+            self.beingOptimizedEdit.clear()
+            self.processFitPauseRequest()
+            self.showFinalEdgePostionReport(paused=True)
+
+    def showMemoryStats(self):
+        mem_stats = psutil.virtual_memory()
+        mem_msg = ''
+        mem_msg += f'total memory: {mem_stats[0]:,}'
+        mem_msg += f'  avail: {mem_stats[1]:,}'
+        mem_msg += f'  percent: {mem_stats[2]}'
+        mem_msg += f'  used: {mem_stats[3]:,}'
+        mem_msg += f'  free: {mem_stats[4]:,}'
+        self.showMsg(mem_msg, color='red', bold=True)
+
+    def processFitImprovementCompleted(self):
+        self.showMsg(f'Maximum improvement has been achieved with metric: '
+                     f'{self.bestFit.thisPassMetric:0.5f}  ',
+                     color='black', bold=True)
+        self.beingOptimizedEdit.clear()
+        self.printFinalReport()
+        self.fitLightcurveButton.setStyleSheet("background-color: yellow")
+        self.fitLightcurveButton.setText("Fit model to observation points")
+        self.fitMetricEdit.setText(f'{self.bestFit.thisPassMetric:0.5f}')
+        self.fitMetricChangeEdit.clear()
+        self.fitMetricChangeEdit.setStyleSheet(None)
+
+    def processFitPauseRequest(self):
+        self.fitStatus.fitComplete = True
+        self.fitStatus.improvementPassCompleted = True
+        self.pauseFitRequested = False
+        self.fitLightcurveButton.setStyleSheet("background-color: yellow")
+        self.fitLightcurveButton.setText("Fit model to observation points")
+        self.showMsg(f'Fit of model to observation paused by request.',
+                     color='black', bold=True)
+        self.keepRunning = False
+
+    def showFinalEdgePostionReport(self, paused=False):
+        if paused:
+            self.showMsg(f'Current state fit (during pause) ...',
+                         color='black', bold=True)
+        else:
             self.showMsg(f'Optimized fit found and is being displayed.',
                          color='black', bold=True)
+        self.fitMetricEdit.setText(f'{self.bestFit.thisPassMetric:0.5f}')
+        self.printEdgeOrMissReport()
+
+    def printEdgeOrMissReport(self):
+        if self.Lcp.miss_distance_km == 0:
             DtimeString = convertTimeToTimeString(self.modelDedgeSecs)
             RtimeString = convertTimeToTimeString(self.modelRedgeSecs)
             self.showMsg(f'D edge @ {DtimeString}', color='black', bold=True)
             self.showMsg(f'R edge @ {RtimeString}', color='black', bold=True)
-            return
         else:
-            # Diagnose whether last change was an improvement or not
-            metric_to_beat = self.bestFitSoFar.currentMetric
-            if self.modelMetric <= metric_to_beat:
-                self.fitStatus.currentMetric = self.modelMetric
-                self.fitStatus.modelTimeOffset = self.modelTimeOffset
-                self.fitStatus.failureCount = 0
-                self.bestFitSoFar = copy.copy(self.fitStatus)
-            else:
-                self.fitStatus.failureCount += 1
-                if self.fitStatus.failureCount >= 2:
-                    # We return to best known values and change search direction
-                    self.showMsg(f'... reversing search direction ...',
-                                 color='blue', bold=True)
-                    self.bestFitSoFar.currentDelta *= -1
-                    self.fitStatus = copy.copy(self.bestFitSoFar)
-                    self.showMsg(f'Returning to previous best fit at chord: {self.fitStatus.chordTime:0.5f}\n'
-                                 f'and modelTimeOffset: {self.fitStatus.modelTimeOffset:0.5f}')
-                    self.modelTimeOffset = self.fitStatus.modelTimeOffset + self.fitStatus.currentDelta
-                    if self.fitStatus.currentDelta > 0:
-                        self.showMsg('We have reversed direction twice. Returning to best fit so far')
+            self.showMsg(f'Miss distance: {self.Lcp.miss_distance_km:0.5f} km', color='black', bold=True)
 
-                        if self.fitStatus.beingChanged == 'edgeTime':
-                            self.fitStatus.failedToImproveEdgeTime = self.modelTimeOffset == self.fitStatus.startingValueOfChangling
-                        elif self.fitStatus.beingChanged == 'chord':
-                            self.fitStatus.failedToImproveChordSize = self.Lcp.chord_length_sec == self.fitStatus.startingValueOfChangling
-                        elif self.fitStatus.beingChanged == 'Dangle':
-                            self.fitStatus.failedToImproveDAngle = self.Lcp.D_limb_angle_degrees == self.fitStatus.startingValueOfChangling
-                        elif self.fitStatus.beingChanged == 'Rangle':
-                            self.fitStatus.failedToImproveRAngle = self.Lcp.R_limb_angle_degrees == self.fitStatus.startingValueOfChangling
-                        else:
-                            self.showInfo(f'Invalid fitStatus.beingChanged.\n\n'
-                                          f'{self.fitStatus.beingChanged} is invlid.')
-                            return
+    def reportMetrics(self, leader='????'):
 
-                        self.fitStatus = copy.copy(self.bestFitSoFar)
-                        self.modelTimeOffset = self.fitStatus.modelTimeOffset
-                        # Force exit after computeModelLightcurve()
-                        self.fitStatus.numIterationsRemaining = 0
-                        self.Lcp.set('chord_length_km', None)
-                        self.Lcp.set('chord_length_sec', self.fitStatus.chordTime)
-                        self.chordSizeKmEdit.setText(f'{self.Lcp.chord_length_km:0.5f}')
-                        self.chordSizeSecondsEdit.setText(f'{self.Lcp.chord_length_sec:0.5f}')
-                        self.computeModelLightcurve()
-                        self.modelXsamples, self.modelYsamples = self.sampleModelLightcurve()
-                        self.redrawMainPlot()
-                        return
+        self.showMsg(f'{leader}: '
+                     f'bestMetricThisPass: {self.bestFit.thisPassMetric:0.5f} '
+                     f'---new metric: {self.modelMetric:0.5f}  '
+                     f'dMetric: {self.dMetric:0.5f}  '
+                     f'rMetric: {self.rMetric:0.5f}'
+                     f'---failure count: {self.fitStatus.failureCount}')
 
-                    self.fitStatus.failureCount = 0
+    def returnToBestChordFit(self):
+        bestChordTime = self.bestFit.chordTime
+        self.fitStatus.chordTime = self.bestFit.chordTime
+        self.Lcp.set('chord_length_km', None)
+        self.Lcp.set('chord_length_sec', bestChordTime)
+        self.chordSizeKmEdit.setText(f'{self.Lcp.chord_length_km:0.5f}')
+        self.chordSizeSecondsEdit.setText(f'{self.Lcp.chord_length_sec:0.5f}')
 
-            self.showMsg(f'best metric to date: {self.bestFitSoFar.currentMetric:0.5f} '
-                         f'---new metric found: {self.modelMetric:0.5f} '
-                         f'---failure count: {self.fitStatus.failureCount}')
+        self.computeModelLightcurve()
+        self.extendAndDrawModelLightcurve()
+        self.sampleModelLightcurve()
+        self.newRedrawMainPlot()
 
-        if self.fitStatus.beingChanged == 'chord':
+    def returnToBestMissDistanceFit(self):
+        bestMissDistance = self.bestFit.missDistance
+        self.fitStatus.missDistance = self.bestFit.missDistance
+        self.Lcp.set('miss_distance_km', bestMissDistance)
+        self.missDistanceKmEdit.setText(f'{self.Lcp.miss_distance_km:0.5f}')
 
-            # Allow a zero (or negative) chord delta to terminate improvement cycle
-            if self.fitStatus.currentDelta <= 0.0:
-                return
+        self.computeModelLightcurve()
+        self.extendAndDrawModelLightcurve()
+        self.sampleModelLightcurve()
+        self.newRedrawMainPlot()
 
-            self.Lcp.set('chord_length_km', None)
-            self.fitStatus.chordTime += self.fitStatus.currentDelta
+    def returnToBestDangleFit(self):
+        bestDangle = self.bestFit.Dangle
+        self.fitStatus.Dangle = self.bestFit.Dangle
+        self.Lcp.set('D_limb_angle_degrees', None)
+        self.Lcp.set('D_limb_angle_degrees', bestDangle)
+        self.DdegreesEdit.setText(f'{self.Lcp.D_limb_angle_degrees:0.1f}')
 
-            # Check that chordTime may have become too large (or too small)
-            chord_size = self.fitStatus.chordTime * self.Lcp.shadow_speed
-            if chord_size > self.Lcp.asteroid_diameter_km:
-                self.showMsg(f'Chord !! LENGTH !! being changed to: {self.Lcp.asteroid_diameter_km:0.5f}',
-                             color='red', bold=True)
-                self.Lcp.set('chord_length_sec', None)
-                self.Lcp.set('chord_length_km', self.Lcp.asteroid_diameter_km)
-            else:
-                if self.fitStatus.chordTime < abs(self.fitStatus.currentDelta):
-                    self.fitStatus.chordTime = abs(self.fitStatus.currentDelta)
-                    self.showMsg(f'Chord time minimum value has been enforced.',
-                                 color='blue', bold=True)
-                self.showMsg(f'Chord time being changed to: {self.fitStatus.chordTime:0.5f}',
-                             color='red', bold=True)
-                self.Lcp.set('chord_length_km', None)
-                self.Lcp.set('chord_length_sec', self.fitStatus.chordTime)
+        self.computeModelLightcurve()
+        self.extendAndDrawModelLightcurve()
+        self.sampleModelLightcurve()
+        self.newRedrawMainPlot()
 
-            self.chordSizeKmEdit.setText(f'{self.Lcp.chord_length_km:0.5f}')
-            self.chordSizeSecondsEdit.setText(f'{self.Lcp.chord_length_sec:0.5f}')
-            self.computeModelLightcurve()
-            self.fitImprovementControlCenter()
-        elif self.fitStatus.beingChanged == 'edgeTime':
-            self.modelTimeOffset += self.fitStatus.currentDelta
-            self.showMsg(f'Trying modelTimeOffset: {self.modelTimeOffset:0.5f}')
-            self.redrawMainPlot()
-            self.modelMetric = self.calcModelFitMetric(showData=False)
-            self.fitImprovementControlCenter()
-        elif self.fitStatus.beingChanged == 'Dangle':
-            self.showInfo(f'D angle improvement not yet implemented')
-            return
-        elif self.fitStatus.beingChanged == 'Rangle':
-            self.showInfo(f'R angle improvement not yet implemented')
-            return
+    def returnToBestRangleFit(self):
+        bestRangle = self.bestFit.Rangle
+        self.fitStatus.Rangle = self.bestFit.Rangle
+        self.Lcp.set('R_limb_angle_degrees', None)
+        self.Lcp.set('R_limb_angle_degrees', bestRangle)
+        self.RdegreesEdit.setText(f'{self.Lcp.R_limb_angle_degrees:0.1f}')
+
+        self.computeModelLightcurve()
+        self.extendAndDrawModelLightcurve()
+        self.sampleModelLightcurve()
+        self.newRedrawMainPlot()
+
+    def makeAchordTimeStep(self):
+        if self.fitStatus.chordTime == abs(self.fitStatus.chordDelta) \
+                                       and self.fitStatus.chordDelta < 0:
+            return False  # because we are already at the smallest acceptable value
+
+        current_chord_size = self.fitStatus.chordTime * self.Lcp.shadow_speed
+        if (math.isclose(current_chord_size, self.Lcp.asteroid_diameter_km) and
+                self.fitStatus.chordDelta > 0):
+            return False  # because we already at the largest acceptable value
+
+        # It's safe to make the step, but we will still need to test the resulting
+        # chordTime to keep it it within accaptable bounds.
+        self.fitStatus.chordTime += self.fitStatus.chordDelta
+
+        # Check that chordTime may have become too large (or too small)
+        chord_size = self.fitStatus.chordTime * self.Lcp.shadow_speed
+        if chord_size > self.Lcp.asteroid_diameter_km:
+            self.Lcp.set('chord_length_sec', None)
+            self.Lcp.set('chord_length_km', self.Lcp.asteroid_diameter_km)
+            self.fitStatus.chordTime = self.Lcp.chord_length_sec
         else:
-            self.showInfo(f'{self.fitStatus.beingChanged} is not a defined changling')
-            return
+            if self.fitStatus.chordTime < abs(self.fitStatus.chordDelta):
+                self.fitStatus.chordTime = abs(self.fitStatus.chordDelta)
 
-    def computeModelLightcurveButtonClicked(self):
+        self.Lcp.set('chord_length_km', None)
+        self.Lcp.set('chord_length_sec', self.fitStatus.chordTime)
+        self.chordSizeKmEdit.setText(f'{self.Lcp.chord_length_km:0.5f}')
+        self.chordSizeSecondsEdit.setText(f'{self.Lcp.chord_length_sec:0.5f}')
+        self.fitStatus.chordTime = self.Lcp.chord_length_sec
+        return True
+
+    def makeAmissDistanceStep(self):
+        minMissDistance = abs(self.fitStatus.missDelta)
+        if self.fitStatus.missDistance == minMissDistance \
+                and self.fitStatus.missDelta < 0:
+            return False  # because we are already at the smallest acceptable value
+
+        # It's safe to make the step, but we will still need to test the resulting
+        # missDistance to keep it it within accaptable bounds.
+        self.fitStatus.missDistance += self.fitStatus.missDelta
+
+        # Check that chordTime may have become too large (or too small)
+        if self.fitStatus.missDistance < minMissDistance:
+            self.fitStatus.missDistance = minMissDistance
+        self.Lcp.set('miss_distance_km', self.fitStatus.missDistance)
+        self.missDistanceKmEdit.setText(f'{self.Lcp.miss_distance_km:0.5f}')
+        return True
+
+    def makeDangleStep(self):
+        if self.fitStatus.Dangle == abs(self.fitStatus.DangleDelta) \
+                                    and self.fitStatus.DangleDelta < 0:
+            return False  # because we are already at the smallest acceptable value
+
+        current_angle_size = self.fitStatus.Dangle
+        if (math.isclose(current_angle_size, 90) and
+                self.fitStatus.DangleDelta > 0):
+            return False  # because we already at the largest acceptable value
+
+        # It's safe to make the step, but we will still need to test the resulting
+        # Dangle after a step is taken to keep it within accaptable bounds.
+        self.fitStatus.Dangle += self.fitStatus.DangleDelta
+
+        # Check that Dangle may have become too large (or too small)
+        if self.fitStatus.Dangle > 90:
+            self.Lcp.set('D_limb_angle_degrees', None)
+            self.Lcp.set('D_limb_angle_degrees', 90)
+            self.fitStatus.Dangle = self.Lcp.D_limb_angle_degrees
+        elif self.fitStatus.Dangle < abs(self.fitStatus.DangleDelta):
+            self.fitStatus.Dangle = abs(self.fitStatus.DangleDelta)
+
+        # Update Lcp and relevant edit box text
+        self.Lcp.set('D_limb_angle_degrees', None)
+        self.Lcp.set('D_limb_angle_degrees', self.fitStatus.Dangle)
+        self.DdegreesEdit.setText(f'{self.Lcp.D_limb_angle_degrees:0.1f}')
+        return True
+
+    def makeRangleStep(self):
+        if self.fitStatus.Rangle == abs(self.fitStatus.RangleDelta) \
+                                    and self.fitStatus.RangleDelta < 0:
+            return False  # because we are already at the smallest acceptable value
+
+        current_angle_size = self.fitStatus.Rangle
+        if (math.isclose(current_angle_size, 90) and
+                self.fitStatus.RangleDelta > 0):
+            return False  # because we already at the largest acceptable value
+
+        # It's safe to make the step, but we will still need to test the resulting
+        # Dangle after a step is taken to keep it within accaptable bounds.
+        self.fitStatus.Rangle += self.fitStatus.RangleDelta
+
+        # Check that Rangle may have become too large (or too small)
+        if self.fitStatus.Rangle > 90:
+            self.fitStatus.Rangle = 90
+            self.Lcp.set('R_limb_angle_degrees', None)
+            self.Lcp.set('R_limb_angle_degrees', self.fitStatus.Rangle)
+        elif self.fitStatus.Rangle < abs(self.fitStatus.RangleDelta):
+            self.fitStatus.Rangle = abs(self.fitStatus.RangleDelta)
+            self.Lcp.set('R_limb_angle_degrees', None)
+            self.Lcp.set('R_limb_angle_degrees', self.fitStatus.Rangle)
+        else:
+            self.Lcp.set('R_limb_angle_degrees', None)
+            self.Lcp.set('R_limb_angle_degrees', self.fitStatus.Rangle)
+
+        # Update relevant edit box text
+        self.RdegreesEdit.setText(f'{self.Lcp.R_limb_angle_degrees:0.1f}')
+        return True
+
+    def makeAnEdgeTimeStep(self):
+        self.fitStatus.modelTimeOffset += self.fitStatus.edgeDelta
+        self.modelTimeOffset = self.fitStatus.modelTimeOffset
+
+    def fitModelLightcurveButtonClicked(self):
+        self.redrawMainPlot()
+        QtWidgets.QApplication.processEvents()
+
         self.allowShowDetails = True
         if self.fitStatus is not None:
-            self.fitStatus.numIterationsRemaining = 80
-        self.computeModelLightcurve()
+            self.fitStatus.fitComplete = False
+            self.fitStatus.improvementPassCompleted = False
+            if len(self.selectedPoints) == 1:
+                self.computeInitialModelTimeOffset()
 
-    def computeModelLightcurve(self):
+            # We do this because the user may have changed parameters after a pause.
+            # Such changes are placed in self.Lcp but not in self.fitStatus
+            self.fitStatus.modelTimeOffset = self.modelTimeOffset
+            self.fitStatus.chordTime = self.Lcp.chord_length_sec
+            self.fitStatus.Dangle = self.Lcp.D_limb_angle_degrees
+            self.fitStatus.Rangle = self.Lcp.R_limb_angle_degrees
+
+            # To be consistent with the above substitutions
+            self.bestFit.modelTimeOffset = self.fitStatus.modelTimeOffset
+            self.bestFit.chordTime = self.fitStatus.chordTime
+            self.bestFit.Dangle = self.fitStatus.Dangle
+            self.bestFit.Rangle = self.fitStatus.Rangle
+
+            # Update the precision deltas in case the user changed them during a pause
+            self.fitStatus.edgeDelta = float(self.edgeTimePrecisionEdit.text())
+            self.fitStatus.chordDelta = float(self.chordDurationPrecisionEdit.text())
+            self.fitStatus.DangleDelta = float(self.limbAnglePrecisionEdit.text())
+            self.fitStatus.RangleDelta = float(self.limbAnglePrecisionEdit.text())
+
+        self.computeModelLightcurve(computeOnly=False)
+
+    def computeModelLightcurve(self, computeOnly=True, demo=False):
         if self.squareWaveRadioButton.isChecked():
-            self.showInfo(f'square model is selected.\n\n'
-                          f'That model is handled in the Analysis tab.')
-            self.switchToTabNamed('Analysis')
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Question)
+            msg.setText(f'The square wave model is selected.\n\n'
+                        f'That model is handled in the Analysis tab. '
+                        f'Do you want to switch to that tab?')
+            msg.setWindowTitle('Get latest version of PyOTE query')
+            msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+            retval = msg.exec_()
+            if retval == QMessageBox.Yes:
+                self.switchToTabNamed('Analysis')
             return
 
-        if self.trace:
-            self.showInfo(f'Entered computeModelLightcurve()')
-
-        if not len(self.selectedPoints) == 1 and self.modelTimeOffset == 0.0:
+        if demo and not len(self.selectedPoints) == 1:
+            self.showInfo(f'Select a single point to guide the \n'
+                          f'placement for the model lightcurve')
+            return
+        if not len(self.selectedPoints) == 1 and self.modelTimeOffset is None:
             self.showInfo(f'Select a single point to give a good initial\n'
                           f'placement for the model lightcurve')
             return
 
-        self.showMsg(f'Starting model lightcurve calculation...',
-                     color='red', bold=True, blankLine=False)
-
         showLegend = self.showLegendsCheckBox.isChecked()
         showNotes = self.showAnnotationsCheckBox.isChecked()
         versusTime = self.versusTimeCheckBox.isChecked()
-        plots_wanted = self.showDetailsCheckBox.isChecked() and self.allowShowDetails
-
-        self.allowShowDetails = False
-
-        if self.fitStatus is not None:
-            self.modelMetric = self.fitStatus.currentMetric
-            self.fitMetricEdit.setText(f'{self.modelMetric:0.5f}')
-        else:
-            self.modelMetric = None
-            self.fitMetricEdit.clear()
-
-        self.fitMetricChangeEdit.clear()
-        self.fitMetricChangeEdit.setStyleSheet(None)
+        plots_wanted = self.showDetailsCheckBox.isChecked() and demo
 
         if self.diffractionRadioButton.isChecked():
-            self.demoLightcurveButton.setStyleSheet("background-color: red")
-            self.demoLightcurveButton.setText('... computation in progress')
+            self.fitLightcurveButton.setStyleSheet("background-color: lightblue")
+            self.fitLightcurveButton.setText('... calculating model lightcurve')
             QtWidgets.QApplication.processEvents()
 
-            self.modelXkm, self.modelY, self.modelDedgeKm, self.modelRedgeKm =\
+            if demo:
+                self.modelYsamples = None
+                self.newRedrawMainPlot()
+                QtWidgets.QApplication.processEvents()
+
+            self.modelXkm, self.modelY, self.modelDedgeKm, self.modelRedgeKm = \
                 demo_event(LCP=self.Lcp, model='diffraction', showLegend=showLegend,
                            title=self.currentEventEdit.text(),
                            showNotes=showNotes, plot_versus_time=versusTime,
                            plots_wanted=plots_wanted)
 
-            self.demoLightcurveButton.setText('Compute model lightcurve')
-            self.demoLightcurveButton.setStyleSheet(None)
-
-            self.automaticFitButton.setEnabled(True)
+            self.pauseFitButton.setEnabled(True)
             self.showMsg(f'... finished model lightcurve calculation.',
                          color='red', bold=True, blankLine=True)
 
             self.computeInitialModelTimeOffset()
-            self.redrawMainPlot()
-            self.fitImprovementControlCenter()
+            if not demo:
+                self.removePointSelections()
+            QtWidgets.QApplication.processEvents()
+            self.newRedrawMainPlot()
+
+            self.fitLightcurveButton.setText('Fit model to observation points')
+            self.fitLightcurveButton.setStyleSheet("background-color: yellow")
+
+            # We need this test because the lightcurve needs to be repeatedly
+            # recalculated during the operation of self.fitImprovementControlCenter()
+            if not computeOnly:
+                self.fitImprovementControlCenter()
 
             QtWidgets.QApplication.processEvents()
 
             return
 
         if self.edgeOnDiskRadioButton.isChecked():
-            self.modelXkm, self.modelY, self.modelDedgeKm, self.modelRedgeKm =\
+            if self.Lcp.star_diameter_mas == 0:
+                self.showInfo(f'An edge on disk model cannot be used when the star diameter is zero.')
+                return
+
+            self.fitLightcurveButton.setStyleSheet("background-color: lightblue")
+            self.fitLightcurveButton.setText('... calculating model lightcurve')
+            QtWidgets.QApplication.processEvents()
+
+            if demo:
+                self.modelYsamples = None
+                self.newRedrawMainPlot()
+                QtWidgets.QApplication.processEvents()
+
+            self.modelXkm, self.modelY, self.modelDedgeKm, self.modelRedgeKm = \
                 demo_event(LCP=self.Lcp, model='edge-on-disk',
                            title=self.currentEventEdit.text(),
                            showLegend=showLegend, showNotes=showNotes,
                            plot_versus_time=versusTime,
                            plots_wanted=plots_wanted)
 
-            self.demoLightcurveButton.setText('Compute model lightcurve')
-            self.demoLightcurveButton.setStyleSheet(None)
-
-            self.automaticFitButton.setEnabled(True)
-            self.showMsg(f'... finished model lightcurve calculation.',
-                         color='red', bold=True, blankLine=True)
+            self.pauseFitButton.setEnabled(True)
 
             self.computeInitialModelTimeOffset()
-            self.redrawMainPlot()
-            self.fitImprovementControlCenter()
+            if not demo:
+                self.removePointSelections()
+            QtWidgets.QApplication.processEvents()
+
+            self.newRedrawMainPlot()
+
+            self.fitLightcurveButton.setText('Fit model to observation points')
+            self.fitLightcurveButton.setStyleSheet("background-color: yellow")
+
+            # We need this test because the lightcurve needs to be repeatedly
+            # recalculated during the operation of self.fitImprovementControlCenter()
+            if not computeOnly:
+                self.fitImprovementControlCenter()
 
             QtWidgets.QApplication.processEvents()
 
             return
 
         if self.diskOnDiskRadioButton.isChecked():
-            self.modelXkm, self.modelY, self.modelDedgeKm, self.modelRedgeKm =\
+            if self.Lcp.star_diameter_mas == 0:
+                self.showInfo(f'A disk on disk model cannot be used when the star diameter is zero.')
+                return
+
+            self.fitLightcurveButton.setStyleSheet("background-color: lightblue")
+            self.fitLightcurveButton.setText('... calculating model lightcurve')
+            QtWidgets.QApplication.processEvents()
+
+            if demo:
+                self.modelYsamples = None
+                self.newRedrawMainPlot()
+                QtWidgets.QApplication.processEvents()
+
+            self.modelXkm, self.modelY, self.modelDedgeKm, self.modelRedgeKm = \
                 demo_event(LCP=self.Lcp, model='disk-on-disk',
                            title=self.currentEventEdit.text(),
                            showLegend=showLegend, showNotes=showNotes,
                            plot_versus_time=versusTime,
                            plots_wanted=plots_wanted)
 
-            self.demoLightcurveButton.setText('Compute model lightcurve')
-            self.demoLightcurveButton.setStyleSheet(None)
-
-            self.automaticFitButton.setEnabled(True)
-            self.showMsg(f'... finished model lightcurve calculation.',
-                         color='red', bold=True, blankLine=True)
+            self.pauseFitButton.setEnabled(True)
 
             self.computeInitialModelTimeOffset()
+            if not demo:
+                self.removePointSelections()
+            QtWidgets.QApplication.processEvents()
 
-            self.redrawMainPlot()
-            self.fitImprovementControlCenter()
+            self.newRedrawMainPlot()
+
+            self.fitLightcurveButton.setText('Fit model to observation points')
+            self.fitLightcurveButton.setStyleSheet("background-color: yellow")
+
+            # We need this test because the lightcurve needs to be repeatedly
+            # recalculated during the operation of self.fitImprovementControlCenter()
+            if not computeOnly:
+                self.fitImprovementControlCenter()
 
             QtWidgets.QApplication.processEvents()
 
@@ -1617,7 +2292,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         if len(self.selectedPoints) == 1:
             selIndex = [key for key, _ in self.selectedPoints.items()]
-            self.removePointSelections()
             tObsStart = convertTimeStringToTime(self.yTimes[0])
             timeAtPointSelected = convertTimeStringToTime(self.yTimes[selIndex[0]])
             relativeTime = timeAtPointSelected - tObsStart
@@ -1678,7 +2352,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.baselineADUedit.setEnabled(False)
         self.bottomADUedit.setEnabled(False)
-        self.magDropEdit.setEnabled(True)
+        self.magDropEdit.setEnabled(False)
         self.baselineADUbutton.setEnabled(True)
         self.clearBaselineADUselectionButton.setEnabled(True)
 
@@ -1691,17 +2365,18 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         file_selected = self.pastEventsComboBox.currentText()
         # self.showInfo(f'A past event named {file_selected} has been selected')
-        self.demoLightcurveButton.setStyleSheet("background-color: yellow")
-        full_name = f'LCP_{file_selected}.p'
+        if file_selected == '<clear event data>':
+            self.initializeModelLightcurvesPanel()
+            return
+        self.fitLightcurveButton.setStyleSheet("background-color: yellow")
+        full_name = f'pyoteLCP\\LCP_{file_selected}.p'
         try:
             pickle_file = open(full_name, "rb")
             lcp_item = pickle.load(pickle_file)
             self.Lcp = lcp_item
             self.fillLightcurvePanelEditBoxes()
             self.enableLightcurveButtons()
-            # TODO Set the testing fudge to 0.0
-            fudge = 0.0
-            self.modelTimeOffset = 0.0 + fudge
+            self.modelTimeOffset = None
             self.fitStatus = None
             self.currentEventEdit.setText(file_selected)
             eventSourceFile = self.Lcp.sourceFile
@@ -1736,11 +2411,17 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         # This allows the current filename to be updated
         self.Lcp.sourceFile = os.path.split(self.csvFilePath)[1]
 
+        LCPdirectory = "pyoteLCP"
+        if not os.path.exists(LCPdirectory):
+            os.mkdir(LCPdirectory)
+
         # We overwrite without warning an event file with the same name
         filename = f'LCP_{self.currentEventEdit.text()}.p'
-        pickle.dump(self.Lcp, open(filename, 'wb'))
+        filepath = os.path.join(LCPdirectory, filename)
+        pickle.dump(self.Lcp, open(filepath, 'wb'))
+
         self.showInfo(f'The current event data was written to '
-                      f'\n\n{filename}\n\n'
+                      f'\n\n{filepath}\n\n'
                       f'in your current working directory.')
 
         # Update the past events combo box
@@ -1760,7 +2441,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.calcBaselineADUbutton.setEnabled(True)
 
         self.bottomADUedit.setEnabled(False)
-        self.magDropEdit.setEnabled(True)
+        self.magDropEdit.setEnabled(False)
 
         self.frameTimeEdit.setEnabled(True)
         self.missDistanceKmEdit.setEnabled(True)
@@ -1779,9 +2460,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
     def processModelParameterChange(self):
         self.parameterChangeEntryCount += 1
 
-        if self.trace:
-            self.showInfo(f'entering processModelParameterChange with\n\n'
-                          f'entry count: {self.parameterChangeEntryCount}')
         try:
             empty = ''
 
@@ -1789,32 +2467,30 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 valueEntered = float(self.DdegreesEdit.text())
                 if valueEntered >= 90.0:
                     self.DdegreesEdit.setText('90')
-                    valueEntered = 89.999
+                    valueEntered = 90
                 self.Lcp.set('D_limb_angle_degrees', valueEntered)
 
             if not self.RdegreesEdit.text() == empty:
                 valueEntered = float(self.RdegreesEdit.text())
                 if valueEntered >= 90.0:
                     self.RdegreesEdit.setText('90')
-                    valueEntered = 89.999
+                    valueEntered = 90
                 self.Lcp.set('R_limb_angle_degrees', valueEntered)
 
-            if self.chordSizeSecondsEditted and not self.chordSizeSecondsEdit.text() == empty:
+            if self.chordSizeSecondsEdited and not self.chordSizeSecondsEdit.text() == empty:
                 self.Lcp.set('chord_length_km', None)
                 self.Lcp.set('chord_length_sec', float(self.chordSizeSecondsEdit.text()))
                 self.chordSizeKmEdit.setText(f'{self.Lcp.chord_length_km:0.5f}')
-                # self.chordSizeKmEdit.setEnabled(False)
-            elif not self.chordSizeKmEdit.text() == empty and self.chordSizeKmEditted:
+            elif not self.chordSizeKmEdit.text() == empty and self.chordSizeKmEdited:
                 self.Lcp.set('chord_length_sec', None)
                 self.Lcp.set('chord_length_km', float(self.chordSizeKmEdit.text()))
                 self.chordSizeSecondsEdit.setText(f'{self.Lcp.chord_length_sec:0.5f}')
-                # self.chordSizeSecondsEdit.setEnabled(False)
 
-            if not self.starSizeMasEdit.text() == empty and self.starSizeMasEditted:
+            if not self.starSizeMasEdit.text() == empty and self.starSizeMasEdited:
                 self.Lcp.set('star_diameter_km', None)
                 self.Lcp.set('star_diameter_mas', float(self.starSizeMasEdit.text()))
                 self.starSizeKmEdit.setText(f'{self.Lcp.star_diameter_km:0.5f}')
-            elif not self.starSizeKmEdit.text() == empty and self.starSizeKmEditted:
+            elif not self.starSizeKmEdit.text() == empty and self.starSizeKmEdited:
                 self.Lcp.set('star_diameter_mas', None)
                 self.Lcp.set('star_diameter_km', float(self.starSizeKmEdit.text()))
                 self.starSizeMasEdit.setText(f'{self.Lcp.star_diameter_mas:0.5f}')
@@ -1837,20 +2513,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
             if not anUnsetParameterFound:
                 self.enableLightcurveButtons()
-                self.demoLightcurveButton.setStyleSheet("background-color: yellow")
+                self.fitLightcurveButton.setStyleSheet("background-color: yellow")
                 self.DdegreesEdit.setText(f'{self.Lcp.D_limb_angle_degrees:0.0f}')
                 self.RdegreesEdit.setText(f'{self.Lcp.R_limb_angle_degrees:0.0f}')
 
-                if self.trace:
-                    self.showInfo(f'in processModelParameterChange calling reDrawMainPlot()')
-                # Recompute modelYvalues
-                self.redrawMainPlot()
-
-                # Recenter model if a centering point is available
-                if len(self.selectedPoints) == 1:
-                    if self.trace:
-                        self.showInfo(f'in processModelParameterChange calling initiateModelFit()')
-                    self.findBestTimePositionForModel()
+                self.newRedrawMainPlot()
 
         except ValueError as e:  # noqc
             self.showInfo(f'{e}')
@@ -1873,7 +2540,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     self.Lcp.set('bottom_ADU', float(self.bottomADUedit.text()))
                     self.Lcp.set('frame_time', float(self.frameTimeEdit.text()))
                     self.Lcp.set('miss_distance_km', float(self.missDistanceKmEdit.text()))
-                    # self.computeModelLightcurve()
                     return
                 else:
                     self.showInfo('There must be a value provided for baseline, magDrop, and frame_time!')
@@ -1948,17 +2614,32 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     self.showInfo(f'{e}')
                     return
 
+            missDistanceEntered = not self.missDistanceKmEdit.text() == empty
+            if missDistanceEntered:
+                try:
+                    _ = float(self.missDistanceKmEdit.text())
+                except ValueError as e:
+                    self.showInfo(f'{e}')
+                    return
+
             allCoreElementsEntered = frameTimeEntered
             allCoreElementsEntered = allCoreElementsEntered and wavelengthEntered
             allCoreElementsEntered = allCoreElementsEntered and (asteroidShadowSpeedEntered or asteroidSkySpeedEntered)
             allCoreElementsEntered = allCoreElementsEntered and (asteroidDistAUentered or asteroidDistArcsecEntered)
             allCoreElementsEntered = allCoreElementsEntered and (asteroidDiameterMasEntered or asteroidDiameterKmEntered)
-
+            allCoreElementsEntered = allCoreElementsEntered and missDistanceEntered
             if not allCoreElementsEntered:
                 return
 
-            self.editButton.setEnabled(True)
+            self.editButton.setEnabled(False)
             self.editMode = False
+
+            if self.Lcp is not None:
+                if not self.missDistanceKmEdit.text() == empty:
+                    self.Lcp.set('miss_distance_km', float(self.missDistanceKmEdit.text()))
+
+                if self.Lcp.sigmaB is not None:
+                    return  # We got here from edit mode and baseline data is available
 
             self.showInfo(f'Set baselineADU by selecting points to be\n'
                           f'included in the calculation - multiple regions can be\n'
@@ -1982,6 +2663,15 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     shadow_speed=float(self.asteroidSpeedShadowEdit.text()),
                     sky_motion_mas_per_sec=None
                 )
+
+                if not self.missDistanceKmEdit.text() == empty:
+                    self.Lcp.set('miss_distance_km', float(self.missDistanceKmEdit.text()))
+                    if self.Lcp.miss_distance_km > 0:
+                        self.chordSizeKmEdit.setText('0.0')
+                        self.chordSizeSecondsEdit.setText('0.0')
+                        self.chordSizeKmEdited = True
+                        # self.Lcp.set('chord_length_km', 0.0)
+                        # self.Lcp.set('chord_length_sec', 0.0)
 
                 _, filenameWithoutPath = os.path.split(self.csvFilePath)
                 self.Lcp.set('sourceFile', filenameWithoutPath)
@@ -2012,6 +2702,15 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     shadow_speed=None,
                     sky_motion_mas_per_sec=float(self.asteroidSpeedSkyEdit.text())
                 )
+
+                if not self.missDistanceKmEdit.text() == empty:
+                    self.Lcp.set('miss_distance_km', float(self.missDistanceKmEdit.text()))
+                    if self.Lcp.miss_distance_km > 0:
+                        self.chordSizeKmEdit.setText('0.0')
+                        self.chordSizeSecondsEdit.setText('0.0')
+                        self.chordSizeKmEdited = True
+                        # self.Lcp.set('chord_length_km', 0.0)
+                        # self.Lcp.set('chord_length_sec', 0.0)
 
                 _, filenameWithoutPath = os.path.split(self.csvFilePath)
                 self.Lcp.set('sourceFile', filenameWithoutPath)
@@ -2046,12 +2745,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.RdegreesEdit.setEnabled(True)
         self.chordSizeKmEdit.setEnabled(True)
         self.chordSizeSecondsEdit.setEnabled(True)
+        self.magDropEdit.setEnabled(True)
         self.starSizeMasEdit.setEnabled(True)
         self.starSizeKmEdit.setEnabled(True)
 
     def enablePrimaryEntryEditBoxes(self):
         if not self.editMode:
-            self.editMode = True
+            self.editMode = False
             self.frameTimeEdit.setEnabled(True)
             self.missDistanceKmEdit.setEnabled(True)
             self.asteroidDiameterKmEdit.setEnabled(True)
@@ -2076,9 +2776,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.enableSecondaryEditBoxes()
 
     def fillPastEventsComboBox(self):
-        file_list = glob.glob(f'LCP_*.p')
+        self.pastEventsComboBox.addItem('<clear event data>')
+        file_list = glob.glob(r'pyoteLCP\LCP_*.p')
         for filename in file_list:
-            clean_name = filename[4:-2]
+            clean_name = filename[13:-2]
             self.pastEventsComboBox.addItem(clean_name)
 
     def initializeModelLightcurvesPanel(self):
@@ -2143,6 +2844,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.RdegreesEdit.clear()
 
         self.chordSizeSecondsEdit.setEnabled(False)
+        self.magDropEdit.setEnabled(False)
         self.chordSizeSecondsEdit.clear()
         self.chordSizeKmEdit.setEnabled(False)
         self.chordSizeKmEdit.clear()
@@ -2157,11 +2859,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.starSizeKmEdit.setEnabled(False)
         self.starSizeKmEdit.clear()
 
-        self.demoLightcurveButton.setEnabled(False)
-        self.automaticFitButton.setEnabled(False)
+        self.fitLightcurveButton.setEnabled(False)
+        self.pauseFitButton.setEnabled(False)
         self.askAdviceButton.setEnabled(False)
         self.showDiffractionButton.setEnabled(False)
-        self.showLcpButton.setEnabled(False)
+        self.demoModelButton.setEnabled(False)
+        self.printEventParametersButton.setEnabled(False)
 
         self.diffractionRadioButton.setEnabled(False)
         self.edgeOnDiskRadioButton.setEnabled(False)
@@ -2170,27 +2873,21 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.modelXkm = None
         self.modelY = None
 
-        self.redrawMainPlot()
+        self.newRedrawMainPlot()
 
     def enableLightcurveButtons(self):
 
-        self.editButton.setEnabled(True)
+        self.editButton.setEnabled(False)
 
         self.diffractionRadioButton.setEnabled(True)
         self.edgeOnDiskRadioButton.setEnabled(True)
         self.diskOnDiskRadioButton.setEnabled(True)
 
-        self.demoLightcurveButton.setEnabled(True)
+        self.fitLightcurveButton.setEnabled(True)
         self.askAdviceButton.setEnabled(True)
         self.showDiffractionButton.setEnabled(self.diffractionRadioButton.isChecked())
-        self.showLcpButton.setEnabled(True)
-
-    # def handlePenumbralFitCheckBox(self):
-    #     if self.penumbralFitCheckBox.isChecked():
-    #         self.redoFindEvent.setEnabled(True)
-    #         self.showHelp(self.penumbralFitCheckBox)
-    #     else:
-    #         self.redoFindEvent.setEnabled(False)
+        self.demoModelButton.setEnabled(True)
+        self.printEventParametersButton.setEnabled(True)
 
     def processYoffsetStepBy10(self):
         self.yOffsetStep10radioButton.repaint()
@@ -2705,245 +3402,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             except Exception as e:
                 self.showMsg('Attempt to get host OS to open xlsx file failed.', color='red', bold=True)
                 self.showMsg(repr(e))
-
-            # OS = sys.platform
-            # if OS == 'darwin' or OS == 'linux':
-            #     subprocess.check_call(['open', xlsxfilepath])
-            # else:
-            #     subprocess.check_call(['start', xlsxfilepath])
-
-            # Fill with our current values
         else:
             return
-
-    # def validateLightcurveDataInput(self):
-    #     ans = {'success': True}
-    #
-    #     # Process exp dur entry
-    #     try:
-    #         exp_dur_str = self.expDurEdit.text().strip()
-    #         if not exp_dur_str:
-    #             ans.update({'exp_dur': None})
-    #         else:
-    #             exp_dur = float(exp_dur_str)
-    #             if exp_dur > 0.0:
-    #                 ans.update({'exp_dur': exp_dur})
-    #             else:
-    #                 self.showMsg(f'exposure duration must be > 0.0', bold=True)
-    #                 ans.update({'exp_dur': None})
-    #                 ans.update({'success': False})
-    #     except ValueError as e:
-    #         self.showMsg(f'{e}', bold=True)
-    #         ans.update({'exp_dur': None})
-    #         ans.update({'success': False})
-    #
-    #     # Process ast_dist entry
-    #     try:
-    #         ast_dist_str = self.asteroidDistanceEdit.text().strip()
-    #         astDistUnits = self.asteroidDistanceUnitsSelector.currentText()
-    #         if not ast_dist_str:
-    #             ans.update({'ast_dist': None})
-    #         else:
-    #             ast_dist = float(ast_dist_str)
-    #             if ast_dist > 0.0:
-    #                 if astDistUnits == 'parallax':
-    #                     ast_dist = 8.7882 / ast_dist  # convert parallax to AU
-    #                 ans.update({'ast_dist': ast_dist})
-    #             else:
-    #                 self.showMsg(f'ast_dist must be > 0.0', bold=True)
-    #                 ans.update({'ast_dist': None})
-    #                 ans.update({'success': False})
-    #     except ValueError as e:
-    #         self.showMsg(f'{e}', bold=True)
-    #         ans.update({'ast_dist': None})
-    #         ans.update({'success': False})
-    #
-    #     # Process shadow_speed entry
-    #     try:
-    #         shadow_speed_str = self.shadowSpeedEdit.text().strip()
-    #         if not shadow_speed_str:
-    #             ans.update({'shadow_speed': None})
-    #         else:
-    #             shadow_speed = float(shadow_speed_str)
-    #             if shadow_speed > 0.0:
-    #                 ans.update({'shadow_speed': shadow_speed})
-    #             else:
-    #                 self.showMsg(f'shadow speed must be > 0.0', bold=True)
-    #                 ans.update({'shadow_speed': None})
-    #                 ans.update({'success': False})
-    #     except ValueError as e:
-    #         self.showMsg(f'{e}', bold=True)
-    #         ans.update({'shadow_speed': None})
-    #         ans.update({'success': False})
-    #
-    #     # Process asteroid diameter
-    #     try:
-    #         ast_diam_str = self.astSizeEdit.text().strip()
-    #         if not ast_diam_str:
-    #             ans.update({'ast_diam': None})
-    #         else:
-    #             ast_diam = float(ast_diam_str)
-    #             if ast_diam > 0.0:
-    #                 ans.update({'ast_diam': ast_diam})
-    #             else:
-    #                 self.showMsg(f'asteroid diameter must be > 0.0 or missing', bold=True)
-    #                 ans.update({'ast_diam': None})
-    #                 ans.update({'success': False})
-    #     except ValueError as e:
-    #         self.showMsg(f'{e}', bold=True)
-    #         ans.update({'ast_diam': None})
-    #         ans.update({'success': False})
-    #
-    #     # Process centerline offset
-    #     try:
-    #         centerline_offset_str = self.pathOffsetEdit.text().strip()
-    #         if not centerline_offset_str:
-    #             ans.update({'centerline_offset': None})
-    #         else:
-    #             if ans['ast_diam'] is None:
-    #                 ans.update({'centerline_offset': None})
-    #                 ans.update({'success': False})
-    #                 self.showMsg(f'centerline offset requires an asteroid diameter to be specified', bold=True)
-    #             else:
-    #                 centerline_offset = float(centerline_offset_str)
-    #                 if 0.0 <= centerline_offset < ans['ast_diam'] / 2:
-    #                     ans.update({'centerline_offset': centerline_offset})
-    #                 else:
-    #                     self.showMsg(f'centerline offset must be positive and less than the asteroid radius', bold=True)
-    #                     ans.update({'centerline_offset': None})
-    #                     ans.update({'success': False})
-    #     except ValueError as e:
-    #         self.showMsg(f'{e}', bold=True)
-    #         ans.update({'centerline_offset': None})
-    #         ans.update({'success': False})
-    #
-    #     # Process star diam entry
-    #     try:
-    #         star_diam_str = self.starDiameterEdit.text().strip()
-    #         if not star_diam_str:
-    #             ans.update({'star_diam': None})
-    #             self.penumbralFitCheckBox.setChecked(False)
-    #             self.penumbralFitCheckBox.setEnabled(False)
-    #             self.redoFindEvent.setEnabled(False)
-    #         else:
-    #             star_diam = float(star_diam_str)
-    #             if star_diam > 0.0:
-    #                 ans.update({'star_diam': star_diam})
-    #                 self.penumbralFitCheckBox.setEnabled(True)
-    #             else:
-    #                 self.showMsg(f'star diameter must be > 0.0 or missing', bold=True)
-    #                 ans.update({'star_diam': None})
-    #                 ans.update({'success': False})
-    #                 self.penumbralFitCheckBox.setChecked(False)
-    #                 self.penumbralFitCheckBox.setEnabled(False)
-    #                 self.redoFindEvent.setEnabled(False)
-    #     except ValueError as e:
-    #         self.showMsg(f'{e}', bold=True)
-    #         ans.update({'star_diam': None})
-    #         ans.update({'success': False})
-    #         self.penumbralFitCheckBox.setChecked(False)
-    #         self.penumbralFitCheckBox.setEnabled(False)
-    #         self.redoFindEvent.setEnabled(False)
-    #
-    #     # Process D limb angle entry
-    #     d_angle = self.dLimbAngle.value()
-    #     ans.update({'d_angle': d_angle})
-    #
-    #     # Process R limb angle entry
-    #     r_angle = self.rLimbAngle.value()
-    #     ans.update({'r_angle': r_angle})
-    #
-    #     return ans
-
-    # This method is needed because you cannot pass parameters from a clicked-connect
-    # def demoClickedUnderlyingLightcurves(self):
-    #     if self.B is None or self.A is None:
-    #         self.demoUnderlyingLightcurves(baseline=100.0, event=0.0, plots_wanted=True, ignore_timedelta=True)
-    #     else:
-    #         self.demoUnderlyingLightcurves(baseline=self.B, event=self.A, plots_wanted=True, ignore_timedelta=True)
-
-    # def demoUnderlyingLightcurves(self, baseline=None, event=None, plots_wanted=False, ignore_timedelta=False):
-    #
-    #     diff_table_name = f'diffraction-table.p'
-    #     diff_table_path = os.path.join(self.homeDir, diff_table_name)
-    #
-    #     ans = self.validateLightcurveDataInput()
-    #
-    #     if not ans['success']:
-    #         self.showInfo('There is a problem with the data entry.\n\nCheck log for details.')
-    #         return
-    #
-    #     if not ignore_timedelta:
-    #         if self.timeDelta is None or self.timeDelta < 0.001:
-    #             if ans['exp_dur'] is not None:
-    #                 frame_time = ans['exp_dur']
-    #             else:
-    #                 frame_time = 0.001
-    #         else:
-    #             frame_time = self.timeDelta
-    #     else:
-    #         if ans['exp_dur'] is not None:
-    #             frame_time = ans['exp_dur']
-    #         else:
-    #             frame_time = 0.001
-    #
-    #     if ans['exp_dur'] is not None and ans['ast_dist'] is None and ans['shadow_speed'] is None:
-    #         pass  # User wants to ignore diffraction effects
-    #     else:
-    #         if self.enableDiffractionCalculationBox.isChecked() and \
-    #                 (ans['ast_dist'] is None or ans['shadow_speed'] is None):
-    #             self.showMsg(f'Cannot compute diffraction curve without both ast distance and shadow speed!', bold=True)
-    #             return None
-    #
-    #     if ans['ast_dist'] is not None:
-    #         fresnel_length_at_500nm = fresnel_length_km(distance_AU=ans['ast_dist'], wavelength_nm=500.0)
-    #         if plots_wanted:
-    #             self.showMsg(f'Fresnel length @ 500nm: {fresnel_length_at_500nm:.4f} km', bold=True, color='green')
-    #
-    #     if ans['star_diam'] is not None and (ans['d_angle'] is None or ans['r_angle'] is None):
-    #         ans.update({'star_diam': None})
-    #         self.showMsg(f'An incomplete set of star parameters was entered --- treating star_diam as None!', bold=True)
-    #     elif ans['star_diam'] is not None and (ans['ast_dist'] is None or ans['shadow_speed'] is None):
-    #         ans.update({'star_diam': None})
-    #         self.showMsg(f'Need dist and shadow speed to utilize star diam --- treating star_diam as None!', bold=True)
-    #
-        # noinspection PyBroadException
-        # try:
-        #     matplotlib.pyplot.close(self.d_underlying_lightcurve)
-        #     matplotlib.pyplot.close(self.r_underlying_lightcurve)
-        # except Exception:
-        #     pass
-        #
-        # if baseline is None:
-        #     baseline = 100.0
-        #
-        # if event is None:
-        #     event = 0.0
-        #
-        # self.d_underlying_lightcurve, self.r_underlying_lightcurve, ans = generate_underlying_lightcurve_plots(
-        # _, ans = generate_underlying_lightcurve_plots(
-            # diff_table_path=diff_table_path,
-            # b_value=baseline,
-            # a_value=event,
-            # frame_time=frame_time,
-            # ast_dist=ans['ast_dist'],
-            # shadow_speed=ans['shadow_speed'],
-            # ast_diam=ans['ast_diam'],
-            # centerline_offset=ans['centerline_offset'],
-            # star_diam=ans['star_diam'],
-            # d_angle=ans['d_angle'],
-            # r_angle=ans['r_angle'],
-            # suppress_diffraction=not self.enableDiffractionCalculationBox.isChecked(),
-            # title_addon=''
-        # )
-        # if plots_wanted:
-        #     self.d_underlying_lightcurve.show()
-        #     self.r_underlying_lightcurve.show()
-        # else:
-        #     matplotlib.pyplot.close(self.d_underlying_lightcurve)
-        #     matplotlib.pyplot.close(self.r_underlying_lightcurve)
-
-        # return ans
 
     def findTimestampFromFrameNumber(self, frame):
         # Currently PyMovie uses nn.00 for frame number
@@ -3054,6 +3514,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     def helpButtonClicked(self):
         self.showHelp(self.helpButton)
+
+    def helpPdfButtonClicked(self):
+        # self.showHelp(self.helpPdfButton)
+        self.showInfo(f'This pdf to be supplied after beta testing is complete.')
 
     def ne3ExplanationClicked(self):
         self.showHelp(self.ne3ExplanationButton)
@@ -3225,6 +3689,27 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     line = f'{i},[{ts}],{lgtCurve[i]:0.2f}'
                     fileObject.write(line + '\n')
                     readingTime += timeDelta
+
+    def copy_modelExamples_to_desktop(self):
+        source_dir = os.path.join(self.homeDir, 'model-examples')
+        if os.path.exists(source_dir):
+            # self.showMsg(f'We found model-examples')
+            if platform.mac_ver()[0]:
+                dest_dir = f"{os.environ['HOME']}{r'/Desktop/model-examples'}"
+            else:
+                # We must be on a Windows machine because Mac version number was empty
+                dest_dir = f"{os.environ.get('userprofile')}\\Desktop\\model-examples"
+
+            if os.path.exists(dest_dir):
+                self.showMsg(f'We found {dest_dir} already present and have therefore left it untouched',
+                             color='black', bold=True)
+            else:
+                shutil.copytree(source_dir, dest_dir)
+                self.showMsg(f'We have copied the example csv files from the distribution '
+                             f'into {dest_dir} (useful for training purposes).',
+                             color='black', bold=True)
+        else:
+            self.showMsg(f'We could not find model-examples folder', color='red', bold=True)
 
     @staticmethod
     def copy_desktop_icon_file_to_home_directory():
@@ -4280,7 +4765,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         else:
             # Restore previous status (when originally clicked)
             self.yStatus[index] = self.selectedPoints[index]
-            del (self.selectedPoints[index])
+            del(self.selectedPoints[index])
         self.suppressNormalization = True
         self.newRedrawMainPlot()  # Redraw plot to show selection change
         self.suppressNormalization = False
@@ -4374,6 +4859,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.settings.setValue('edgeTimeFitPrecision', self.edgeTimePrecisionEdit.text())
         self.settings.setValue('chordDurationFitPrecision', self.chordDurationPrecisionEdit.text())
         self.settings.setValue('limbAngleFitPrecision', self.limbAnglePrecisionEdit.text())
+        self.settings.setValue('missDistanceFitPrecision', self.missDistancePrecisionEdit.text())
 
         self.settings.setValue('allowNewVersionPopup', self.allowNewVersionPopupCheckbox.isChecked())
 
@@ -4476,6 +4962,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         if blankLine:
             self.textOut.insertHtml('<br>')
         self.textOut.ensureCursorVisible()
+
         if alternateLogFile is not None:
             fileObject = open(alternateLogFile, 'a')
             fileObject.write(msg + '\n')
@@ -6389,7 +6876,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     self.runSolver = False
                     return
                 else:
-                    # d, r, b, a, sigmaB, sigmaA, metric = item
                     _, _, d, r, b, a, sigmaB, sigmaA, metric = item
                     if d == -1.0:
                         d = None
@@ -6906,6 +7392,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         if self.csvFilePath:
             self.initializeLightcurvePanel()
+            self.initializeModelLightcurvesPanel()
 
             # Get rid of any previously displayed model and displayed metric info
             self.modelY = None
@@ -6914,6 +7401,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.fitMetricChangeEdit.clear()
             self.fitMetricChangeEdit.setStyleSheet(None)
             self.fitStatus = None
+            self.bestFit = None
+            self.modelTimeOffset = None
 
             QtWidgets.QApplication.processEvents()
 
@@ -7435,12 +7924,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.mainPlot.autoRange()
         self.showMsg('*' * 20 + ' starting over ' + '*' * 20, color='blue')
 
-    def extendAndDrawModelLightcurve(self, modelXkm, modelY):
-
-        # The following variable is useful for debugging ...
-        visibilityOffset = 0  # Used to produce a 'jog' at the edge of model lightcurve
-
-        time_translation = self.modelTimeOffset
+    def extendAndDrawModelLightcurve(self):
 
         if not self.timestampListIsEmpty(self.yTimes):
             # Compute time duration of lightcurve observation
@@ -7450,98 +7934,67 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             if tObsDur < 0:  # The lightcurve acquisition passed through midnight
                 tObsDur += 24 * 60 * 60  # And a days worth of seconds
 
-            tModelDur = (modelXkm[-1] - modelXkm[0]) / self.Lcp.shadow_speed  # in seconds
+            tModelDur = (self.modelXkm[-1] - self.modelXkm[0]) / self.Lcp.shadow_speed  # in seconds
             self.modelDuration = tModelDur
-            tModelBegin = time_translation  # time of leftmost edge of model lightcurve
-            tModelEnd = time_translation + tModelDur
-
-            # Compute resolution of model lightcurve - needed for adding extensions
-            modelTimeResolution = (modelXkm[1] - modelXkm[0]) / self.Lcp.shadow_speed
+            modelLengthKm = self.modelDuration * self.Lcp.shadow_speed
 
             # Convert model edge D and R locations from km to time - relative to model center
-            # TODO Check that using no frameTime adjustment is correct
-            self.modelDedgeSecs = self.modelDedgeKm / self.Lcp.shadow_speed
-            self.modelRedgeSecs = self.modelRedgeKm / self.Lcp.shadow_speed
+            if self.modelDedgeKm is not None:
+                self.modelDedgeSecs = self.modelDedgeKm / self.Lcp.shadow_speed
+                self.modelRedgeSecs = self.modelRedgeKm / self.Lcp.shadow_speed
 
-            # Convert edge locations from time in model space to time in observation space
-            self.modelDedgeSecs += time_translation + tModelDur / 2.0
-            self.modelRedgeSecs += time_translation + tModelDur / 2.0
+                # Convert edge locations from time in model space to time in observation space
+                DedgeKm = self.modelDedgeKm - self.modelXkm[0]
+                RedgeKm = self.modelRedgeKm - self.modelXkm[0]
+                edgeCenterTime = (DedgeKm + RedgeKm) / 2.0 / self.Lcp.shadow_speed
+            else:
+                self.modelDedgeSecs = self.modelDuration / 2
+                self.modelRedgeSecs = self.modelDuration / 2
+                DedgeKm = modelLengthKm / 2 - self.modelXkm[0]
+                RedgeKm = modelLengthKm / 2 - self.modelXkm[0]
+                edgeCenterTime = (DedgeKm + RedgeKm) / 2.0 / self.Lcp.shadow_speed
 
-            # Initially set indices to extract every point of the model lightcurve.
-            # These will be changed if trimming is needed/
-            leftIndex = 0
-            rightIndex = len(modelY) - 1
+            self.modelDedgeSecs += self.modelTimeOffset + edgeCenterTime
+            self.modelRedgeSecs += self.modelTimeOffset + edgeCenterTime
 
-            # Check for exension to model needed on left edge
-            if tModelBegin >= 0:  # An extension on the left is needed
-                nExtensionPoints = round(tModelBegin / modelTimeResolution)
-                leftExtension = [self.Lcp.baseline_ADU + visibilityOffset
-                                 for _ in range(nExtensionPoints)]
-            else:  # A trim on the left is needed
-                leftIndex = round(abs(tModelBegin) / modelTimeResolution)
-                leftExtension = []
-
-            # Check for extension to model on right edge
-            if tObsDur > tModelEnd:  # An extension on the right is needed
-                nExtensionPoints = trunc((tObsDur - tModelEnd) / modelTimeResolution)
-                rightExtension = [self.Lcp.baseline_ADU + visibilityOffset
-                                  for _ in range(nExtensionPoints)]
-            else:  # A trim on the right is needed
-                rightIndex = len(modelY) - round((tModelEnd - tObsDur) / modelTimeResolution)
-                rightExtension = []
-
-            self.modelPtsY = list(modelY[leftIndex:rightIndex+1])
-
-            nLeft = len(leftExtension)
-            nRight = len(rightExtension)
-
-            leftTimes = []
-            if nLeft > 0:
-                for i in range(nLeft):
-                    leftTimes.append(tModelBegin - (nLeft - i) * modelTimeResolution)
-
-            rightTimes = []
-            if nRight > 0:
-                for i in range(nLeft):
-                    rightTimes.append(tModelEnd + (i + 1) * modelTimeResolution)
-
-            modelXsec = modelXkm / self.Lcp.shadow_speed
+            modelXsec = self.modelXkm / self.Lcp.shadow_speed
             modelXsec -= modelXsec[0]
-            modelXsec += self.modelTimeOffset
+            modelXsec += self.modelTimeOffset + tObsStart
             modelRdgNum = (modelXsec - tObsStart) / self.Lcp.frame_time
             self.modelPtsXrdgNum = modelRdgNum
             self.modelPtsXsec = modelXsec
-            self.modelPtsY = modelY
-            normedModelY = modelY
+            self.modelPtsY = self.modelY
+
+            del modelRdgNum
+            del modelXsec
+            gc.collect()
 
             mPen = pg.mkPen(color=(255, 0, 0), width=self.lineWidthSpinner.value())
-            self.mainPlot.plot(modelRdgNum, normedModelY, pen=mPen, symbol=None)
+            self.mainPlot.plot(self.modelPtsXrdgNum, self.modelPtsY, pen=mPen, symbol=None)
 
-            # Add D and R edge positions to plot.
-            ePen = pg.mkPen(color=(100, 100, 100), style=QtCore.Qt.PenStyle.DashLine,
-                            width=self.lineWidthSpinner.value())
+            if self.modelDedgeKm is not None:
+                # Add D and R edge positions to plot.
+                ePen = pg.mkPen(color=(100, 100, 100), style=QtCore.Qt.PenStyle.DashLine,
+                                width=self.lineWidthSpinner.value())
 
-            # Convert edge times to reading number units
-            self.modelDedgeRdgValue = self.modelDedgeSecs * (self.dataLen - 1) / tObsDur
-            self.modelRedgeRdgValue = self.modelRedgeSecs * (self.dataLen - 1) / tObsDur
+                # Convert edge times to reading number units
+                self.modelDedgeRdgValue = self.modelDedgeSecs * (self.dataLen - 1) / tObsDur
+                self.modelRedgeRdgValue = self.modelRedgeSecs * (self.dataLen - 1) / tObsDur
 
-            D = self.modelDedgeRdgValue
-            R = self.modelRedgeRdgValue
-            lo_int = self.Lcp.bottom_ADU
-            hi_int = self.Lcp.baseline_ADU
-            span = hi_int - lo_int
-            lo_int -= 0.1 * span
-            hi_int += 0.1 * span
-            if D >= 0:
-                self.mainPlot.plot([D, D], [lo_int, hi_int], pen=ePen, symbol=None)
-            if R <= self.dataLen - 1:
-                self.mainPlot.plot([R, R], [lo_int, hi_int], pen=ePen, symbol=None)
+                D = self.modelDedgeRdgValue
+                R = self.modelRedgeRdgValue
+                lo_int = self.Lcp.bottom_ADU
+                hi_int = self.Lcp.baseline_ADU
+                span = hi_int - lo_int
+                lo_int -= 0.1 * span
+                hi_int += 0.1 * span
+                if D >= 0:
+                    self.mainPlot.plot([D, D], [lo_int, hi_int], pen=ePen, symbol=None)
+                if R <= self.dataLen - 1:
+                    self.mainPlot.plot([R, R], [lo_int, hi_int], pen=ePen, symbol=None)
 
-            # self.showInfo(f'D edge (rdg num): {self.modelDedgeValue:0.3f}\n\n'
-            #               f'R edge (rdg num): {self.modelRedgeValue:0.3f}')
-
-            self.modelXvalues = np.array(modelRdgNum)
-            self.modelYvalues = np.array(normedModelY)
+            self.modelXvalues = self.modelPtsXrdgNum
+            self.modelYvalues = np.array(self.modelY)
         else:
             self.showInfo(f'Timestamps are required for model lightcurves')
 
@@ -7706,12 +8159,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
             max_x = min_x = (D + R) / 2.0
 
-            # TODO Remove the neutering of the following lines
-            # plotDcurve()
-            # plotGeometricShadowAtD()
-            # plotRcurve()
-            # plotGeometricShadowAtR()
-
         elif self.eventType == 'Donly':
             # if self.exponentialDtheoryPts is None:
             D = self.solution[0]
@@ -7810,9 +8257,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.redrawMainPlot()
 
     def redrawMainPlot(self):
-
-        if self.trace:
-            self.showInfo(f'in redrawMainPlot')
 
         if self.right is not None:
             right = min(self.dataLen, self.right + 1)
@@ -8022,9 +8466,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         if self.exponentialDtheoryPts is None and not self.squareWaveRadioButton.isChecked():
             if self.modelXkm is not None and self.modelY is not None:
-                if self.trace:
-                    self.showInfo(f'in reDrawMainPlot and calling drawModelLightcurve')
-                self.extendAndDrawModelLightcurve(self.modelXkm, self.modelY)
+                self.extendAndDrawModelLightcurve()
 
         if self.solution:
             self.drawSolution()

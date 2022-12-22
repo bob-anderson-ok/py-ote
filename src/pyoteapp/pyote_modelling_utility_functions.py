@@ -1,3 +1,5 @@
+import gc
+
 import numpy as np
 from dataclasses import dataclass, field
 from typing import Tuple
@@ -307,7 +309,7 @@ def decide_model_to_use(LCP):
         if LCP.asteroid_diameter_km >= 10 * LCP.star_diameter_km:
             return 'Use edge-on-disk model because asteroid diameter is at least 10 times the star diameter'
         else:
-            return 'Use disk-on-disk model because asteroid diameter is less than 10 time the star diameter'
+            return 'Use disk-on-disk model because asteroid diameter is less than 10 times the star diameter'
     elif frame_time_km < 2 * LCP.fresnel_length_km:  # We are sampling fast enough to see diffraction wiggles
         return 'Use diffraction model as conditions allow diffraction effects to be recorded.'
     else:
@@ -373,7 +375,17 @@ def generatePointsInStar(LCP, pts_in_diameter=52):
             if x * x + y * y <= rsq:
                 x_coord.append(x)
                 y_coord.append(y)
-    return np.array(x_coord), np.array(y_coord)
+    del xvals
+    del yvals
+    gc.collect()
+
+    xarray = np.array(x_coord)
+    yarray = np.array(y_coord)
+    del x_coord
+    del y_coord
+    gc.collect()
+
+    return xarray, yarray
 
 
 # Used by edge-on-disk models
@@ -446,8 +458,8 @@ class LightcurveParameters:
     star_radius_km: float = None
     star_rho: float = None  # star diameter expressed in fresnel units (no setter)
 
-    D_limb_angle_degrees: float = 89.999  # To avoid possible infinities we avoid 90
-    R_limb_angle_degrees: float = 89.999  # "
+    D_limb_angle_degrees: float = 90  # To avoid possible infinities users of
+    R_limb_angle_degrees: float = 90  # these values should change to 89.999
 
     chord_length_km: float = None
     chord_length_sec: float = None
@@ -516,7 +528,7 @@ class LightcurveParameters:
             else:
                 self.asteroid_diameter_km = asteroid_km_from_mas(diameter_mas=value,
                                                                  distance_AU=self.asteroid_distance_AU)
-                rho = self.asteroid_diameter_km / self.fresnel_length_km / 2
+                rho = (self.asteroid_diameter_km / 2.0) / self.fresnel_length_km / 2
                 self.asteriod_rho = rho
 
         if name == 'star_diameter_mas' and value is not None:
@@ -526,7 +538,7 @@ class LightcurveParameters:
                 raise ValueError(f'star diameter has already been set')
             else:
                 self.star_diameter_km = star_diameter_km_from_mas(value, self.asteroid_distance_AU)
-                rho = self.star_diameter_km / self.fresnel_length_km
+                rho = (self.star_diameter_km / 2.0) / self.fresnel_length_km
                 self.star_rho = rho
                 self.star_radius_km = self.star_diameter_km / 2
 
@@ -537,7 +549,7 @@ class LightcurveParameters:
                 raise ValueError(f'star diameter has already been set')
             else:
                 self.star_diameter_mas = star_diameter_mas_from_km(value, self.asteroid_distance_AU)
-                rho = value / self.fresnel_length_km
+                rho = (value / 2.0) / self.fresnel_length_km
                 self.star_rho = rho
                 self.star_radius_km = value / 2
 
@@ -576,8 +588,9 @@ class LightcurveParameters:
         return False, 'all needed parameters are set'
 
     def document(self):
-        if self.check_for_none():
-            output_str = ['\n!!!! There are values remaining to be set !!!!\n']
+        nameIsNone, name = self.check_for_none()
+        if nameIsNone:
+            output_str = [f'\n!!!! {name} remains to be set !!!!\n']
         else:
             output_str = []
 
@@ -588,6 +601,7 @@ class LightcurveParameters:
             output_str.append(f"fresnel_length: {self.fresnel_length_km:0.2f} km\n")
         else:
             output_str.append(f"fresnel_length: None\n")
+        output_str.append(f"wavelength_nm: {self.wavelength_nm} nm")
 
         if self.star_diameter_mas is not None:
             output_str.append(f"star_diameter_mas: {self.star_diameter_mas:0.2f} mas")
@@ -653,11 +667,10 @@ class LightcurveParameters:
             output_str.append(f"chord_length_sec: None\n")
 
         output_str.append(
-            f"miss_distance_km: {self.miss_distance_km:0.2f} (if non-zero, lightcurve is modeled as a partial or complete miss)\n")
+            f"miss_distance_km: {self.miss_distance_km:0.2f}\n")
 
-        output_str.append(f"wavelength_nm: {self.wavelength_nm} nm")
-        output_str.append(f"npoints: {self.npoints} points in model lightcurve")
-        # output_str.append(f"debug: {self.debug} (if True, many functions print extra info)")
+        # output_str.append(f"wavelength_nm: {self.wavelength_nm} nm")
+        # output_str.append(f"npoints: {self.npoints} points in model lightcurve")
         output_str.append('\n')
 
         return output_str
@@ -712,7 +725,10 @@ def plot_diffraction(x, y, first_wavelength, last_wavelength, LCP, figsize=(14, 
     rho = LCP.asteroid_rho
 
     half_chord = LCP.chord_length_km / 2
-    graze_offset_km = np.sqrt((LCP.asteroid_diameter_km / 2) ** 2 - half_chord ** 2)
+    if LCP.miss_distance_km == 0:
+        graze_offset_km = np.sqrt((LCP.asteroid_diameter_km / 2) ** 2 - half_chord ** 2)
+    else:
+        graze_offset_km = LCP.miss_distance_km + LCP.asteroid_diameter_km / 2
 
     if graze_offset_km > asteroid_radius_km:
         left_edge = None
@@ -840,7 +856,7 @@ def plot_diffraction(x, y, first_wavelength, last_wavelength, LCP, figsize=(14, 
 
 
 def generalizedDiffraction(LCP, wavelength1=None, wavelength2=None, skip_central_calc=False):
-    # A family of central spot lightcurves are calculated when rho <= 32, otherwise the
+    # A family of central spot lightcurves are calculated when rho <= 16, otherwise the
     # analytic diffraction equation is used to produce the curve family that is
     # subsequently integrated.
 
@@ -854,12 +870,13 @@ def generalizedDiffraction(LCP, wavelength1=None, wavelength2=None, skip_central
     asteroid_distance_AU = LCP.asteroid_distance_AU
 
     half_chord = LCP.chord_length_km / 2
-    graze_offset_km = np.sqrt((LCP.asteroid_diameter_km / 2) ** 2 - half_chord ** 2)
+    if LCP.miss_distance_km == 0:
+        graze_offset_km = np.sqrt((LCP.asteroid_diameter_km / 2) ** 2 - half_chord ** 2)
+    else:
+        graze_offset_km = LCP.miss_distance_km + LCP.asteroid_diameter_km / 2
 
     y_avg = []
     x_avg = []
-    # yz_avg = []
-    # xz_avg = []
 
     rows_y = []
     rows_x = []
@@ -907,11 +924,9 @@ def generalizedDiffraction(LCP, wavelength1=None, wavelength2=None, skip_central
         right_edge = np.sqrt(asteroid_radius_km ** 2 - graze_offset_km ** 2)
         left_edge = -right_edge
 
-    asteroid_radius_km = asteroid_diam_km / 2
+    rho = asteroid_radius_km / fresnelLength(wavelength_nm=rho_wavelength, Z_AU=asteroid_distance_AU)
 
-    rho = asteroid_diam_km / fresnelLength(wavelength_nm=rho_wavelength, Z_AU=asteroid_distance_AU)
-
-    if rho <= 32 and not skip_central_calc:
+    if rho <= 16 and not skip_central_calc:
         for wavelength in wavelengths:
             fresnel_length_km = fresnelLength(wavelength_nm=wavelength, Z_AU=asteroid_distance_AU)
             if graze_offset_km == 0.0:
@@ -1070,7 +1085,7 @@ def analyticDiffraction(u_value, D_or_R):
 def demo_diffraction_field(LCP, title_adder='',
                            figsize=(8, 5)):
     if LCP.asteroid_rho > 32:
-        raise Exception(
+        raise ValueError(
             f'The asteroid rho is {LCP.asteroid_rho:0.2f} which is greater than 32, the max that we can display.')
 
     title = f'Diffraction pattern on the ground: {title_adder}'
@@ -1409,8 +1424,6 @@ def eodModel(LCP: LightcurveParameters, star_master_x, star_master_y):
 
     Ax, Ay, Bx, By, Cx, Cy = generateCoveringTriangle(LCP)
 
-    # half_chord = LCP.chord_length_km / 2
-
     y = []
     x = []
     for d in dvalues:
@@ -1423,17 +1436,27 @@ def eodModel(LCP: LightcurveParameters, star_master_x, star_master_y):
                                                         translated_star_master_y))
         else:
             y.append(1.0)
+    del dvalues
+    del translated_star_master_x
+    del translated_star_master_y
+    gc.collect()
 
     y_array = np.array(y)
     y_ADU = scaleToADU(y_array, LCP=LCP)
-    # y_ADU = np.array(y)
+    x_array = np.array(x)
+    del x
+    del y
+    gc.collect()
 
-    return np.array(x), y_ADU
+    return x_array, y_ADU
 
 
 def eodLightcurve(LCP):
     star_master_x, star_master_y = generatePointsInStar(LCP)
     x, y_ADU = eodModel(LCP, star_master_x, star_master_y)
+    del star_master_x
+    del star_master_y
+    gc.collect()
 
     if LCP.miss_distance_km == 0.0:
         half_chord = LCP.chord_length_km / 2
@@ -1499,12 +1522,21 @@ def cameraIntegration(x, y, LCP):
     n_sample_points = round(LCP.frame_time * LCP.shadow_speed / resolution_km)
     sample = np.repeat(1.0 / n_sample_points, n_sample_points)
     camera_y = lightcurve_convolve(sample=sample, lightcurve=y, shift_needed=len(sample) - 1)
+    del sample
 
     return camera_y
 
 
-def demo_event(LCP, model, title='Generic model', showLegend=False, showNotes=False,
+def demo_event(LCP: LightcurveParameters, model, title='Generic model', showLegend=False, showNotes=False,
                plot_versus_time=False, plots_wanted=True):
+
+    # To avoid possible infinities at 90 degrees, fudge those values a little.
+    # The original values will be restored on exit
+    if LCP.D_limb_angle_degrees == 90:
+        LCP.set('D_limb_angle_degrees', 89.999)
+    if LCP.R_limb_angle_degrees == 90:
+        LCP.set('R_limb_angle_degrees', 89.999)
+
     if model == 'disk-on-disk':
         x, y, D_edge, R_edge = dodLightcurve(LCP=LCP)
         if plots_wanted:
@@ -1551,6 +1583,12 @@ def demo_event(LCP, model, title='Generic model', showLegend=False, showNotes=Fa
         return x, camera_y, D_edge, R_edge
     else:
         raise Exception(f"Model '{model}' is unknown.")
+
+    # Restore the infinity-ducking fudged values
+    if LCP.D_limb_angle_degrees == 89.999:
+        LCP.set('D_limb_angle_degrees', 90)
+    if LCP.R_limb_angle_degrees == 89.999:
+        LCP.set('R_limb_angle_degrees', 90)
 
     return x, cameraIntegration(x, y, LCP), D_edge, R_edge
 

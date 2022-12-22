@@ -175,7 +175,7 @@
            <item>
             <widget class="QTabWidget" name="tabWidget">
              <property name="currentIndex">
-              <number>1</number>
+              <number>2</number>
              </property>
              <property name="movable">
               <bool>true</bool>
@@ -2994,6 +2994,9 @@
                     <bold>true</bold>
                    </font>
                   </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This value, while it can be changed, is normally derived from the csv file (and any subsequent block integration procedure applied to the observation data), so there should be no need to manually change this value.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
                   <property name="text">
                    <string>Frame time (sec)</string>
                   </property>
@@ -3012,6 +3015,9 @@
                     <bold>true</bold>
                    </font>
                   </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;In an &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;edge on disk&lt;/span&gt; or &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;disk on disk&lt;/span&gt; event, the star center sometimes does not intersect the asteroid, yet the asteroid &lt;span style=&quot; text-decoration: underline;&quot;&gt;does&lt;/span&gt; overlap a portion of the star disk. This is defined as a 'miss' and the distance from the geometric edge of the asteroid to the star center path is defined as the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Miss distance (km)&lt;/span&gt;.&lt;/p&gt;&lt;p&gt;A similar situation can occur when a diffraction model is in use. Because of diffraction, light appears outside the geometric outline of the asteroid and if your observaton point is outside this geometric edge, that will be a 'miss', but there may be observable changes to the light curve that can be utilized to, in conjuction with other observers, put a 'fence' around the asteroid position.&lt;/p&gt;&lt;p&gt;In the diffraction plots, you will not find &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;miss_distance_km&lt;/span&gt; in the plot notes. Instead, you will find the term &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;graze_offset_km&lt;/span&gt;. This is defined as:&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;graze_offset_km = asteroid_radius_km + miss_distance_km&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
                   <property name="text">
                    <string>Miss distance (km)</string>
                   </property>
@@ -3025,7 +3031,7 @@
               <widget class="QWidget" name="layoutWidget_24">
                <property name="geometry">
                 <rect>
-                 <x>320</x>
+                 <x>350</x>
                  <y>220</y>
                  <width>111</width>
                  <height>82</height>
@@ -3038,6 +3044,9 @@
                    <font>
                     <bold>true</bold>
                    </font>
+                  </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Limb angles are only relevant  when an edge on disk model has been selected for use.&lt;/p&gt;&lt;p&gt;In an edge on disk model, the part of asteroid that occults the star is modeled as a straight edge (which is usually at an angle with respect to the direction of motion of the star). The D and R &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Limb angles&lt;/span&gt; are used to describe the slope of the asteroid edge at the point where the star is occulted by the asteroid. The convention used is that 90 degrees represents a direct 'hit' while smaller values indicate an ever increasing slope to the intersection of the asteroid edge with the star disk.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="text">
                    <string>Limb angles</string>
@@ -3095,9 +3104,9 @@
               <widget class="QWidget" name="layoutWidget_25">
                <property name="geometry">
                 <rect>
-                 <x>440</x>
+                 <x>470</x>
                  <y>220</y>
-                 <width>121</width>
+                 <width>111</width>
                  <height>82</height>
                 </rect>
                </property>
@@ -3109,8 +3118,11 @@
                     <bold>true</bold>
                    </font>
                   </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&amp;quot;Chord&amp;quot; is defined as the distance or time from the D event (the star &lt;span style=&quot; text-decoration: underline;&quot;&gt;center &lt;/span&gt;first intersects the asteroid edge) to the R event (the star &lt;span style=&quot; text-decoration: underline;&quot;&gt;center&lt;/span&gt; exits the asteroid).&lt;/p&gt;&lt;p&gt;Note: the case where a star disk is occulted by the asteroid but the star center does &lt;span style=&quot; text-decoration: underline;&quot;&gt;not&lt;/span&gt; intersect the asteroid is called a miss. This is indicated by a non-zero entry in the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Miss distance (km)&lt;/span&gt; edit box and 0.00000 values in the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Chord estimate&lt;/span&gt; edit boxes (automatically enforced whenever a non-zero entry is made in the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Miss distance (km)&lt;/span&gt; edit box).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
                   <property name="text">
-                   <string>Chord size estimate</string>
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Chord estimate&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                  </widget>
                 </item>
@@ -3171,6 +3183,9 @@
                     <bold>true</bold>
                    </font>
                   </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Asteroid distance&lt;/span&gt; can be entered either in units of &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;AU&lt;/span&gt; (astronomical units) or &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;arcsec&lt;/span&gt; (parallax in arc second units). Once a units selection has been made by typing a value into the box, the other associated edit box will become read-only. The value of that entry will be calculated and filled in once all the parameters between these two black bars have a value in each column. This is done to avoid the possibilty of an inconsistent value being entered.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
                   <property name="text">
                    <string>Asteroid distance</string>
                   </property>
@@ -3207,6 +3222,9 @@
                       <bold>true</bold>
                      </font>
                     </property>
+                    <property name="toolTip">
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This is the distance to the asteroid specified as a parallax value (in arc seconds)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    </property>
                     <property name="text">
                      <string>arcsec</string>
                     </property>
@@ -3232,6 +3250,9 @@
                    <font>
                     <bold>true</bold>
                    </font>
+                  </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This is the wavelength to be used for Fresnel length calulations.&lt;/p&gt;&lt;p&gt;The fresnel definition used in this program is: &lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;fresnel_length = sqrt(asteroid_distance * wavelength / 2)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="text">
                    <string>Wavelength (nm)</string>
@@ -3266,6 +3287,9 @@
                    <font>
                     <bold>true</bold>
                    </font>
+                  </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Asteroid speed&lt;/span&gt; can be entered either in units of &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;km/sec&lt;/span&gt; (Shadow speed) or &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;mas/sec&lt;/span&gt; (Sky speed). Once a units selection has been made by typing a value into the box, the other associated edit box will become read-only. The value of that entry will be calculated and filled in once all the parameters between these two black bars have a value in each column. This is done to avoid the possibilty of an inconsistent value being entered.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="text">
                    <string>Asteroid speed</string>
@@ -3326,6 +3350,9 @@
                  <bold>true</bold>
                 </font>
                </property>
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clicking this button opens a 'white paper' pdf that explains and demonstrates the various models. It also introduces the terminology that is used consistently in the specific context help that is provied for each the widgets and labels on this tab (right-click on gui elements to popup this 'help').&lt;/p&gt;&lt;p&gt;You are encouraged to routinely right click on labels, buttons, and edit boxes to elicit specific help and tips related to that gui item.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
                <property name="text">
                 <string>Help (pdf)</string>
                </property>
@@ -3333,7 +3360,7 @@
               <widget class="QLabel" name="modelToUseLabel">
                <property name="geometry">
                 <rect>
-                 <x>40</x>
+                 <x>20</x>
                  <y>330</y>
                  <width>111</width>
                  <height>16</height>
@@ -3343,6 +3370,9 @@
                 <font>
                  <bold>true</bold>
                 </font>
+               </property>
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this radio button list to choose the model that you wish to apply to the observation data.&lt;/p&gt;&lt;p&gt;If &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;square wave&lt;/span&gt; is active, you will automatically be switched to the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Analysis&lt;/span&gt; tab if the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Fit model to observation points&lt;/span&gt; button is clicked, which is where square wave (geometrical optics) are handled.&lt;/p&gt;&lt;p&gt;If the star has an observable disk (&lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Star diameter mas&lt;/span&gt; &amp;gt; 0), the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;edge on disk&lt;/span&gt; and &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;disk on disk&lt;/span&gt; models can be used.&lt;/p&gt;&lt;p&gt;If &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Star diameter mas&lt;/span&gt; is zero, or very small, the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;diffraction&lt;/span&gt; model may be the one to use.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
                <property name="text">
                 <string>Model to use:</string>
@@ -3363,7 +3393,7 @@
                 </font>
                </property>
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Name this asteroid event for possible future reference and data recovery by using the Past events dropdown selector available at the right..&lt;/p&gt;&lt;p&gt;This makes the entries 'sticky' in the sense that the data entered in this panel can be recovered later.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Provide a name for this set of asteroid event data for future reference. After a successful &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Save event&lt;/span&gt;, the data set can be restored by using the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Past events&lt;/span&gt; dropdown selector available at the right.&lt;/p&gt;&lt;p&gt;This makes the entries that define this occultation (asteroid size, distance, speed, etc.) 'sticky' in the sense that the data unique to this occultation event can be recovered later.&lt;/p&gt;&lt;p&gt;A &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Save event&lt;/span&gt; attempt will only work if a complete set of data has been filled in. That means that all the edit boxes enclosed in the three black bars must be filled in.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Note: &lt;/span&gt;Until some text has been entered in this edit box, all the edit boxes between the three black bars will be disabled, so this is the starting point for a new event. The expected workflow is: read a csv file, name the event, fill in the edit boxes, and click &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Save event&lt;/span&gt;. The name of the csv file currently in use is added to the saved data during this process so event data is tied to a specific file.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
                <property name="text">
                 <string>Current event</string>
@@ -3383,6 +3413,9 @@
                  <bold>true</bold>
                 </font>
                </property>
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This box contains a list of previous event data sets that have been saved by clicking on the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Save event &lt;/span&gt;button to the left.&lt;/p&gt;&lt;p&gt;The first entry in this list is always titled &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;&amp;lt;clear event data&amp;gt;&lt;/span&gt; and, if selected (by clicking on it), will clear all of the edit boxes between the three black bars. Clicking any other entry will restore the saved data and fill in all the edit boxes between the three black bars.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Note:&lt;/span&gt; when you select a data set, there is the possibility that you will receive a &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;'file mismatch' &lt;/span&gt;warning. This means that the data set was first created and saved in conjunction with a different csv file than the one in use at the moment. This is usually a mistake and usually due to selecting the wrong data set. But sometimes this can be deliberate, in which case the warning can be simply ignored - or, you can click on the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Save event&lt;/span&gt; button to change the file association to the one currently in use.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
                <property name="text">
                 <string>Past events</string>
                </property>
@@ -3390,7 +3423,7 @@
               <widget class="QWidget" name="layoutWidget">
                <property name="geometry">
                 <rect>
-                 <x>40</x>
+                 <x>20</x>
                  <y>350</y>
                  <width>96</width>
                  <height>108</height>
@@ -3400,7 +3433,7 @@
                 <item>
                  <widget class="QRadioButton" name="diffractionRadioButton">
                   <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Tooltip help for radio button&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This model is typically used only when &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Star diameter mas&lt;/span&gt; is zero or very small. Even when this is true, diffraction effects may not be observable because the diffraction fringe times are small compared to the camera frame time. Use the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Ask advice on model to use&lt;/span&gt; button to get an opinion from the program.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="text">
                    <string>diffraction</string>
@@ -3412,6 +3445,9 @@
                 </item>
                 <item>
                  <widget class="QRadioButton" name="edgeOnDiskRadioButton">
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This model can only be used when the star has an observable disk (i.e., &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Star diameter mas&lt;/span&gt; &amp;gt; 0).&lt;/p&gt;&lt;p&gt;In this model, the part of asteroid that occults the star is modeled as a straight edge (which is usually at an angle with respect to the direction of motion of the star). The D and R &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Limb angles&lt;/span&gt; are used to describe the slope of the asteroid edge at the point where the star is occulted by the asteroid. The convention used is that 90 degrees represents a direct 'hit' while smaller values indicate an ever increasing slope to the intersection of the asteroid edge with the star disk.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
                   <property name="text">
                    <string>edge on disk</string>
                   </property>
@@ -3419,6 +3455,9 @@
                 </item>
                 <item>
                  <widget class="QRadioButton" name="diskOnDiskRadioButton">
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This model can only be used when the star has an observable disk (i.e., &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Star diameter mas&lt;/span&gt; &amp;gt; 0).&lt;/p&gt;&lt;p&gt;In this model, the star disk is geometrically occulting (diffraction ignored) an asteroid disk (limb angles are ignored as these are relevant only to the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;edge on disk&lt;/span&gt; model).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
                   <property name="text">
                    <string>disk on disk</string>
                   </property>
@@ -3426,6 +3465,9 @@
                 </item>
                 <item>
                  <widget class="QRadioButton" name="squareWaveRadioButton">
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Square wave models are &lt;span style=&quot; text-decoration: underline;&quot;&gt;not&lt;/span&gt; handled by this tab. They are instead handled on the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Analysis&lt;/span&gt; tab. &lt;/p&gt;&lt;p&gt;If one tries a &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Fit model to observations points&lt;/span&gt; with this radiobutton selected, they will be automatically switched to the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Analysis&lt;/span&gt; tab.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
                   <property name="text">
                    <string>square wave</string>
                   </property>
@@ -3439,29 +3481,38 @@
               <widget class="QWidget" name="layoutWidget">
                <property name="geometry">
                 <rect>
-                 <x>150</x>
+                 <x>130</x>
                  <y>330</y>
                  <width>198</width>
-                 <height>146</height>
+                 <height>176</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_49">
                 <item>
-                 <widget class="QPushButton" name="demoLightcurveButton">
+                 <widget class="QPushButton" name="fitLightcurveButton">
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clicking this button activates the automated fit optimization process.&lt;/p&gt;&lt;p&gt;The title and color of this button will change to show what process is currently being performed.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
                   <property name="text">
-                   <string>Compute model lightcurve</string>
+                   <string>Fit model to observation points</string>
                   </property>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="automaticFitButton">
+                 <widget class="QPushButton" name="pauseFitButton">
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clicking this button will set a flag to request that the fitting process stop at the next change of &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Parameter being optimized&lt;/span&gt;.&lt;/p&gt;&lt;p&gt;The response may be slow if a low rho diffraction model calculation is in process at the time this request is posted - be patient.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
                   <property name="text">
-                   <string>Find best time position</string>
+                   <string>Pause fit in progress</string>
                   </property>
                  </widget>
                 </item>
                 <item>
                  <widget class="QPushButton" name="askAdviceButton">
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clicking this button will cause a message to popup that advises which model is appropriate to use, given the event data.&lt;/p&gt;&lt;p&gt;A heuristic is applied in determining this message and you may disagree with the advice. It is always possible to try a model other than the one suggested.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
                   <property name="text">
                    <string>Ask advice on model to use</string>
                   </property>
@@ -3469,15 +3520,31 @@
                 </item>
                 <item>
                  <widget class="QPushButton" name="showDiffractionButton">
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When a diffraction model is in use, clicking this button will show a single-wavelength diffraction light pattern projected on the ground. The wavelength used is taken from the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Wavelength (nm)&lt;/span&gt; edit box.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Note:&lt;/span&gt; There is no real value to this display other than educational. It may help demonstrate the fact that, particularly for low rho events (rho = asteroid_radius / Fresnel_length), your observation point may be outside the geometric edge of the asteroid shadow (i.e., a miss), yet the observed lightcurve can show the effect of the asteroid passage, often with an &lt;span style=&quot; text-decoration: underline;&quot;&gt;increase&lt;/span&gt; in light!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
                   <property name="text">
                    <string>Show diffraction pattern on ground</string>
                   </property>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="showLcpButton">
+                 <widget class="QPushButton" name="demoModelButton">
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clicking this button will calculate and display a model ligtcurve using the current set of parameters. It will be positioned around a selected point.&lt;/p&gt;&lt;p&gt;An error message will appear if exactly one point is not selected.&lt;/p&gt;&lt;p&gt;The selected point will remain shown so that if a new position is clearly needed, an easy assessment of where a better selection point should be placed will be eased. Just be sure to remove the old point so that only a single point is left selected.&lt;/p&gt;&lt;p&gt;In any case, once a fit process is started, the selected point will be erased.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
                   <property name="text">
-                   <string>Show lightcurve parameters</string>
+                   <string>Demo model lightcurve</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="printEventParametersButton">
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clicking this button causes a listing of all the current lightcurve parameters to be shown in the log panel.&lt;/p&gt;&lt;p&gt;This is the same action that is automatically called at the end of a successful fit to provide a completed final report, so normally one would have no need to use this button.&lt;/p&gt;&lt;p&gt;One possible time to use this button is if &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Pause fit in progress&lt;/span&gt; was clicked and you wish the current fit achieved to be treated as the best fit and want to add the current lightcurve settings to the final report.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                  <property name="text">
+                   <string>Print event parameters</string>
                   </property>
                  </widget>
                 </item>
@@ -3498,6 +3565,9 @@
                 </property>
                 <item>
                  <widget class="QLineEdit" name="fitMetricEdit">
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This is a read-only indicator of the current value of the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Fit metric&lt;/span&gt; (a normalized chi-squared metric is used where the normalization is done by dividing the raw chi-squared value by the variance of the baseline data points and dividing again by the nummber of points that are being compared).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
                   <property name="readOnly">
                    <bool>true</bool>
                   </property>
@@ -3509,6 +3579,9 @@
                    <font>
                     <bold>true</bold>
                    </font>
+                  </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;These are read-only indicators of the current value of the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Fit metric &lt;/span&gt;and the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;change&lt;/span&gt; caused by an optimization step applied to one of the fitting parameters. &lt;/p&gt;&lt;p&gt;A normalized chi-squared metric is used where the normalization is done by dividing the raw chi-squared value by the variance of the baseline data points and dividing again by the number of points that are being compared) and the change caused by an optimization step applied to one of the fitting parameters.&lt;/p&gt;&lt;p&gt;The metric in use is to be minimized, so favorable changes are negative (the step taken caused the metric to get smaller) and shown in green, while unfavorable changes are positive (the step taken caused the metric to increase) and are shown in red.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="text">
                    <string>&lt;--Fit metric    change--&gt;</string>
@@ -3522,6 +3595,9 @@
                     <width>16777215</width>
                     <height>16777215</height>
                    </size>
+                  </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This is a read-only indicator of the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;change&lt;/span&gt; caused by an optimization step applied to one of the fitting parameters. &lt;/p&gt;&lt;p&gt;A normalized chi-squared metric is used where the normalization is done by dividing the raw chi-squared value by the variance of the baseline data points and dividing again by the number of points that are being compared) and the change caused by an optimization step applied to one of the fitting parameters.&lt;/p&gt;&lt;p&gt;The metric in use is to be minimized, so favorable changes are negative (the step taken caused the metric to get smaller) and shown in green, while unfavorable changes are positive (the step taken caused the metric to increase) and are shown in red.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="autoFillBackground">
                    <bool>false</bool>
@@ -3552,7 +3628,7 @@
                    </sizepolicy>
                   </property>
                   <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Name this asteroid event for possible future reference and data recovery by using the Past events dropdown selector available at the right..&lt;/p&gt;&lt;p&gt;This makes the entries 'sticky' in the sense that the data entered in this panel can be recovered later.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Provide a name for this set of asteroid event data for future reference. After a successful &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Save event&lt;/span&gt;, the data set can be restored by using the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Past events&lt;/span&gt; dropdown selector available at the right.&lt;/p&gt;&lt;p&gt;This makes the entries that define this occultation (asteroid size, distance, speed, etc.) 'sticky' in the sense that the data unique to this occultation event can be recovered later.&lt;/p&gt;&lt;p&gt;A &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Save event&lt;/span&gt; attempt will only work if a complete set of data has been filled in. That means that all the edit boxes enclosed in the three black bars must be filled in.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Note: &lt;/span&gt;Until some text has been entered in this edit box, all the edit boxes between the three black bars will be disabled, so this is the starting point for a new event. The expected workflow is: read a csv file, name the event, fill in the edit boxes, and click &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Save event&lt;/span&gt;. The name of the csv file currently in use is added to the saved data during this process so event data is tied to a specific file.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                  </widget>
                 </item>
@@ -3576,6 +3652,9 @@
                     <height>16777215</height>
                    </size>
                   </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If all of the edit boxes enclosed in the three black bars below have been filled in, clicking this button will save the data to a special file in your home directory using the name provided in the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Current event&lt;/span&gt; edit box.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Note:&lt;/span&gt; the event data is saved together with the name of the csv file in use at the moment. When this data set is selected in the future, if the csv file in use at that time does not match the name of the csv file in use when &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Save event&lt;/span&gt; was clicked, you will receive a warning message as this is often a mistake of some kind.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
                   <property name="text">
                    <string>Save event</string>
                   </property>
@@ -3596,7 +3675,26 @@
                    </size>
                   </property>
                   <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Can you right click on comboBox&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This box contains a list of previous event data sets that have been saved by clicking on the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Save event &lt;/span&gt;button to the left.&lt;/p&gt;&lt;p&gt;The first entry in this list is always titled &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;&amp;lt;clear event data&amp;gt;&lt;/span&gt; and, if selected (by clicking on it), will clear all of the edit boxes between the three black bars. Clicking any other entry will restore the saved data and fill in all the edit boxes between the three black bars.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Note:&lt;/span&gt; when you select a data set, there is the possibility that you will receive a &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;'file mismatch' &lt;/span&gt;warning. This means that the data set was first created and saved in conjunction with a different csv file than the one in use at the moment. This is usually a mistake and usually due to selecting the wrong data set. But sometimes this can be deliberate, in which case the warning can be simply ignored - or, you can click on the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Save event&lt;/span&gt; button to change the file association to the one currently in use.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                  <property name="maxVisibleItems">
+                   <number>20</number>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="deleteEventButton">
+                  <property name="maximumSize">
+                   <size>
+                    <width>80</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clicking this button will delete the currently selected data set. You will need to answer a &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;'do you really mean it?'&lt;/span&gt; message to complete the action.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                  <property name="text">
+                   <string>Delete event</string>
                   </property>
                  </widget>
                 </item>
@@ -3605,9 +3703,9 @@
               <widget class="QWidget" name="layoutWidget">
                <property name="geometry">
                 <rect>
-                 <x>570</x>
+                 <x>590</x>
                  <y>220</y>
-                 <width>111</width>
+                 <width>91</width>
                  <height>82</height>
                 </rect>
                </property>
@@ -3620,7 +3718,7 @@
                    </font>
                   </property>
                   <property name="text">
-                   <string>Star size</string>
+                   <string>Star diameter</string>
                   </property>
                  </widget>
                 </item>
@@ -3748,6 +3846,9 @@
                  <height>22</height>
                 </rect>
                </property>
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When a popup plot of the theoretical lightcurve is produced, a set of notes can be added that show the values of the most signficant parameters used to produce the lightcurve. This checkbox enables that data to be added to the plot. If the resulting plot appears too cluttered, leave this box unchecked.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Note:&lt;/span&gt; a plot will be produced only in response to a click on the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Demo model lightcurve&lt;/span&gt; button while the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Enable plot&lt;/span&gt; checkbox to the left is checked. These plots have a set of controls (icons along the top of the plot) that can be used to zoom, pan, and change other aspects of the plot. Experiment with these if you are using these plots for documentation purposes.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
                <property name="text">
                 <string>with notes</string>
                </property>
@@ -3761,6 +3862,9 @@
                  <height>22</height>
                 </rect>
                </property>
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When a popup plot of the theoretical lightcurve is produced, a legend can be added that shows the colors of the theoretical underlying lightcurve and the camera response (which adds the effect of the frame time integration produced by the camera). This checkbox enables that legend to be added to the plot. If the resulting plot appears too cluttered, leave this box unchecked.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Note:&lt;/span&gt; a plot will be produced only in response to a click on the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Demo model lightcurve&lt;/span&gt; button while the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Enable plot&lt;/span&gt; checkbox to the left is checked. These plots have a set of controls (icons along the top of the plot) that can be used to zoom, pan, and change other aspects of the plot. Experiment with these if you are using these plots for documentation purposes.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
                <property name="text">
                 <string>with  legends</string>
                </property>
@@ -3773,6 +3877,9 @@
                  <width>91</width>
                  <height>22</height>
                 </rect>
+               </property>
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When a popup plot of the theoretical lightcurve is produced, the x axis can be either time (seconds) or distance (km). This checkbox controls which units will be used for the x axis.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Note:&lt;/span&gt; a plot will be produced only in response to a click on the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Demo model lightcurve&lt;/span&gt; button while the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Enable plot&lt;/span&gt; checkbox to the left is checked. These plots have a set of controls (icons along the top of the plot) that can be used to zoom, pan, and change other aspects of the plot. Experiment with these if you are using these plots for documentation purposes.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
                <property name="text">
                 <string>versus time</string>
@@ -3790,8 +3897,11 @@
                  <height>22</height>
                 </rect>
                </property>
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If this box is checked when the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Demo model lightcurve&lt;/span&gt; button is clicked, a two part popup plot showing the theoretical lightcurve and a depiction of the event will be produced.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Note:&lt;/span&gt; these plots have a set of controls (icons along the top of the plot) that can be used to zoom, pan, and change other aspects of the plot. Experiment with these if you are using these plots for documentation purposes.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
                <property name="text">
-                <string>Show details ---:</string>
+                <string>Enable plot ---:</string>
                </property>
                <property name="checked">
                 <bool>false</bool>
@@ -3813,6 +3923,9 @@
                    <font>
                     <bold>true</bold>
                    </font>
+                  </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Asteroid diameter&lt;/span&gt; can be entered either in units of &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Km&lt;/span&gt; or &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;mas&lt;/span&gt; (milli-arc-seconds). Once a units selection has been made by typing a value into the box, the other associated edit box will become read-only. The value of that entry will be calculated and filled in once all the parameters between these two black bars have a value in each column. This is done to avoid the posibilty of an inconsistent value being entered.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="text">
                    <string>Asteroid diameter</string>
@@ -3896,6 +4009,9 @@
                     <bold>true</bold>
                    </font>
                   </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This is a read-only edit box. It is filled in by the user selecting point pairs in the observation data and clicking the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Select&lt;/span&gt; button below. This may be repeated multiple times. Once all desired points have been select, click the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Calc&lt;/span&gt; button to extract the baseline statistics. These are used to fill in the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Baseline ADU&lt;/span&gt; value and provide the baseline noise variance for use in the fit metric calculation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
                   <property name="text">
                    <string>Baseline ADU</string>
                   </property>
@@ -3915,6 +4031,9 @@
                  <layout class="QHBoxLayout" name="horizontalLayout_40">
                   <item>
                    <widget class="QPushButton" name="baselineADUbutton">
+                    <property name="toolTip">
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Click this button once a point pair has been placed on the baseline area that exludes any event data. The points selected will be changed to a salmon color.&lt;/p&gt;&lt;p&gt;This operation may be reated multiple time.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    </property>
                     <property name="text">
                      <string>Select</string>
                     </property>
@@ -3922,6 +4041,9 @@
                   </item>
                   <item>
                    <widget class="QPushButton" name="calcBaselineADUbutton">
+                    <property name="toolTip">
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Click this button once the baseline points that are useful in determing the baseline intensity and variance have been selected.&lt;/p&gt;&lt;p&gt;This will cause the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Baseline ADU&lt;/span&gt; edit box to be filled in and, if a &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;MagDrop&lt;/span&gt; value is available, the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Bottom ADU&lt;/span&gt; value as well.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    </property>
                     <property name="text">
                      <string>Calc</string>
                     </property>
@@ -3929,6 +4051,9 @@
                   </item>
                   <item>
                    <widget class="QPushButton" name="clearBaselineADUselectionButton">
+                    <property name="toolTip">
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This button removes the salmon coloring of the points selected by using the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Select&lt;/span&gt; button.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    </property>
                     <property name="text">
                      <string>Clear</string>
                     </property>
@@ -3943,7 +4068,7 @@
                 <rect>
                  <x>180</x>
                  <y>220</y>
-                 <width>131</width>
+                 <width>161</width>
                  <height>80</height>
                 </rect>
                </property>
@@ -3954,6 +4079,9 @@
                    <font>
                     <bold>true</bold>
                    </font>
+                  </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This is a read-only value that is filled in automatically once both a &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Baseline ADU&lt;/span&gt; value is available and a &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;MagDrop&lt;/span&gt; value has been entered in the edit box below.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="text">
                    <string>Bottom ADU</string>
@@ -3975,8 +4103,11 @@
                       <bold>true</bold>
                      </font>
                     </property>
+                    <property name="toolTip">
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When a value is entered in this edit box, if there is already a value present in the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Baseline ADU&lt;/span&gt; edit box, the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Bottom ADU&lt;/span&gt; value will be automatically calculated from the predicted magDrop for the event.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    </property>
                     <property name="text">
-                     <string>MagDrop</string>
+                     <string>Predicted magDrop</string>
                     </property>
                    </widget>
                   </item>
@@ -4003,6 +4134,9 @@
                    <font>
                     <bold>true</bold>
                    </font>
+                  </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This is a read-only display of the Fresnel length (km) and time (seconds) calculated using the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Wavelength (nm)&lt;/span&gt; displayed in the edit box above, in conjunction with &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Asteroid distance&lt;/span&gt;.&lt;/p&gt;&lt;p&gt;The fresnel definition used in this program is: &lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;fresnel_length = sqrt(asteroid_distance * wavelength / 2)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="text">
                    <string>Fresnel size</string>
@@ -4057,26 +4191,13 @@
                 </item>
                </layout>
               </widget>
-              <widget class="QCheckBox" name="traceCheckBox">
-               <property name="geometry">
-                <rect>
-                 <x>800</x>
-                 <y>10</y>
-                 <width>77</width>
-                 <height>22</height>
-                </rect>
-               </property>
-               <property name="text">
-                <string>Trace</string>
-               </property>
-              </widget>
               <widget class="QWidget" name="layoutWidget">
                <property name="geometry">
                 <rect>
-                 <x>360</x>
-                 <y>410</y>
-                 <width>343</width>
-                 <height>76</height>
+                 <x>340</x>
+                 <y>430</y>
+                 <width>451</width>
+                 <height>77</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_15">
@@ -4087,8 +4208,11 @@
                     <bold>true</bold>
                    </font>
                   </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This set of edit boxes controls the size of the step changes tried during a fit optimization of the various parameters.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
                   <property name="text">
-                   <string>Precision of 'fit' parameters:</string>
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Precision of 'fit' parameters (step size for parameter changes):&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                  </widget>
                 </item>
@@ -4096,15 +4220,33 @@
                  <layout class="QHBoxLayout" name="horizontalLayout_41">
                   <item>
                    <layout class="QVBoxLayout" name="verticalLayout_12">
+                    <property name="spacing">
+                     <number>6</number>
+                    </property>
                     <item>
                      <widget class="QLabel" name="edgeTimePrecisionLabel">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="minimumSize">
+                       <size>
+                        <width>0</width>
+                        <height>0</height>
+                       </size>
+                      </property>
                       <property name="font">
                        <font>
                         <bold>true</bold>
                        </font>
                       </property>
+                      <property name="toolTip">
+                       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This entry sets the size of each time step taken during the search for best fit. This is referred to as &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Position&lt;/span&gt; because it is used to determine the best positioning of the model lightcurve on the x (time) axis.&lt;/p&gt;&lt;p&gt;Acceptable values are &amp;gt;= 0.0001 (units are seconds)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                      </property>
                       <property name="text">
-                       <string>Edge time</string>
+                       <string>Position step size</string>
                       </property>
                      </widget>
                     </item>
@@ -4112,11 +4254,23 @@
                      <layout class="QHBoxLayout" name="horizontalLayout_14">
                       <item>
                        <widget class="QLineEdit" name="edgeTimePrecisionEdit">
+                        <property name="minimumSize">
+                         <size>
+                          <width>50</width>
+                          <height>0</height>
+                         </size>
+                        </property>
                         <property name="maximumSize">
                          <size>
                           <width>50</width>
                           <height>16777215</height>
                          </size>
+                        </property>
+                        <property name="toolTip">
+                         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This entry sets the size of each time step taken during the search for best fit. This is referred to as &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Position&lt;/span&gt; because it is used to determine the best positioning of the model lightcurve on the x (time) axis.&lt;/p&gt;&lt;p&gt;Acceptable values are &amp;gt;= 0.0001 (units are seconds)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                        </property>
+                        <property name="placeholderText">
+                         <string/>
                         </property>
                        </widget>
                       </item>
@@ -4126,6 +4280,9 @@
                          <font>
                           <bold>true</bold>
                          </font>
+                        </property>
+                        <property name="toolTip">
+                         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This entry sets the size of each time step taken during the search for best fit. This is referred to as &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Position&lt;/span&gt; because it is used to determine the best positioning of the model lightcurve on the x (time) axis.&lt;/p&gt;&lt;p&gt;Acceptable values are &amp;gt;= 0.0001 (units are seconds)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                         </property>
                         <property name="text">
                          <string>seconds</string>
@@ -4145,8 +4302,11 @@
                         <bold>true</bold>
                        </font>
                       </property>
+                      <property name="toolTip">
+                       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This entry sets the size (in seconds) of the steps used when optimizing the fit by changing the chord duration.&lt;/p&gt;&lt;p&gt;Setting this value to zero will cause chord optimization to be skipped.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                      </property>
                       <property name="text">
-                       <string>Chord duration</string>
+                       <string>Chord dur step size</string>
                       </property>
                      </widget>
                     </item>
@@ -4154,11 +4314,21 @@
                      <layout class="QHBoxLayout" name="horizontalLayout_15">
                       <item>
                        <widget class="QLineEdit" name="chordDurationPrecisionEdit">
+                        <property name="minimumSize">
+                         <size>
+                          <width>50</width>
+                          <height>0</height>
+                         </size>
+                        </property>
                         <property name="maximumSize">
                          <size>
                           <width>50</width>
                           <height>16777215</height>
                          </size>
+                        </property>
+                        <property name="toolTip">
+                         <string>This entry sets the size (in seconds) of the steps used when optimizing the fit by changing the chord duration.
+Setting this value to zero will cause chord optimization to be skipped.</string>
                         </property>
                        </widget>
                       </item>
@@ -4168,6 +4338,10 @@
                          <font>
                           <bold>true</bold>
                          </font>
+                        </property>
+                        <property name="toolTip">
+                         <string>This entry sets the size (in seconds) of the steps used when optimizing the fit by changing the chord duration.
+Setting this value to zero will cause chord optimization to be skipped.</string>
                         </property>
                         <property name="text">
                          <string>seconds</string>
@@ -4187,8 +4361,11 @@
                         <bold>true</bold>
                        </font>
                       </property>
+                      <property name="toolTip">
+                       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This entry sets the size (in degrees) of the steps used when optimizing the fit by changing the D or R limb angle. This is applicable only to the edge on disk model and plays no part in any other model.&lt;/p&gt;&lt;p&gt;Setting this value to zero will cause angle optimization to be skipped.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                      </property>
                       <property name="text">
-                       <string>Limb angle</string>
+                       <string>Limb angle step</string>
                       </property>
                      </widget>
                     </item>
@@ -4196,11 +4373,21 @@
                      <layout class="QHBoxLayout" name="horizontalLayout_16">
                       <item>
                        <widget class="QLineEdit" name="limbAnglePrecisionEdit">
+                        <property name="minimumSize">
+                         <size>
+                          <width>50</width>
+                          <height>0</height>
+                         </size>
+                        </property>
                         <property name="maximumSize">
                          <size>
                           <width>50</width>
                           <height>16777215</height>
                          </size>
+                        </property>
+                        <property name="toolTip">
+                         <string>This entry sets the size (in degrees) of the steps used when optimizing the fit by changing the D or R limb angle. This is applicable only to the edge on disk model and plays no part in any other model.
+Setting this value to zero will cause angle optimization to be skipped.</string>
                         </property>
                        </widget>
                       </item>
@@ -4211,6 +4398,10 @@
                           <bold>true</bold>
                          </font>
                         </property>
+                        <property name="toolTip">
+                         <string>This entry sets the size (in degrees) of the steps used when optimizing the fit by changing the D or R limb angle. This is applicable only to the edge on disk model and plays no part in any other model.
+Setting this value to zero will cause angle optimization to be skipped.</string>
+                        </property>
                         <property name="text">
                          <string>degrees</string>
                         </property>
@@ -4220,7 +4411,102 @@
                     </item>
                    </layout>
                   </item>
+                  <item>
+                   <layout class="QVBoxLayout" name="verticalLayout_16">
+                    <item>
+                     <widget class="QLabel" name="missDistancePrecisionLabel">
+                      <property name="font">
+                       <font>
+                        <bold>true</bold>
+                       </font>
+                      </property>
+                      <property name="toolTip">
+                       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This entry sets the size (in km) of the steps used when optimizing the fit by changing the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Miss distance&lt;/span&gt;.&lt;/p&gt;&lt;p&gt;This entry is relevant only when the event has a &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Miss distance (km)&lt;/span&gt; setting greater than 0.&lt;/p&gt;&lt;p&gt;Setting this value to zero will force &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Miss distance&lt;/span&gt; optimization to be skipped.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                      </property>
+                      <property name="text">
+                       <string>Miss distance step</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <layout class="QHBoxLayout" name="horizontalLayout_45">
+                      <item>
+                       <widget class="QLineEdit" name="missDistancePrecisionEdit">
+                        <property name="minimumSize">
+                         <size>
+                          <width>50</width>
+                          <height>0</height>
+                         </size>
+                        </property>
+                        <property name="maximumSize">
+                         <size>
+                          <width>50</width>
+                          <height>16777215</height>
+                         </size>
+                        </property>
+                        <property name="toolTip">
+                         <string>This entry sets the size (in km) of the steps used when optimizing the fit by changing the Miss distance.
+This entry is relevant only when the event has a Miss distance (km) setting greater than 0.
+Setting this value to zero will force Miss distance optimization to be skipped.</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QLabel" name="missDistancePrecisionUnitsLabel">
+                        <property name="font">
+                         <font>
+                          <bold>true</bold>
+                         </font>
+                        </property>
+                        <property name="toolTip">
+                         <string>This entry sets the size (in km) of the steps used when optimizing the fit by changing the Miss distance.
+This entry is relevant only when the event has a Miss distance (km) setting greater than 0.
+Setting this value to zero will force Miss distance optimization to be skipped.</string>
+                        </property>
+                        <property name="text">
+                         <string>km         </string>
+                        </property>
+                       </widget>
+                      </item>
+                     </layout>
+                    </item>
+                   </layout>
+                  </item>
                  </layout>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QWidget" name="layoutWidget">
+               <property name="geometry">
+                <rect>
+                 <x>360</x>
+                 <y>400</y>
+                 <width>241</width>
+                 <height>26</height>
+                </rect>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout_44">
+                <item>
+                 <widget class="QLineEdit" name="beingOptimizedEdit">
+                  <property name="toolTip">
+                   <string>This a read-only indicator of the event parameter that is currently being optimized.</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="beingOptimizedLabel">
+                  <property name="font">
+                   <font>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This a read-only indicator of the event parameter that is currently being optimized.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                  <property name="text">
+                   <string>Parameter being optimized</string>
+                  </property>
+                 </widget>
                 </item>
                </layout>
               </widget>
@@ -4352,7 +4638,7 @@
                <item row="1" column="1">
                 <widget class="QCheckBox" name="allowNewVersionPopupCheckbox">
                  <property name="toolTip">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#aa0000;&quot;&gt;What's new:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;In the diffraction tab: added a selection box so that asteroid distance can be entered either as parallax (arcseconds) or as AU.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;Reviewed and amended the context help on this tab to be more explanatory.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Older:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;Added a button to the diffraction tab to be used during penumbral fits to perform a re-fit. Also added better context help regarding the selection of D and R regions (cautioning user to only include points in the penumbral transition regions)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;Timestamp error lines now distinguish between 'cadence jitter' and 'dropped frames' by using an additional color.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;Cadence jitter happens when high frame rates create a situation where frame recording cannot keep up and the traffic control implemented by the computer changes the arrival/timestamp time of frames so that some appear a little earlier and others a little late.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;Cadence jitter is defined as a timing discrepancy of between 20% and 80% of a frame time and is represented by a yellow line.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;Timing discrepancies greater than 80% of a frame time continue to be shown as a red line and are assumed to come from dropped frames. In any case, they deserve attention.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#aa0000;&quot;&gt;What's new:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;A small change is that during automatic block integration, if a block size is filled in (there is an edit box added to the right of the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Manual/automatic block integrate&lt;/span&gt; button on the analysis tab), then the program will determine the optimum offset for only that block size. This speeds up the process when the block size is known and avoids interference from a deep and/or long occultation.&lt;/p&gt;&lt;p&gt;Another small change involves the reporting of magDrop error bars. It is possible for a magDrop error bar calculation to produce an unreasonable answer - that is, the error bars imply a possible negative magDrop (such as magDrop = 1.5 +/- 4.2). In this case, an error bar is not reported and a % drop is reported instead.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Model selection tab:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;The big change is the addition of a new tab that provides comprehensive modeling of: optical diffraction (including a central spot when the asteroid rho is low enough for that to be significant); disk-on-disk for cases where the star disk and asteroid disk are not too different (geometric optics is used); and edge-on-disk where there is a significant star disk being occulted by a large asteroid - in which case a penumbral curve results and limb angles become an interesting parameter to fit (again, geometrical optics are employed).&lt;/p&gt;&lt;p&gt;For all models, it is possible to have a 'miss' (defined as the case where the star center does not intersect the asteroid) yet the observation will record some light changes - a 'miss' is a limiting case of a 'graze' where the centerline of the star passage lies outside the perimeter of the asteroid. In the case of a low rho asteroid (i.e., an asteroid that is less than 16 fresnel lengths in radius) diffraction event, such a 'miss' can even result in the light &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;increasing&lt;/span&gt; during the event. Such 'miss' events are fully modeled because, even though a chord duration cannot be computed, the 'miss' distance can be used to establish a limit to the edge of an asteroid.&lt;/p&gt;&lt;p&gt;If this message has appeared, a folder of example csv files has been written to C:\Users\&amp;lt;you&amp;gt;\Desktop\model-examples. They are useful in 'playing' with the new features as they include a 'noisy' version of a model lightcurve along within a noise-free version. This is useful in experimenting with the automatic fitting procedure. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                  </property>
                  <property name="text">
                   <string>allow 'new version' information pop-up</string>
@@ -5800,6 +6086,7 @@
   <tabstop>asteroidDistAUedit</tabstop>
   <tabstop>asteroidDistArcsecEdit</tabstop>
   <tabstop>wavelengthEdit</tabstop>
+  <tabstop>missDistanceKmEdit</tabstop>
   <tabstop>baselineADUedit</tabstop>
   <tabstop>bottomADUedit</tabstop>
   <tabstop>magDropEdit</tabstop>
@@ -5816,7 +6103,7 @@
   <tabstop>diffractionRadioButton</tabstop>
   <tabstop>edgeOnDiskRadioButton</tabstop>
   <tabstop>diskOnDiskRadioButton</tabstop>
-  <tabstop>demoLightcurveButton</tabstop>
+  <tabstop>fitLightcurveButton</tabstop>
   <tabstop>askAdviceButton</tabstop>
   <tabstop>showDiffractionButton</tabstop>
   <tabstop>fitMetricEdit</tabstop>
@@ -5876,6 +6163,18 @@
   <tabstop>showDetailsCheckBox</tabstop>
   <tabstop>calcBaselineADUbutton</tabstop>
   <tabstop>clearBaselineADUselectionButton</tabstop>
+  <tabstop>blockSizeEdit</tabstop>
+  <tabstop>singlePointDropButton</tabstop>
+  <tabstop>magDropSqwaveEdit</tabstop>
+  <tabstop>pauseFitButton</tabstop>
+  <tabstop>demoModelButton</tabstop>
+  <tabstop>printEventParametersButton</tabstop>
+  <tabstop>deleteEventButton</tabstop>
+  <tabstop>edgeTimePrecisionEdit</tabstop>
+  <tabstop>chordDurationPrecisionEdit</tabstop>
+  <tabstop>limbAnglePrecisionEdit</tabstop>
+  <tabstop>missDistancePrecisionEdit</tabstop>
+  <tabstop>beingOptimizedEdit</tabstop>
  </tabstops>
  <resources/>
  <connections/>
