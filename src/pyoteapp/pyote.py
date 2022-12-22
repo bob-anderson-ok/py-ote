@@ -477,8 +477,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.saveCurrentEventButton.installEventFilter(self)
         self.saveCurrentEventButton.clicked.connect(self.saveCurrentEvent)
 
-        self.editButton.installEventFilter(self)
-        self.editButton.clicked.connect(self.enablePrimaryEntryEditBoxes)
+        # self.editButton.installEventFilter(self)
+        # self.editButton.clicked.connect(self.enablePrimaryEntryEditBoxes)
 
         self.pastEventsLabel.installEventFilter(self)
         self.pastEventsComboBox.installEventFilter(self)
@@ -581,6 +581,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.diskOnDiskRadioButton.clicked.connect(self.handleModelSelectionRadioButtonClick)
 
         self.squareWaveRadioButton.installEventFilter(self)
+        self.squareWaveRadioButton.clicked.connect(self.handleModelSelectionRadioButtonClick)
 
         self.fitLightcurveButton.installEventFilter(self)
         self.askAdviceButton.installEventFilter(self)
@@ -1086,7 +1087,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             )
 
             if reply == QMessageBox.Yes:
-                filepath = f'pyoteLCP\\LCP_{currentSelection}.p'
+                LCPdir = os.path.dirname(self.csvFilePath)
+                filepath = f'{LCPdir}\\LCP_{currentSelection}.p'
                 if os.path.exists(filepath):
                     os.remove(filepath)
                     self.showInfo(f'Deleted: {currentSelection}')
@@ -2315,6 +2317,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     def handleModelSelectionRadioButtonClick(self):
         self.showDiffractionButton.setEnabled(self.diffractionRadioButton.isChecked())
+        self.DdegreesEdit.setEnabled(self.edgeOnDiskRadioButton.isChecked())
+        self.RdegreesEdit.setEnabled(self.edgeOnDiskRadioButton.isChecked())
+        self.limbAnglePrecisionEdit.setEnabled(self.edgeOnDiskRadioButton.isChecked())
 
     def fillLightcurvePanelEditBoxes(self):
         self.frameTimeEdit.setText(f'{self.Lcp.frame_time:0.5f}')
@@ -2367,15 +2372,18 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         # self.showInfo(f'A past event named {file_selected} has been selected')
         if file_selected == '<clear event data>':
             self.initializeModelLightcurvesPanel()
+            self.handleModelSelectionRadioButtonClick()
             return
         self.fitLightcurveButton.setStyleSheet("background-color: yellow")
-        full_name = f'pyoteLCP\\LCP_{file_selected}.p'
+        LCPdir = os.path.dirname(self.csvFilePath)
+        full_name = f'{LCPdir}\\LCP_{file_selected}.p'
         try:
             pickle_file = open(full_name, "rb")
             lcp_item = pickle.load(pickle_file)
             self.Lcp = lcp_item
             self.fillLightcurvePanelEditBoxes()
             self.enableLightcurveButtons()
+            self.handleModelSelectionRadioButtonClick()
             self.modelTimeOffset = None
             self.fitStatus = None
             self.currentEventEdit.setText(file_selected)
@@ -2411,9 +2419,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         # This allows the current filename to be updated
         self.Lcp.sourceFile = os.path.split(self.csvFilePath)[1]
 
-        LCPdirectory = "pyoteLCP"
-        if not os.path.exists(LCPdirectory):
-            os.mkdir(LCPdirectory)
+        # LCPdirectory = "pyoteLCP"
+        # if not os.path.exists(LCPdirectory):
+        #     os.mkdir(LCPdirectory)
+
+        LCPdirectory = os.path.dirname(self.csvFilePath)
 
         # We overwrite without warning an event file with the same name
         filename = f'LCP_{self.currentEventEdit.text()}.p'
@@ -2421,8 +2431,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         pickle.dump(self.Lcp, open(filepath, 'wb'))
 
         self.showInfo(f'The current event data was written to '
-                      f'\n\n{filepath}\n\n'
-                      f'in your current working directory.')
+                      f'\n\n{filepath}\n\n')
 
         # Update the past events combo box
         self.pastEventsComboBox.clear()
@@ -2631,7 +2640,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             if not allCoreElementsEntered:
                 return
 
-            self.editButton.setEnabled(False)
+            # self.editButton.setEnabled(False)
             self.editMode = False
 
             if self.Lcp is not None:
@@ -2777,9 +2786,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     def fillPastEventsComboBox(self):
         self.pastEventsComboBox.addItem('<clear event data>')
-        file_list = glob.glob(r'pyoteLCP\LCP_*.p')
-        for filename in file_list:
-            clean_name = filename[13:-2]
+        LCPdir = os.path.dirname(self.csvFilePath)
+        file_list = glob.glob(f'{LCPdir}\\LCP_*.p')
+        for file in file_list:
+            filename = os.path.basename(file)
+            clean_name = filename[4:-2]
             self.pastEventsComboBox.addItem(clean_name)
 
     def initializeModelLightcurvesPanel(self):
@@ -2797,7 +2808,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.currentEventEdit.setEnabled(True)
 
         self.pastEventsComboBox.clear()
-        self.fillPastEventsComboBox()
+        if self.csvFilePath is not None:
+            self.fillPastEventsComboBox()
 
         self.baselineADUedit.setEnabled(False)
         self.baselineADUedit.clear()
@@ -2836,7 +2848,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.wavelengthEdit.setEnabled(False)
         self.wavelengthEdit.clear()
 
-        self.editButton.setEnabled(False)
+        # self.editButton.setEnabled(False)
 
         self.DdegreesEdit.setEnabled(False)
         self.DdegreesEdit.clear()
@@ -2873,11 +2885,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.modelXkm = None
         self.modelY = None
 
+        self.handleModelSelectionRadioButtonClick()
+
         self.newRedrawMainPlot()
 
     def enableLightcurveButtons(self):
 
-        self.editButton.setEnabled(False)
+        # self.editButton.setEnabled(False)
 
         self.diffractionRadioButton.setEnabled(True)
         self.edgeOnDiskRadioButton.setEnabled(True)
@@ -3701,9 +3715,23 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 dest_dir = f"{os.environ.get('userprofile')}\\Desktop\\model-examples"
 
             if os.path.exists(dest_dir):
-                self.showMsg(f'We found {dest_dir} already present and have therefore left it untouched',
-                             color='black', bold=True)
+                self.showMsg(f'We found {dest_dir} already present. Adding any new examples ...',
+                             color='black', bold=True, blankLine=False)
+                distExamples = [os.path.basename(file) for file in glob.glob(f'{source_dir}\\*.csv')]
+                desktopExamples = [os.path.basename(file) for file in glob.glob(f'{dest_dir}\\*.csv')]
+                for filename in distExamples:
+                    if filename in desktopExamples:
+                        self.showMsg(f'... skipping already present: {filename}',
+                                     color='black', bold=True, blankLine=False)
+                    else:
+                        self.showMsg(f'... adding {filename}',
+                                     color='black', bold=True, blankLine=False)
+                        source = f'{source_dir}\\{filename}'
+                        destination = f'{dest_dir}\\{filename}'
+                        shutil.copy(source, destination)
+
             else:
+                # We write the entire folder to the Desktop (i.e., create the folder)
                 shutil.copytree(source_dir, dest_dir)
                 self.showMsg(f'We have copied the example csv files from the distribution '
                              f'into {dest_dir} (useful for training purposes).',

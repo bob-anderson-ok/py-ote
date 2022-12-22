@@ -3046,7 +3046,7 @@
                    </font>
                   </property>
                   <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Limb angles are only relevant  when an edge on disk model has been selected for use.&lt;/p&gt;&lt;p&gt;In an edge on disk model, the part of asteroid that occults the star is modeled as a straight edge (which is usually at an angle with respect to the direction of motion of the star). The D and R &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Limb angles&lt;/span&gt; are used to describe the slope of the asteroid edge at the point where the star is occulted by the asteroid. The convention used is that 90 degrees represents a direct 'hit' while smaller values indicate an ever increasing slope to the intersection of the asteroid edge with the star disk.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Limb angles are only relevant when an edge on disk model has been selected for use. They will be disabled (grayed out) for all other models.&lt;/p&gt;&lt;p&gt;In an edge on disk model, the part of asteroid that occults the star is modeled as a straight edge (which is usually at an angle with respect to the direction of motion of the star). The D and R &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Limb angles&lt;/span&gt; are used to describe the slope of the asteroid edge at the point where the star is occulted by the asteroid. The convention used is that 90 degrees represents a direct 'hit' while smaller values indicate an ever increasing slope to the intersection of the asteroid edge with the star disk.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="text">
                    <string>Limb angles</string>
@@ -3068,6 +3068,9 @@
                      <font>
                       <bold>true</bold>
                      </font>
+                    </property>
+                    <property name="toolTip">
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If this box is grayed out, it is because &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Model to use:&lt;/span&gt; is not &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;edge on disk&lt;/span&gt;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                     </property>
                     <property name="text">
                      <string>D (degrees)</string>
@@ -3091,6 +3094,9 @@
                      <font>
                       <bold>true</bold>
                      </font>
+                    </property>
+                    <property name="toolTip">
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If this box is grayed out, it is because &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Model to use:&lt;/span&gt; is not &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;edge on disk&lt;/span&gt;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                     </property>
                     <property name="text">
                      <string>R (degrees)</string>
@@ -3240,7 +3246,7 @@
                  <x>680</x>
                  <y>100</y>
                  <width>110</width>
-                 <height>78</height>
+                 <height>51</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_45">
@@ -3261,13 +3267,6 @@
                 </item>
                 <item>
                  <widget class="QLineEdit" name="wavelengthEdit"/>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="editButton">
-                  <property name="text">
-                   <string>Edit</string>
-                  </property>
-                 </widget>
                 </item>
                </layout>
               </widget>
@@ -4362,7 +4361,7 @@ Setting this value to zero will cause chord optimization to be skipped.</string>
                        </font>
                       </property>
                       <property name="toolTip">
-                       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This entry sets the size (in degrees) of the steps used when optimizing the fit by changing the D or R limb angle. This is applicable only to the edge on disk model and plays no part in any other model.&lt;/p&gt;&lt;p&gt;Setting this value to zero will cause angle optimization to be skipped.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This entry sets the size (in degrees) of the steps used when optimizing the fit by changing the D or R limb angle. This is applicable only to the edge on disk model and plays no part in any other model. If this box is grayed out, it is because &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Model to use:&lt;/span&gt; is not &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;edge on disk&lt;/span&gt;.&lt;/p&gt;&lt;p&gt;Setting this value to zero will cause angle optimization to be skipped.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                       </property>
                       <property name="text">
                        <string>Limb angle step</string>
@@ -4386,8 +4385,7 @@ Setting this value to zero will cause chord optimization to be skipped.</string>
                          </size>
                         </property>
                         <property name="toolTip">
-                         <string>This entry sets the size (in degrees) of the steps used when optimizing the fit by changing the D or R limb angle. This is applicable only to the edge on disk model and plays no part in any other model.
-Setting this value to zero will cause angle optimization to be skipped.</string>
+                         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This entry sets the size (in degrees) of the steps used when optimizing the fit by changing the D or R limb angle. This is applicable only to the edge on disk model and plays no part in any other model. If this box is grayed out, it is because &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Model to use:&lt;/span&gt; is not &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;edge on disk&lt;/span&gt;.&lt;/p&gt;&lt;p&gt;Setting this value to zero will cause angle optimization to be skipped.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                         </property>
                        </widget>
                       </item>
@@ -4399,8 +4397,7 @@ Setting this value to zero will cause angle optimization to be skipped.</string>
                          </font>
                         </property>
                         <property name="toolTip">
-                         <string>This entry sets the size (in degrees) of the steps used when optimizing the fit by changing the D or R limb angle. This is applicable only to the edge on disk model and plays no part in any other model.
-Setting this value to zero will cause angle optimization to be skipped.</string>
+                         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This entry sets the size (in degrees) of the steps used when optimizing the fit by changing the D or R limb angle. This is applicable only to the edge on disk model and plays no part in any other model. If this box is grayed out, it is because &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Model to use:&lt;/span&gt; is not &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;edge on disk&lt;/span&gt;.&lt;/p&gt;&lt;p&gt;Setting this value to zero will cause angle optimization to be skipped.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                         </property>
                         <property name="text">
                          <string>degrees</string>
@@ -6154,7 +6151,6 @@ Setting this value to zero will force Miss distance optimization to be skipped.<
   <tabstop>mainPlot</tabstop>
   <tabstop>table</tabstop>
   <tabstop>textOut</tabstop>
-  <tabstop>editButton</tabstop>
   <tabstop>saveCurrentEventButton</tabstop>
   <tabstop>squareWaveRadioButton</tabstop>
   <tabstop>showAnnotationsCheckBox</tabstop>
