@@ -88,7 +88,7 @@ from pyoteapp.iterative_logl_functions import find_best_event_from_min_max_size
 from pyoteapp.iterative_logl_functions import find_best_r_only_from_min_max_size
 from pyoteapp.iterative_logl_functions import find_best_d_only_from_min_max_size
 # from pyoteapp.subframe_timing_utilities import generate_underlying_lightcurve_plots, fresnel_length_km
-from pyoteapp.subframe_timing_utilities import time_correction, intensity_at_time
+# from pyoteapp.subframe_timing_utilities import time_correction, intensity_at_time
 
 
 cursorAlert = pyqtSignal()
@@ -265,7 +265,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.yValues = None            # observation data
 
-        self.editMode = False
+        # self.editMode = False
 
         self.chordSizeSecondsEdited = False
         self.chordSizeKmEdited = False
@@ -1116,7 +1116,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     self.showInfo(f'D angle must be > 0 and <= 90')
                     self.DdegreesEdit.clear()
         except ValueError as e:
-            self.showInfo(f'{e}')
+            self.showInfo(f'DdegreesEdit: {e}')
             self.DdegreesEdit.clear()
 
     def processRangleEditFinish(self):
@@ -1129,7 +1129,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.showInfo(f'R angle must be > 0 and <= 90')
                 self.RdegreesEdit.clear()
         except ValueError as e:
-            self.showInfo(f'{e}')
+            self.showInfo(f'RdegreesEdit: {e}')
             self.RdegreesEdit.clear()
 
     def processEdgeTimePrecisionFinish(self):
@@ -1211,52 +1211,60 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     def processAsteroidDiameterKmFinish(self):
         try:
+            if self.asteroidDiameterKmEdit.text() == "":
+                return
             value = float(self.asteroidDiameterKmEdit.text())
             if value < 0:
                 self.showInfo(f'Asteroid diameter cannot be negative.')
                 self.asteroidDiameterKmEdit.clear()
                 return
         except ValueError as e:
-            self.showInfo(f'{e}')
+            self.showInfo(f'asteroidDiameterKmEdit: {e}')
             return
 
         self.processModelLightcurveCoreEdit()
 
     def processAsteroidDiameterMasFinish(self):
         try:
+            if self.asteroidDiameterMasEdit.text() == "":
+                return
             value = float(self.asteroidDiameterMasEdit.text())
             if value < 0:
                 self.showInfo(f'Asteroid diameter cannot be negative.')
                 self.asteroidDiameterMasEdit.clear()
                 return
         except ValueError as e:
-            self.showInfo(f'{e}')
+            self.showInfo(f'asteroidDiameterMasEdit: {e}')
             return
 
         self.processModelLightcurveCoreEdit()
 
     def processAsteroidSpeedShadowFinish(self):
         try:
+            if self.asteroidSpeedShadowEdit.text() == "":
+                return
             value = float(self.asteroidSpeedShadowEdit.text())
             if value < 0:
                 self.showInfo(f'Asteroid speed cannot be negative.')
                 self.asteroidSpeedShadowEdit.clear()
                 return
         except ValueError as e:
-            self.showInfo(f'{e}')
+            self.showInfo(f'asteroidSpeedShadowEdit: {e}')
             return
 
         self.processModelLightcurveCoreEdit()
 
     def processAsteroidSpeedSkyFinish(self):
         try:
+            if self.asteroidSpeedSkyEdit.text() == "":
+                return
             value = float(self.asteroidSpeedSkyEdit.text())
             if value < 0:
                 self.showInfo(f'Asteroid speed cannot be negative.')
                 self.asteroidSpeedSkyEdit.clear()
                 return
         except ValueError as e:
-            self.showInfo(f'{e}')
+            self.showInfo(f'asteroidSpeedSkyEdit: {e}')
             return
 
         self.processModelLightcurveCoreEdit()
@@ -1315,39 +1323,45 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     def processMissDistanceFinish(self):
         try:
+            if self.missDistanceKmEdit.text() == "":
+                return
             value = float(self.missDistanceKmEdit.text())
             if value < 0:
                 self.showInfo(f'Miss distance cannot be negative.')
                 self.missDistanceKmEdit.clear()
                 return
         except ValueError as e:
-            self.showInfo(f'{e}')
+            self.showInfo(f'missDistanceKmEdit: {e}')
             return
 
         self.processModelLightcurveCoreEdit()
 
     def processAsteroidDistAUfinish(self):
         try:
+            if self.asteroidDistAUedit.text() == "":
+                return
             value = float(self.asteroidDistAUedit.text())
             if value < 0:
                 self.showInfo(f'Asteroid distance cannot be negative.')
                 self.asteroidDistAUedit.clear()
                 return
         except ValueError as e:
-            self.showInfo(f'{e}')
+            self.showInfo(f'asteroidDistAUedit: {e}')
             return
 
         self.processModelLightcurveCoreEdit()
 
     def processAsteroidDistArcsecFinish(self):
         try:
+            if self.asteroidDistArcsecEdit.text() == "":
+                return
             value = float(self.asteroidDistArcsecEdit.text())
             if value < 0:
                 self.showInfo(f'Asteroid distance cannot be negative.')
                 self.asteroidDistArcsecEdit.clear()
                 return
         except ValueError as e:
-            self.showInfo(f'{e}')
+            self.showInfo(f'asteroidDistArcsecEdit: {e}')
             return
 
         self.processModelLightcurveCoreEdit()
@@ -1360,7 +1374,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.wavelengthEdit.clear()
                 return
         except ValueError as e:
-            self.showInfo(f'{e}')
+            self.showInfo(f'wavelengthEdit: {e}')
             return
 
         self.processModelLightcurveCoreEdit()
@@ -1544,7 +1558,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         try:
             demo_diffraction_field(self.Lcp, title_adder=self.currentEventEdit.text())
         except ValueError as e:
-            self.showInfo(f'{e}')
+            self.showInfo(f'plotDiffractionPatternOnGround(): {e}')
         self.showDiffractionButton.setText('Show diffraction pattern on the ground')
 
     def optimizePosition(self):
@@ -2191,8 +2205,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             QtWidgets.QApplication.processEvents()
             self.newRedrawMainPlot()
 
-            self.fitLightcurveButton.setText('Fit model to observation points')
-            self.fitLightcurveButton.setStyleSheet("background-color: yellow")
+            self.setFitModelButtonColorAndText()
 
             # We need this test because the lightcurve needs to be repeatedly
             # recalculated during the operation of self.fitImprovementControlCenter()
@@ -2233,8 +2246,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
             self.newRedrawMainPlot()
 
-            self.fitLightcurveButton.setText('Fit model to observation points')
-            self.fitLightcurveButton.setStyleSheet("background-color: yellow")
+            # self.fitLightcurveButton.setText('Fit model to observation points')
+            # self.fitLightcurveButton.setStyleSheet("background-color: yellow")
+            self.setFitModelButtonColorAndText()
 
             # We need this test because the lightcurve needs to be repeatedly
             # recalculated during the operation of self.fitImprovementControlCenter()
@@ -2275,8 +2289,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
             self.newRedrawMainPlot()
 
-            self.fitLightcurveButton.setText('Fit model to observation points')
-            self.fitLightcurveButton.setStyleSheet("background-color: yellow")
+            # self.fitLightcurveButton.setText('Fit model to observation points')
+            # self.fitLightcurveButton.setStyleSheet("background-color: yellow")
+            self.setFitModelButtonColorAndText()
 
             # We need this test because the lightcurve needs to be repeatedly
             # recalculated during the operation of self.fitImprovementControlCenter()
@@ -2286,6 +2301,15 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             QtWidgets.QApplication.processEvents()
 
             return
+
+    def setFitModelButtonColorAndText(self):
+        if self.fitStatus is not None:
+            if not self.fitStatus.fitComplete:
+                self.fitLightcurveButton.setText('... best fit search in progress')
+                self.fitLightcurveButton.setStyleSheet("background-color: red")
+        else:
+            self.fitLightcurveButton.setText('Fit model to observation points')
+            self.fitLightcurveButton.setStyleSheet("background-color: yellow")
 
     def computeInitialModelTimeOffset(self):
         # Note: this routine centers the model D and R edges around the selected point, but
@@ -2310,7 +2334,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 edgeTimeDelta = float(self.edgeTimePrecisionEdit.text())
             except ValueError as e:
                 self.showInfo(f'Error in Edge time precision.\n\n'
-                              f'{e}')
+                              f'edgeTimePrecisionEdit: {e}')
                 return
 
             self.modelTimeOffset = self.modelTimeOffset - self.modelTimeOffset % edgeTimeDelta
@@ -2466,6 +2490,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.wavelengthEdit.setEnabled(True)
 
+        self.handleModelSelectionRadioButtonClick()
+
     def processModelParameterChange(self):
         self.parameterChangeEntryCount += 1
 
@@ -2529,16 +2555,20 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.newRedrawMainPlot()
 
         except ValueError as e:  # noqc
-            self.showInfo(f'{e}')
+            self.showInfo(f'At end of processModelParameterChange(): {e}')
 
     def processModelLightcurveCoreEdit(self):
+        # We do this frequently to be certain to pick up when do gray out limb angle stuff
+        self.handleModelSelectionRadioButtonClick()
+
         try:
             empty = ''
             baselineAduEntered = not self.baselineADUedit.text() == empty
             frameTimeEntered = not self.frameTimeEdit.text() == empty
             magDropEntered = not self.magDropEdit.text() == empty
 
-            if self.Lcp is not None and not self.editMode:
+            # if self.Lcp is not None and not self.editMode:
+            if self.Lcp is not None:
                 if baselineAduEntered and magDropEntered and frameTimeEntered:
                     magDrop = float(self.magDropEdit.text())
                     baselineADU = float(self.baselineADUedit.text())
@@ -2556,79 +2586,97 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
             frameTimeEntered = not self.frameTimeEdit.text() == empty
             try:
+                if self.frameTimeEdit.text() == empty:
+                    return
                 _ = float(self.frameTimeEdit.text())
             except ValueError as e:
-                self.showInfo(f'{e}')
+                self.showInfo(f'frame time edit: {e}')
                 return
 
             asteroidDiameterKmEntered = not self.asteroidDiameterKmEdit.text() == empty
             if asteroidDiameterKmEntered:
                 try:
+                    if self.asteroidDiameterKmEdit.text() == empty:
+                        return
                     _ = float(self.asteroidDiameterKmEdit.text())
                 except ValueError as e:
-                    self.showInfo(f'{e}')
+                    self.showInfo(f'asteroid diameter (km): {e}')
                     return
                 self.asteroidDiameterMasEdit.setEnabled(False)
 
             asteroidDiameterMasEntered = not self.asteroidDiameterMasEdit.text() == empty
             if asteroidDiameterMasEntered:
                 try:
+                    if self.asteroidDiameterMasEdit.text() == empty:
+                        return
                     _ = float(self.asteroidDiameterMasEdit.text())
                 except ValueError as e:
-                    self.showInfo(f'{e}')
+                    self.showInfo(f'asteroid diameter (mas) {e}')
                     return
                 self.asteroidDiameterKmEdit.setEnabled(False)
 
             asteroidShadowSpeedEntered = not self.asteroidSpeedShadowEdit.text() == empty
             if asteroidShadowSpeedEntered:
                 try:
+                    if self.asteroidSpeedShadowEdit.text() == empty:
+                        return
                     _ = float(self.asteroidSpeedShadowEdit.text())
                 except ValueError as e:
-                    self.showInfo(f'{e}')
+                    self.showInfo(f'shadow speed: {e}')
                     return
                 self.asteroidSpeedSkyEdit.setEnabled(False)
 
             asteroidSkySpeedEntered = not self.asteroidSpeedSkyEdit.text() == empty
             if asteroidSkySpeedEntered:
                 try:
+                    if self.asteroidSpeedSkyEdit.text() == empty:
+                        return
                     _ = float(self.asteroidSpeedSkyEdit.text())
                 except ValueError as e:
-                    self.showInfo(f'{e}')
+                    self.showInfo(f'sky speed: {e}')
                     return
                 self.asteroidSpeedShadowEdit.setEnabled(False)
 
             asteroidDistAUentered = not self.asteroidDistAUedit.text() == empty
             if asteroidDistAUentered:
                 try:
+                    if self.asteroidDistAUedit.text() == empty:
+                        return
                     _ = float(self.asteroidDistAUedit.text())
                 except ValueError as e:
-                    self.showInfo(f'{e}')
+                    self.showInfo(f'asteroid distance (AU): {e}')
                     return
                 self.asteroidDistArcsecEdit.setEnabled(False)
 
             asteroidDistArcsecEntered = not self.asteroidDistArcsecEdit.text() == empty
             if asteroidDistArcsecEntered:
                 try:
+                    if self.asteroidDistArcsecEdit.text() == empty:
+                        return
                     _ = float(self.asteroidDistArcsecEdit.text())
                 except ValueError as e:
-                    self.showInfo(f'{e}')
+                    self.showInfo(f'asteroid distance (arcsec): {e}')
                     return
                 self.asteroidDistAUedit.setEnabled(False)
 
             wavelengthEntered = not self.wavelengthEdit.text() == empty
             if wavelengthEntered:
                 try:
+                    if self.wavelengthEdit.text() == empty:
+                        return
                     _ = int(self.wavelengthEdit.text())
                 except ValueError as e:
-                    self.showInfo(f'{e}')
+                    self.showInfo(f'wavelength (nm): {e}')
                     return
 
             missDistanceEntered = not self.missDistanceKmEdit.text() == empty
             if missDistanceEntered:
                 try:
+                    if self.missDistanceKmEdit.text() == empty:
+                        return
                     _ = float(self.missDistanceKmEdit.text())
                 except ValueError as e:
-                    self.showInfo(f'{e}')
+                    self.showInfo(f'miss distance (km): {e}')
                     return
 
             allCoreElementsEntered = frameTimeEntered
@@ -2641,7 +2689,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 return
 
             # self.editButton.setEnabled(False)
-            self.editMode = False
+            # self.editMode = False
 
             if self.Lcp is not None:
                 if not self.missDistanceKmEdit.text() == empty:
@@ -2660,8 +2708,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             baselineADU = 100.0
             bottomADU = 0.0
 
-            self.DdegreesEdit.setText('90')
-            self.RdegreesEdit.setText('90')
+            self.DdegreesEdit.setText('45')
+            self.RdegreesEdit.setText('45')
 
             if asteroidShadowSpeedEntered:
                 self.Lcp = LightcurveParameters(
@@ -2747,7 +2795,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.fresnelSizeSecondsEdit.setText(f'{self.Lcp.fresnel_length_sec:0.5f}')
 
         except ValueError as e:  # noqc
-            self.showInfo(f'{e}')
+            self.showInfo(f'general error in CoreEdit(): {e}')
 
     def enableSecondaryEditBoxes(self):
         self.DdegreesEdit.setEnabled(True)
@@ -2759,17 +2807,17 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.starSizeKmEdit.setEnabled(True)
 
     def enablePrimaryEntryEditBoxes(self):
-        if not self.editMode:
-            self.editMode = False
-            self.frameTimeEdit.setEnabled(True)
-            self.missDistanceKmEdit.setEnabled(True)
-            self.asteroidDiameterKmEdit.setEnabled(True)
-            self.asteroidDiameterMasEdit.setEnabled(True)
-            self.asteroidSpeedShadowEdit.setEnabled(False)
-            self.asteroidSpeedSkyEdit.setEnabled(False)
-            self.asteroidDistAUedit.setEnabled(False)
-            self.asteroidDistArcsecEdit.setEnabled(False)
-            self.wavelengthEdit.setEnabled(True)
+        # if not self.editMode:
+        # self.editMode = False
+        self.frameTimeEdit.setEnabled(True)
+        self.missDistanceKmEdit.setEnabled(True)
+        self.asteroidDiameterKmEdit.setEnabled(True)
+        self.asteroidDiameterMasEdit.setEnabled(True)
+        self.asteroidSpeedShadowEdit.setEnabled(False)
+        self.asteroidSpeedSkyEdit.setEnabled(False)
+        self.asteroidDistAUedit.setEnabled(False)
+        self.asteroidDistArcsecEdit.setEnabled(False)
+        self.wavelengthEdit.setEnabled(True)
 
     def disablePrimaryEntryEditBoxes(self):
         self.frameTimeEdit.setEnabled(False)
@@ -3721,8 +3769,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 desktopExamples = [os.path.basename(file) for file in glob.glob(f'{dest_dir}\\*.csv')]
                 for filename in distExamples:
                     if filename in desktopExamples:
-                        self.showMsg(f'... skipping already present: {filename}',
-                                     color='black', bold=True, blankLine=False)
+                        # self.showMsg(f'... skipping already present: {filename}',
+                        #              color='black', bold=True, blankLine=False)
+                        pass
                     else:
                         self.showMsg(f'... adding {filename}',
                                      color='black', bold=True, blankLine=False)
@@ -4535,7 +4584,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 try:
                     specifiedBlockSize = int(self.blockSizeEdit.text())
                 except ValueError as e:
-                    self.showInfo(f'{e}')
+                    self.showInfo(f'blockSizeEdit: {e}')
                     return
                 self.showMsg(f'Analysis of specified block size of {specifiedBlockSize}\n'
                              f'to determine best offset', color='red', bold=True)
@@ -6624,41 +6673,41 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
     #
     #     return
 
-    def calculatePenumbralMetrics(self, D=None, R=None):
-        d_metric = r_metric = None
-        time_ranges = self.getUnderlyingLightCurveTimeRanges()
-
-        if D is not None:
-            time_ranges[0] = time_ranges[0] / self.timeDelta + D
-            time_ranges[1] = time_ranges[1] / self.timeDelta + D
-            d_metric = 0.0
-            # print('\nd participants in metric')
-            # for i in range(int(np.ceil(time_ranges[0])), int(np.ceil(time_ranges[1]))):
-            #     print(i, self.yValues[i], i - D,
-            #           intensity_at_time(self.underlyingLightcurveAns, (i - D) * self.timeDelta, 'D'))
-            n_vals_in_metric = 0
-            for i in range(int(np.ceil(time_ranges[0])), int(np.ceil(time_ranges[1]))):
-                lightcurve_intensity = intensity_at_time(self.underlyingLightcurveAns, (i - D) * self.timeDelta, 'D')
-                d_metric += (self.yValues[i] - lightcurve_intensity) ** 2
-                n_vals_in_metric += 1
-            d_metric = d_metric / n_vals_in_metric
-
-        if R is not None:
-            time_ranges[2] = time_ranges[2] / self.timeDelta + R
-            time_ranges[3] = time_ranges[3] / self.timeDelta + R
-            r_metric = 0.0
-            # print('\nr participants in metric')
-            # for i in range(int(np.ceil(time_ranges[2])), int(np.ceil(time_ranges[3]))):
-            #     print(i, self.yValues[i], i - R,
-            #           intensity_at_time(self.underlyingLightcurveAns, (i - R) * self.timeDelta, 'R'))
-            n_vals_in_metric = 0
-            for i in range(int(np.ceil(time_ranges[2])), int(np.ceil(time_ranges[3]))):
-                lightcurve_intensity = intensity_at_time(self.underlyingLightcurveAns, (i - R) * self.timeDelta, 'R')
-                r_metric += (self.yValues[i] - lightcurve_intensity) ** 2
-                n_vals_in_metric += 1
-            r_metric = r_metric / n_vals_in_metric
-
-        return d_metric, r_metric
+    # def calculatePenumbralMetrics(self, D=None, R=None):
+    #     d_metric = r_metric = None
+    #     time_ranges = self.getUnderlyingLightCurveTimeRanges()
+    #
+    #     if D is not None:
+    #         time_ranges[0] = time_ranges[0] / self.timeDelta + D
+    #         time_ranges[1] = time_ranges[1] / self.timeDelta + D
+    #         d_metric = 0.0
+    #         # print('\nd participants in metric')
+    #         # for i in range(int(np.ceil(time_ranges[0])), int(np.ceil(time_ranges[1]))):
+    #         #     print(i, self.yValues[i], i - D,
+    #         #           intensity_at_time(self.underlyingLightcurveAns, (i - D) * self.timeDelta, 'D'))
+    #         n_vals_in_metric = 0
+    #         for i in range(int(np.ceil(time_ranges[0])), int(np.ceil(time_ranges[1]))):
+    #             lightcurve_intensity = intensity_at_time(self.underlyingLightcurveAns, (i - D) * self.timeDelta, 'D')
+    #             d_metric += (self.yValues[i] - lightcurve_intensity) ** 2
+    #             n_vals_in_metric += 1
+    #         d_metric = d_metric / n_vals_in_metric
+    #
+    #     if R is not None:
+    #         time_ranges[2] = time_ranges[2] / self.timeDelta + R
+    #         time_ranges[3] = time_ranges[3] / self.timeDelta + R
+    #         r_metric = 0.0
+    #         # print('\nr participants in metric')
+    #         # for i in range(int(np.ceil(time_ranges[2])), int(np.ceil(time_ranges[3]))):
+    #         #     print(i, self.yValues[i], i - R,
+    #         #           intensity_at_time(self.underlyingLightcurveAns, (i - R) * self.timeDelta, 'R'))
+    #         n_vals_in_metric = 0
+    #         for i in range(int(np.ceil(time_ranges[2])), int(np.ceil(time_ranges[3]))):
+    #             lightcurve_intensity = intensity_at_time(self.underlyingLightcurveAns, (i - R) * self.timeDelta, 'R')
+    #             r_metric += (self.yValues[i] - lightcurve_intensity) ** 2
+    #             n_vals_in_metric += 1
+    #         r_metric = r_metric / n_vals_in_metric
+    #
+    #     return d_metric, r_metric
 
     # def doPenumbralFitIterationReport(self):
     #     self.showMsg(f'Penumbral fit iteration {self.penumbralFitIterationNumber}:', bold=True, color='green')
@@ -6718,22 +6767,22 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
     #     # else:
     #     #     return None
 
-    def getUnderlyingLightCurveTimeRanges(self):
-        # We use this routine to find the 'range' of times that are covered by the underlying lightcurve.
-        # The times returned are relative to the geometric edge (i.e., time = 0.00)
-        B = self.underlyingLightcurveAns['B']
-        A = self.underlyingLightcurveAns['A']
-        hi_intensity = B - 0.05 * (B - A)
-        lo_intensity = A + 0.05 * (B - A)
-        d_early_time = - time_correction(correction_dict=self.underlyingLightcurveAns,
-                                         transition_point_intensity=hi_intensity, edge_type='D')
-        d_late_time = - time_correction(correction_dict=self.underlyingLightcurveAns,
-                                        transition_point_intensity=lo_intensity, edge_type='D')
-        r_early_time = - time_correction(correction_dict=self.underlyingLightcurveAns,
-                                         transition_point_intensity=lo_intensity, edge_type='R')
-        r_late_time = - time_correction(correction_dict=self.underlyingLightcurveAns,
-                                        transition_point_intensity=hi_intensity, edge_type='R')
-        return [d_early_time, d_late_time, r_early_time, r_late_time]
+    # def getUnderlyingLightCurveTimeRanges(self):
+    #     # We use this routine to find the 'range' of times that are covered by the underlying lightcurve.
+    #     # The times returned are relative to the geometric edge (i.e., time = 0.00)
+    #     B = self.underlyingLightcurveAns['B']
+    #     A = self.underlyingLightcurveAns['A']
+    #     hi_intensity = B - 0.05 * (B - A)
+    #     lo_intensity = A + 0.05 * (B - A)
+    #     d_early_time = - time_correction(correction_dict=self.underlyingLightcurveAns,
+    #                                      transition_point_intensity=hi_intensity, edge_type='D')
+    #     d_late_time = - time_correction(correction_dict=self.underlyingLightcurveAns,
+    #                                     transition_point_intensity=lo_intensity, edge_type='D')
+    #     r_early_time = - time_correction(correction_dict=self.underlyingLightcurveAns,
+    #                                      transition_point_intensity=lo_intensity, edge_type='R')
+    #     r_late_time = - time_correction(correction_dict=self.underlyingLightcurveAns,
+    #                                     transition_point_intensity=hi_intensity, edge_type='R')
+    #     return [d_early_time, d_late_time, r_early_time, r_late_time]
 
     def findEvent(self):
 

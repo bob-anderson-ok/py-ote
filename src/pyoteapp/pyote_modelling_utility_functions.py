@@ -458,8 +458,8 @@ class LightcurveParameters:
     star_radius_km: float = None
     star_rho: float = None  # star diameter expressed in fresnel units (no setter)
 
-    D_limb_angle_degrees: float = 90  # To avoid possible infinities users of
-    R_limb_angle_degrees: float = 90  # these values should change to 89.999
+    D_limb_angle_degrees: float = 45
+    R_limb_angle_degrees: float = 45
 
     chord_length_km: float = None
     chord_length_sec: float = None

@@ -236,7 +236,6 @@ def lightcurve_convolve(sample: np.ndarray, lightcurve: np.ndarray, shift_needed
     # duplicate points at the beginning.  This works well only if the lightcurve has already achieved
     # 'steady state' in this region.  We strive to guarantee this everywhere this function is called.
 
-    # TODO Consider providing an 'event' value
     leading_edge_extension = np.ones(len(sample) - 1) * lightcurve[0]
     lightcurve_extended = np.concatenate((leading_edge_extension, lightcurve))
 
@@ -346,7 +345,7 @@ def get_star_chord_samples(
 
 
 def time_correction(correction_dict, transition_point_intensity, edge_type='D'):
-
+    # This routine is no longer used
     # TODO Remove this test code that neuters time_correction()
     return 0.0
 
