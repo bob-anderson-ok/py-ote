@@ -1,4 +1,5 @@
 include src/pyoteapp/pyote-info.pdf
+include srd/pyoteapp/model-help.pdf
 include src/pyoteapp/diffraction-table.p
 include src/pyoteapp/example-penumbral.csv
 include src/pyoteapp/model-examples/*

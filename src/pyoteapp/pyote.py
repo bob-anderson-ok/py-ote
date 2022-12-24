@@ -1703,7 +1703,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             return "skipped"
 
         self.fitStatus.metricInUse = 'both'
-        self.modelMetric = self.dMetric + self.rMetric
+        bestMetricSoFar = self.dMetric + self.rMetric
+        failureCount = 0
         stepPositiveAtEntry = self.fitStatus.chordDelta >= 0
         self.beingOptimizedEdit.setText('Chord secs')
 
@@ -1715,16 +1716,16 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             if stepWasTaken:
                 self.computeModelLightcurve()
                 self.calcModelFitMetric(showData=False)
-            if (self.modelMetric < self.bestFit.thisPassMetric) and stepWasTaken:
-                self.fitStatus.failureCount = 0
-                self.bestFit.thisPassMetric = self.modelMetric
+            if (self.modelMetric < bestMetricSoFar) and stepWasTaken:
+                failureCount = 0
+                bestMetricSoFar = self.modelMetric
                 self.bestFit.chordTime = self.fitStatus.chordTime
             else:
-                self.fitStatus.failureCount += 1
+                failureCount += 1
                 if not stepWasTaken:
-                    self.fitStatus.failureCount = 99
-                if self.fitStatus.failureCount >= 2:
-                    self.fitStatus.failureCount = 0
+                    failureCount = 99
+                if failureCount >= 2:
+                    failureCount = 0
                     # We return to best known values and change search direction
                     self.fitStatus.chordDelta *= -1  # Change step direction
                     self.returnToBestChordFit()
@@ -3259,6 +3260,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.clearBaselineADUselectionButton.setStyleSheet(None)
 
         self.magDropEdit.setFocus()
+        self.showInfo(f'Now enter Predicted magDrop')
 
         self.bkgndRegionLimits = []
         self.clearBaselineRegionsButton.setEnabled(False)
@@ -3624,8 +3626,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.showHelp(self.helpButton)
 
     def helpPdfButtonClicked(self):
-        # self.showHelp(self.helpPdfButton)
-        self.showInfo(f'This pdf to be supplied after beta testing is complete.')
+        self.openModelHelpFile()
 
     def ne3ExplanationClicked(self):
         self.showHelp(self.ne3ExplanationButton)
@@ -3877,6 +3878,16 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.showMsg('Failed to open pyote-info.pdf', bold=True, color='red', blankLine=False)
             self.showMsg('Location of pyote information file: ' + helpFilePath, bold=True, color='blue')
 
+    def openModelHelpFile(self):
+        helpFilePath = os.path.join(os.path.split(__file__)[0], 'model-help.pdf')
+
+        url = QtCore.QUrl.fromLocalFile(helpFilePath)
+        fileOpened = QtGui.QDesktopServices.openUrl(url)
+
+        if not fileOpened:
+            self.showMsg('Failed to open model-help.pdf', bold=True, color='red', blankLine=False)
+            self.showMsg('Location of model-help.pdf file: ' + helpFilePath, bold=True, color='blue')
+
     def mouseEvent(self):
 
         if not self.blankCursor:
@@ -3979,6 +3990,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     def checkForNewVersion(self):
         latestVersion = getLatestPackageVersion('pyote')
+        self.showMsg(f'Query to PyPI returned latest version of PyOTE as: {latestVersion}',
+                     color='blue', bold=True)
         if latestVersion.startswith("none"):  # 'none' is returned when no Internet connection
             gotVersion = False
         else:
