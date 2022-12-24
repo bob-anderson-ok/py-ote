@@ -4,6 +4,7 @@ Created on Sat May 20 15:32:13 2017
 @author: Bob Anderson
 """
 import pickle
+import string
 import glob
 
 # TODO Comment these lines out when not investigating memory usage issues
@@ -1071,6 +1072,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
 # ====  New method entry point ===
 
+    @ staticmethod
+    def validFilename(file_name):
+        valid_filename_chars = "-_.() %s%s" % (string.ascii_letters, string.digits)
+        for char in file_name:
+            if char not in valid_filename_chars:
+                return False
+        return True
+
     def deletePastEvent(self):
         currentSelection = self.pastEventsComboBox.currentText()
         if not currentSelection == '<clear event data>':
@@ -1530,9 +1539,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.baselineADUedit.clear()
         self.clearBaselineADUselectionButton.setEnabled(True)
         self.markBaselineRegion()
+        self.calcBaselineADUbutton.setStyleSheet("background-color: lightblue")
 
     def calcBaselineADU(self):
         if self.baselinePointsMarked():
+            self.clearBaselineADUselectionButton.setStyleSheet("background-color: lightblue")
+
             self.calcBaselineStatisticsFromMarkedRegions()
             if self.sigmaB < 1.0:
                 self.sigmaB = 1.0
@@ -1541,7 +1553,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.Lcp.set('baseline_ADU', self.B)
                 self.Lcp.set('sigmaB', self.sigmaB)
                 self.processModelParameterChange()
-                # self.computeModelLightcurve()
         else:
             self.showInfo('Less than 3 baseline points are selected.')
 
@@ -1579,9 +1590,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         while True:   # We loop until there is a need to execute a return
 
-            # if self.pauseFitRequested:
-            #     self.processFitPauseRequest()
-            #     return
             if not self.keepRunning:
                 return "paused"
 
@@ -1626,6 +1634,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         failureCount = 0
 
         while True:
+            if not self.keepRunning:
+                return "paused"
             # Make an angle change, recompute the model lightcurve and get the new metric
             stepWasTaken = self.makeDangleStep()
             if stepWasTaken:
@@ -1661,6 +1671,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.beingOptimizedEdit.setText('R angle')
 
         while True:
+            if not self.keepRunning:
+                return "paused"
             # Make an angle change, recompute the model lightcurve and get the new metric
             stepWasTaken = self.makeRangleStep()
             if stepWasTaken:
@@ -1696,6 +1708,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.beingOptimizedEdit.setText('Chord secs')
 
         while True:
+            if not self.keepRunning:
+                return "paused"
             # Make a chord change, recompute the model lightcurve and get the new metric
             stepWasTaken = self.makeAchordTimeStep()
             if stepWasTaken:
@@ -1730,6 +1744,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.beingOptimizedEdit.setText('Miss Km')
 
         while True:
+            if not self.keepRunning:
+                return "paused"
             # Make a miss ditance change, recompute the model lightcurve and get the new metric
             stepWasTaken = self.makeAmissDistanceStep()
             if stepWasTaken:
@@ -2156,13 +2172,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             msg = QMessageBox()
             msg.setIcon(QMessageBox.Question)
             msg.setText(f'The square wave model is selected.\n\n'
-                        f'That model is handled in the Analysis tab. '
+                        f'That model is handled in the SqWave model tab. '
                         f'Do you want to switch to that tab?')
             msg.setWindowTitle('Get latest version of PyOTE query')
             msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
             retval = msg.exec_()
             if retval == QMessageBox.Yes:
-                self.switchToTabNamed('Analysis')
+                self.switchToTabNamed('SqWave model')
             return
 
         if demo and not len(self.selectedPoints) == 1:
@@ -2196,8 +2212,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                            plots_wanted=plots_wanted)
 
             self.pauseFitButton.setEnabled(True)
-            self.showMsg(f'... finished model lightcurve calculation.',
-                         color='red', bold=True, blankLine=True)
+            # self.showMsg(f'... finished model lightcurve calculation.',
+            #              color='red', bold=True, blankLine=True)
 
             self.computeInitialModelTimeOffset()
             if not demo:
@@ -2421,7 +2437,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             else:
                 # self.showInfo(f'event source file: {eventSourceFile}')
                 pass
-
+            self.currentEventEdit.setEnabled(False)
         except FileNotFoundError:
             self.showInfo(f'{full_name} could not be found.')
 
@@ -2443,19 +2459,18 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         # This allows the current filename to be updated
         self.Lcp.sourceFile = os.path.split(self.csvFilePath)[1]
 
-        # LCPdirectory = "pyoteLCP"
-        # if not os.path.exists(LCPdirectory):
-        #     os.mkdir(LCPdirectory)
-
         LCPdirectory = os.path.dirname(self.csvFilePath)
 
         # We overwrite without warning an event file with the same name
-        filename = f'LCP_{self.currentEventEdit.text()}.p'
-        filepath = os.path.join(LCPdirectory, filename)
-        pickle.dump(self.Lcp, open(filepath, 'wb'))
+        try:
+            filename = f'LCP_{self.currentEventEdit.text()}.p'
+            filepath = os.path.join(LCPdirectory, filename)
+            pickle.dump(self.Lcp, open(filepath, 'wb'))
 
-        self.showInfo(f'The current event data was written to '
-                      f'\n\n{filepath}\n\n')
+            self.showInfo(f'The current event data was written to '
+                          f'\n\n{filepath}\n\n')
+        except Exception as e:
+            self.showInfo(f'Attemp to write event data: {e}')
 
         # Update the past events combo box
         self.pastEventsComboBox.clear()
@@ -2467,7 +2482,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                           f'of event data is allowed.')
             return
 
-        self.newEventDataBeingEntered = True
+        proposed_filename = self.currentEventEdit.text()
+        if not self.validFilename(proposed_filename):
+            self.showInfo(f'The event name contains a character that is invalid in a filename.')
+            return
+
+        self.handleModelSelectionRadioButtonClick()
 
         self.baselineADUedit.setEnabled(False)
         self.baselineADUbutton.setEnabled(True)
@@ -2477,20 +2497,29 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.magDropEdit.setEnabled(False)
 
         self.frameTimeEdit.setEnabled(True)
+
         self.missDistanceKmEdit.setEnabled(True)
+        self.missDistanceKmEdit.clear()
 
         self.asteroidDiameterKmEdit.setEnabled(True)
+        self.asteroidDiameterKmEdit.clear()
         self.asteroidDiameterMasEdit.setEnabled(True)
+        self.asteroidDiameterMasEdit.clear()
 
         self.asteroidSpeedShadowEdit.setEnabled(True)
+        self.asteroidSpeedShadowEdit.clear()
         self.asteroidSpeedSkyEdit.setEnabled(True)
+        self.asteroidSpeedSkyEdit.clear()
 
         self.asteroidDistAUedit.setEnabled(True)
+        self.asteroidDistAUedit.clear()
         self.asteroidDistArcsecEdit.setEnabled(True)
+        self.asteroidDistArcsecEdit.clear()
 
         self.wavelengthEdit.setEnabled(True)
+        self.wavelengthEdit.clear()
 
-        self.handleModelSelectionRadioButtonClick()
+        self.newEventDataBeingEntered = True
 
     def processModelParameterChange(self):
         self.parameterChangeEntryCount += 1
@@ -2698,12 +2727,22 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 if self.Lcp.sigmaB is not None:
                     return  # We got here from edit mode and baseline data is available
 
+            self.baselineADUedit.setStyleSheet("background-color: lightblue")
+            self.baselineADUbutton.setStyleSheet("background-color: lightblue")
+            # self.calcBaselineADUbutton.setStyleSheet("background-color: lightblue")
+            # self.clearBaselineADUselectionButton.setStyleSheet("background-color: lightblue")
+
+            # Make sure that he plot cursor is not in Arrow mode
+            self.blankCursor = True
+            self.mainPlot.viewport().setProperty("cursor",
+                                                 QtGui.QCursor(QtCore.Qt.CursorShape.BlankCursor))
             self.showInfo(f'Set baselineADU by selecting points to be\n'
                           f'included in the calculation - multiple regions can be\n'
                           f'selected.\n\n'
-                          f'When all regions have been selected, click on th Calc button.\n\n'
-                          f'If desired, the selected points can be returned to their\n'
-                          f'normal color by clicking the Clear button')
+                          f'When all regions have been selected, click on the Calc button.\n\n'
+                          f'Finish by clicking the Clear button. '
+                          f'This will put the entry cursor in the Predicted magDrop box '
+                          f'ready for that entry.')
 
             baselineADU = 100.0
             bottomADU = 0.0
@@ -3214,6 +3253,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.tabWidget.tabBar().moveTab(from_index, to_index)
 
     def clearBaselineRegions(self):
+        self.baselineADUedit.setStyleSheet(None)
+        self.baselineADUbutton.setStyleSheet(None)
+        self.calcBaselineADUbutton.setStyleSheet(None)
+        self.clearBaselineADUselectionButton.setStyleSheet(None)
+
+        self.magDropEdit.setFocus()
+
         self.bkgndRegionLimits = []
         self.clearBaselineRegionsButton.setEnabled(False)
         self.calcStatsFromBaselineRegionsButton.setEnabled(False)

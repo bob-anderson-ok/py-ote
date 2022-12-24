@@ -946,7 +946,7 @@ def generalizedDiffraction(LCP, wavelength1=None, wavelength2=None, skip_central
             rows_u.append(x_fl)
     else:
         plot_span = 3
-        x_km = np.linspace(-plot_span * asteroid_radius_km, plot_span * asteroid_radius_km, 1000)
+        x_km = np.linspace(-plot_span * asteroid_radius_km, plot_span * asteroid_radius_km, 2048)
         z_km = np.sqrt(graze_offset_km ** 2 + x_km ** 2)
 
         for wavelength in wavelengths:

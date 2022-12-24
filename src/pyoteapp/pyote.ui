@@ -2327,7 +2327,7 @@
              </widget>
              <widget class="QWidget" name="analysisTab">
               <attribute name="title">
-               <string>Analysis</string>
+               <string>SqWave model</string>
               </attribute>
               <layout class="QGridLayout" name="gridLayout_4">
                <item row="0" column="2">
@@ -2975,7 +2975,7 @@
              </widget>
              <widget class="QWidget" name="tab_3">
               <attribute name="title">
-               <string>Model selection</string>
+               <string>Other models</string>
               </attribute>
               <widget class="QWidget" name="layoutWidget_23">
                <property name="geometry">
