@@ -1044,7 +1044,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         # We are removing this procedure in version 4.8.0 and above
         # so that can use pipenv to install PyOTE without the need
-        # for an Anaconda3 install.
+        # for an Anaconda3 install or a pip install pyote==x.y.z
         # self.copy_desktop_icon_file_to_home_directory()
 
         self.helperThing = HelpDialog()
@@ -1553,6 +1553,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.Lcp.set('baseline_ADU', self.B)
                 self.Lcp.set('sigmaB', self.sigmaB)
                 self.processModelParameterChange()
+            self.clearBaselineRegions()
         else:
             self.showInfo('Less than 3 baseline points are selected.')
 
@@ -2521,6 +2522,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.wavelengthEdit.clear()
 
         self.newEventDataBeingEntered = True
+        self.asteroidDiameterKmEdit.setFocus()
+        QtWidgets.QApplication.processEvents()
 
     def processModelParameterChange(self):
         self.parameterChangeEntryCount += 1
@@ -2741,8 +2744,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                           f'included in the calculation - multiple regions can be\n'
                           f'selected.\n\n'
                           f'When all regions have been selected, click on the Calc button.\n\n'
-                          f'Finish by clicking the Clear button. '
-                          f'This will put the entry cursor in the Predicted magDrop box '
+                          f'This will clear the selected points and '
+                          f'put the entry cursor in the Predicted magDrop box '
                           f'ready for that entry.')
 
             baselineADU = 100.0
@@ -3260,7 +3263,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.clearBaselineADUselectionButton.setStyleSheet(None)
 
         self.magDropEdit.setFocus()
-        self.showInfo(f'Now enter Predicted magDrop')
+        self.showInfo(f'Enter Predicted magDrop')
 
         self.bkgndRegionLimits = []
         self.clearBaselineRegionsButton.setEnabled(False)
