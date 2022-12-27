@@ -662,7 +662,7 @@ class LightcurveParameters:
         else:
             output_str.append(f"chord_length_km:  None")
         if self.chord_length_sec is not None:
-            output_str.append(f"chord_length_sec: {self.chord_length_sec:0.2f} sec\n")
+            output_str.append(f"chord_length_sec: {self.chord_length_sec:0.4f} sec\n")
         else:
             output_str.append(f"chord_length_sec: None\n")
 
@@ -1187,7 +1187,7 @@ def illustrateDiskOnDiskEvent(LCP: LightcurveParameters, axes,
         event_type_str = 'graze'
 
     # Create the title for the plot
-    title_msg = 'The star is moving from left to right into the asteroid.\n'
+    title_msg = 'The asteroid is moving from right to left into the star.\n'
     axes.set_title(title_msg)
 
     # Create and place the star image
@@ -1329,7 +1329,7 @@ def illustrateEdgeOnDiskEvent(LCP: LightcurveParameters, axes,
         axes.plot([C.x, Z.x], [C.y, C.y], marker='', color='gray', linewidth=4)
 
     # Create the title for the plot
-    title_msg = 'The star is moving from left to right.\n'
+    title_msg = 'The asteroid is moving from right to left.\n'
     if add_gray_divider and LCP.miss_distance_km == 0:
         title_msg += 'The chord versus star size is too large to plot.'
         title_msg += '\nThis is indicated by the gray separator.'

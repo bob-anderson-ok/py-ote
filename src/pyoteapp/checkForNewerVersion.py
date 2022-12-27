@@ -81,7 +81,7 @@ def upgradePyote(pyoteversion):
 # about a package on PyPI
 def getLatestPackageVersion(package_name: str) -> str:
     import subprocess
-    response = subprocess.run(['python', '-m', 'pip', 'install', f"{package_name}==0.0.0"],
+    response = subprocess.run(['python3', '-m', 'pip', 'install', f"{package_name}==0.0.0"],
                               stderr=subprocess.PIPE, stdout=subprocess.PIPE)
     errorResponse = response.stderr.decode("utf-8")
     versions = errorResponse.split('versions: ')

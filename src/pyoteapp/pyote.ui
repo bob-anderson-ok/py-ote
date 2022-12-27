@@ -44,7 +44,7 @@
      <height>16777215</height>
     </size>
    </property>
-   <layout class="QGridLayout" name="gridLayout_9">
+   <layout class="QGridLayout" name="gridLayout_7">
     <item row="0" column="0">
      <widget class="QSplitter" name="splitterThree">
       <property name="enabled">
@@ -175,7 +175,7 @@
            <item>
             <widget class="QTabWidget" name="tabWidget">
              <property name="currentIndex">
-              <number>1</number>
+              <number>2</number>
              </property>
              <property name="movable">
               <bool>true</bool>
@@ -2344,131 +2344,167 @@
                 </spacer>
                </item>
                <item row="1" column="1">
-                <layout class="QVBoxLayout" name="verticalLayout_6">
+                <layout class="QHBoxLayout" name="horizontalLayout_46">
                  <item>
-                  <layout class="QHBoxLayout" name="horizontalLayout_42">
-                   <item>
-                    <widget class="QPushButton" name="doBlockIntegration">
-                     <property name="enabled">
-                      <bool>false</bool>
-                     </property>
-                     <property name="sizePolicy">
-                      <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
-                       <horstretch>0</horstretch>
-                       <verstretch>0</verstretch>
-                      </sizepolicy>
-                     </property>
-                     <property name="toolTip">
-                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; color:#222222;&quot;&gt;Light curves from integrated videos must be block integrated before further processing is carried out.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; color:#222222;&quot;&gt;An automatic determination of the correct block size and starting point (offset) will be performed if no points have been selected.&amp;nbsp;You will have the opportunity to accept or reject the result of this automatic process using the button to the right (&lt;/span&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; font-weight:600; color:#fc0107;&quot;&gt;Accept auto integration&lt;/span&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; color:#222222;&quot;&gt;).&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; color:#222222;&quot;&gt;If a manual selection is necessary,&amp;nbsp;then the procedure stated below can be performed:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; color:#222222;&quot;&gt;Zoom into a small portion of the light curve and locate a clearly identifiable group of data points that belong to an integration block,&amp;nbsp;click on the first and last point of that data point group,&amp;nbsp;then press this button to integrate all such groups in the light curve into a single data points.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; color:#222222;&quot;&gt;&amp;nbsp;A block integration,&amp;nbsp;either manual or automatic,&amp;nbsp;can be performed only once per data file;&amp;nbsp;it cannnot be undone by use of the &lt;/span&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; font-weight:600; color:#fc0107;&quot;&gt;Start over&lt;/span&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; color:#222222;&quot;&gt; button.&amp;nbsp;Instead,&amp;nbsp;you will need to re-read the file.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                     </property>
-                     <property name="text">
-                      <string>Manual/automatic block integrate</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QLineEdit" name="blockSizeEdit">
-                     <property name="enabled">
-                      <bool>false</bool>
-                     </property>
-                     <property name="maximumSize">
-                      <size>
-                       <width>40</width>
-                       <height>16777215</height>
-                      </size>
-                     </property>
-                     <property name="toolTip">
-                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If you know the integration level of the observation (block size) but not the offset, enter the known block size here and the block integration routine will find the best offset value for you.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Note: &lt;/span&gt;block sizes are normally powers of 2, but that is not enforced here, so be careful.&lt;/p&gt;&lt;p&gt;We allow for unusual block sizes simply because there might be a use-case.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QLabel" name="blockSizeLabel">
-                     <property name="sizePolicy">
-                      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                       <horstretch>0</horstretch>
-                       <verstretch>0</verstretch>
-                      </sizepolicy>
-                     </property>
-                     <property name="maximumSize">
-                      <size>
-                       <width>80</width>
-                       <height>16777215</height>
-                      </size>
-                     </property>
-                     <property name="toolTip">
-                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If you know the integration level of the observation (block size) but not the offset, enter the known block size here and the block integration routine will find the best offset value for you.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Note:&lt;/span&gt; block sizes are normally powers of 2, but that is not enforced here, so be careful.&lt;/p&gt;&lt;p&gt;We allow for unusual block sizes simply because there might be a use-case.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                     </property>
-                     <property name="text">
-                      <string>Block size</string>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
+                  <spacer name="horizontalSpacer">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>200</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
                  </item>
                  <item>
-                  <widget class="QPushButton" name="acceptBlockIntegration">
-                   <property name="enabled">
-                    <bool>false</bool>
-                   </property>
+                  <widget class="QPushButton" name="helpSqWaveButton">
                    <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This button will be enabled only after pyote has proposed a block integration. If, after examining the proposed block size and offset shown on the light curve, you wish to apply the integration, press this button.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This tab is used to perform block integration of videos when that is needed.&lt;/p&gt;&lt;p&gt;It is also where the square wave model is utilized to extract chord duration and edge times.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Note:&lt;/span&gt; A square wave model is only appropriate to use when the star disk is zero or very small, and diffraction effects are not noticeable. Diffraction effects are always present, of course, but those effects often happen so fast compared to the frame time of the camera that they are 'integrated out'. If a prominent peak does not appear just before the D edge and immediately following the R edge, it is reasonable to use the square wave model.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Note:&lt;/span&gt; If diffraction peaks are visible or there is a gradual transition during the D and R edges, then a different model should be used. Switch to the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Other models&lt;/span&gt; tab in such a case.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="text">
-                    <string>Accept auto block integration</string>
+                    <string>Help</string>
                    </property>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QPushButton" name="setDataLimits">
+                  <spacer name="horizontalSpacer_2">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
+               </item>
+               <item row="2" column="1">
+                <layout class="QHBoxLayout" name="horizontalLayout_42">
+                 <item>
+                  <widget class="QPushButton" name="doBlockIntegration">
                    <property name="enabled">
                     <bool>false</bool>
                    </property>
                    <property name="sizePolicy">
-                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                    <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
                      <horstretch>0</horstretch>
                      <verstretch>0</verstretch>
                     </sizepolicy>
                    </property>
                    <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If exactly two data points have been selected, this button will &lt;span style=&quot; font-weight:600; text-decoration: underline;&quot;&gt;trim&lt;/span&gt; off (exclude) data points to the left and right of the selected points. The excluded points will shown in light gray.&lt;/p&gt;&lt;p&gt;If no points have been selected, then all data points will be selected as the default.&lt;/p&gt;&lt;p&gt;Once a trim has been performed, its effects can be removed by clicking on the &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Start over&lt;/span&gt; button.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                   </property>
-                   <property name="toolTipDuration">
-                    <number>-1</number>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; color:#222222;&quot;&gt;Light curves from integrated videos must be block integrated before further processing is carried out.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; color:#222222;&quot;&gt;An automatic determination of the correct block size and starting point (offset) will be performed if no points have been selected.&amp;nbsp;You will have the opportunity to accept or reject the result of this automatic process using the button to the right (&lt;/span&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; font-weight:600; color:#fc0107;&quot;&gt;Accept auto integration&lt;/span&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; color:#222222;&quot;&gt;).&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; color:#222222;&quot;&gt;If a manual selection is necessary,&amp;nbsp;then the procedure stated below can be performed:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; color:#222222;&quot;&gt;Zoom into a small portion of the light curve and locate a clearly identifiable group of data points that belong to an integration block,&amp;nbsp;click on the first and last point of that data point group,&amp;nbsp;then press this button to integrate all such groups in the light curve into a single data points.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; color:#222222;&quot;&gt;&amp;nbsp;A block integration,&amp;nbsp;either manual or automatic,&amp;nbsp;can be performed only once per data file;&amp;nbsp;it cannnot be undone by use of the &lt;/span&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; font-weight:600; color:#fc0107;&quot;&gt;Start over&lt;/span&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; color:#222222;&quot;&gt; button.&amp;nbsp;Instead,&amp;nbsp;you will need to re-read the file.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="text">
-                    <string>Trim left/right</string>
+                    <string>Manual/automatic block integrate</string>
                    </property>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QPushButton" name="singlePointDropButton">
+                  <widget class="QLineEdit" name="blockSizeEdit">
                    <property name="enabled">
                     <bool>false</bool>
                    </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>40</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If you know the integration level of the observation (block size) but not the offset, enter the known block size here and the block integration routine will find the best offset value for you.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Note: &lt;/span&gt;block sizes are normally powers of 2, but that is not enforced here, so be careful.&lt;/p&gt;&lt;p&gt;We allow for unusual block sizes simply because there might be a use-case.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="blockSizeLabel">
                    <property name="sizePolicy">
-                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                      <horstretch>0</horstretch>
                      <verstretch>0</verstretch>
                     </sizepolicy>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>16777215</width>
+                     <width>80</width>
                      <height>16777215</height>
                     </size>
                    </property>
                    <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sometimes an occultation event may be so short that there will be only a single point recorded. In this case, because it is not possible to determine the duration of the event (only an upper bound can be stated) and the noise level during the event is also not measurable, the usual light-curve fitting procedure cannot (should not) be carried out.&lt;/p&gt;&lt;p&gt;But, it is possible to use the mechanism of the False-Positive report to determine whether the observed drop is just an artifact of baseline noise or is a deep enough drop that it is statistically unlikely that the drop is due to noise alone and so a positive can be reported with an appropriately chosen duration and error bar to reflect the timing ambiguity inherent in such a single point event.&lt;/p&gt;&lt;p&gt;To use this tool, first go to the Noise Analysis/Detectability tab and use the baseline points selection tool to identify the points that are considered valid baseline points (by multiple applications of the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Mark baseline region &lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt;button&lt;/span&gt;) excluding the point to be tested, then click the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Calc baseline mean/sigma/corr coeff&lt;/span&gt; button.&lt;/p&gt;&lt;p&gt;Then, click on the single point to be tested (the point will change to a red dot), and click this button.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If you know the integration level of the observation (block size) but not the offset, enter the known block size here and the block integration routine will find the best offset value for you.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Note:&lt;/span&gt; block sizes are normally powers of 2, but that is not enforced here, so be careful.&lt;/p&gt;&lt;p&gt;We allow for unusual block sizes simply because there might be a use-case.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="text">
-                    <string>Validate a potential single point event</string>
+                    <string>Block size</string>
                    </property>
                   </widget>
                  </item>
                 </layout>
                </item>
-               <item row="2" column="1" colspan="3">
+               <item row="3" column="1">
+                <widget class="QPushButton" name="acceptBlockIntegration">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="toolTip">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This button will be enabled only after pyote has proposed a block integration. If, after examining the proposed block size and offset shown on the light curve, you wish to apply the integration, press this button.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <property name="text">
+                  <string>Accept auto block integration</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="4" column="1">
+                <widget class="QPushButton" name="setDataLimits">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="toolTip">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If exactly two data points have been selected, this button will &lt;span style=&quot; font-weight:600; text-decoration: underline;&quot;&gt;trim&lt;/span&gt; off (exclude) data points to the left and right of the selected points. The excluded points will shown in light gray.&lt;/p&gt;&lt;p&gt;If no points have been selected, then all data points will be selected as the default.&lt;/p&gt;&lt;p&gt;Once a trim has been performed, its effects can be removed by clicking on the &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Start over&lt;/span&gt; button.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <property name="toolTipDuration">
+                  <number>-1</number>
+                 </property>
+                 <property name="text">
+                  <string>Trim left/right</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="5" column="1">
+                <widget class="QPushButton" name="singlePointDropButton">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="toolTip">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sometimes an occultation event may be so short that there will be only a single point recorded. In this case, because it is not possible to determine the duration of the event (only an upper bound can be stated) and the noise level during the event is also not measurable, the usual light-curve fitting procedure cannot (should not) be carried out.&lt;/p&gt;&lt;p&gt;But, it is possible to use the mechanism of the False-Positive report to determine whether the observed drop is just an artifact of baseline noise or is a deep enough drop that it is statistically unlikely that the drop is due to noise alone and so a positive can be reported with an appropriately chosen duration and error bar to reflect the timing ambiguity inherent in such a single point event.&lt;/p&gt;&lt;p&gt;To use this tool, first go to the Noise Analysis/Detectability tab and use the baseline points selection tool to identify the points that are considered valid baseline points (by multiple applications of the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Mark baseline region &lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt;button&lt;/span&gt;) excluding the point to be tested, then click the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Calc baseline mean/sigma/corr coeff&lt;/span&gt; button.&lt;/p&gt;&lt;p&gt;Then, click on the single point to be tested (the point will change to a red dot), and click this button.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <property name="text">
+                  <string>Validate a potential single point event</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="6" column="1" colspan="3">
                 <widget class="Line" name="line">
                  <property name="frameShadow">
                   <enum>QFrame::Plain</enum>
@@ -2481,7 +2517,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="3" column="1">
+               <item row="7" column="1">
                 <layout class="QHBoxLayout" name="horizontalLayout_43">
                  <item>
                   <widget class="QLabel" name="magDropSqwaveLabel">
@@ -2511,7 +2547,7 @@
                  </item>
                 </layout>
                </item>
-               <item row="4" column="1" colspan="3">
+               <item row="8" column="1" colspan="3">
                 <widget class="Line" name="line_3">
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
@@ -2536,7 +2572,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="5" column="1">
+               <item row="9" column="1">
                 <widget class="QLabel" name="markRegionsLabel">
                  <property name="text">
                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When edges are clearly visible, mark points to specify region and click ...&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -2546,7 +2582,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="6" column="1">
+               <item row="10" column="1">
                 <layout class="QHBoxLayout" name="horizontalLayout_3">
                  <item>
                   <widget class="QPushButton" name="markDzone">
@@ -2601,7 +2637,7 @@
                  </item>
                 </layout>
                </item>
-               <item row="7" column="1">
+               <item row="11" column="1">
                 <widget class="QLabel" name="minMaxLabel">
                  <property name="text">
                   <string>... otherwise use the entries below to place bounds on the event size.</string>
@@ -2611,7 +2647,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="8" column="0">
+               <item row="12" column="0">
                 <spacer name="horizontalSpacer_4">
                  <property name="orientation">
                   <enum>Qt::Horizontal</enum>
@@ -2624,7 +2660,7 @@
                  </property>
                 </spacer>
                </item>
-               <item row="8" column="1" colspan="2">
+               <item row="12" column="1">
                 <layout class="QHBoxLayout" name="horizontalLayout_12">
                  <item>
                   <layout class="QHBoxLayout" name="horizontalLayout_10">
@@ -2769,7 +2805,7 @@
                  </item>
                 </layout>
                </item>
-               <item row="8" column="4">
+               <item row="12" column="4">
                 <spacer name="horizontalSpacer_5">
                  <property name="orientation">
                   <enum>Qt::Horizontal</enum>
@@ -2782,7 +2818,7 @@
                  </property>
                 </spacer>
                </item>
-               <item row="9" column="1" colspan="3">
+               <item row="13" column="1" colspan="3">
                 <widget class="Line" name="line_2">
                  <property name="frameShadow">
                   <enum>QFrame::Plain</enum>
@@ -2795,7 +2831,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="10" column="1">
+               <item row="14" column="1">
                 <widget class="QLabel" name="findEventLabel">
                  <property name="text">
                   <string>Finally, click on 'Find event' and, if event found, click '... write report'</string>
@@ -2805,7 +2841,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="11" column="1">
+               <item row="15" column="1">
                 <layout class="QHBoxLayout" name="horizontalLayout_4">
                  <item>
                   <widget class="QPushButton" name="locateEvent">
@@ -2867,7 +2903,7 @@
                  </item>
                 </layout>
                </item>
-               <item row="12" column="1">
+               <item row="16" column="1">
                 <layout class="QHBoxLayout" name="horizontalLayout_7">
                  <item>
                   <widget class="QProgressBar" name="progressBar">
@@ -2885,7 +2921,7 @@
                  </item>
                 </layout>
                </item>
-               <item row="13" column="1" colspan="3">
+               <item row="17" column="1" colspan="3">
                 <widget class="Line" name="line_6">
                  <property name="frameShadow">
                   <enum>QFrame::Plain</enum>
@@ -2898,7 +2934,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="14" column="1" colspan="2">
+               <item row="18" column="1">
                 <layout class="QVBoxLayout" name="verticalLayout_5">
                  <item>
                   <layout class="QHBoxLayout" name="horizontalLayout_5">
@@ -2958,7 +2994,7 @@
                  </item>
                 </layout>
                </item>
-               <item row="15" column="3">
+               <item row="19" column="3">
                 <spacer name="verticalSpacer_10">
                  <property name="orientation">
                   <enum>Qt::Vertical</enum>
@@ -2982,7 +3018,7 @@
                 <rect>
                  <x>20</x>
                  <y>100</y>
-                 <width>110</width>
+                 <width>121</width>
                  <height>100</height>
                 </rect>
                </property>
@@ -4195,7 +4231,7 @@
                 <rect>
                  <x>340</x>
                  <y>430</y>
-                 <width>451</width>
+                 <width>491</width>
                  <height>77</height>
                 </rect>
                </property>

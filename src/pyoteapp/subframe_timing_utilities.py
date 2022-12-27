@@ -89,7 +89,6 @@ def generate_transition_point_time_correction_look_up_tables(
 
         # Prepare the 'sample' that performs a box-car integration when convolved with the model lightcurve
 
-        # TODO Check that this is right or should RESOLUTION be time_resolution
         n_sample_points = round(frame_time_sec / RESOLUTION)
         sample = np.repeat(1.0 / n_sample_points, n_sample_points)
 
@@ -119,34 +118,6 @@ def generate_transition_point_time_correction_look_up_tables(
         y_avg += event_intensity
 
         scaled_y_avg = np.copy(y_avg)
-
-        # TODO This code cannot be right with the new scheme
-        # if suppress_diffraction:
-        #     for i in range(y_avg.size):
-        #         if u_values <= 0.0:
-        #             d_values[i] = baseline_intensity
-        #         else:
-        #             d_values[i] = event_intensity
-        #
-        #     for i in range(y_avg.size):
-        #         if u_values[i] <= 0.0:
-        #             r_values[i] = event_intensity
-        #         else:
-        #             r_values[i] = baseline_intensity
-
-        if star_diameter_mas is not None:
-            # TODO Does this really need to be done??
-            # We have to compute the time needed for the star projection to pass, using the
-            # limb angle that is smallest.
-            min_limb_angle_degrees = min(d_limb_angle_degrees, r_limb_angle_degrees)
-            star_diameter_radians = star_diameter_mas * 4.84814e-9
-            distance_to_asteroid_km = asteroid_distance_AU * 149.6e6
-            # print(star_diameter_radians, np.tan(star_diameter_radians), np.sin(star_diameter_radians))
-            # TODO comment out the next 4 lines
-            star_projection_km = np.tan(star_diameter_radians) * distance_to_asteroid_km
-            star_projection_time_sec = star_projection_km / \
-                shadow_speed_km_per_sec / sin_degrees(min_limb_angle_degrees)
-            print(f'line 149 frame_time: {frame_time_sec}   star_time: {star_projection_time_sec:0.3f}')
 
         time_values = x_avg / shadow_speed_km_per_sec
 
@@ -344,65 +315,6 @@ def get_star_chord_samples(
         np.array(normed_d_chords_standalone), np.array(normed_r_chords_standalone)
 
 
-def time_correction(correction_dict, transition_point_intensity, edge_type='D'):
-    # This routine is no longer used
-    # TODO Remove this test code that neuters time_correction()
-    return 0.0
-
-    # if not correction_dict['A'] <= transition_point_intensity <= correction_dict['B']:
-    #     print('Intensity violation encountered: ', correction_dict['A'], transition_point_intensity,
-    #           correction_dict['B'])
-    assert edge_type == 'D' or edge_type == 'R'
-
-    intensity_fraction = (transition)
-    # We start our search from the middle and work either up or down to find the best matching intensity.
-    # We return the negative of the corresponding time_delta as the needed time correction
-    middle_intensity = (correction_dict['B'] + correction_dict['A']) / 2
-
-    if edge_type == 'D':
-        curve_to_use = correction_dict['D curve']
-        # Find the index of the middle value in the intensity table
-        mid_index = np.where(curve_to_use <= middle_intensity)[0][0]
-        # print(mid_index)
-        if transition_point_intensity >= curve_to_use[mid_index]:
-            # We need to search to the left
-            search_index = mid_index
-            while search_index > 0:
-                if transition_point_intensity <= curve_to_use[search_index]:
-                    return -correction_dict['time deltas'][search_index]
-                search_index -= 1
-            return None  # This return should NEVER be reached
-        else:
-            # We need to search to the right
-            search_index = mid_index
-            while search_index < curve_to_use.size:
-                if transition_point_intensity >= curve_to_use[search_index]:
-                    return -correction_dict['time deltas'][search_index]
-                search_index += 1
-            return None  # This return should NEVER be reached
-    else:
-        curve_to_use = correction_dict['R curve']
-        # Find the index of the middle value in the intensity table
-        mid_index = np.where(curve_to_use >= middle_intensity)[0][0]
-        # print(mid_index)
-        if transition_point_intensity >= curve_to_use[mid_index]:
-            # We need to search to the right
-            search_index = mid_index
-            while search_index < curve_to_use.size:
-                if transition_point_intensity <= curve_to_use[search_index]:
-                    return -correction_dict['time deltas'][search_index]
-                search_index += 1
-            return None  # This return should NEVER be reached
-        else:
-            # We need to search to the left
-            search_index = mid_index
-            while search_index > 0:
-                if transition_point_intensity >= curve_to_use[search_index]:
-                    return -correction_dict['time deltas'][search_index]
-                search_index -= 1
-            return None  # This return should NEVER be reached
-
-
 def generate_underlying_lightcurve_plots(
         b_value=100.0,
         a_value=0.0,
@@ -587,16 +499,6 @@ def demo():
             r_limb_angle_degrees=r_angle,
             skip_central_flash=skip_central_flash
         )
-
-        # TODO See how this code is used/needed with new scheme
-        # time_adjustment = time_correction(ans, 80, 'D')
-        # print(f'D time_adjustment @ 80: {time_adjustment}')
-        # time_adjustment = time_correction(ans, 20, 'D')
-        # print(f'D time_adjustment @ 20: {time_adjustment}')
-        # time_adjustment = time_correction(ans, 80, 'R')
-        # print(f'R time_adjustment @ 80: {time_adjustment}')
-        # time_adjustment = time_correction(ans, 20, 'R')
-        # print(f'R time_adjustment @ 20: {time_adjustment}')
 
     print(f'=== end tests')
 
