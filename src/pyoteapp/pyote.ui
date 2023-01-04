@@ -175,7 +175,7 @@
            <item>
             <widget class="QTabWidget" name="tabWidget">
              <property name="currentIndex">
-              <number>2</number>
+              <number>1</number>
              </property>
              <property name="movable">
               <bool>true</bool>
@@ -213,7 +213,7 @@
                   </size>
                  </property>
                  <property name="toolTip">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This panel allows up to 10 lightcurves to be displayed at the same time. If the csv file has more than 10 lightcurves, the first 10 are displayed.&lt;/p&gt;&lt;p&gt;The&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt; targe&lt;/span&gt;t lightcurve is always drawn with bright blue dots.&lt;/p&gt;&lt;p&gt;If a lightcurve is selected as a &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;reference&lt;/span&gt; to be used for normalization, it is always drawn with bright green dots. If a non-zero value is present in the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;smoothing readings&lt;/span&gt; spinbox, a smoothed version of the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;reference&lt;/span&gt; curve will be displayed as well (color is brown). This smoothed curve is produced by a double application of a first order Savitzky-Golay filter (a straight line) to the points - extrapolation is enabled to deal with the points at either end. &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Note:&lt;/span&gt; The Savitzky-Golay algorithm requires an odd number of smoothing points. PyOTE makes your entry odd by adding 1 when necessary.&lt;/p&gt;&lt;p&gt;Unless a lightcurve is designated as a &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;target&lt;/span&gt; (which is always the curve to be analyzed for an event) or is designated as a &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;reference&lt;/span&gt; lightcurve, its dot color depends on the row it is in - every row has a unique color other than blue or green - there is a sample color shown at the right of the lightcurve title.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Tip:&lt;/span&gt; it is easier to compare the color sample with the dots in the curve plot if the dots are larger - dot size can be changed by a spinbox that is on the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Settings/Misc.&lt;/span&gt; tab.&lt;/p&gt;&lt;p&gt;Lightcurves can be displaced up or down using the&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt; Y offset&lt;/span&gt; spinner to control the displacement. This affects the display position only; the underlying values are not affected. This facility was added to allow the separation of lightcurves that would otherwise overlap in a confusing manner.&lt;/p&gt;&lt;p&gt;There can only be one lightcurve selected as &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;target&lt;/span&gt;. That curve always has its &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Y offset&lt;/span&gt; spinner disabled with a value of zero. If there is some lightcurve that overlaps with the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;target&lt;/span&gt;, move that one out of the way.&lt;/p&gt;&lt;p&gt;There can be either 0 or 1 lightcurve selected as a &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;reference&lt;/span&gt; for normalization.&lt;/p&gt;&lt;p&gt;Normalization is applied whenever the&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt; smoothing readings&lt;/span&gt; spinbox is changed from 0. Whenever this number is changed, a new normalization will result. If this number is returned to zero, all normalization is removed and the original values restored.&lt;/p&gt;&lt;p&gt;If the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;reference&lt;/span&gt; curve is changed, any previously applied normalization is removed and the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;smoothing readings&lt;/span&gt; spinbox is set to 0.&lt;/p&gt;&lt;p&gt;The &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;X offset&lt;/span&gt; spinbox is used to shift the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;reference&lt;/span&gt; curve left or right (a time shift) for those cases where a drifting cloud affects the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;target&lt;/span&gt; lightcurves at a slightly different time.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This panel allows up to 10 lightcurves to be displayed at the same time. If the csv file has more than 10 lightcurves, the first 10 are displayed.&lt;/p&gt;&lt;p&gt;The&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt; targe&lt;/span&gt;t lightcurve is always drawn with bright blue dots.&lt;/p&gt;&lt;p&gt;If a lightcurve is selected as a &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;reference&lt;/span&gt; to be used for normalization, it is always drawn with bright green dots. If a non-zero value is present in the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;smoothing readings&lt;/span&gt; spinbox, a smoothed version of the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;reference&lt;/span&gt; curve will be displayed as well (color is brown). This smoothed curve is produced by a double application of a first order Savitzky-Golay filter (a straight line) to the points - extrapolation is enabled to deal with the points at either end. &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Note:&lt;/span&gt; The Savitzky-Golay algorithm requires an odd number of smoothing points. PyOTE makes your entry odd by adding 1 when necessary.&lt;/p&gt;&lt;p&gt;Unless a lightcurve is designated as a &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;target&lt;/span&gt; (which is always the curve to be analyzed for an event) or is designated as a &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;reference&lt;/span&gt; lightcurve, its dot color depends on the row it is in - every row has a unique color other than blue or green - there is a sample color shown at the right of the lightcurve title.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Tip:&lt;/span&gt; it is easier to compare the color sample with the dots in the curve plot if the dots are larger - dot size can be changed by a spinbox that is on the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Settings/Misc.&lt;/span&gt; tab.&lt;/p&gt;&lt;p&gt;Lightcurves can be displaced up or down using the&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt; Y offset&lt;/span&gt; spinner to control the displacement. This affects the display position only; the underlying values are not affected. This facility was added to allow the separation of lightcurves that would otherwise overlap in a confusing manner.&lt;/p&gt;&lt;p&gt;There can only be one lightcurve selected as &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;target&lt;/span&gt;. That curve always has its &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Y offset&lt;/span&gt; spinner disabled with a value of zero. If there is some lightcurve that overlaps with the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;target&lt;/span&gt;, move that one out of the way.&lt;/p&gt;&lt;p&gt;There can be either 0 or 1 lightcurve selected as a &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;reference&lt;/span&gt; for normalization.&lt;/p&gt;&lt;p&gt;Normalization is applied whenever the&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt; smoothing readings&lt;/span&gt; spinbox is changed from 0 and the return/enter key is depressed. Whenever this number is changed, a new normalization will result. If this number is returned to zero, all normalization is removed and the original values restored.&lt;/p&gt;&lt;p&gt;If the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;reference&lt;/span&gt; curve is changed, any previously applied normalization is removed and the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;smoothing readings&lt;/span&gt; spinbox is set to 0.&lt;/p&gt;&lt;p&gt;The &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;X offset&lt;/span&gt; spinbox is used to shift the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;reference&lt;/span&gt; curve left or right (a time shift) for those cases where a drifting cloud affects the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;target&lt;/span&gt; lightcurves at a slightly different time.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                  </property>
                  <property name="text">
                   <string>Help</string>
@@ -3031,7 +3031,7 @@
                    </font>
                   </property>
                   <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This value, while it can be changed, is normally derived from the csv file (and any subsequent block integration procedure applied to the observation data), so there should be no need to manually change this value.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This value can be changed if it is not grayed out.  It is normally derived from the csv file (and any subsequent block integration procedure applied to the observation data), so there should be no need to manually change this value.&lt;/p&gt;&lt;p&gt;If grayed out, you may have to use the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Manual timestamps&lt;/span&gt; tab to manually insert the correct frame time and/or time stamp information into the csv file.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="text">
                    <string>Frame time (sec)</string>
@@ -3082,7 +3082,7 @@
                    </font>
                   </property>
                   <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Limb angles are only relevant when an edge on disk model has been selected for use. They will be disabled (grayed out) for all other models.&lt;/p&gt;&lt;p&gt;In an edge on disk model, the part of asteroid that occults the star is modeled as a straight edge (which is usually at an angle with respect to the direction of motion of the star). The D and R &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Limb angles&lt;/span&gt; are used to describe the slope of the asteroid edge at the point where the star is occulted by the asteroid. The convention used is that 90 degrees represents a direct 'hit' while smaller values indicate an ever increasing slope to the intersection of the asteroid edge with the star disk.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Limb angles are only relevant when an edge on disk model has been selected for use. They will be disabled (grayed out) and empty for all other models.&lt;/p&gt;&lt;p&gt;In an edge on disk model, the part of asteroid that occults the star is modeled as a straight edge (which is usually at an angle with respect to the direction of motion of the star). The D and R &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Limb angles&lt;/span&gt; are used to describe the slope of the asteroid edge at the point where the star is occulted by the asteroid. The convention used is that 90 degrees represents a direct 'hit' while smaller values indicate an ever increasing slope to the intersection of the asteroid edge with the star disk.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="text">
                    <string>Limb angles</string>
@@ -3093,6 +3093,9 @@
                  <layout class="QHBoxLayout" name="horizontalLayout_131">
                   <item>
                    <widget class="QLineEdit" name="DdegreesEdit">
+                    <property name="toolTip">
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If this box is grayed out and empty, it is because &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Model to use:&lt;/span&gt; is not &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;edge on disk&lt;/span&gt;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    </property>
                     <property name="text">
                      <string>90</string>
                     </property>
@@ -3106,7 +3109,7 @@
                      </font>
                     </property>
                     <property name="toolTip">
-                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If this box is grayed out, it is because &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Model to use:&lt;/span&gt; is not &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;edge on disk&lt;/span&gt;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If this box is grayed out and empty, it is because &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Model to use:&lt;/span&gt; is not &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;edge on disk&lt;/span&gt;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                     </property>
                     <property name="text">
                      <string>D (degrees)</string>
@@ -3119,6 +3122,9 @@
                  <layout class="QHBoxLayout" name="horizontalLayout_132">
                   <item>
                    <widget class="QLineEdit" name="RdegreesEdit">
+                    <property name="toolTip">
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If this box is grayed out and empty, it is because &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Model to use:&lt;/span&gt; is not &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;edge on disk&lt;/span&gt;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    </property>
                     <property name="text">
                      <string>90</string>
                     </property>
@@ -3132,7 +3138,7 @@
                      </font>
                     </property>
                     <property name="toolTip">
-                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If this box is grayed out, it is because &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Model to use:&lt;/span&gt; is not &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;edge on disk&lt;/span&gt;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If this box is grayed out and empty, it is because &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Model to use:&lt;/span&gt; is not &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;edge on disk&lt;/span&gt;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                     </property>
                     <property name="text">
                      <string>R (degrees)</string>
@@ -3407,7 +3413,7 @@
                 </font>
                </property>
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this radio button list to choose the model that you wish to apply to the observation data.&lt;/p&gt;&lt;p&gt;If &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;square wave&lt;/span&gt; is active, you will automatically be switched to the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Analysis&lt;/span&gt; tab if the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Fit model to observation points&lt;/span&gt; button is clicked, which is where square wave (geometrical optics) are handled.&lt;/p&gt;&lt;p&gt;If the star has an observable disk (&lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Star diameter mas&lt;/span&gt; &amp;gt; 0), the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;edge on disk&lt;/span&gt; and &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;disk on disk&lt;/span&gt; models can be used.&lt;/p&gt;&lt;p&gt;If &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Star diameter mas&lt;/span&gt; is zero, or very small, the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;diffraction&lt;/span&gt; model may be the one to use.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this radio button list to choose the model that you wish to apply to the observation data.&lt;/p&gt;&lt;p&gt;If &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;square wave&lt;/span&gt; is active, you will automatically be switched to the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Analysis&lt;/span&gt; tab if the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Fit model to observation points&lt;/span&gt; button is clicked, which is where square wave (geometrical optics) are handled.&lt;/p&gt;&lt;p&gt;If the star has an observable disk (&lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Star diameter mas&lt;/span&gt; &amp;gt; 0), the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;edge on disk&lt;/span&gt; and &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;disk on disk&lt;/span&gt; models can be used.&lt;/p&gt;&lt;p&gt;If &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Star diameter mas&lt;/span&gt; is zero, or very small, the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;diffraction&lt;/span&gt; model may be the one to use.&lt;/p&gt;&lt;p&gt;Pressing the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Ask advice on model to use&lt;/span&gt; button will produce a message about the best model to use if you are unsure which to start with. The advice is generally good, but based on a few simple heuristics and may not always be the best choice, so keep that in mind.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
                <property name="text">
                 <string>Model to use:</string>
@@ -3481,7 +3487,7 @@
                 <item>
                  <widget class="QRadioButton" name="edgeOnDiskRadioButton">
                   <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This model can only be used when the star has an observable disk (i.e., &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Star diameter mas&lt;/span&gt; &amp;gt; 0).&lt;/p&gt;&lt;p&gt;In this model, the part of asteroid that occults the star is modeled as a straight edge (which is usually at an angle with respect to the direction of motion of the star). The D and R &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Limb angles&lt;/span&gt; are used to describe the slope of the asteroid edge at the point where the star is occulted by the asteroid. The convention used is that 90 degrees represents a direct 'hit' while smaller values indicate an ever increasing slope to the intersection of the asteroid edge with the star disk.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This model can only be used when the star has an observable disk (i.e., &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Star diameter mas&lt;/span&gt; &amp;gt; 0).&lt;/p&gt;&lt;p&gt;In this model, the part of asteroid that occults the star is modeled as a straight edge (which is usually at an angle with respect to the direction of motion of the asteroid). The D and R &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Limb angles&lt;/span&gt; are used to describe the slope of the asteroid edge at the point where the star is occulted by the asteroid. The convention used is that 90 degrees represents a direct 'hit' while smaller values indicate an ever increasing slope to the intersection of the asteroid edge with the star disk.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="text">
                    <string>edge on disk</string>
@@ -3491,7 +3497,7 @@
                 <item>
                  <widget class="QRadioButton" name="diskOnDiskRadioButton">
                   <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This model can only be used when the star has an observable disk (i.e., &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Star diameter mas&lt;/span&gt; &amp;gt; 0).&lt;/p&gt;&lt;p&gt;In this model, the star disk is geometrically occulting (diffraction ignored) an asteroid disk (limb angles are ignored as these are relevant only to the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;edge on disk&lt;/span&gt; model).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This model can only be used when the star has an observable disk (i.e., &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Star diameter mas&lt;/span&gt; &amp;gt; 0).&lt;/p&gt;&lt;p&gt;In this model, the asteroid disk is geometrically occulting (diffraction ignored) a star disk (limb angles are ignored as these are relevant only to the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;edge on disk&lt;/span&gt; model).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="text">
                    <string>disk on disk</string>
@@ -3536,7 +3542,7 @@
                 <item>
                  <widget class="QPushButton" name="pauseFitButton">
                   <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clicking this button will set a flag to request that the fitting process stop at the next change of &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Parameter being optimized&lt;/span&gt;.&lt;/p&gt;&lt;p&gt;The response may be slow if a low rho diffraction model calculation is in process at the time this request is posted - be patient.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clicking this button will set a flag to request that the fitting process stop at the next change of &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Parameter being optimized&lt;/span&gt;.&lt;/p&gt;&lt;p&gt;The response may be slow if a low rho diffraction model calculation is in process at the time this request is posted - be patient.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Note:&lt;/span&gt; rho is ratio of the asteroid radius to the Fresnel length. For rho values less than 32, a full diffraction calculation must be utilized. Even though DFFT (Discrete Fast Fourier Transform) methods are employed, this takes approximately 20 times the compute time compared to a high rho event where the standard analytical expression for diffraction at an edge can be used.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="text">
                    <string>Pause fit in progress</string>
@@ -3566,7 +3572,7 @@
                 <item>
                  <widget class="QPushButton" name="demoModelButton">
                   <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clicking this button will calculate and display a model ligtcurve using the current set of parameters. It will be positioned around a selected point.&lt;/p&gt;&lt;p&gt;An error message will appear if exactly one point is not selected.&lt;/p&gt;&lt;p&gt;The selected point will remain shown so that if a new position is clearly needed, an easy assessment of where a better selection point should be placed will be eased. Just be sure to remove the old point so that only a single point is left selected.&lt;/p&gt;&lt;p&gt;In any case, once a fit process is started, the selected point will be erased.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clicking this button will calculate and display a model ligtcurve superimposed on the event lightcurve, using the current set of parameters. It will be positioned around a point selected by the User where it appears the center of the 'event' is located.&lt;/p&gt;&lt;p&gt;An error message will appear if exactly one point is not selected.&lt;/p&gt;&lt;p&gt;The selected point will remain shown so that if a new position is clearly needed, an easy assessment of where a better selection point should be placed will be eased. Just be sure to remove the old point so that only a single point is left selected.&lt;/p&gt;&lt;p&gt;In any case, once a fit process is started, the selected point will be erased.&lt;/p&gt;&lt;p&gt;If the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Enable plot ---:&lt;/span&gt; box is checked, a theoretical model based on the input parameters will be shown, along with a graphic (cartoon?) portrayal of the relative path of the asteroid past the star.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="text">
                    <string>Demo model lightcurve</string>
@@ -3616,7 +3622,7 @@
                    </font>
                   </property>
                   <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;These are read-only indicators of the current value of the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Fit metric &lt;/span&gt;and the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;change&lt;/span&gt; caused by an optimization step applied to one of the fitting parameters. &lt;/p&gt;&lt;p&gt;A normalized chi-squared metric is used where the normalization is done by dividing the raw chi-squared value by the variance of the baseline data points and dividing again by the number of points that are being compared) and the change caused by an optimization step applied to one of the fitting parameters.&lt;/p&gt;&lt;p&gt;The metric in use is to be minimized, so favorable changes are negative (the step taken caused the metric to get smaller) and shown in green, while unfavorable changes are positive (the step taken caused the metric to increase) and are shown in red.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;These are read-only indicators of the current value of the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Fit metric &lt;/span&gt;and the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;change&lt;/span&gt; caused by an optimization step applied to one of the fitting parameters. &lt;/p&gt;&lt;p&gt;A normalized chi-squared metric is used where the normalization is done by dividing the raw chi-squared value by the variance of the baseline data points and dividing again by the number of points that are being compared) and the change caused by an optimization step applied to one of the fitting parameters.&lt;/p&gt;&lt;p&gt;The metric in use is to be minimized, so favorable changes are negative (the step taken caused the metric to get smaller) and shown in green, while unfavorable changes are positive (the step taken caused the metric to increase) and are shown in red.&lt;/p&gt;&lt;p&gt;When the optimization process is underway, the parameter being optimized will be shown in the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Parameter being optimized&lt;/span&gt; box. In addition, the parameter being optimized will be highlighted in light blue to make is easy for a user to see what is being changed as the optimization progresses.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="text">
                    <string>&lt;--Fit metric    change--&gt;</string>
@@ -3663,7 +3669,7 @@
                    </sizepolicy>
                   </property>
                   <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Provide a name for this set of asteroid event data for future reference. After a successful &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Save event&lt;/span&gt;, the data set can be restored by using the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Past events&lt;/span&gt; dropdown selector available at the right.&lt;/p&gt;&lt;p&gt;This makes the entries that define this occultation (asteroid size, distance, speed, etc.) 'sticky' in the sense that the data unique to this occultation event can be recovered later.&lt;/p&gt;&lt;p&gt;A &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Save event&lt;/span&gt; attempt will only work if a complete set of data has been filled in. That means that all the edit boxes enclosed in the three black bars must be filled in.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Note: &lt;/span&gt;Until some text has been entered in this edit box, all the edit boxes between the three black bars will be disabled, so this is the starting point for a new event. The expected workflow is: read a csv file, name the event, fill in the edit boxes, and click &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Save event&lt;/span&gt;. The name of the csv file currently in use is added to the saved data during this process so event data is tied to a specific file.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Provide a name for this set of asteroid event data for future reference. After a successful &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Save event&lt;/span&gt;, the data set can be restored by using the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Past events&lt;/span&gt; dropdown selector available at the right.&lt;/p&gt;&lt;p&gt;This makes the entries that define this occultation (asteroid size, distance, speed, etc.) 'sticky' in the sense that the data unique to this occultation event can be recovered later.&lt;/p&gt;&lt;p&gt;A &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Save event&lt;/span&gt; attempt will become possible once a complete set of core data has been filled in. That means that all the edit boxes enclosed between the top two horizontal black bars have been filled in. At this point, such a &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Save event&lt;/span&gt; would be of partial data - the edit boxes that are between the bottom two horizontal black bars are empty at this point. This is useful for someone who is processing multiple lightcurves from the same event as it allows a 'template' file to be created with the details for the individual lightcurves left unfilled (the entries between the bottom two horizontal bars). This template file can then be copied into the folder for each lightcurve csv file where it can be reopened and the data specific to that particular lightcurve/observation can be added.&lt;/p&gt;&lt;p&gt;For someone processing their own lightcurve, the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Save event&lt;/span&gt; should be performed only after all data between all the horizontal black bars have been filled in,&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Note: &lt;/span&gt;Until some text has been entered in this edit box, all the edit boxes between the three horizontal black bars will be disabled, so this is the starting point for a new event. The expected workflow is: read a csv file, name the event, fill in the edit boxes, and click &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Save event&lt;/span&gt;. The name of the csv file currently in use is added to the saved data during this process so that the event data is tied to a specific file.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                  </widget>
                 </item>
@@ -4278,7 +4284,7 @@
                        </font>
                       </property>
                       <property name="toolTip">
-                       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This entry sets the size of each time step taken during the search for best fit. This is referred to as &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Position&lt;/span&gt; because it is used to determine the best positioning of the model lightcurve on the x (time) axis.&lt;/p&gt;&lt;p&gt;Acceptable values are &amp;gt;= 0.0001 (units are seconds)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This entry sets the size of each time step taken during the search for best fit. This is referred to as &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Position&lt;/span&gt; because it is used to determine the best positioning of the model lightcurve on the x (time) axis.&lt;/p&gt;&lt;p&gt;Acceptable values are &amp;gt;= 0.0001 (units are seconds)&lt;/p&gt;&lt;p&gt;It is often quicker to arrive at a rough solution by setting the value to 0.1 or 0.05 to let the optimization routine search more quickly by taking larger steps. Once a rough fit is found, you can select smaller steps to refine the fit.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                       </property>
                       <property name="text">
                        <string>Position step size</string>
@@ -4302,7 +4308,7 @@
                          </size>
                         </property>
                         <property name="toolTip">
-                         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This entry sets the size of each time step taken during the search for best fit. This is referred to as &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Position&lt;/span&gt; because it is used to determine the best positioning of the model lightcurve on the x (time) axis.&lt;/p&gt;&lt;p&gt;Acceptable values are &amp;gt;= 0.0001 (units are seconds)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This entry sets the size of each time step taken during the search for best fit. This is referred to as &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Position&lt;/span&gt; because it is used to determine the best positioning of the model lightcurve on the x (time) axis.&lt;/p&gt;&lt;p&gt;Acceptable values are &amp;gt;= 0.0001 (units are seconds)&lt;/p&gt;&lt;p&gt;It is often quicker to arrive at a rough solution by setting the value to 0.1 or 0.05 to let the optimization routine search more quickly by taking larger steps. Once a rough fit is found, you can select smaller steps to refine the fit.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                         </property>
                         <property name="placeholderText">
                          <string/>
@@ -4317,7 +4323,7 @@
                          </font>
                         </property>
                         <property name="toolTip">
-                         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This entry sets the size of each time step taken during the search for best fit. This is referred to as &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Position&lt;/span&gt; because it is used to determine the best positioning of the model lightcurve on the x (time) axis.&lt;/p&gt;&lt;p&gt;Acceptable values are &amp;gt;= 0.0001 (units are seconds)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This entry sets the size of each time step taken during the search for best fit. This is referred to as &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Position&lt;/span&gt; because it is used to determine the best positioning of the model lightcurve on the x (time) axis.&lt;/p&gt;&lt;p&gt;Acceptable values are &amp;gt;= 0.0001 (units are seconds)&lt;/p&gt;&lt;p&gt;It is often quicker to arrive at a rough solution by setting the value to 0.1 or 0.05 to let the optimization routine search more quickly by taking larger steps. Once a rough fit is found, you can select smaller steps to refine the fit.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                         </property>
                         <property name="text">
                          <string>seconds</string>
@@ -4338,7 +4344,7 @@
                        </font>
                       </property>
                       <property name="toolTip">
-                       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This entry sets the size (in seconds) of the steps used when optimizing the fit by changing the chord duration.&lt;/p&gt;&lt;p&gt;Setting this value to zero will cause chord optimization to be skipped.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This entry sets the size (in seconds) of the steps used when optimizing the fit by changing the chord duration.&lt;/p&gt;&lt;p&gt;Setting this value to zero will cause chord optimization to be skipped.&lt;/p&gt;&lt;p&gt;As a best first guess, set the chord duration to the approximate duration of the occultation event at the 50% brightness level. Then, adjust the step levels as described for &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Position step size&lt;/span&gt;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                       </property>
                       <property name="text">
                        <string>Chord dur step size</string>
@@ -4362,8 +4368,7 @@
                          </size>
                         </property>
                         <property name="toolTip">
-                         <string>This entry sets the size (in seconds) of the steps used when optimizing the fit by changing the chord duration.
-Setting this value to zero will cause chord optimization to be skipped.</string>
+                         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This entry sets the size (in seconds) of the steps used when optimizing the fit by changing the chord duration.&lt;/p&gt;&lt;p&gt;Setting this value to zero will cause chord optimization to be skipped.&lt;/p&gt;&lt;p&gt;As a best first guess, set the chord duration to the approximate duration of the occultation event at the 50% brightness level. Then, adjust the step levels as described for &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Position step size&lt;/span&gt;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                         </property>
                        </widget>
                       </item>
@@ -4375,8 +4380,7 @@ Setting this value to zero will cause chord optimization to be skipped.</string>
                          </font>
                         </property>
                         <property name="toolTip">
-                         <string>This entry sets the size (in seconds) of the steps used when optimizing the fit by changing the chord duration.
-Setting this value to zero will cause chord optimization to be skipped.</string>
+                         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This entry sets the size (in seconds) of the steps used when optimizing the fit by changing the chord duration.&lt;/p&gt;&lt;p&gt;Setting this value to zero will cause chord optimization to be skipped.&lt;/p&gt;&lt;p&gt;As a best first guess, set the chord duration to the approximate duration of the occultation event at the 50% brightness level. Then, adjust the step levels as described for &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Position step size&lt;/span&gt;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                         </property>
                         <property name="text">
                          <string>seconds</string>
@@ -4522,7 +4526,7 @@ Setting this value to zero will force Miss distance optimization to be skipped.<
                 <item>
                  <widget class="QLineEdit" name="beingOptimizedEdit">
                   <property name="toolTip">
-                   <string>This a read-only indicator of the event parameter that is currently being optimized.</string>
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When the optimization process is underway, the parameter being optimized will be shown in this box. In addition, the parameter being optimized will be highlighted in light blue to make it easy for a user to see what is being changed as the optimization progresses.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                  </widget>
                 </item>
@@ -4534,7 +4538,7 @@ Setting this value to zero will force Miss distance optimization to be skipped.<
                    </font>
                   </property>
                   <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This a read-only indicator of the event parameter that is currently being optimized.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When the optimization process is underway, the parameter being optimized will be shown in this box. In addition, the parameter being optimized will be highlighted in light blue to make it easy for a user to see what is being changed as the optimization progresses.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="text">
                    <string>Parameter being optimized</string>
@@ -4593,22 +4597,9 @@ Setting this value to zero will force Miss distance optimization to be skipped.<
                  <item>
                   <layout class="QHBoxLayout" name="horizontalLayout_22">
                    <item>
-                    <widget class="QCheckBox" name="manualTimestampCheckBox">
-                     <property name="toolTip">
-                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;This checkbox makes the &lt;/span&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; color:#fc0107;&quot;&gt;Manual timestamp entry&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt; button active. You will need/use that button when processing a light curve that employs 'flash timing' instead of a VTI.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Manual entry of timestamp information is also useful if there &lt;/span&gt;&lt;span style=&quot; font-size:18pt; font-weight:600; text-decoration: underline;&quot;&gt;are&lt;/span&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt; timestamps, but manual entry of timing information is required because of major errors in those timestamps.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;NOTE: timestamps are ALWAYS treated as start-of-exposure times.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                     </property>
-                     <property name="layoutDirection">
-                      <enum>Qt::RightToLeft</enum>
-                     </property>
-                     <property name="text">
-                      <string>Enable manual timestamp entry</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
                     <widget class="QPushButton" name="manualEntryPushButton">
                      <property name="enabled">
-                      <bool>false</bool>
+                      <bool>true</bool>
                      </property>
                      <property name="toolTip">
                       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This button causes a dialog to appear in which timestamp information may be entered. This is needed if 'flash timing' is being utilized.&lt;/p&gt;&lt;p&gt;It is also useful when OCR of a VTI overlay has a high error rate, but enough entries have been properly read that 'goal post' timing (use of two times that bracket the event to provide the timing information by interpolation) can be used.&lt;/p&gt;&lt;p&gt;NOTE: timestamps are ALWAYS treated as start-of-exposure times.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -6143,7 +6134,6 @@ Setting this value to zero will force Miss distance optimization to be skipped.<
   <tabstop>fitMetricChangeEdit</tabstop>
   <tabstop>pastEventsComboBox</tabstop>
   <tabstop>calcFlashEdge</tabstop>
-  <tabstop>manualTimestampCheckBox</tabstop>
   <tabstop>manualEntryPushButton</tabstop>
   <tabstop>allowNewVersionPopupCheckbox</tabstop>
   <tabstop>showTimestampErrors</tabstop>

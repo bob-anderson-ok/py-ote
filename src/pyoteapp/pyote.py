@@ -242,6 +242,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.homeDir = os.path.split(__file__)[0]
 
         self.keepRunning = True
+        self.allCoreElementsEntered = False
 
         self.selectedPoints = {}
 
@@ -472,6 +473,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.smoothingIntervalSpinBox.editingFinished.connect(self.newRedrawMainPlot)
 
         # Model lightcurves widgets
+
+        self.beingOptimizedLabel.installEventFilter(self)
+        self.beingOptimizedEdit.installEventFilter(self)
 
         self.currentEventLabel.installEventFilter(self)
         self.currentEventEdit.installEventFilter(self)
@@ -716,8 +720,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.detectMagDropLabel.installEventFilter(self)
 
         # Checkbox: Use manual timestamp entry
-        self.manualTimestampCheckBox.clicked.connect(self.toggleManualEntryButton)
-        self.manualTimestampCheckBox.installEventFilter(self)
+        # self.manualTimestampCheckBox.clicked.connect(self.toggleManualEntryButton)
+        # self.manualTimestampCheckBox.installEventFilter(self)
 
         # Button: Manual timestamp entry
         self.manualEntryPushButton.clicked.connect(self.doManualTimestampEntry)
@@ -1118,11 +1122,30 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     def printFinalReport(self):
         if self.Lcp is not None:
-            for line in self.Lcp.document():
+            self.showMsg('Lightcurve Model Parameters...',
+                         color='black', bold=True, blankLine=True)
+
+            for line in self.Lcp.document(
+                    suppressLimbAngles=not (self.edgeOnDiskRadioButton.isChecked())):
                 self.showMsg(line, color='black', bold=True, blankLine=False)
+            self.showMsg('', blankLine=False)
+
+            if self.diffractionRadioButton.isChecked():
+                self.showMsg('Model used: diffraction', color='black', bold=True)
+            elif self.edgeOnDiskRadioButton.isChecked():
+                self.showMsg('Model used: edge on disk', color='black', bold=True)
+            elif self.diskOnDiskRadioButton.isChecked():
+                self.showMsg('Model used: disk on disk', color='black', bold=True)
+
             if self.modelDedgeSecs is not None:
                 self.showMsg('', blankLine=False)
                 self.printEdgeOrMissReport()
+
+            if self.edgeOnDiskRadioButton.isChecked():
+                self.showMsg(f'D limb angle: {self.Lcp.D_limb_angle_degrees:0.1f}',
+                             color='black', bold=True, blankLine=False)
+                self.showMsg(f'R limb angle: {self.Lcp.R_limb_angle_degrees:0.1f}',
+                             color='black', bold=True, blankLine=False)
 
     def processDangleEditFinish(self):
         try:
@@ -1215,7 +1238,15 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         if self.Lcp is None:
             self.showInfo(f'There is no model lightcurve defined.')
         else:
-            self.computeModelLightcurve(demo=True)
+            if self.Lcp is None:
+                self.showInfo(f'Model data has not been loaded.')
+                return
+            else:
+                a_none_value_was_found, missing = self.Lcp.check_for_none()
+                if a_none_value_was_found:
+                    self.showInfo(f'{missing} has not been set.\n\nThere may be others.')
+                    return
+                self.computeModelLightcurve(demo=True)
 
     def convertDandRrdgValueToTimestamp(self):
         tObsStart = convertTimeStringToTime(self.yTimes[0])
@@ -1575,6 +1606,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.beingOptimizedEdit.setText('x position')
 
         self.clearColoredParameters()
+        self.beingOptimizedEdit.setStyleSheet("background-color: lightblue")
 
         eodAlgorithm = self.edgeOnDiskRadioButton.isChecked()
 
@@ -1588,6 +1620,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         while True:   # We loop until there is a need to execute a return
 
             if not self.keepRunning:
+                self.clearColoredParameters()
                 return "paused"
 
             self.makeAnEdgeTimeStep()  # Make a step
@@ -1614,6 +1647,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                         # of updating the self.modelDedgeSecs and self.modelRedgeSecs variables
                         self.calcModelFitMetric(showData=False)
                         self.bestFit.thisPassMetric = edgeTimeMetric
+                        self.clearColoredParameters()
                         return 'success'
                     continue
                 continue
@@ -1794,6 +1828,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         # self.showMemoryStats()
         self.keepRunning = True
 
+        if self.edgeOnDiskRadioButton.isChecked():
+            if self.limbAnglePrecisionEdit.text() == '':
+                self.showInfo(f'You need to specify a limb angle precision step.')
+                return
+
         if self.fitStatus is None:
             self.showMsg(f'Fit improvement entered for first time.',
                          color='black', bold=True)
@@ -1810,8 +1849,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.fitStatus.edgeDelta = float(self.edgeTimePrecisionEdit.text())
             self.fitStatus.chordDelta = float(self.chordDurationPrecisionEdit.text())
             self.fitStatus.missDelta = float(self.missDistancePrecisionEdit.text())
-            self.fitStatus.DangleDelta = float(self.limbAnglePrecisionEdit.text())
-            self.fitStatus.RangleDelta = float(self.limbAnglePrecisionEdit.text())
+
+            if not self.limbAnglePrecisionEdit.text() == '':
+                self.fitStatus.DangleDelta = float(self.limbAnglePrecisionEdit.text())
+                self.fitStatus.RangleDelta = float(self.limbAnglePrecisionEdit.text())
+            else:
+                self.fitStatus.DangleDelta = 0
+                self.fitStatus.RangleDelta = 0
 
             self.bestFit = BestFit()
             self.bestFit.thisPassMetric = self.fitStatus.currentMetric
@@ -2146,6 +2190,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.chordSizeSecondsEdit.setStyleSheet(None)
         self.DdegreesEdit.setStyleSheet(None)
         self.RdegreesEdit.setStyleSheet(None)
+        self.beingOptimizedEdit.setStyleSheet(None)
 
     def makeAnEdgeTimeStep(self):
         self.fitStatus.modelTimeOffset += self.fitStatus.edgeDelta
@@ -2154,6 +2199,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
     def fitModelLightcurveButtonClicked(self):
         self.redrawMainPlot()
         QtWidgets.QApplication.processEvents()
+
+        if self.Lcp is None:
+            self.showInfo(f'Model data has not been loaded.')
+            return
+        else:
+            a_none_value_was_found, missing = self.Lcp.check_for_none()
+            if a_none_value_was_found:
+                self.showInfo(f'{missing} has not been set.\n\nThere may be others.')
 
         self.allowShowDetails = True
         if self.fitStatus is not None:
@@ -2247,6 +2300,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             if not computeOnly:
                 self.fitImprovementControlCenter()
 
+            if demo:
+                self.fitLightcurveButton.setStyleSheet("background-color: yellow")
+                self.fitLightcurveButton.setText("Fit model to observation points")
+
             QtWidgets.QApplication.processEvents()
 
             return
@@ -2290,6 +2347,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             if not computeOnly:
                 self.fitImprovementControlCenter()
 
+            if demo:
+                self.fitLightcurveButton.setStyleSheet("background-color: yellow")
+                self.fitLightcurveButton.setText("Fit model to observation points")
+
             QtWidgets.QApplication.processEvents()
 
             return
@@ -2332,6 +2393,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             # recalculated during the operation of self.fitImprovementControlCenter()
             if not computeOnly:
                 self.fitImprovementControlCenter()
+
+            if demo:
+                self.fitLightcurveButton.setStyleSheet("background-color: yellow")
+                self.fitLightcurveButton.setText("Fit model to observation points")
 
             QtWidgets.QApplication.processEvents()
 
@@ -2381,9 +2446,21 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.DdegreesEdit.setEnabled(self.edgeOnDiskRadioButton.isChecked())
         self.RdegreesEdit.setEnabled(self.edgeOnDiskRadioButton.isChecked())
         self.limbAnglePrecisionEdit.setEnabled(self.edgeOnDiskRadioButton.isChecked())
+        if not self.edgeOnDiskRadioButton.isChecked():
+            self.DdegreesEdit.clear()
+            self.RdegreesEdit.clear()
+            self.limbAnglePrecisionEdit.clear()
+        else:
+            if self.Lcp is not None:
+                self.DdegreesEdit.setText(f'{self.Lcp.D_limb_angle_degrees:0.1f}')
+                self.RdegreesEdit.setText(f'{self.Lcp.R_limb_angle_degrees:0.1f}')
 
     def fillLightcurvePanelEditBoxes(self):
-        self.frameTimeEdit.setText(f'{self.Lcp.frame_time:0.5f}')
+        # If no frame time is present, use the one from the ved Lcp
+        if self.frameTimeEdit.text() == '':
+            self.frameTimeEdit.setText(f'{self.Lcp.frame_time:0.5f}')
+        else:  # Use the already entered frame_time
+            self.Lcp.set('frame_time', float(self.frameTimeEdit.text()))
 
         self.missDistanceKmEdit.setText(f'{self.Lcp.miss_distance_km:0.5f}')
 
@@ -2400,16 +2477,33 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.baselineADUedit.setText(f'{self.Lcp.baseline_ADU:0.1f}')
         self.bottomADUedit.setText(f'{self.Lcp.bottom_ADU:0.1f}')
-        self.magDropEdit.setText(f'{self.Lcp.magDrop:0.4f}')
+        if self.Lcp.magDrop is not None:
+            self.magDropEdit.setText(f'{self.Lcp.magDrop:0.4f}')
+        else:
+            self.magDropEdit.clear()
 
         self.DdegreesEdit.setText(f'{self.Lcp.D_limb_angle_degrees:0.0f}')
         self.RdegreesEdit.setText(f'{self.Lcp.R_limb_angle_degrees:0.0f}')
 
-        self.chordSizeSecondsEdit.setText(f'{self.Lcp.chord_length_sec:0.5f}')
-        self.chordSizeKmEdit.setText(f'{self.Lcp.chord_length_km:0.5f}')
+        if self.Lcp.chord_length_sec is not None:
+            self.chordSizeSecondsEdit.setText(f'{self.Lcp.chord_length_sec:0.5f}')
+        else:
+            self.chordSizeSecondsEdit.clear()
 
-        self.starSizeMasEdit.setText(f'{self.Lcp.star_diameter_mas:0.5}')
-        self.starSizeKmEdit.setText(f'{self.Lcp.star_diameter_km:0.5f}')
+        if self.Lcp.chord_length_km is not None:
+            self.chordSizeKmEdit.setText(f'{self.Lcp.chord_length_km:0.5f}')
+        else:
+            self.chordSizeKmEdit.clear()
+
+        if self.Lcp.star_diameter_mas is not None:
+            self.starSizeMasEdit.setText(f'{self.Lcp.star_diameter_mas:0.5}')
+        else:
+            self.starSizeMasEdit.clear()
+
+        if self.Lcp.star_diameter_km is not None:
+            self.starSizeKmEdit.setText(f'{self.Lcp.star_diameter_km:0.5f}')
+        else:
+            self.starSizeKmEdit.clear()
 
         self.fresnelSizeKmEdit.setText(f'{self.Lcp.fresnel_length_km:0.5f}')
         self.fresnelSizeSecondsEdit.setText(f'{self.Lcp.fresnel_length_sec:0.5f}')
@@ -2430,12 +2524,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             return
 
         file_selected = self.pastEventsComboBox.currentText()
-        # self.showInfo(f'A past event named {file_selected} has been selected')
         if file_selected == '<clear event data>':
             self.initializeModelLightcurvesPanel()
             self.handleModelSelectionRadioButtonClick()
             return
+
         self.fitLightcurveButton.setStyleSheet("background-color: yellow")
+        self.fitLightcurveButton.setText("Fit model to observation points")
+
         LCPdir = os.path.dirname(self.csvFilePath)
         if sys.platform == 'darwin' or sys.platform == 'linux':
             full_name = f'{LCPdir}/LCP_{file_selected}.p'
@@ -2452,16 +2548,22 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.fitStatus = None
             self.currentEventEdit.setText(file_selected)
             eventSourceFile = self.Lcp.sourceFile
+            self.baselineADUedit.setStyleSheet(None)
+            self.baselineADUbutton.setStyleSheet(None)
 
             _, currentSourceFile = os.path.split(self.csvFilePath)
             if not currentSourceFile == eventSourceFile:
-                self.showInfo(f'event source file: {eventSourceFile}\n\n'
-                              f'does not match !!! ....\n\n'
-                              f'current source file: {currentSourceFile}')
+                self.showInfo(f'The source file: {eventSourceFile}\n\n'
+                              f'used in the original creation of this event data does not match\n'
+                              f'the current source file: {currentSourceFile}\n\n'
+                              f'This may be deliberate, in which case doing an eventual\n'
+                              f'"save Event" will force a match.')
+                self.promptForBaselineADUentry()
             else:
                 # self.showInfo(f'event source file: {eventSourceFile}')
                 pass
-            self.currentEventEdit.setEnabled(False)
+            self.currentEventEdit.setEnabled(True)
+            self.allCoreElementsEntered = True
         except FileNotFoundError:
             self.showInfo(f'{full_name} could not be found.')
 
@@ -2474,12 +2576,15 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.showInfo('An event name is required before a "save" can be performed')
             return
 
-        anUnsetParameterFound, parameterName = self.Lcp.check_for_none()
-        if anUnsetParameterFound:
-            self.showInfo(f'{parameterName} has not been set.\n\n'
-                          f'There may be others.')
-            return
+        # anUnsetParameterFound, parameterName = self.Lcp.check_for_none()
+        # if anUnsetParameterFound:
+        #     self.showInfo(f'{parameterName} has not been set.\n\n'
+        #                   f'There may be others.')
+        #     return
 
+        if not self.allCoreElementsEntered:
+            self.showInfo(f'There are some core event parameters yet to be entered.\n\n'
+                          f'The core event parameters are those between the first pair of black bars.')
         # This allows the current filename to be updated
         self.Lcp.sourceFile = os.path.split(self.csvFilePath)[1]
 
@@ -2509,6 +2614,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         proposed_filename = self.currentEventEdit.text()
         if not self.validFilename(proposed_filename):
             self.showInfo(f'The event name contains a character that is invalid in a filename.')
+            return
+
+        if self.Lcp is not None:
             return
 
         self.handleModelSelectionRadioButtonClick()
@@ -2541,7 +2649,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.asteroidDistArcsecEdit.clear()
 
         self.wavelengthEdit.setEnabled(True)
-        self.wavelengthEdit.clear()
+        self.wavelengthEdit.setText('540')
 
         self.newEventDataBeingEntered = True
         self.asteroidDiameterKmEdit.setFocus()
@@ -2613,31 +2721,31 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.showInfo(f'At end of processModelParameterChange(): {e}')
 
     def processModelLightcurveCoreEdit(self):
-        # We do this frequently to be certain to pick up when do gray out limb angle stuff
+        # We do this frequently to be certain to pick up when to gray out limb angle stuff
         self.handleModelSelectionRadioButtonClick()
 
         try:
             empty = ''
-            baselineAduEntered = not self.baselineADUedit.text() == empty
-            frameTimeEntered = not self.frameTimeEdit.text() == empty
-            magDropEntered = not self.magDropEdit.text() == empty
-
-            # if self.Lcp is not None and not self.editMode:
-            if self.Lcp is not None:
-                if baselineAduEntered and magDropEntered and frameTimeEntered:
-                    magDrop = float(self.magDropEdit.text())
-                    baselineADU = float(self.baselineADUedit.text())
-                    bottomADU = self.calcBottomADU(baselineADU=baselineADU, magDrop=magDrop)
-                    self.bottomADUedit.setText(f'{bottomADU:0.1f}')
-
-                    self.Lcp.set('baseline_ADU', float(self.baselineADUedit.text()))
-                    self.Lcp.set('bottom_ADU', float(self.bottomADUedit.text()))
-                    self.Lcp.set('frame_time', float(self.frameTimeEdit.text()))
-                    self.Lcp.set('miss_distance_km', float(self.missDistanceKmEdit.text()))
-                    return
-                else:
-                    self.showInfo('There must be a value provided for baseline, magDrop, and frame_time!')
-                    return
+            # baselineAduEntered = not self.baselineADUedit.text() == empty
+            # frameTimeEntered = not self.frameTimeEdit.text() == empty
+            # magDropEntered = not self.magDropEdit.text() == empty
+            #
+            # if self.Lcp is not None:
+            #     self.showInfo('We are in core data entry with an Lcp already defined. How?')
+            #     if baselineAduEntered and magDropEntered and frameTimeEntered:
+            #         magDrop = float(self.magDropEdit.text())
+            #         baselineADU = float(self.baselineADUedit.text())
+            #         bottomADU = self.calcBottomADU(baselineADU=baselineADU, magDrop=magDrop)
+            #         self.bottomADUedit.setText(f'{bottomADU:0.1f}')
+            #
+            #         self.Lcp.set('baseline_ADU', float(self.baselineADUedit.text()))
+            #         self.Lcp.set('bottom_ADU', float(self.bottomADUedit.text()))
+            #         self.Lcp.set('frame_time', float(self.frameTimeEdit.text()))
+            #         self.Lcp.set('miss_distance_km', float(self.missDistanceKmEdit.text()))
+            #         return
+            #     else:
+            #         self.showInfo('There must be a value provided for baseline, magDrop, and frame_time!')
+            #         return
 
             frameTimeEntered = not self.frameTimeEdit.text() == empty
             try:
@@ -2668,7 +2776,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 except ValueError as e:
                     self.showInfo(f'asteroid diameter (mas) {e}')
                     return
-                self.asteroidDiameterKmEdit.setEnabled(False)
+                # We used to do this, but now allow edits at any time
+                # self.asteroidDiameterKmEdit.setEnabled(False)
 
             asteroidShadowSpeedEntered = not self.asteroidSpeedShadowEdit.text() == empty
             if asteroidShadowSpeedEntered:
@@ -2734,13 +2843,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     self.showInfo(f'miss distance (km): {e}')
                     return
 
-            allCoreElementsEntered = frameTimeEntered
-            allCoreElementsEntered = allCoreElementsEntered and wavelengthEntered
-            allCoreElementsEntered = allCoreElementsEntered and (asteroidShadowSpeedEntered or asteroidSkySpeedEntered)
-            allCoreElementsEntered = allCoreElementsEntered and (asteroidDistAUentered or asteroidDistArcsecEntered)
-            allCoreElementsEntered = allCoreElementsEntered and (asteroidDiameterMasEntered or asteroidDiameterKmEntered)
-            allCoreElementsEntered = allCoreElementsEntered and missDistanceEntered
-            if not allCoreElementsEntered:
+            self.allCoreElementsEntered = frameTimeEntered
+            self.allCoreElementsEntered = self.allCoreElementsEntered and wavelengthEntered
+            self.allCoreElementsEntered = self.allCoreElementsEntered and (asteroidShadowSpeedEntered or asteroidSkySpeedEntered)
+            self.allCoreElementsEntered = self.allCoreElementsEntered and (asteroidDistAUentered or asteroidDistArcsecEntered)
+            self.allCoreElementsEntered = self.allCoreElementsEntered and (asteroidDiameterMasEntered or asteroidDiameterKmEntered)
+            self.allCoreElementsEntered = self.allCoreElementsEntered and missDistanceEntered
+            if not self.allCoreElementsEntered:
                 return
 
             if self.Lcp is not None:
@@ -2753,18 +2862,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.baselineADUedit.setStyleSheet("background-color: lightblue")
             self.baselineADUbutton.setStyleSheet("background-color: lightblue")
 
-            # Make sure that he plot cursor is not in Arrow mode
+            # Make sure that the plot cursor is not in Arrow mode
             self.blankCursor = True
             self.mainPlot.viewport().setProperty("cursor",
                                                  QtGui.QCursor(QtCore.Qt.CursorShape.BlankCursor))
-            self.showInfo(f'Set baselineADU by selecting points to be\n'
-                          f'included in the calculation - multiple regions can be\n'
-                          f'selected.\n\n'
-                          f'When all regions have been selected, click on the Calc button.\n\n'
-                          f'This will clear the selected points and '
-                          f'put the entry cursor in the Predicted magDrop box '
-                          f'ready for that entry.')
 
+            # Set default values for baselineADU and bottomADU so that we
+            # can create an Lcp.
             baselineADU = 100.0
             bottomADU = 0.0
 
@@ -2849,8 +2953,32 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.fresnelSizeKmEdit.setText(f'{self.Lcp.fresnel_length_km:0.5f}')
             self.fresnelSizeSecondsEdit.setText(f'{self.Lcp.fresnel_length_sec:0.5f}')
 
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Question)
+            msg.setText(f'Do you wish to save the event data entered so far?')
+            msg.setWindowTitle('Save core data')
+            msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+            retval = msg.exec_()
+            if retval == QMessageBox.Yes:
+                self.saveCurrentEvent()
+                return
+
+            self.promptForBaselineADUentry()
+
         except ValueError as e:  # noqc
             self.showInfo(f'general error in CoreEdit(): {e}')
+
+    def promptForBaselineADUentry(self):
+        self.showInfo(f'Set baselineADU by selecting points to be\n'
+                      f'included in the calculation - multiple regions can be\n'
+                      f'selected.\n\n'
+                      f'When all regions have been selected, click on the Calc button.\n\n'
+                      f'This will clear the selected points and '
+                      f'put the entry cursor in the Predicted magDrop box '
+                      f'ready for that entry.')
+
+        self.baselineADUedit.setStyleSheet("background-color: lightblue")
+        self.baselineADUbutton.setStyleSheet("background-color: lightblue")
 
     def enableSecondaryEditBoxes(self):
         self.DdegreesEdit.setEnabled(True)
@@ -2874,8 +3002,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     def disablePrimaryEntryEditBoxes(self):
         self.frameTimeEdit.setEnabled(False)
-        self.missDistanceKmEdit.setEnabled(False)
-        self.asteroidDiameterKmEdit.setEnabled(False)
+        self.missDistanceKmEdit.setEnabled(True)
+        self.asteroidDiameterKmEdit.setEnabled(True)
         self.asteroidDiameterMasEdit.setEnabled(False)
         self.asteroidSpeedShadowEdit.setEnabled(False)
         self.asteroidSpeedSkyEdit.setEnabled(False)
@@ -2901,6 +3029,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.modelTimeOffset = 0.0
         self.fitStatus = {}
+        self.allCoreElementsEntered = False
 
         self.allowShowDetails = False
 
@@ -3265,6 +3394,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.calcBaselineADUbutton.setStyleSheet(None)
         self.clearBaselineADUselectionButton.setStyleSheet(None)
 
+        self.magDropEdit.setEnabled(True)
         self.magDropEdit.setFocus()
         self.showInfo(f'Enter Predicted magDrop')
 
@@ -3858,12 +3988,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 with open(icon_src_path) as src, open(icon_dest_path, 'w') as dest:
                     dest.writelines(src.readlines())
 
-    def toggleManualEntryButton(self):
-        if self.manualTimestampCheckBox.isChecked():
-            self.manualEntryPushButton.setEnabled(True)
-            self.doManualTimestampEntry()
-        else:
-            self.manualEntryPushButton.setEnabled(False)
+    # def toggleManualEntryButton(self):
+    #     if self.manualTimestampCheckBox.isChecked():
+    #         self.manualEntryPushButton.setEnabled(True)
+    #         self.doManualTimestampEntry()
+    #     else:
+    #         self.manualEntryPushButton.setEnabled(False)
 
     def openHelpFile(self):
         helpFilePath = os.path.join(os.path.split(__file__)[0], 'pyote-info.pdf')
@@ -3939,8 +4069,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     def checkForNewVersion(self):
         latestVersion = getLatestPackageVersion('pyote')
+
         self.showMsg(f'Query to PyPI returned latest version of PyOTE as: {latestVersion}',
                      color='blue', bold=True)
+
         if latestVersion.startswith("none"):  # 'none' is returned when no Internet connection
             gotVersion = False
         else:
@@ -3953,7 +4085,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         if gotVersion:
             if latestVersion <= version.version():
-                # self.showMsg(f'Found the latest version is: {latestVersion}')
                 self.showMsg('You are running the most recent version of PyOTE', color='red', bold=True)
 
             else:
@@ -6886,8 +7017,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
     def doManualTimestampEntry(self):
         errmsg = ''
         while errmsg != 'ok':
-            errmsg, manualTime, dataEntered, actualFrameCount, expectedFrameCount = \
-                manualTimeStampEntry(self.yFrame, TSdialog(), self.flashEdges)
+            try:
+                errmsg, manualTime, dataEntered, actualFrameCount, expectedFrameCount = \
+                    manualTimeStampEntry(self.yFrame, TSdialog(), self.flashEdges)
+            except AttributeError:
+                self.showInfo('There is no csv data available yet.')
+                return
             if errmsg != 'ok':
                 if errmsg == 'cancelled':
                     return
@@ -7125,7 +7260,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                                  bold=True)
                     # If the user knew there were no timestamps, the is no
                     # reason to show info box.
-                    if not self.manualTimestampCheckBox.isChecked():
+                    # if not self.manualTimestampCheckBox.isChecked():
+                    if True:
                         self.showInfo('This file does not contain timestamp '
                                       'entries --- manual entry of two '
                                       'timestamps is required.'
@@ -7208,10 +7344,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.newRedrawMainPlot()
                 self.mainPlot.autoRange()
 
-                if self.timeDelta == 0.0 and not self.manualTimestampCheckBox.isChecked():
+                # if self.timeDelta == 0.0 and not self.manualTimestampCheckBox.isChecked():
+                if self.timeDelta == 0.0:
                     self.showInfo("Analysis of timestamp fields resulted in "
-                                  "an invalid timeDelta of 0.0\n\nSuggestion: Enable manual timestamp entry (checkbox at top center)"
-                                  ", then press the now active 'Manual timestamp entry' button."
+                                  "an invalid timeDelta of 0.0\n\nSuggestion: switch to the Manual timestamps tab"
+                                  " and press the 'Manual timestamp entry' button."
                                   "\n\nThis will give you a chance to "
                                   "manually correct the timestamps using "
                                   "the data available in the table in the "

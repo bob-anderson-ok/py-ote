@@ -35,6 +35,9 @@ def get_star_chord_samples(x, plot_margin, LCP) -> Tuple[np.ndarray, np.ndarray,
 
     n_star_chords_in_radius = int(LCP.star_diameter_km / 2 / distance_resolution)
 
+    if n_star_chords_in_radius < 3:
+        return None, None
+
     # print(f'distance_resolution: {distance_resolution:0.4f}  n_star_chords: {n_star_chords_in_radius}')
     # print(f'n_star_chords_in_radius: {n_star_chords_in_radius}')
 
@@ -215,8 +218,6 @@ def edgeIntersection(lcp):
 # Calculate contact points of the star with the edges.
 # This allows the easy detection of a graze where the fraction_covered() function is no longer relevant
 def contactPoints(LCP):
-    # d = 0
-    # star_radius = LCP.star_radius_km
     half_chord = LCP.chord_length_km / 2
 
     # Contact values are relative to the relevant geomettrical edge
@@ -587,7 +588,7 @@ class LightcurveParameters:
                 return True, name
         return False, 'all needed parameters are set'
 
-    def document(self):
+    def document(self, suppressLimbAngles=False):
         nameIsNone, name = self.check_for_none()
         if nameIsNone:
             output_str = [f'\n!!!! {name} remains to be set !!!!\n']
@@ -647,15 +648,16 @@ class LightcurveParameters:
 
         output_str.append(f"frame_time: {self.frame_time:0.4f} sec\n")
 
-        if self.D_limb_angle_degrees is not None:
-            output_str.append(f"D_limb_angle_degrees: {self.D_limb_angle_degrees:0.1f} degrees")
-        else:
-            output_str.append(f"D_limb_angle_degrees: None")
+        if not suppressLimbAngles:
+            if self.D_limb_angle_degrees is not None:
+                output_str.append(f"D_limb_angle_degrees: {self.D_limb_angle_degrees:0.1f} degrees")
+            else:
+                output_str.append(f"D_limb_angle_degrees: None")
 
-        if self.R_limb_angle_degrees is not None:
-            output_str.append(f"R_limb_angle_degrees: {self.R_limb_angle_degrees:0.1f} degrees")
-        else:
-            output_str.append(f"R_limb_angle_degrees: None")
+            if self.R_limb_angle_degrees is not None:
+                output_str.append(f"R_limb_angle_degrees: {self.R_limb_angle_degrees:0.1f} degrees")
+            else:
+                output_str.append(f"R_limb_angle_degrees: None")
 
         if self.chord_length_km is not None:
             output_str.append(f"chord_length_km:  {self.chord_length_km:0.2f} km")
@@ -1099,8 +1101,6 @@ def demo_diffraction_field(LCP, title_adder='',
                                                              diam_km=LCP.asteroid_diameter_km)
     transform = (fft2(my_field)) / N
     image = abs(transform) ** 2
-    # row = image[N // 2, :]
-    # x_km = x_fl * fresnel_length_km
 
     ax1.matshow(image[512:1536, 512:1536], cmap='gray')
 
@@ -1128,8 +1128,6 @@ def dodModel(margin, LCP):
     x = np.linspace(-half_width, half_width, 2048)
     dvalues = np.sqrt(x ** 2 + y_offset ** 2)
 
-    # max_d = np.max(dvalues)
-
     EntryContact_x = ExitContact_x = None
     for i, d in enumerate(dvalues):
         if EntryContact_x is None:
@@ -1144,7 +1142,6 @@ def dodModel(margin, LCP):
         Itemp.append(Istar(asteroid_radius, star_radius, d))
 
     y_ADU = scaleToADU(np.array(Itemp), LCP=LCP)
-    # y_ADU = np.array(Itemp)
 
     return x, y_ADU, dvalues, EntryContact_x, ExitContact_x
 
@@ -1558,28 +1555,37 @@ def demo_event(LCP: LightcurveParameters, model, title='Generic model', showLege
             plot_diffraction(x=x, y=y, first_wavelength=wavelength1,
                              last_wavelength=wavelength2, LCP=LCP, title=title,
                              showLegend=showLegend, showNotes=showNotes, plot_versus_time=plot_versus_time)
+
+        camera_y = None
         # Get star disk chords
         if not LCP.star_diameter_km == 0.0:
             d_chords, d_chords_alone, *_ = get_star_chord_samples(x=x, plot_margin=20, LCP=LCP)
-            star_disk_y = lightcurve_convolve(sample=d_chords_alone,
-                                              lightcurve=y,
-                                              shift_needed=len(d_chords_alone) - 1)
+            if d_chords is not None:
+                star_disk_y = lightcurve_convolve(sample=d_chords_alone,
+                                                  lightcurve=y,
+                                                  shift_needed=len(d_chords_alone) - 1)
 
-            # Block integrate star_disk_y by frame_time to get camera_y
-            span_km = x[-1] - x[0]
-            resolution_km = span_km / LCP.npoints
-            n_sample_points = round(LCP.frame_time * LCP.shadow_speed / resolution_km)
-            sample = np.repeat(1.0 / n_sample_points, n_sample_points)
-            camera_y = lightcurve_convolve(sample=sample, lightcurve=star_disk_y,
-                                           shift_needed=len(sample) - 1)
+                # Block integrate star_disk_y by frame_time to get camera_y
+                span_km = x[-1] - x[0]
+                resolution_km = span_km / LCP.npoints
+                n_sample_points = round(LCP.frame_time * LCP.shadow_speed / resolution_km)
+                if n_sample_points > 1:
+                    sample = np.repeat(1.0 / n_sample_points, n_sample_points)
+                    camera_y = lightcurve_convolve(sample=sample, lightcurve=star_disk_y,
+                                                   shift_needed=len(sample) - 1)
+            else:
+                camera_y = y
         else:
             # Block integrate y by frame_time to get camera_y
             span_km = x[-1] - x[0]
             resolution_km = span_km / LCP.npoints
             n_sample_points = round(LCP.frame_time * LCP.shadow_speed / resolution_km)
-            sample = np.repeat(1.0 / n_sample_points, n_sample_points)
-            camera_y = lightcurve_convolve(sample=sample, lightcurve=y,
-                                           shift_needed=len(sample) - 1)
+            if n_sample_points > 1:
+                sample = np.repeat(1.0 / n_sample_points, n_sample_points)
+                camera_y = lightcurve_convolve(sample=sample, lightcurve=y,
+                                               shift_needed=len(sample) - 1)
+            else:
+                camera_y = y
         return x, camera_y, D_edge, R_edge
     else:
         raise Exception(f"Model '{model}' is unknown.")
