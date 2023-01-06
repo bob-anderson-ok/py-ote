@@ -109,11 +109,18 @@ cursorAlert = pyqtSignal()
 # in the IPython console while in pyoteapp directory
 
 # Status of points and associated dot colors ---
-EVENT = 4  # Same as baseline
-SELECTED = 3  # big red
-BASELINE = 2  # orangish
-INCLUDED = 1  # blue
+MISSING = 5   # (211, 211, 211) light gray
+EVENT = 4     # (155, 150, 100) sick green
+SELECTED = 3  # (255, 000, 000) red
+BASELINE = 2  # (255, 150, 100) salmon
+INCLUDED = 1  # (000, 032, 255) blue with touch of green
 EXCLUDED = 0  # no dot
+
+MISSING_COLOR = (211, 211, 211)  # light gray
+EVENT_COLOR = (155, 150, 100)    # sick yellowish green
+SELECTED_COLOR = (255, 0, 0)     # red
+BASELINE_COLOR = (255, 150,100)  # salmon
+INCLUDED_COLOR = (0, 32, 255)    # blue + green tinge
 
 LINESIZE = 2
 
@@ -152,7 +159,7 @@ class FitStatus:
     failureCount = 0
     beingChanged: str = field(default='?')  # 'edgeTime' | 'chord' | 'Dangle' | 'Rangle'
 
-# There is a bug in pyqtgraph ImageExpoter, probably caused by new versions of PyQt5 returning
+# There is a bug in pyqtgraph ImageExporter, probably caused by new versions of PyQt5 returning
 # float values for image rectangles.  Those floats were being given to numpy to create a matrix,
 # and that was raising an exception.  Below is my 'cure', effected by overriding the internal
 # methods of ImageExporter that manipulate width and height
@@ -168,6 +175,7 @@ class TimestampAxis(pg.AxisItem):
 
 
 class TSdialog(QDialog, timestampDialog.Ui_manualTimestampDialog):
+
     def __init__(self):
         super(TSdialog, self).__init__()
         self.setupUi(self)
@@ -286,12 +294,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.modelRedgeSecs = None     # timestamp of R edge in observation
 
         self.modelPtsY = None          # the computed model lightcurve (possibly trimmed)
-        self.modelPtsXrdgNum = None    # with x values in redin number uits (startingat 0.0)
+        self.modelPtsXrdgNum = None    # with x values in reading number units (starting at 0.0)
         self.modelPtsXsec = None       # and with x values in time units
 
         self.modelYsamples = None
 
-        self.modelDuration = None      # duraton of model lightcurve (seconds)
+        self.modelDuration = None      # duration of model lightcurve (seconds)
 
         self.modelMetric = None        # sum((y[i] - model[i])**2) / n
 
@@ -323,7 +331,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.setWindowTitle('PYOTE  Version: ' + version.version())
 
-        self.skipNormalization = False  # A flag used to prevent inifinite recursion in self.refrawMainPlot
+        self.skipNormalization = False  # A flag used to prevent infinite recursion in self.redrawMainPlot
 
         self.suppressNormalization = False
 
@@ -705,7 +713,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.clearBaselineRegionsButton.clicked.connect(self.clearBaselineRegions)
         self.clearBaselineRegionsButton.installEventFilter(self)
 
-        self.clearMetricPointsButton.clicked.connect(self.clearBaselineRegions)
+        self.clearMetricPointsButton.clicked.connect(self.clearModelsBaselineRegion)
         self.clearMetricPointsButton.installEventFilter(self)
 
         self.calcStatsFromBaselineRegionsButton.clicked.connect(self.calcBaselineStatisticsFromMarkedRegions)
@@ -960,7 +968,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.redoTabOrder(tabNameList)
             # self.switchToTabNamed(tabNameList[0])
 
-        # This is a 'hack' to override QtDesigner which has evolved somehow the abilty to block my attempts
+        # This is a 'hack' to override QtDesigner which has evolved somehow the ability to block my attempts
         # at setting reasonable size parameters in the drag-and drop Designer.
         self.resize(QSize(0, 0))
         self.setMinimumSize(QSize(0, 0))
@@ -1071,6 +1079,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         if self.allowNewVersionPopupCheckbox.isChecked():
             self.showHelp(self.allowNewVersionPopupCheckbox)
 
+        # noinspection PyTypeChecker
         self.Lcp: LightcurveParameters = None
 
         self.newEventDataBeingEntered = False
@@ -1799,7 +1808,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             if not self.keepRunning:
                 self.clearColoredParameters()
                 return "paused"
-            # Make a miss ditance change, recompute the model lightcurve and get the new metric
+            # Make a miss distance change, recompute the model lightcurve and get the new metric
             stepWasTaken = self.makeAmissDistanceStep()
             if stepWasTaken:
                 self.computeModelLightcurve()
@@ -1926,7 +1935,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 QtWidgets.QApplication.processEvents()
 
                 if self.dMetric + self.rMetric >= bestMetricSoFar:
-                    self.showFinalEdgePostionReport(paused=False)
+                    self.showFinalEdgePositionReport(paused=False)
                     self.fitLightcurveButton.setStyleSheet("background-color: yellow")
                     self.fitLightcurveButton.setText("Fit model to observation points")
                     self.beingOptimizedEdit.clear()
@@ -1958,7 +1967,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 QtWidgets.QApplication.processEvents()
 
                 if self.dMetric + self.rMetric >= bestMetricSoFar:
-                    self.showFinalEdgePostionReport(paused=False)
+                    self.showFinalEdgePositionReport(paused=False)
                     self.fitLightcurveButton.setStyleSheet("background-color: yellow")
                     self.fitLightcurveButton.setText("Fit model to observation points")
                     self.beingOptimizedEdit.clear()
@@ -1978,7 +1987,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.pauseFitButton.setEnabled(False)
             self.beingOptimizedEdit.clear()
             self.processFitPauseRequest()
-            self.showFinalEdgePostionReport(paused=True)
+            self.showFinalEdgePositionReport(paused=True)
 
     def processFitImprovementCompleted(self):
         self.showMsg(f'Maximum improvement has been achieved with metric: '
@@ -2002,7 +2011,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                      color='black', bold=True)
         self.keepRunning = False
 
-    def showFinalEdgePostionReport(self, paused=False):
+    def showFinalEdgePositionReport(self, paused=False):
         if paused:
             self.showMsg(f'Current state fit (during pause) ...',
                          color='black', bold=True)
@@ -2089,7 +2098,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             return False  # because we already at the largest acceptable value
 
         # It's safe to make the step, but we will still need to test the resulting
-        # chordTime to keep it it within accaptable bounds.
+        # chordTime to keep it it within acceptable bounds.
         self.fitStatus.chordTime += self.fitStatus.chordDelta
 
         # Check that chordTime may have become too large (or too small)
@@ -2116,7 +2125,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             return False  # because we are already at the smallest acceptable value
 
         # It's safe to make the step, but we will still need to test the resulting
-        # missDistance to keep it it within accaptable bounds.
+        # missDistance to keep it it within acceptable bounds.
         self.fitStatus.missDistance += self.fitStatus.missDelta
 
         # Check that chordTime may have become too large (or too small)
@@ -2137,7 +2146,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             return False  # because we already at the largest acceptable value
 
         # It's safe to make the step, but we will still need to test the resulting
-        # Dangle after a step is taken to keep it within accaptable bounds.
+        # Dangle after a step is taken to keep it within acceptable bounds.
         self.fitStatus.Dangle += self.fitStatus.DangleDelta
 
         # Check that Dangle may have become too large (or too small)
@@ -2165,7 +2174,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             return False  # because we already at the largest acceptable value
 
         # It's safe to make the step, but we will still need to test the resulting
-        # Dangle after a step is taken to keep it within accaptable bounds.
+        # Dangle after a step is taken to keep it within acceptable bounds.
         self.fitStatus.Rangle += self.fitStatus.RangleDelta
 
         # Check that Rangle may have become too large (or too small)
@@ -2599,7 +2608,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.showInfo(f'The current event data was written to '
                           f'\n\n{filepath}\n\n')
         except Exception as e:
-            self.showInfo(f'Attemp to write event data: {e}')
+            self.showInfo(f'Attempt to write event data: {e}')
 
         # Update the past events combo box
         self.pastEventsComboBox.clear()
@@ -2876,6 +2885,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.RdegreesEdit.setText('45')
 
             if asteroidShadowSpeedEntered:
+                # noinspection PyTypeChecker
                 self.Lcp = LightcurveParameters(
                     baseline_ADU=baselineADU,
                     bottom_ADU=bottomADU,
@@ -2912,6 +2922,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.asteroidSpeedSkyEdit.setText(f'{self.Lcp.sky_motion_mas_per_sec:0.5f}')
 
             else:
+                # noinspection PyTypeChecker
                 self.Lcp = LightcurveParameters(
                     baseline_ADU=baselineADU,
                     bottom_ADU=bottomADU,
@@ -3388,7 +3399,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             else:
                 self.tabWidget.tabBar().moveTab(from_index, to_index)
 
-    def clearBaselineRegions(self):
+    def clearModelsBaselineRegion(self):
         self.baselineADUedit.setStyleSheet(None)
         self.baselineADUbutton.setStyleSheet(None)
         self.calcBaselineADUbutton.setStyleSheet(None)
@@ -3398,9 +3409,16 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.magDropEdit.setFocus()
         self.showInfo(f'Enter Predicted magDrop')
 
-        self.bkgndRegionLimits = []
+        self.clearBaselineDotsFromPlot()
+
+    def clearBaselineRegions(self):
         self.clearBaselineRegionsButton.setEnabled(False)
         self.calcStatsFromBaselineRegionsButton.setEnabled(False)
+
+        self.clearBaselineDotsFromPlot()
+
+    def clearBaselineDotsFromPlot(self):
+        self.bkgndRegionLimits = []
         self.showMsg('Background regions cleared.')
         x = [i for i in range(self.dataLen) if self.yStatus[i] == BASELINE]
         for i in x:
@@ -3512,7 +3530,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         np.copyto(self.corCoefs, self.newCorCoefs)
         self.numPtsInCorCoefs = self.numNApts
         self.sigmaB = sigB
-        self.Lcp.set('sigmaB', self.sigmaB)
+        if self.Lcp is not None:
+            self.Lcp.set('sigmaB', self.sigmaB)
 
         self.userDeterminedBaselineStats = True
 
@@ -4110,7 +4129,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         return retval
 
     @staticmethod
-    def queryWhetherBlockIntegrationShouldBeAcccepted():
+    def queryWhetherBlockIntegrationShouldBeAccepted():
         msg = QMessageBox()
         msg.setIcon(QMessageBox.Question)
         msg.setText(
@@ -4576,7 +4595,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.tabWidget.setCurrentIndex(i)
                 return
 
-        self.popupMsg(f'Cannot find tab with title: {title}')
+        self.showInfo(f'Cannot find tab with title: {title}')
 
     def toggleDisplayOfTimestampErrors(self):
         self.newRedrawMainPlot()
@@ -4733,7 +4752,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
     def validateSinglePointDrop(self):
         if not self.userDeterminedBaselineStats:
             self.showInfo(f'You need to select baseline points and calculate statistics first. '
-                          f'\n\nGo to the Noise anlaysis tab to do this.')
+                          f'\n\nGo to the Noise analysis tab to do this.')
             return
 
         if len(self.selectedPoints) != 1:
@@ -4880,7 +4899,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                      ' with block size of ' + str(self.selPts[1] - self.selPts[0] + 1) + ' readings')
 
         self.timeDelta, self.droppedFrames, self.cadenceViolation, self.errRate = \
-            getTimeStepAndOutliers(self.yTimes)
+            getTimeStepAndOutliers(self.yTimes, self.yValues, self.yStatus)
         self.showMsg('timeDelta: ' + fp.to_precision(self.timeDelta, 6) + ' seconds per block', blankLine=False)
         self.showMsg('timestamp error rate: ' + fp.to_precision(100 * self.errRate, 2) + '%')
 
@@ -5281,7 +5300,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         If A is > 0, we calculate the nominal magDrop and it's error bar.
 
         If the error bar is unreasonable (i.e., grater than the magDrop) we don't
-        otput the error bar and attach a message indicating that the observation
+        output the error bar and attach a message indicating that the observation
         was too noisy for a valid error bar.
 
         If the error bar was reasonable, we report it as usual.
@@ -5915,7 +5934,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     def calcDetectability(self):
         if self.timeDelta == 0:
-            self.showInfo(f'Cannot use the detectabilty tool on a light curve without timestamps.')
+            self.showInfo(f'Cannot use the detectibilty tool on a light curve without timestamps.')
             return
 
         if not self.userDeterminedBaselineStats:
@@ -6213,7 +6232,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         D, R = self.solution
 
         # D and R are floats and may be fractional because of sub-frame timing.
-        # We have to remove the effects of sub-frame timing to calulate the D
+        # We have to remove the effects of sub-frame timing to calculate the D
         # and R transition points as integers.
 
         solMsg2 = ''
@@ -6286,7 +6305,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         D, R = self.solution
         # D and R are floats and may be fractional because of sub-frame timing.
-        # Here we remove the effects of sub-frame timing to calulate the D and
+        # Here we remove the effects of sub-frame timing to calculate the D and
         # R transition points as integers.
         if D:
             D = trunc(floor(D))
@@ -7044,7 +7063,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 if manualTime:
                     self.yTimes = manualTime[:]
                     self.timeDelta, self.droppedFrames, self.cadenceViolation, self.errRate = \
-                        getTimeStepAndOutliers(self.yTimes)
+                        getTimeStepAndOutliers(self.yTimes, self.yValues, self.yStatus)
                     self.frameTimeEdit.setText(fp.to_precision(self.timeDelta, 6))
 
                     self.fillTableViewOfData()
@@ -7117,7 +7136,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.logFile = self.logFile + '.PYOTE.log'
 
             self.detectabilityLogFile, _ = os.path.splitext(self.csvFilePath)
-            self.detectabilityLogFile = self.detectabilityLogFile + '.PYOTE.detectabillity.log'
+            self.detectabilityLogFile = self.detectabilityLogFile + '.PYOTE.detectability.log'
 
             self.normalizationLogFile, _ = os.path.splitext(self.csvFilePath)
             self.normalizationLogFile = self.normalizationLogFile + '.PYOTE.normalization.log'
@@ -7322,10 +7341,19 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.doBlockIntegration.setEnabled(True)
                 self.blockSizeEdit.setEnabled(True)
                 self.startOver.setEnabled(True)
-                self.fillTableViewOfData()
 
                 self.timeDelta, self.droppedFrames, self.cadenceViolation, self.errRate = \
-                    getTimeStepAndOutliers(self.yTimes)
+                    getTimeStepAndOutliers(self.yTimes, self.yValues, self.yStatus)
+
+                # self.timeDelta, self.droppedFrames, self.cadenceViolation, self.errRate, self.yTimes, self.yValues, self.yStatus = \
+                #     getTimeStepAndOutliers(self.yTimes, self.yValues, self.yStatus)
+
+                # We have to update these because the lightcurve may been extended by the insertion of missing readings
+                # self.dataLen = self.yValues.size
+                # self.right = self.dataLen - 1
+
+                self.fillTableViewOfData()
+
                 self.frameTimeEdit.setText(fp.to_precision(self.timeDelta, 6))
 
                 self.showMsg('timeDelta: ' + fp.to_precision(self.timeDelta, 6) + ' seconds per reading',
@@ -7588,7 +7616,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.errBarWin.close()
 
         self.dataLen = len(self.yTimes)
-        self.timeDelta, self.droppedFrames, self.cadenceViolation, self.errRate = getTimeStepAndOutliers(self.yTimes)
+        self.timeDelta, self.droppedFrames, self.cadenceViolation, self.errRate = \
+            getTimeStepAndOutliers(self.yTimes, self.yValues, self.yStatus)
         self.frameTimeEdit.setText(fp.to_precision(self.timeDelta, 6))
 
         self.fillTableViewOfData()
@@ -7976,7 +8005,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             #                    pen=None, symbol='s',
             #                    symbolBrush=(255, 0, 0), symbolSize=dotSize + 2)
 
-            # Show all of the model lightcuve sample points
+            # Show all of the model lightcurve sample points
             self.mainPlot.plot(self.modelXsamples, self.modelYsamples,
                                pen=None, symbol='o',
                                symbolBrush=(255, 0, 0), symbolSize=dotSize + 2)
@@ -8018,25 +8047,32 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             y = [self.yValues[i] for i in range(self.dataLen) if self.yStatus[i] == INCLUDED]
             y = np.array(y) + self.yOffsetSpinBoxes[self.targetIndex].value()
             self.mainPlot.plot(x, y, pen=None, symbol='o',
-                               symbolBrush=(0, 32, 255), symbolSize=dotSize)
+                               symbolBrush=INCLUDED_COLOR, symbolSize=dotSize)
 
             x = [i for i in range(self.dataLen) if self.yStatus[i] == BASELINE]
             y = [self.yValues[i] for i in range(self.dataLen) if self.yStatus[i] == BASELINE]
             y = np.array(y) + self.yOffsetSpinBoxes[self.targetIndex].value()
             self.mainPlot.plot(x, y, pen=None, symbol='o',
-                               symbolBrush=(255, 150, 100), symbolSize=dotSize)
+                               symbolBrush=BASELINE_COLOR, symbolSize=dotSize)
 
             x = [i for i in range(self.dataLen) if self.yStatus[i] == EVENT]
             y = [self.yValues[i] for i in range(self.dataLen) if self.yStatus[i] == EVENT]
             y = np.array(y) + self.yOffsetSpinBoxes[self.targetIndex].value()
             self.mainPlot.plot(x, y, pen=None, symbol='o',
-                               symbolBrush=(155, 150, 100), symbolSize=dotSize)
+                               symbolBrush=EVENT_COLOR, symbolSize=dotSize)
 
             x = [i for i in range(self.dataLen) if self.yStatus[i] == SELECTED]
             y = [self.yValues[i] for i in range(self.dataLen) if self.yStatus[i] == SELECTED]
             y = np.array(y) + self.yOffsetSpinBoxes[self.targetIndex].value()
             self.mainPlot.plot(x, y, pen=None, symbol='o',
-                               symbolBrush=(255, 0, 0), symbolSize=dotSize + 4)
+                               symbolBrush=SELECTED_COLOR, symbolSize=dotSize + 4)
+
+            x = [i for i in range(self.dataLen) if self.yStatus[i] == MISSING]
+            y = [self.yValues[i] for i in range(self.dataLen) if self.yStatus[i] == MISSING]
+            y = np.array(y) + self.yOffsetSpinBoxes[self.targetIndex].value()
+            self.mainPlot.plot(x, y, pen=None, symbol='o',
+                               symbolBrush=MISSING_COLOR, symbolSize=dotSize + 4)
+
         except IndexError:
             pass
 

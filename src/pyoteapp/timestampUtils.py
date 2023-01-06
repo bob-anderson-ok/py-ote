@@ -56,7 +56,9 @@ def improveTimeStep(outliers, deltaTime):
     return betterTimeStep
 
 
-def getTimeStepAndOutliers(timestamps):
+def getTimeStepAndOutliers(timestamps, yValues, yStatus):
+
+    # yValue is a numpy array; timestamps and yStatus are lists
 
     time = [convertTimeStringToTime(item) for item in timestamps]
     deltaTime = np.diff(time)
@@ -65,6 +67,7 @@ def getTimeStepAndOutliers(timestamps):
     cadence_low = timeStep * 0.8
     dropped_frame_high = timeStep * 1.8
     dropped_frame_low = timeStep * 0.2
+
     droppedFrameIndices = [i for i, dt in enumerate(deltaTime)
                            if dt < dropped_frame_low or dt > dropped_frame_high]
     numEntries = len(timestamps)
@@ -73,10 +76,73 @@ def getTimeStepAndOutliers(timestamps):
     
     improvedTimeStep = improveTimeStep(droppedFrameIndices, deltaTime)
 
+    # Calculate number of dropped frames at each droppedFrameIndices point
+    # TODO Remove this before posting 5.0.0
+    # for index in droppedFrameIndices:
+    #     timeChange = deltaTime[index]
+    #     droppedReadings = round(timeChange / improvedTimeStep) - 1
+    #     print(f'At {index:5}: timeChange = {timeChange:0.4f} implies {droppedReadings} dropped readings')
+
     cadenceViolationIndices = [i for i, dt in enumerate(deltaTime)
                                if dt < cadence_low or dt > cadence_high]
-    
+
+    # TODO Remove this before 5.0.0 release unless fixed
+    # newTimeStamps, newYvalues, newYstatus = insertDroppedReadings(timestamps, yValues, yStatus, improvedTimeStep)
+    # return (improvedTimeStep, droppedFrameIndices, cadenceViolationIndices, timestampErrorRate,
+    #         newTimeStamps, newYvalues, newYstatus)
     return improvedTimeStep, droppedFrameIndices, cadenceViolationIndices, timestampErrorRate
+
+
+
+# Status of points and associated dot colors ---
+MISSING = 5   # (211, 211, 211) light gray
+EVENT = 4     # (155, 150, 100) sick green
+SELECTED = 3  # (255, 000, 000) red
+BASELINE = 2  # (255, 150, 100) salmon
+INCLUDED = 1  # (000, 032, 255) blue with touch of green
+EXCLUDED = 0  # no dot
+
+MISSING_READING_VALUE = -0.0
+
+def invalidStep(tNow, tNext, timeStep):
+    dropped_reading_high = timeStep * 1.8
+    dropped_reading_low = timeStep * 0.2
+    dt = tNext - tNow
+    return dt < dropped_reading_low or dt > dropped_reading_high
+
+def insertDroppedReadings(timestamps, yValues, yStatus, timeStep):
+    # print(f'timestamps: {type(timestamps)}  yValues: {type(yValues)}  yStatus: {type(yStatus)}')
+
+    tNow = convertTimeStringToTime(timestamps[0])
+    timestampsExpanded = [timestamps[0]]
+    yValuesExpanded = [yValues[0]]
+    yStatusExpanded = [INCLUDED]
+    k = 1
+
+    while k < yValues.size:
+        tNext = convertTimeStringToTime((timestamps[k]))
+        stepOk = not invalidStep(tNow, tNext, timeStep)
+        if stepOk:
+            yValuesExpanded.append(yValues[k])
+            timestampsExpanded.append(timestamps[k])
+            yStatusExpanded.append(INCLUDED)
+            tNow = tNext
+        else:
+            # Compute number of dropped readings
+            timeChange = tNext - tNow
+            numDroppedReadings = round(timeChange / timeStep) - 1
+
+            tNext = tNow + timeStep
+            for i in range(numDroppedReadings):
+                tNext = tNow + timeStep
+                yValuesExpanded.append(MISSING_READING_VALUE)
+                timestampsExpanded.append(convertTimeToTimeString(tNext))
+                yStatusExpanded.append(MISSING)
+                tNow = tNext
+            k -= 1
+        k += 1
+
+    return timestampsExpanded, np.array(yValuesExpanded), yStatusExpanded
 
 
 def isFrameNumberInData(frameToTest, frame):

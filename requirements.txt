@@ -9,4 +9,3 @@ numba~=0.56.0
 opencv-python~=4.6.0.66
 Adv2~=1.2.0
 setuptools~=63.4.1
-psutil~=5.9.4
