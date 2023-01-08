@@ -469,7 +469,9 @@ class LightcurveParameters:
     miss_distance_km: float = 0.0
     debug: bool = False
 
-    name_list: list[str] = field(default_factory=list)
+    # TODO Remove this test (Marc Buie problem)
+    # name_list: list[str] = field(default_factory=list)
+    name_list: list = field(default_factory=list)
 
     def __post_init__(self):
         for name in dir(self):
@@ -767,17 +769,32 @@ def plot_diffraction(x, y, first_wavelength, last_wavelength, LCP, figsize=(14, 
     star_disk_y = None
     if not LCP.star_diameter_km == 0.0:
         d_chords, d_chords_alone, *_ = get_star_chord_samples(x=x, plot_margin=20, LCP=LCP)
-        star_disk_y = lightcurve_convolve(sample=d_chords_alone,
-                                          lightcurve=y,
-                                          shift_needed=len(d_chords_alone) - 1)
+        if d_chords is not None:
+            star_disk_y = lightcurve_convolve(sample=d_chords_alone,
+                                              lightcurve=y,
+                                              shift_needed=len(d_chords_alone) - 1)
 
-        # Block integrate star_disk_y by frame_time to get camera_y
-        span_km = x[-1] - x[0]
-        resolution_km = span_km / LCP.npoints
-        n_sample_points = round(LCP.frame_time * LCP.shadow_speed / resolution_km)
-        sample = np.repeat(1.0 / n_sample_points, n_sample_points)
-        camera_y = lightcurve_convolve(sample=sample, lightcurve=star_disk_y,
-                                       shift_needed=len(sample) - 1)
+            # Block integrate star_disk_y by frame_time to get camera_y
+            span_km = x[-1] - x[0]
+            resolution_km = span_km / LCP.npoints
+            n_sample_points = round(LCP.frame_time * LCP.shadow_speed / resolution_km)
+            if n_sample_points > 1:
+                sample = np.repeat(1.0 / n_sample_points, n_sample_points)
+                camera_y = lightcurve_convolve(sample=sample, lightcurve=star_disk_y,
+                                               shift_needed=len(sample) - 1)
+        else:
+            camera_y = y
+        # star_disk_y = lightcurve_convolve(sample=d_chords_alone,
+        #                                   lightcurve=y,
+        #                                   shift_needed=len(d_chords_alone) - 1)
+        #
+        # # Block integrate star_disk_y by frame_time to get camera_y
+        # span_km = x[-1] - x[0]
+        # resolution_km = span_km / LCP.npoints
+        # n_sample_points = round(LCP.frame_time * LCP.shadow_speed / resolution_km)
+        # sample = np.repeat(1.0 / n_sample_points, n_sample_points)
+        # camera_y = lightcurve_convolve(sample=sample, lightcurve=star_disk_y,
+        #                                shift_needed=len(sample) - 1)
     else:
         # Block integrate y by frame_time to get camera_y
         span_km = x[-1] - x[0]
@@ -792,7 +809,7 @@ def plot_diffraction(x, y, first_wavelength, last_wavelength, LCP, figsize=(14, 
     if plot_versus_time:
         ax2.plot(x / LCP.shadow_speed, y, '-', color='black', label='Underlying')
         ax2.plot(x / LCP.shadow_speed, camera_y, '-', color='red', label='Camera response')
-        if not LCP.star_diameter_km == 0.0:
+        if not LCP.star_diameter_km == 0.0 and star_disk_y is not None:
             ax2.plot(x / LCP.shadow_speed, star_disk_y, '-', color='blue', label="Star disk response")
         ax2.set_xlabel('Seconds')
         ax2.set_ylabel('ADU')

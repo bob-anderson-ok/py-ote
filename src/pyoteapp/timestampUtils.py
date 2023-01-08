@@ -48,9 +48,11 @@ def improveTimeStep(outliers, deltaTime):
     validIntervals = [deltaTime[i] for i in range(len(deltaTime)) if i not in outliers]
     # Under some circumstances, OCR can be so bad that no valid intervals can
     # be found.  In that case, we return a timeStep of 0.0 and let the
-    # program respond to this invlid value at a higher level.
+    # program respond to this invalid value at a higher level.
     if validIntervals:
-        betterTimeStep = np.mean(validIntervals)
+        # Changed in 5.0.1
+        # betterTimeStep = np.mean(validIntervals)
+        betterTimeStep = np.median(validIntervals)
     else:
         betterTimeStep = 0.0
     return betterTimeStep
@@ -62,9 +64,13 @@ def getTimeStepAndOutliers(timestamps, yValues, yStatus):
 
     time = [convertTimeStringToTime(item) for item in timestamps]
     deltaTime = np.diff(time)
-    timeStep = np.median(deltaTime)
-    cadence_high = timeStep * 1.2
-    cadence_low = timeStep * 0.8
+
+    # Changed in 5.0.1
+    # timeStep = np.median(deltaTime)
+    timeStep = np.mean(deltaTime)
+    cadence_high = timeStep * 1.3  # Had been 1.2
+    cadence_low = timeStep * 0.7   # Had been 0.8
+
     dropped_frame_high = timeStep * 1.8
     dropped_frame_low = timeStep * 0.2
 
@@ -76,21 +82,40 @@ def getTimeStepAndOutliers(timestamps, yValues, yStatus):
     
     improvedTimeStep = improveTimeStep(droppedFrameIndices, deltaTime)
 
-    # Calculate number of dropped frames at each droppedFrameIndices point
-    # TODO Remove this before posting 5.0.0
-    # for index in droppedFrameIndices:
-    #     timeChange = deltaTime[index]
-    #     droppedReadings = round(timeChange / improvedTimeStep) - 1
-    #     print(f'At {index:5}: timeChange = {timeChange:0.4f} implies {droppedReadings} dropped readings')
-
     cadenceViolationIndices = [i for i, dt in enumerate(deltaTime)
                                if dt < cadence_low or dt > cadence_high]
 
-    # TODO Remove this before 5.0.0 release unless fixed
+    # Calculate number of dropped frames at each droppedFrameIndices point
+    timingReport = []
+    showDetails = True
+    if showDetails:
+        cumDroppedReadings = 0
+        cumDuplicatedReading = 0
+        for index in droppedFrameIndices:
+            timeChange = deltaTime[index]
+            droppedReadings = round(timeChange / improvedTimeStep) - 1
+            if droppedReadings > 0:
+                cumDroppedReadings += droppedReadings
+                timingReport.append(f'At reading {index:05}: time delta to next reading = {timeChange:0.4f} : likely {droppedReadings} dropped readings')
+            else:
+                cumDuplicatedReading += 1
+                timingReport.append(f'At reading {index:05}: time delta to next reading = {timeChange:0.4f} : likely a duplicated reading')
+
+        if cumDroppedReadings > 0 or cumDuplicatedReading > 0 or len(cadenceViolationIndices) > 0:
+            timingReport.append('')
+            timingReport.append(f'========== Total dropped readings..... {cumDroppedReadings}')
+            timingReport.append(f'========== Num duplicated readings.... {cumDuplicatedReading}')
+            timingReport.append(f'========== Number of cadence errors... {len(cadenceViolationIndices)}')
+            timingReport.append('')
+
+    # cadenceViolationIndices = [i for i, dt in enumerate(deltaTime)
+    #                            if dt < cadence_low or dt > cadence_high]
+
+    # TODO Use this routine for exporting lightcurve in archive format
     # newTimeStamps, newYvalues, newYstatus = insertDroppedReadings(timestamps, yValues, yStatus, improvedTimeStep)
     # return (improvedTimeStep, droppedFrameIndices, cadenceViolationIndices, timestampErrorRate,
     #         newTimeStamps, newYvalues, newYstatus)
-    return improvedTimeStep, droppedFrameIndices, cadenceViolationIndices, timestampErrorRate
+    return improvedTimeStep, droppedFrameIndices, cadenceViolationIndices, timestampErrorRate, timingReport
 
 
 
@@ -130,7 +155,7 @@ def insertDroppedReadings(timestamps, yValues, yStatus, timeStep):
         else:
             # Compute number of dropped readings
             timeChange = tNext - tNow
-            numDroppedReadings = round(timeChange / timeStep) - 1
+            numDroppedReadings: int = round(timeChange / timeStep) - 1
 
             tNext = tNow + timeStep
             for i in range(numDroppedReadings):

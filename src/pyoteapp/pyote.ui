@@ -4703,7 +4703,7 @@ Setting this value to zero will force Miss distance optimization to be skipped.<
                     <bool>false</bool>
                    </property>
                    <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Timestamp errors are indicated by red lines that show where a time step is not within +/- 10% of the expected value.&lt;/p&gt;&lt;p&gt;Sometimes there are so many red lines that is becomes hard to see the plot. In that case, uncheck this box to suppress the red line display.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Timestamp errors are indicated by red or orange lines to show where a time step was abnormal.&lt;/p&gt;&lt;p&gt;A red line indicates a time step that was greater than 1.8 * expected and are likely dropped readings.&lt;/p&gt;&lt;p&gt;A red line will also appear where the time step was less than 0.2 times the expected value. This is probably a duplicated reading.&lt;/p&gt;&lt;p&gt;Orange lines indicate a cadence error, which is defined as a time step that is not within +/- 30% of the expected value (but not so far outside to be considered a dropped or duplicated reading). Cadence errors are most commonly found in high frame rate recordings and indicate that some part of the processing/recording pipeline is not able to keep up with the data flow.&lt;/p&gt;&lt;p&gt;Sometimes there are so many red and orange lines that is becomes hard to see the plot. In that case, uncheck this box to suppress the red line display.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="text">
                     <string>time err </string>

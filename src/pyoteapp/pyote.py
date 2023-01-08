@@ -1588,7 +1588,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.Lcp.set('baseline_ADU', self.B)
                 self.Lcp.set('sigmaB', self.sigmaB)
                 self.processModelParameterChange()
-            self.clearBaselineRegions()
+            self.clearModelsBaselineRegion()
         else:
             self.showInfo('Less than 3 baseline points are selected.')
 
@@ -2023,10 +2023,26 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     def printEdgeOrMissReport(self):
         if self.Lcp.miss_distance_km == 0:
-            DtimeString = convertTimeToTimeString(self.modelDedgeSecs)
-            RtimeString = convertTimeToTimeString(self.modelRedgeSecs)
-            self.showMsg(f'D edge @ {DtimeString}', color='black', bold=True)
-            self.showMsg(f'R edge @ {RtimeString}', color='black', bold=True)
+            DrdgNum = int(self.modelDedgeRdgValue)
+            RrdgNum = int(self.modelRedgeRdgValue)
+
+            DfractionalRdgNum = self.modelDedgeRdgValue - DrdgNum
+            RfractionalRdgNum = self.modelRedgeRdgValue - RrdgNum
+
+            Dtime = convertTimeStringToTime(self.yTimes[DrdgNum])
+            Rtime = convertTimeStringToTime(self.yTimes[RrdgNum])
+
+            Dtime += DfractionalRdgNum * self.Lcp.frame_time
+            Rtime += RfractionalRdgNum * self.Lcp.frame_time
+
+            Dtimestamp = convertTimeToTimeString(Dtime)
+            Rtimestamp = convertTimeToTimeString(Rtime)
+
+            # self.showMsg(f'D: {Dtimestamp}  DrdgNum: {self.modelDedgeRdgValue:0.4f}', color='black', bold=True)
+            # self.showMsg(f'R: {Rtimestamp}  RrdgNum: {self.modelRedgeRdgValue:0.4f}', color='black', bold=True)
+            self.showMsg(f'D: {Dtimestamp}', color='black', bold=True)
+            self.showMsg(f'R: {Rtimestamp}', color='black', bold=True)
+
         else:
             self.showMsg(f'Miss distance: {self.Lcp.miss_distance_km:0.5f} km', color='black', bold=True)
 
@@ -2241,8 +2257,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             # Update the precision deltas in case the user changed them during a pause
             self.fitStatus.edgeDelta = float(self.edgeTimePrecisionEdit.text())
             self.fitStatus.chordDelta = float(self.chordDurationPrecisionEdit.text())
-            self.fitStatus.DangleDelta = float(self.limbAnglePrecisionEdit.text())
-            self.fitStatus.RangleDelta = float(self.limbAnglePrecisionEdit.text())
+            if not self.limbAnglePrecisionEdit.text() == '':
+                self.fitStatus.DangleDelta = float(self.limbAnglePrecisionEdit.text())
+                self.fitStatus.RangleDelta = float(self.limbAnglePrecisionEdit.text())
 
         self.computeModelLightcurve(computeOnly=False)
 
@@ -4898,7 +4915,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.showMsg('Block integration started at entry ' + str(self.selPts[0]) +
                      ' with block size of ' + str(self.selPts[1] - self.selPts[0] + 1) + ' readings')
 
-        self.timeDelta, self.droppedFrames, self.cadenceViolation, self.errRate = \
+        self.timeDelta, self.droppedFrames, self.cadenceViolation, self.errRate, _ = \
             getTimeStepAndOutliers(self.yTimes, self.yValues, self.yStatus)
         self.showMsg('timeDelta: ' + fp.to_precision(self.timeDelta, 6) + ' seconds per block', blankLine=False)
         self.showMsg('timestamp error rate: ' + fp.to_precision(100 * self.errRate, 2) + '%')
@@ -7062,7 +7079,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 # then manualTime will be an empty list.
                 if manualTime:
                     self.yTimes = manualTime[:]
-                    self.timeDelta, self.droppedFrames, self.cadenceViolation, self.errRate = \
+                    self.timeDelta, self.droppedFrames, self.cadenceViolation, self.errRate, _ = \
                         getTimeStepAndOutliers(self.yTimes, self.yValues, self.yStatus)
                     self.frameTimeEdit.setText(fp.to_precision(self.timeDelta, 6))
 
@@ -7342,15 +7359,15 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.blockSizeEdit.setEnabled(True)
                 self.startOver.setEnabled(True)
 
-                self.timeDelta, self.droppedFrames, self.cadenceViolation, self.errRate = \
+                self.timeDelta, self.droppedFrames, self.cadenceViolation, self.errRate, timingReport = \
                     getTimeStepAndOutliers(self.yTimes, self.yValues, self.yStatus)
 
-                # self.timeDelta, self.droppedFrames, self.cadenceViolation, self.errRate, self.yTimes, self.yValues, self.yStatus = \
-                #     getTimeStepAndOutliers(self.yTimes, self.yValues, self.yStatus)
-
-                # We have to update these because the lightcurve may been extended by the insertion of missing readings
-                # self.dataLen = self.yValues.size
-                # self.right = self.dataLen - 1
+                # added in 5.0.1
+                if not timingReport == []:
+                    for line in timingReport:
+                        self.showMsg(line, blankLine=False, bold=True, color='red')
+                else:
+                    self.showMsg('No time step irregularities found.')
 
                 self.fillTableViewOfData()
 
@@ -7616,7 +7633,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.errBarWin.close()
 
         self.dataLen = len(self.yTimes)
-        self.timeDelta, self.droppedFrames, self.cadenceViolation, self.errRate = \
+        self.timeDelta, self.droppedFrames, self.cadenceViolation, self.errRate, _ = \
             getTimeStepAndOutliers(self.yTimes, self.yValues, self.yStatus)
         self.frameTimeEdit.setText(fp.to_precision(self.timeDelta, 6))
 
@@ -7687,8 +7704,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 RedgeKm = modelLengthKm / 2 - self.modelXkm[0]
                 edgeCenterTime = (DedgeKm + RedgeKm) / 2.0 / self.Lcp.shadow_speed
 
-            self.modelDedgeSecs += self.modelTimeOffset + edgeCenterTime
-            self.modelRedgeSecs += self.modelTimeOffset + edgeCenterTime
+            # self.modelDedgeSecs += self.modelTimeOffset + edgeCenterTime
+            # self.modelRedgeSecs += self.modelTimeOffset + edgeCenterTime
 
             modelXsec = self.modelXkm / self.Lcp.shadow_speed
             modelXsec -= modelXsec[0]
@@ -7697,6 +7714,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.modelPtsXrdgNum = modelRdgNum
             self.modelPtsXsec = modelXsec
             self.modelPtsY = self.modelY
+
+            dEdgeRdgNumOffset = (tModelDur / 2 + self.modelDedgeSecs) / self.Lcp.frame_time
+            rEdgeRdgNumOffset = dEdgeRdgNumOffset + (self.modelRedgeSecs - self.modelDedgeSecs) / self.Lcp.frame_time
 
             del modelRdgNum
             del modelXsec
@@ -7710,9 +7730,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 ePen = pg.mkPen(color=(100, 100, 100), style=QtCore.Qt.PenStyle.DashLine,
                                 width=self.lineWidthSpinner.value())
 
-                # Convert edge times to reading number units
-                self.modelDedgeRdgValue = self.modelDedgeSecs * (self.dataLen - 1) / tObsDur
-                self.modelRedgeRdgValue = self.modelRedgeSecs * (self.dataLen - 1) / tObsDur
+                # Convert edge times to reading number units. This only works if there are no dropped readings
+                # self.modelDedgeRdgValue = self.modelDedgeSecs * (self.dataLen - 1) / tObsDur
+                # self.modelRedgeRdgValue = self.modelRedgeSecs * (self.dataLen - 1) / tObsDur
+
+                self.modelDedgeRdgValue = self.modelPtsXrdgNum[0] + dEdgeRdgNumOffset
+                self.modelRedgeRdgValue = self.modelPtsXrdgNum[0] + rEdgeRdgNumOffset
 
                 D = self.modelDedgeRdgValue
                 R = self.modelRedgeRdgValue
