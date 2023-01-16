@@ -469,8 +469,6 @@ class LightcurveParameters:
     miss_distance_km: float = 0.0
     debug: bool = False
 
-    # TODO Remove this test (Marc Buie problem)
-    # name_list: list[str] = field(default_factory=list)
     name_list: list = field(default_factory=list)
 
     def __post_init__(self):

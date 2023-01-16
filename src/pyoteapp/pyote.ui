@@ -76,41 +76,6 @@
          </property>
          <item>
           <layout class="QGridLayout" name="gridLayout">
-           <item row="0" column="4">
-            <widget class="QPushButton" name="plotHelpButton">
-             <property name="maximumSize">
-              <size>
-               <width>150</width>
-               <height>16777215</height>
-              </size>
-             </property>
-             <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Once data from an observation is being displayed in the panel to the right, the following functions are available:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&amp;gt;&amp;gt;&amp;gt; moving the mouse cursor into the plot area causes a thin vertical line to appear to show the x position&lt;/p&gt;&lt;p&gt;&amp;gt;&amp;gt;&amp;gt; a left-click will toggle the selection of the data point at the x position of the mouse (watch the thin vertical line)&lt;/p&gt;&lt;p&gt;&amp;gt;&amp;gt;&amp;gt; the plot can be zoomed horizontally using the scroll wheel (or equivalent) on the mouse&lt;/p&gt;&lt;p&gt;&amp;gt;&amp;gt;&amp;gt; holding down the shift key will cause the mouse cursor to appear, useful for the following operation...&lt;/p&gt;&lt;p&gt;&amp;gt;&amp;gt;&amp;gt; a left-click/hold/drag will create a selection box --- on left-button release, a zoomed image will appear&lt;/p&gt;&lt;p&gt;&amp;gt;&amp;gt;&amp;gt; a right-click undoes any scroll/zoom modifications that have been performed&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Timestamp errors:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;If the csv file included timestamps, there may be a few (or many) thin vertical red or yellow lines, each appearing between adjacent data points. These indicate that the time step computed from the adjacent data points was not within 20% of the 'expected' time step (shown as a yellow line - indicating a likely cadence discrepancy caused by high frame rates) or was 80% or greater than the expected time step (shown as a red line - indicating likely dropped frames). The expected value is computed from the median of all time steps. There is a checkbox to the left that can be used to suppress this display if it is too intrusive.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;When a 'solution' has been found, there will be displayed:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;+++ in brown: the underlying lightcurve (theoretical lightcurve with diffraction and finite star disk effects included)&lt;/p&gt;&lt;p&gt;+++ in blue: the camera response --- this is the underlying lightcurve integrated by the exposure time of the camera&lt;/p&gt;&lt;p&gt;+++ vertical dashed lines: these show the position of the occultation's geometrical edges (red: D green: R)&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;After a '... write report' has been performed:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;=== the 95% containment interval for the D and/or R edges are shown with shortened vertical dotted enclosing the central value&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-             </property>
-             <property name="text">
-              <string>Help for plot --&gt;</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="3">
-            <widget class="QPushButton" name="readData">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Ignored" vsizetype="Maximum">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;PYOTE reads Limovie, R-OTE, and Tangra files and includes up to four light curves from those file types.  For PyMovie files, PYOTE will read an unlimited number of light curves.&lt;/p&gt;&lt;p&gt;Normally (but not required) object1 is the occulted star; other (optional) objects are reference stars to be used for normalizing the occulted star light curve or flash curves from an LED timer.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;Mouse button functions within the light curve plot:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#ff0000;&quot;&gt;Left click&lt;/span&gt;: selects/deselects points on the primary (dark blue) light curve that intersect with the vertical hairline (the mouse cursor is disabled).&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#ff0000;&quot;&gt;Left click and drag&lt;/span&gt;: rectangular zoom is available to more clearly see points for selection (but point selection can also be accomplished through clicks in the tabular data display at the lower left)&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Note! The shift key will toggle the mouse cursor on/off in the light curve plot.&lt;/span&gt; This enables the starting corner for the zoom to be seen. (But points cannot be selected/deselected while the mouse cursor is visible. A right click will always 'blank' the mouse cursor.) &lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#ff0000;&quot;&gt;Right click&lt;/span&gt;: undo zoom&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#996633;&quot;&gt;Timestamp errors are shown with vertical red hairlines when a file is first read. These will disappear after the first point is selected so that the working view is as clear as possible. The red hairlines will re-appear permanently after the error bars have been calculated and the final report written to the log.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-             </property>
-             <property name="toolTipDuration">
-              <number>-1</number>
-             </property>
-             <property name="text">
-              <string>Read light curve</string>
-             </property>
-            </widget>
-           </item>
            <item row="0" column="0">
             <widget class="QPushButton" name="infoButton">
              <property name="sizePolicy">
@@ -133,19 +98,19 @@
              </property>
             </widget>
            </item>
-           <item row="0" column="2">
-            <widget class="QPushButton" name="tutorialButton">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
+           <item row="0" column="4">
+            <widget class="QPushButton" name="plotHelpButton">
+             <property name="maximumSize">
+              <size>
+               <width>150</width>
+               <height>16777215</height>
+              </size>
              </property>
              <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Tip: right-click on buttons and labels. An explanation (help screen) will usually appear. Use that technique to learn about features that are not covered in this basic tutorial/recipe.&lt;/p&gt;&lt;p&gt;1. Start by clicking the&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt; Read light curve&lt;/span&gt; button. (Usually, the camera exposure value will be read from the csv file and automatically inserted in the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;exp:&lt;/span&gt; edit box in the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;parameters&lt;/span&gt; panel. If that did not happen, you will need to manually fill in that value in before trying to find an event fit.)&lt;/p&gt;&lt;p&gt;2. If timestamp errors have been detected during the loading of the csv file, the affected points will be bracketed by vertical redlines and the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Show time err&lt;/span&gt; checkbox will have been set by the program. Those red lines will likely have served their purpose and can/should be turned off so that a clear view of the light-curve is presented.&lt;/p&gt;&lt;p&gt;3. If the csv file contained multiple light-curves (it usually will), use the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Lightcurves&lt;/span&gt; tab/panel to select the target lightcurve (the lightcurve containing the occultation)&lt;/p&gt;&lt;p&gt;4. The next step is to give the 'event finder' information that can speed up the search. &lt;/p&gt;&lt;p&gt;4a. If the event has a wide enough bottom, the quickest way to provide speed-up information is mark the D and R regions. Right-click on those buttons for a how-to.&lt;/p&gt;&lt;p&gt;4b. If the event is so small that it is hard or impossible to mark D and R regions, the speed-up information is then best supplied by placing the smallest event duration in the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;min event duration&lt;/span&gt; edit box and the maximum event duration in the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;max event duration&lt;/span&gt; edit box. The 'finder' will then search for all events in the range of durations given, located anywhere in the light-curve.&lt;/p&gt;&lt;p&gt;5. Next, click the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Find event, then ...&lt;/span&gt; button to initiate the search.&lt;/p&gt;&lt;p&gt;6. Assuming the search was successful, the final step is to click the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;... write report&lt;/span&gt; button.&lt;/p&gt;&lt;p&gt;Every step you took is recorded in a log file in the directory where the light-curve was read from. This is important information to provide to anyone that you might go to for assistance. Give them the csv file and the log file and they will be able to reproduce your session.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Once data from an observation is being displayed in the panel to the right, the following functions are available:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&amp;gt;&amp;gt;&amp;gt; moving the mouse cursor into the plot area causes a thin vertical line to appear to show the x position&lt;/p&gt;&lt;p&gt;&amp;gt;&amp;gt;&amp;gt; a left-click will toggle the selection of the data point at the x position of the mouse (watch the thin vertical line)&lt;/p&gt;&lt;p&gt;&amp;gt;&amp;gt;&amp;gt; the plot can be zoomed horizontally using the scroll wheel (or equivalent) on the mouse&lt;/p&gt;&lt;p&gt;&amp;gt;&amp;gt;&amp;gt; holding down the shift key will cause the mouse cursor to appear, useful for the following operation...&lt;/p&gt;&lt;p&gt;&amp;gt;&amp;gt;&amp;gt; a left-click/hold/drag will create a selection box --- on left-button release, a zoomed image will appear&lt;/p&gt;&lt;p&gt;&amp;gt;&amp;gt;&amp;gt; a right-click undoes any scroll/zoom modifications that have been performed&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Timestamp errors:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;If the csv file included timestamps, there may be a few (or many) thin vertical red or yellow lines, each appearing between adjacent data points. These indicate that the time step computed from the adjacent data points was not within 20% of the 'expected' time step (shown as a yellow line - indicating a likely cadence discrepancy caused by high frame rates) or was 80% or greater than the expected time step (shown as a red line - indicating likely dropped frames). The expected value is computed from the median of all time steps. There is a checkbox to the left that can be used to suppress this display if it is too intrusive.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;When a 'solution' has been found, there will be displayed:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;+++ in brown: the underlying lightcurve (theoretical lightcurve with diffraction and finite star disk effects included)&lt;/p&gt;&lt;p&gt;+++ in blue: the camera response --- this is the underlying lightcurve integrated by the exposure time of the camera&lt;/p&gt;&lt;p&gt;+++ vertical dashed lines: these show the position of the occultation's geometrical edges (red: D green: R)&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;After a '... write report' has been performed:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;=== the 95% containment interval for the D and/or R edges are shown with shortened vertical dotted enclosing the central value&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
-              <string>Tutorial</string>
+              <string>Help for plot --&gt;</string>
              </property>
             </widget>
            </item>
@@ -162,6 +127,41 @@
              </property>
              <property name="text">
               <string>Help</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="2">
+            <widget class="QPushButton" name="tutorialButton">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Tip: right-click on buttons and labels. An explanation (help screen) will usually appear. Use that technique to learn about features that are not covered in this basic tutorial/recipe.&lt;/p&gt;&lt;p&gt;1. Start by clicking the&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt; Read light curve&lt;/span&gt; button. (Usually, the camera exposure value will be read from the csv file and automatically inserted in the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;exp:&lt;/span&gt; edit box in the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;parameters&lt;/span&gt; panel. If that did not happen, you will need to manually fill in that value in before trying to find an event fit.)&lt;/p&gt;&lt;p&gt;2. If timestamp errors have been detected during the loading of the csv file, the affected points will be bracketed by vertical redlines and the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Show time err&lt;/span&gt; checkbox will have been set by the program. Those red lines will likely have served their purpose and can/should be turned off so that a clear view of the light-curve is presented.&lt;/p&gt;&lt;p&gt;3. If the csv file contained multiple light-curves (it usually will), use the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Lightcurves&lt;/span&gt; tab/panel to select the target lightcurve (the lightcurve containing the occultation)&lt;/p&gt;&lt;p&gt;4. The next step is to give the 'event finder' information that can speed up the search. &lt;/p&gt;&lt;p&gt;4a. If the event has a wide enough bottom, the quickest way to provide speed-up information is mark the D and R regions. Right-click on those buttons for a how-to.&lt;/p&gt;&lt;p&gt;4b. If the event is so small that it is hard or impossible to mark D and R regions, the speed-up information is then best supplied by placing the smallest event duration in the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;min event duration&lt;/span&gt; edit box and the maximum event duration in the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;max event duration&lt;/span&gt; edit box. The 'finder' will then search for all events in the range of durations given, located anywhere in the light-curve.&lt;/p&gt;&lt;p&gt;5. Next, click the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Find event, then ...&lt;/span&gt; button to initiate the search.&lt;/p&gt;&lt;p&gt;6. Assuming the search was successful, the final step is to click the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;... write report&lt;/span&gt; button.&lt;/p&gt;&lt;p&gt;Every step you took is recorded in a log file in the directory where the light-curve was read from. This is important information to provide to anyone that you might go to for assistance. Give them the csv file and the log file and they will be able to reproduce your session.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="text">
+              <string>Tutorial</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="3">
+            <widget class="QPushButton" name="readData">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Ignored" vsizetype="Maximum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;PYOTE reads Limovie, R-OTE, and Tangra files and includes up to four light curves from those file types.  For PyMovie files, PYOTE will read an unlimited number of light curves.&lt;/p&gt;&lt;p&gt;Normally (but not required) object1 is the occulted star; other (optional) objects are reference stars to be used for normalizing the occulted star light curve or flash curves from an LED timer.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;Mouse button functions within the light curve plot:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#ff0000;&quot;&gt;Left click&lt;/span&gt;: selects/deselects points on the primary (dark blue) light curve that intersect with the vertical hairline (the mouse cursor is disabled).&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#ff0000;&quot;&gt;Left click and drag&lt;/span&gt;: rectangular zoom is available to more clearly see points for selection (but point selection can also be accomplished through clicks in the tabular data display at the lower left)&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Note! The shift key will toggle the mouse cursor on/off in the light curve plot.&lt;/span&gt; This enables the starting corner for the zoom to be seen. (But points cannot be selected/deselected while the mouse cursor is visible. A right click will always 'blank' the mouse cursor.) &lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#ff0000;&quot;&gt;Right click&lt;/span&gt;: undo zoom&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#996633;&quot;&gt;Timestamp errors are shown with vertical red hairlines when a file is first read. These will disappear after the first point is selected so that the working view is as clear as possible. The red hairlines will re-appear permanently after the error bars have been calculated and the final report written to the log.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="toolTipDuration">
+              <number>-1</number>
+             </property>
+             <property name="text">
+              <string>Read light curve</string>
              </property>
             </widget>
            </item>
@@ -2330,8 +2330,129 @@
                <string>SqWave model</string>
               </attribute>
               <layout class="QGridLayout" name="gridLayout_4">
-               <item row="0" column="2">
-                <spacer name="verticalSpacer_9">
+               <item row="13" column="1" colspan="3">
+                <widget class="Line" name="line_2">
+                 <property name="frameShadow">
+                  <enum>QFrame::Plain</enum>
+                 </property>
+                 <property name="lineWidth">
+                  <number>4</number>
+                 </property>
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                </widget>
+               </item>
+               <item row="6" column="1" colspan="3">
+                <widget class="Line" name="line">
+                 <property name="frameShadow">
+                  <enum>QFrame::Plain</enum>
+                 </property>
+                 <property name="lineWidth">
+                  <number>4</number>
+                 </property>
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                </widget>
+               </item>
+               <item row="5" column="1">
+                <widget class="QPushButton" name="singlePointDropButton">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="toolTip">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sometimes an occultation event may be so short that there will be only a single point recorded. In this case, because it is not possible to determine the duration of the event (only an upper bound can be stated) and the noise level during the event is also not measurable, the usual light-curve fitting procedure cannot (should not) be carried out.&lt;/p&gt;&lt;p&gt;But, it is possible to use the mechanism of the False-Positive report to determine whether the observed drop is just an artifact of baseline noise or is a deep enough drop that it is statistically unlikely that the drop is due to noise alone and so a positive can be reported with an appropriately chosen duration and error bar to reflect the timing ambiguity inherent in such a single point event.&lt;/p&gt;&lt;p&gt;To use this tool, first go to the Noise Analysis/Detectability tab and use the baseline points selection tool to identify the points that are considered valid baseline points (by multiple applications of the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Mark baseline region &lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt;button&lt;/span&gt;) excluding the point to be tested, then click the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Calc baseline mean/sigma/corr coeff&lt;/span&gt; button.&lt;/p&gt;&lt;p&gt;Then, click on the single point to be tested (the point will change to a red dot), and click this button.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <property name="text">
+                  <string>Validate a potential single point event</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="19" column="1">
+                <layout class="QVBoxLayout" name="verticalLayout_5">
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout_5">
+                   <item>
+                    <widget class="QPushButton" name="writePlot">
+                     <property name="enabled">
+                      <bool>false</bool>
+                     </property>
+                     <property name="toolTip">
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Note: At the conclusion of error bar calculations, PYOTE automatically writes the main plot to a png file using the name and directory of the just-processed csv file. &lt;/p&gt;&lt;p&gt;If you want/need to record other versions of that plot, click here to open a dialog that will let you specify a different name and/or location for the storage of the new graphics.&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     </property>
+                     <property name="text">
+                      <string>Write current plot</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="writeBarPlots">
+                     <property name="enabled">
+                      <bool>false</bool>
+                     </property>
+                     <property name="toolTip">
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Note: At the conclusion of error bar calculations, PYOTE automatically writes the error bar plots to appropriately named png files using the name and directory of the just-processed csv file. &lt;/p&gt;&lt;p&gt;If you want/need to record other versions of those plots, click here to open a dialog that will let you specify a different name and/or location for the storage of the new graphics.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     </property>
+                     <property name="text">
+                      <string>Write error bar plot</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="writeCSVButton">
+                     <property name="enabled">
+                      <bool>false</bool>
+                     </property>
+                     <property name="toolTip">
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this button to write the contents of the data table below to a csv file.&lt;/p&gt;&lt;p&gt;The comment lines from the original input file are preserved.&lt;/p&gt;&lt;p&gt;The most common use for this function is to capture the result of a successful Manual Timestamp Entry for later use (without the need to again go through the manual timestamp entry procedure). It will also reflect any Block Integration that was applied.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     </property>
+                     <property name="text">
+                      <string>Save current light curve to .csv</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="startOver">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This button removes any trim that is in effect, clears a solution that may have been found,  and removes any D or R region showing.&lt;/p&gt;&lt;p&gt;It does &lt;span style=&quot; font-weight:600; font-style:italic; color:#fc0107;&quot;&gt;not&lt;/span&gt; undo block integration -- you must reload the light curve file to recover from a block integration.&lt;/p&gt;&lt;p&gt;Normalization can be undone by simply returning the smoothing inteval number to 0 (This is in the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;lightcurves&lt;/span&gt; panel.)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>Start over</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item row="14" column="1">
+                <widget class="QLabel" name="findEventLabel">
+                 <property name="text">
+                  <string>Finally, click on 'Find event' and, if event found, click '... write report'</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item row="20" column="3">
+                <spacer name="verticalSpacer_10">
                  <property name="orientation">
                   <enum>Qt::Vertical</enum>
                  </property>
@@ -2343,43 +2464,83 @@
                  </property>
                 </spacer>
                </item>
-               <item row="1" column="1">
-                <layout class="QHBoxLayout" name="horizontalLayout_46">
+               <item row="15" column="1">
+                <layout class="QHBoxLayout" name="horizontalLayout_4">
                  <item>
-                  <spacer name="horizontalSpacer">
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>200</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="helpSqWaveButton">
-                   <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This tab is used to perform block integration of videos when that is needed.&lt;/p&gt;&lt;p&gt;It is also where the square wave model is utilized to extract chord duration and edge times.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Note:&lt;/span&gt; A square wave model is only appropriate to use when the star disk is zero or very small, and diffraction effects are not noticeable. Diffraction effects are always present, of course, but those effects often happen so fast compared to the frame time of the camera that they are 'integrated out'. If a prominent peak does not appear just before the D edge and immediately following the R edge, it is reasonable to use the square wave model.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Note:&lt;/span&gt; If diffraction peaks are visible or there is a gradual transition during the D and R edges, then a different model should be used. Switch to the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Other models&lt;/span&gt; tab in such a case.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  <widget class="QPushButton" name="locateEvent">
+                   <property name="enabled">
+                    <bool>false</bool>
                    </property>
                    <property name="text">
-                    <string>Help</string>
+                    <string>Find event, then ...</string>
                    </property>
                   </widget>
                  </item>
                  <item>
-                  <spacer name="horizontalSpacer_2">
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
+                  <widget class="QPushButton" name="calcErrBars">
+                   <property name="enabled">
+                    <bool>false</bool>
                    </property>
-                   <property name="sizeHint" stdset="0">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;To get a 'Final Report', error bars are required. Clicking this button will start the computation of those error bars and, when complete, trigger the preparation of a 'Final Report'&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>... write report</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="helpLabelForFalsePositive">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
                     <size>
-                     <width>40</width>
-                     <height>20</height>
+                     <width>10</width>
+                     <height>0</height>
                     </size>
                    </property>
-                  </spacer>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Advisory =============================================&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Assuming that you have been diligent in removing common lightcurve artifacts (dips caused by something other than an occultation, &amp;nbsp;like clouds,&amp;nbsp;or a contrail,&amp;nbsp;or ...) using the normalization function,&amp;nbsp;please be aware that ...&lt;/p&gt;&lt;p&gt;... a non-zero False Positive probability (red bar to the left of the black bar) is usually sufficient reason to report a 'miss' (but see note below).&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt; But&lt;/span&gt;,&amp;nbsp;before reporting a 'miss',&amp;nbsp;you should use the Event Detectability calculator to determine if the event was 'detectable'.&amp;nbsp;If the event was 'detectable' and yet a 'miss',&amp;nbsp;the observation has value in constraining one edge of the asteroid.&amp;nbsp;If the 'miss' was of an 'undetectable' event,&amp;nbsp;its value as a constraint on the asteroid edge is greatly diminished.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;However&lt;/span&gt;,&amp;nbsp; a False Positive probability of zero (red bar to the right of the black bar) should &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;NEVER&lt;/span&gt; be the sole reason to report a 'positive'.&lt;/p&gt;&lt;p&gt;If you get a zero False Positive probability &lt;span style=&quot; font-weight:600; text-decoration: underline;&quot;&gt;and this is the only available chord&lt;/span&gt;,&amp;nbsp;look at the False Positive distribution plot and only consider reporting a 'positive' if the measured drop is well to the right of the black bar (which shows the biggest drop found during the simulation run). 'Well to the right' is rather vague,&amp;nbsp;so consult with your area coordinator whenever you are uncertain.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Note:&lt;/span&gt; if your observed 'drop' (red bar) is near the black bar (on either side!) AND there are nearby chords reporting 'positives',&amp;nbsp;there may be value in your observation in spite of the False Positive probability calculation result;&amp;nbsp;your observation may increase confidence in the event recorded by the nearby chords.&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="fillExcelReportButton">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this button to copy your results to the Asteroid Occultation Report Form (.xlsx spreadsheet - note file type is .xlsx, not .xls). This button will be inactive (grayed out) until a succesful &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;... write report&lt;/span&gt; has been accomplished.&lt;/p&gt;&lt;p&gt;The expected workflow is:&lt;/p&gt;&lt;p&gt;1) Given that PyOTE now has a solution that you wish to report (an occultation), leave PyOTE open ...&lt;/p&gt;&lt;p&gt;2) Run OccultWatcher to enter your event result report. Be sure to ask for a 'prefill' of the .xls version of the report ...&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;3) Convert that .xls file to .xlsx using either Excel (Windows) or LibreOffice (Mac or Linux)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;4) Go back to PyOTE and click this button ...&lt;/p&gt;&lt;p&gt;5) A file dialog will open; locate and select the prefilled and converted .xlsx report from steps 2 and 3.&lt;/p&gt;&lt;p&gt;6) If the file selected in step 5 was a valid Asteroid Occultation Report Form .xlsx file, the PyOTE results will be inserted.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Note: the excel format change from .xls to .xlsx will not affect the downstream processing adversely as the tool in use accepts either format equally well.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;The values that are inserted are:&lt;/p&gt;&lt;p&gt;--- all error bars&lt;/p&gt;&lt;p&gt;--- uncorrected D and/or R times&lt;/p&gt;&lt;p&gt;--- SNR&lt;/p&gt;&lt;p&gt;--- OTA used (PYOTE)&lt;/p&gt;&lt;p&gt;---A sentence summarizing magDrop information will be added in the Comments box&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>... fill Excel report</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item row="17" column="1">
+                <layout class="QHBoxLayout" name="horizontalLayout_7">
+                 <item>
+                  <widget class="QProgressBar" name="progressBar">
+                   <property name="value">
+                    <number>0</number>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="cancelButton">
+                   <property name="text">
+                    <string>Cancel</string>
+                   </property>
+                  </widget>
                  </item>
                 </layout>
                </item>
@@ -2444,6 +2605,16 @@
                  </item>
                 </layout>
                </item>
+               <item row="11" column="1">
+                <widget class="QLabel" name="minMaxLabel">
+                 <property name="text">
+                  <string>... otherwise use the entries below to place bounds on the event size.</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                 </property>
+                </widget>
+               </item>
                <item row="3" column="1">
                 <widget class="QPushButton" name="acceptBlockIntegration">
                  <property name="enabled">
@@ -2456,6 +2627,72 @@
                   <string>Accept auto block integration</string>
                  </property>
                 </widget>
+               </item>
+               <item row="12" column="4">
+                <spacer name="horizontalSpacer_5">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="18" column="1" colspan="3">
+                <widget class="Line" name="line_6">
+                 <property name="frameShadow">
+                  <enum>QFrame::Plain</enum>
+                 </property>
+                 <property name="lineWidth">
+                  <number>4</number>
+                 </property>
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="1">
+                <layout class="QHBoxLayout" name="horizontalLayout_46">
+                 <item>
+                  <spacer name="horizontalSpacer">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>200</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="helpSqWaveButton">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This tab is used to perform block integration of videos when that is needed.&lt;/p&gt;&lt;p&gt;It is also where the square wave model is utilized to extract chord duration and edge times.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Note:&lt;/span&gt; A square wave model is only appropriate to use when the star disk is zero or very small, and diffraction effects are not noticeable. Diffraction effects are always present, of course, but those effects often happen so fast compared to the frame time of the camera that they are 'integrated out'. If a prominent peak does not appear just before the D edge and immediately following the R edge, it is reasonable to use the square wave model.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Note:&lt;/span&gt; If diffraction peaks are visible or there is a gradual transition during the D and R edges, then a different model should be used. Switch to the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Other models&lt;/span&gt; tab in such a case.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>Help</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_2">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
                </item>
                <item row="4" column="1">
                 <widget class="QPushButton" name="setDataLimits">
@@ -2479,183 +2716,15 @@
                  </property>
                 </widget>
                </item>
-               <item row="5" column="1">
-                <widget class="QPushButton" name="singlePointDropButton">
-                 <property name="enabled">
-                  <bool>false</bool>
-                 </property>
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
-                 </property>
-                 <property name="maximumSize">
-                  <size>
-                   <width>16777215</width>
-                   <height>16777215</height>
-                  </size>
-                 </property>
-                 <property name="toolTip">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sometimes an occultation event may be so short that there will be only a single point recorded. In this case, because it is not possible to determine the duration of the event (only an upper bound can be stated) and the noise level during the event is also not measurable, the usual light-curve fitting procedure cannot (should not) be carried out.&lt;/p&gt;&lt;p&gt;But, it is possible to use the mechanism of the False-Positive report to determine whether the observed drop is just an artifact of baseline noise or is a deep enough drop that it is statistically unlikely that the drop is due to noise alone and so a positive can be reported with an appropriately chosen duration and error bar to reflect the timing ambiguity inherent in such a single point event.&lt;/p&gt;&lt;p&gt;To use this tool, first go to the Noise Analysis/Detectability tab and use the baseline points selection tool to identify the points that are considered valid baseline points (by multiple applications of the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Mark baseline region &lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt;button&lt;/span&gt;) excluding the point to be tested, then click the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Calc baseline mean/sigma/corr coeff&lt;/span&gt; button.&lt;/p&gt;&lt;p&gt;Then, click on the single point to be tested (the point will change to a red dot), and click this button.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                 </property>
-                 <property name="text">
-                  <string>Validate a potential single point event</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="6" column="1" colspan="3">
-                <widget class="Line" name="line">
-                 <property name="frameShadow">
-                  <enum>QFrame::Plain</enum>
-                 </property>
-                 <property name="lineWidth">
-                  <number>4</number>
-                 </property>
+               <item row="0" column="2">
+                <spacer name="verticalSpacer_9">
                  <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                </widget>
-               </item>
-               <item row="7" column="1">
-                <layout class="QHBoxLayout" name="horizontalLayout_43">
-                 <item>
-                  <widget class="QLabel" name="magDropSqwaveLabel">
-                   <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If you enter a value for the expected magDrop of a squarewave event, it will be used during the display of the 'solution' and will give you a good visual of how your observation matched the expected magDrop.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;NOTE:&lt;/span&gt; This does &lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;NOT&lt;/span&gt; affect the calculation of the actual magDrop of the observation - that calculation and report remains unchanged.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                   </property>
-                   <property name="text">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Optional: enter the expected magDrop for the event to get a visual of how that event level matches your observation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLineEdit" name="magDropSqwaveEdit">
-                   <property name="enabled">
-                    <bool>false</bool>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>80</width>
-                     <height>16777215</height>
-                    </size>
-                   </property>
-                   <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If you enter a value for the expected magDrop of a squarewave event, it will be used during the display of the 'solution' and will give you a good visual of how your observation matched the expected magDrop.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;NOTE:&lt;/span&gt; This does &lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;NOT&lt;/span&gt; affect the calculation of the actual magDrop of the observation - that calculation and report remains unchanged.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item row="8" column="1" colspan="3">
-                <widget class="Line" name="line_3">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
-                 </property>
-                 <property name="minimumSize">
-                  <size>
-                   <width>0</width>
-                   <height>0</height>
-                  </size>
-                 </property>
-                 <property name="frameShadow">
-                  <enum>QFrame::Plain</enum>
-                 </property>
-                 <property name="lineWidth">
-                  <number>5</number>
-                 </property>
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                </widget>
-               </item>
-               <item row="9" column="1">
-                <widget class="QLabel" name="markRegionsLabel">
-                 <property name="text">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When edges are clearly visible, mark points to specify region and click ...&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                 </property>
-                 <property name="alignment">
-                  <set>Qt::AlignCenter</set>
-                 </property>
-                </widget>
-               </item>
-               <item row="10" column="1">
-                <layout class="QHBoxLayout" name="horizontalLayout_3">
-                 <item>
-                  <widget class="QPushButton" name="markDzone">
-                   <property name="enabled">
-                    <bool>false</bool>
-                   </property>
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; color:#222222;&quot;&gt;Select two points in the primary (dark blue) light curve, one on each side of where the star ‘disappears’, then click this button to create a D search area.&lt;/span&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; color:#222222;&quot;&gt;If no points are selected, a search for a D transition will not be performed --- this becomes an 'R only' event.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                   </property>
-                   <property name="text">
-                    <string>Mark D region</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="markRzone">
-                   <property name="enabled">
-                    <bool>false</bool>
-                   </property>
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; color:#222222;&quot;&gt;Select two points in the primary (dark blue) light curve, one on each side of where the star ‘reappears’, then click this button to create an R search area.&lt;/span&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; color:#222222;&quot;&gt;If no points are selected, a search for an R transition will not be performed --- this becomes a 'D only' event.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                   </property>
-                   <property name="text">
-                    <string>Mark R region</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="markEzone">
-                   <property name="enabled">
-                    <bool>false</bool>
-                   </property>
-                   <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This button is only active when a Night Eagle 3 analysis is being performed.&lt;/p&gt;&lt;p&gt;The Night Eagle 3 has an effective noise reduction system that has the side effect of producing an exponential decay of intensity toward the ultimate event intensity level during a D transition. As a result, only a portion of the points in the event bottom are reliable indicators of the correct event intensity. This effect is visually obvious for the DNR:HIGH setting, much less so for the DNR:MIDDLE setting, and hard to detect at the DNR:LOW setting.&lt;/p&gt;&lt;p&gt;Usage is simple: click on two points that enclose the desired points to use for event parameter estimation (mean and noise), then click this button.&lt;/p&gt;&lt;p&gt;Clicking this button with no points selected will clear any previous selections.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                   </property>
-                   <property name="text">
-                    <string>mark Event points to use</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item row="11" column="1">
-                <widget class="QLabel" name="minMaxLabel">
-                 <property name="text">
-                  <string>... otherwise use the entries below to place bounds on the event size.</string>
-                 </property>
-                 <property name="alignment">
-                  <set>Qt::AlignCenter</set>
-                 </property>
-                </widget>
-               </item>
-               <item row="12" column="0">
-                <spacer name="horizontalSpacer_4">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
+                  <enum>Qt::Vertical</enum>
                  </property>
                  <property name="sizeHint" stdset="0">
                   <size>
-                   <width>40</width>
-                   <height>20</height>
+                   <width>20</width>
+                   <height>40</height>
                   </size>
                  </property>
                 </spacer>
@@ -2805,8 +2874,128 @@
                  </item>
                 </layout>
                </item>
-               <item row="12" column="4">
-                <spacer name="horizontalSpacer_5">
+               <item row="7" column="1">
+                <layout class="QHBoxLayout" name="horizontalLayout_43">
+                 <item>
+                  <widget class="QLabel" name="magDropSqwaveLabel">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If you enter a value for the expected magDrop of a squarewave event, it will be used during the display of the 'solution' and will give you a good visual of how your observation matched the expected magDrop.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;NOTE:&lt;/span&gt; This does &lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;NOT&lt;/span&gt; affect the calculation of the actual magDrop of the observation - that calculation and report remains unchanged.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Optional: enter the expected magDrop for the event to get a visual of how that event level matches your observation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLineEdit" name="magDropSqwaveEdit">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>80</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If you enter a value for the expected magDrop of a squarewave event, it will be used during the display of the 'solution' and will give you a good visual of how your observation matched the expected magDrop.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;NOTE:&lt;/span&gt; This does &lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;NOT&lt;/span&gt; affect the calculation of the actual magDrop of the observation - that calculation and report remains unchanged.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item row="10" column="1">
+                <layout class="QHBoxLayout" name="horizontalLayout_3">
+                 <item>
+                  <widget class="QPushButton" name="markDzone">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; color:#222222;&quot;&gt;Select two points in the primary (dark blue) light curve, one on each side of where the star ‘disappears’, then click this button to create a D search area.&lt;/span&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; color:#222222;&quot;&gt;If no points are selected, a search for a D transition will not be performed --- this becomes an 'R only' event.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>Mark D region</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="markRzone">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; color:#222222;&quot;&gt;Select two points in the primary (dark blue) light curve, one on each side of where the star ‘reappears’, then click this button to create an R search area.&lt;/span&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'arial,sans-serif'; color:#222222;&quot;&gt;If no points are selected, a search for an R transition will not be performed --- this becomes a 'D only' event.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>Mark R region</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="markEzone">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This button is only active when a Night Eagle 3 analysis is being performed.&lt;/p&gt;&lt;p&gt;The Night Eagle 3 has an effective noise reduction system that has the side effect of producing an exponential decay of intensity toward the ultimate event intensity level during a D transition. As a result, only a portion of the points in the event bottom are reliable indicators of the correct event intensity. This effect is visually obvious for the DNR:HIGH setting, much less so for the DNR:MIDDLE setting, and hard to detect at the DNR:LOW setting.&lt;/p&gt;&lt;p&gt;Usage is simple: click on two points that enclose the desired points to use for event parameter estimation (mean and noise), then click this button.&lt;/p&gt;&lt;p&gt;Clicking this button with no points selected will clear any previous selections.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>mark Event points to use</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item row="8" column="1" colspan="3">
+                <widget class="Line" name="line_3">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="frameShadow">
+                  <enum>QFrame::Plain</enum>
+                 </property>
+                 <property name="lineWidth">
+                  <number>5</number>
+                 </property>
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                </widget>
+               </item>
+               <item row="9" column="1">
+                <widget class="QLabel" name="markRegionsLabel">
+                 <property name="text">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When edges are clearly visible, mark points to specify region and click ...&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item row="12" column="0">
+                <spacer name="horizontalSpacer_4">
                  <property name="orientation">
                   <enum>Qt::Horizontal</enum>
                  </property>
@@ -2818,196 +3007,1511 @@
                  </property>
                 </spacer>
                </item>
-               <item row="13" column="1" colspan="3">
-                <widget class="Line" name="line_2">
-                 <property name="frameShadow">
-                  <enum>QFrame::Plain</enum>
-                 </property>
-                 <property name="lineWidth">
-                  <number>4</number>
-                 </property>
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                </widget>
-               </item>
-               <item row="14" column="1">
-                <widget class="QLabel" name="findEventLabel">
-                 <property name="text">
-                  <string>Finally, click on 'Find event' and, if event found, click '... write report'</string>
-                 </property>
-                 <property name="alignment">
-                  <set>Qt::AlignCenter</set>
-                 </property>
-                </widget>
-               </item>
-               <item row="15" column="1">
-                <layout class="QHBoxLayout" name="horizontalLayout_4">
-                 <item>
-                  <widget class="QPushButton" name="locateEvent">
-                   <property name="enabled">
-                    <bool>false</bool>
-                   </property>
-                   <property name="text">
-                    <string>Find event, then ...</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="calcErrBars">
-                   <property name="enabled">
-                    <bool>false</bool>
-                   </property>
-                   <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;To get a 'Final Report', error bars are required. Clicking this button will start the computation of those error bars and, when complete, trigger the preparation of a 'Final Report'&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                   </property>
-                   <property name="text">
-                    <string>... write report</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="helpLabelForFalsePositive">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="minimumSize">
-                    <size>
-                     <width>10</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                   <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Advisory =============================================&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Assuming that you have been diligent in removing common lightcurve artifacts (dips caused by something other than an occultation, &amp;nbsp;like clouds,&amp;nbsp;or a contrail,&amp;nbsp;or ...) using the normalization function,&amp;nbsp;please be aware that ...&lt;/p&gt;&lt;p&gt;... a non-zero False Positive probability (red bar to the left of the black bar) is usually sufficient reason to report a 'miss' (but see note below).&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt; But&lt;/span&gt;,&amp;nbsp;before reporting a 'miss',&amp;nbsp;you should use the Event Detectability calculator to determine if the event was 'detectable'.&amp;nbsp;If the event was 'detectable' and yet a 'miss',&amp;nbsp;the observation has value in constraining one edge of the asteroid.&amp;nbsp;If the 'miss' was of an 'undetectable' event,&amp;nbsp;its value as a constraint on the asteroid edge is greatly diminished.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;However&lt;/span&gt;,&amp;nbsp; a False Positive probability of zero (red bar to the right of the black bar) should &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;NEVER&lt;/span&gt; be the sole reason to report a 'positive'.&lt;/p&gt;&lt;p&gt;If you get a zero False Positive probability &lt;span style=&quot; font-weight:600; text-decoration: underline;&quot;&gt;and this is the only available chord&lt;/span&gt;,&amp;nbsp;look at the False Positive distribution plot and only consider reporting a 'positive' if the measured drop is well to the right of the black bar (which shows the biggest drop found during the simulation run). 'Well to the right' is rather vague,&amp;nbsp;so consult with your area coordinator whenever you are uncertain.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Note:&lt;/span&gt; if your observed 'drop' (red bar) is near the black bar (on either side!) AND there are nearby chords reporting 'positives',&amp;nbsp;there may be value in your observation in spite of the False Positive probability calculation result;&amp;nbsp;your observation may increase confidence in the event recorded by the nearby chords.&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                   </property>
-                   <property name="text">
-                    <string/>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="fillExcelReportButton">
-                   <property name="enabled">
-                    <bool>false</bool>
-                   </property>
-                   <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this button to copy your results to the Asteroid Occultation Report Form (.xlsx spreadsheet - note file type is .xlsx, not .xls). This button will be inactive (grayed out) until a succesful &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;... write report&lt;/span&gt; has been accomplished.&lt;/p&gt;&lt;p&gt;The expected workflow is:&lt;/p&gt;&lt;p&gt;1) Given that PyOTE now has a solution that you wish to report (an occultation), leave PyOTE open ...&lt;/p&gt;&lt;p&gt;2) Run OccultWatcher to enter your event result report. Be sure to ask for a 'prefill' of the .xls version of the report ...&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;3) Convert that .xls file to .xlsx using either Excel (Windows) or LibreOffice (Mac or Linux)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;4) Go back to PyOTE and click this button ...&lt;/p&gt;&lt;p&gt;5) A file dialog will open; locate and select the prefilled and converted .xlsx report from steps 2 and 3.&lt;/p&gt;&lt;p&gt;6) If the file selected in step 5 was a valid Asteroid Occultation Report Form .xlsx file, the PyOTE results will be inserted.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Note: the excel format change from .xls to .xlsx will not affect the downstream processing adversely as the tool in use accepts either format equally well.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;The values that are inserted are:&lt;/p&gt;&lt;p&gt;--- all error bars&lt;/p&gt;&lt;p&gt;--- uncorrected D and/or R times&lt;/p&gt;&lt;p&gt;--- SNR&lt;/p&gt;&lt;p&gt;--- OTA used (PYOTE)&lt;/p&gt;&lt;p&gt;---A sentence summarizing magDrop information will be added in the Comments box&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                   </property>
-                   <property name="text">
-                    <string>... fill Excel report</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item row="16" column="1">
-                <layout class="QHBoxLayout" name="horizontalLayout_7">
-                 <item>
-                  <widget class="QProgressBar" name="progressBar">
-                   <property name="value">
-                    <number>0</number>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="cancelButton">
-                   <property name="text">
-                    <string>Cancel</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item row="17" column="1" colspan="3">
-                <widget class="Line" name="line_6">
-                 <property name="frameShadow">
-                  <enum>QFrame::Plain</enum>
-                 </property>
-                 <property name="lineWidth">
-                  <number>4</number>
-                 </property>
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                </widget>
-               </item>
-               <item row="18" column="1">
-                <layout class="QVBoxLayout" name="verticalLayout_5">
-                 <item>
-                  <layout class="QHBoxLayout" name="horizontalLayout_5">
-                   <item>
-                    <widget class="QPushButton" name="writePlot">
-                     <property name="enabled">
-                      <bool>false</bool>
-                     </property>
-                     <property name="toolTip">
-                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Note: At the conclusion of error bar calculations, PYOTE automatically writes the main plot to a png file using the name and directory of the just-processed csv file. &lt;/p&gt;&lt;p&gt;If you want/need to record other versions of that plot, click here to open a dialog that will let you specify a different name and/or location for the storage of the new graphics.&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                     </property>
-                     <property name="text">
-                      <string>Write current plot</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QPushButton" name="writeBarPlots">
-                     <property name="enabled">
-                      <bool>false</bool>
-                     </property>
-                     <property name="toolTip">
-                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Note: At the conclusion of error bar calculations, PYOTE automatically writes the error bar plots to appropriately named png files using the name and directory of the just-processed csv file. &lt;/p&gt;&lt;p&gt;If you want/need to record other versions of those plots, click here to open a dialog that will let you specify a different name and/or location for the storage of the new graphics.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                     </property>
-                     <property name="text">
-                      <string>Write error bar plot</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QPushButton" name="writeCSVButton">
-                     <property name="enabled">
-                      <bool>false</bool>
-                     </property>
-                     <property name="toolTip">
-                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this button to write the contents of the data table below to a csv file.&lt;/p&gt;&lt;p&gt;The comment lines from the original input file are preserved.&lt;/p&gt;&lt;p&gt;The most common use for this function is to capture the result of a successful Manual Timestamp Entry for later use (without the need to again go through the manual timestamp entry procedure). It will also reflect any Block Integration that was applied.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                     </property>
-                     <property name="text">
-                      <string>Save current light curve to .csv</string>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="startOver">
-                   <property name="enabled">
-                    <bool>false</bool>
-                   </property>
-                   <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This button removes any trim that is in effect, clears a solution that may have been found,  and removes any D or R region showing.&lt;/p&gt;&lt;p&gt;It does &lt;span style=&quot; font-weight:600; font-style:italic; color:#fc0107;&quot;&gt;not&lt;/span&gt; undo block integration -- you must reload the light curve file to recover from a block integration.&lt;/p&gt;&lt;p&gt;Normalization can be undone by simply returning the smoothing inteval number to 0 (This is in the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;lightcurves&lt;/span&gt; panel.)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                   </property>
-                   <property name="text">
-                    <string>Start over</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item row="19" column="3">
-                <spacer name="verticalSpacer_10">
-                 <property name="orientation">
-                  <enum>Qt::Vertical</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>20</width>
-                   <height>40</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
               </layout>
+             </widget>
+             <widget class="QWidget" name="tab_4">
+              <attribute name="title">
+               <string>VizieR export</string>
+              </attribute>
+              <widget class="QPushButton" name="vizierShowPlotButton">
+               <property name="geometry">
+                <rect>
+                 <x>50</x>
+                 <y>410</y>
+                 <width>240</width>
+                 <height>18</height>
+                </rect>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>240</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>240</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Click this button to get a plot of the &lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;VizieR&lt;/span&gt; trimmed and scaled lightcurve before you click the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Add lightcurve to VizieR folder &lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt;button&lt;/span&gt;.&lt;/p&gt;&lt;p&gt;Any dropped readings detected within the trimmed zone will appear as gaps in the main plot and red dots on the x axis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="text">
+                <string>Show VizieR lightcurve (trimmed)</string>
+               </property>
+              </widget>
+              <widget class="QPushButton" name="vizierExportButton">
+               <property name="geometry">
+                <rect>
+                 <x>300</x>
+                 <y>380</y>
+                 <width>240</width>
+                 <height>18</height>
+                </rect>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>240</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>240</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;After previewing the proposed submission, click this button to add a VizieR-formatted .dat file to the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;VizieR_lightcurves&lt;/span&gt; folder located inside your &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Documents&lt;/span&gt; folder.&lt;/p&gt;&lt;p&gt;Whenever you 'zip' these for emailing (the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;ZIP *.dat files in VizieR folder&lt;/span&gt; button is used for this), the files 'zipped' will have an extension of .zipped added to the filename so that an accidental resubmission can be avoided as only files with a .dat extension will be read and placed in a specially named zip-archive.&lt;/p&gt;&lt;p&gt;Of course, you can always remove this extension manually should there be a need to re-zip and send.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="text">
+                <string>Add lightcurve to VizieR folder</string>
+               </property>
+              </widget>
+              <widget class="QLabel" name="label_13">
+               <property name="geometry">
+                <rect>
+                 <x>60</x>
+                 <y>70</y>
+                 <width>361</width>
+                 <height>16</height>
+                </rect>
+               </property>
+               <property name="font">
+                <font>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Star number (with format where x is an integer)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="textFormat">
+                <enum>Qt::AutoText</enum>
+               </property>
+              </widget>
+              <widget class="QWidget" name="layoutWidget">
+               <property name="geometry">
+                <rect>
+                 <x>270</x>
+                 <y>30</y>
+                 <width>101</width>
+                 <height>24</height>
+                </rect>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout_49">
+                <item>
+                 <widget class="QLabel" name="label_11">
+                  <property name="font">
+                   <font>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>month</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QSpinBox" name="vzDateMonthSpinner">
+                  <property name="minimumSize">
+                   <size>
+                    <width>50</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>50</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="minimum">
+                   <number>1</number>
+                  </property>
+                  <property name="maximum">
+                   <number>12</number>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QWidget" name="layoutWidget">
+               <property name="geometry">
+                <rect>
+                 <x>370</x>
+                 <y>30</y>
+                 <width>91</width>
+                 <height>24</height>
+                </rect>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout_50">
+                <item>
+                 <widget class="QLabel" name="label_12">
+                  <property name="font">
+                   <font>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>day</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QSpinBox" name="vzDateDaySpinner">
+                  <property name="minimumSize">
+                   <size>
+                    <width>50</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>50</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="minimum">
+                   <number>1</number>
+                  </property>
+                  <property name="maximum">
+                   <number>31</number>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QLabel" name="label_20">
+               <property name="geometry">
+                <rect>
+                 <x>449</x>
+                 <y>70</y>
+                 <width>221</width>
+                 <height>16</height>
+                </rect>
+               </property>
+               <property name="font">
+                <font>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>Observer site coordinates ...</string>
+               </property>
+               <property name="textFormat">
+                <enum>Qt::PlainText</enum>
+               </property>
+              </widget>
+              <widget class="QWidget" name="layoutWidget_2">
+               <property name="geometry">
+                <rect>
+                 <x>410</x>
+                 <y>120</y>
+                 <width>241</width>
+                 <height>24</height>
+                </rect>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout_58">
+                <item>
+                 <spacer name="horizontalSpacer_60">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_22">
+                  <property name="font">
+                   <font>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Site longitude (min)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="vzSiteLongMinEdit">
+                  <property name="minimumSize">
+                   <size>
+                    <width>90</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>90</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="maxLength">
+                   <number>2</number>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QWidget" name="layoutWidget_3">
+               <property name="geometry">
+                <rect>
+                 <x>410</x>
+                 <y>150</y>
+                 <width>241</width>
+                 <height>24</height>
+                </rect>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout_59">
+                <item>
+                 <spacer name="horizontalSpacer_61">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_23">
+                  <property name="font">
+                   <font>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Site longitude (sec)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="vzSiteLongSecsEdit">
+                  <property name="minimumSize">
+                   <size>
+                    <width>90</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>90</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="maxLength">
+                   <number>5</number>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QWidget" name="layoutWidget_4">
+               <property name="geometry">
+                <rect>
+                 <x>410</x>
+                 <y>190</y>
+                 <width>241</width>
+                 <height>24</height>
+                </rect>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout_60">
+                <item>
+                 <spacer name="horizontalSpacer_62">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_24">
+                  <property name="font">
+                   <font>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Site latitude (deg)</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="vzSiteLatDegEdit">
+                  <property name="minimumSize">
+                   <size>
+                    <width>90</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>90</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="maxLength">
+                   <number>3</number>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QWidget" name="layoutWidget_5">
+               <property name="geometry">
+                <rect>
+                 <x>410</x>
+                 <y>220</y>
+                 <width>241</width>
+                 <height>24</height>
+                </rect>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout_61">
+                <item>
+                 <spacer name="horizontalSpacer_63">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_25">
+                  <property name="font">
+                   <font>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Site latitude (min)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="vzSiteLatMinEdit">
+                  <property name="minimumSize">
+                   <size>
+                    <width>90</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>90</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="maxLength">
+                   <number>2</number>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QWidget" name="layoutWidget_6">
+               <property name="geometry">
+                <rect>
+                 <x>410</x>
+                 <y>250</y>
+                 <width>241</width>
+                 <height>24</height>
+                </rect>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout_62">
+                <item>
+                 <spacer name="horizontalSpacer_64">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_26">
+                  <property name="font">
+                   <font>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Site latitude (sec)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="vzSiteLatSecsEdit">
+                  <property name="minimumSize">
+                   <size>
+                    <width>90</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>90</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="maxLength">
+                   <number>5</number>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QWidget" name="layoutWidget_7">
+               <property name="geometry">
+                <rect>
+                 <x>350</x>
+                 <y>330</y>
+                 <width>301</width>
+                 <height>24</height>
+                </rect>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout_63">
+                <item>
+                 <spacer name="horizontalSpacer_65">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_27">
+                  <property name="font">
+                   <font>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Observer name&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="vzObserverNameEdit">
+                  <property name="minimumSize">
+                   <size>
+                    <width>120</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>120</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="maxLength">
+                   <number>16</number>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QLabel" name="label_28">
+               <property name="geometry">
+                <rect>
+                 <x>60</x>
+                 <y>220</y>
+                 <width>221</width>
+                 <height>16</height>
+                </rect>
+               </property>
+               <property name="font">
+                <font>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>Asteriod identification ...</string>
+               </property>
+               <property name="textFormat">
+                <enum>Qt::PlainText</enum>
+               </property>
+              </widget>
+              <widget class="QWidget" name="layoutWidget_8">
+               <property name="geometry">
+                <rect>
+                 <x>0</x>
+                 <y>240</y>
+                 <width>271</width>
+                 <height>24</height>
+                </rect>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout_64">
+                <item>
+                 <spacer name="horizontalSpacer_66">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_29">
+                  <property name="font">
+                   <font>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Asteroid number (xxxxxx)</string>
+                  </property>
+                  <property name="textFormat">
+                   <enum>Qt::PlainText</enum>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="vzAsteroidNumberEdit">
+                  <property name="minimumSize">
+                   <size>
+                    <width>90</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>90</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="maxLength">
+                   <number>6</number>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QWidget" name="layoutWidget_9">
+               <property name="geometry">
+                <rect>
+                 <x>30</x>
+                 <y>270</y>
+                 <width>241</width>
+                 <height>24</height>
+                </rect>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout_65">
+                <item>
+                 <spacer name="horizontalSpacer_67">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_34">
+                  <property name="font">
+                   <font>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Asteroid name&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                  <property name="textFormat">
+                   <enum>Qt::AutoText</enum>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="vzAsteroidNameEdit">
+                  <property name="minimumSize">
+                   <size>
+                    <width>120</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>120</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="maxLength">
+                   <number>16</number>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QWidget" name="layoutWidget_10">
+               <property name="geometry">
+                <rect>
+                 <x>410</x>
+                 <y>290</y>
+                 <width>241</width>
+                 <height>24</height>
+                </rect>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout_66">
+                <item>
+                 <spacer name="horizontalSpacer_68">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_38">
+                  <property name="font">
+                   <font>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Site altitude (meters)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="vzSiteAltitudeEdit">
+                  <property name="minimumSize">
+                   <size>
+                    <width>90</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>90</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="maxLength">
+                   <number>5</number>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QPushButton" name="vzTrimButton">
+               <property name="geometry">
+                <rect>
+                 <x>50</x>
+                 <y>380</y>
+                 <width>240</width>
+                 <height>18</height>
+                </rect>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>240</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>240</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;It is not necessary or desirable to submit lightcurves with many readings before and after an event. Enough points before and after an event should be included so that a reasonable assessment of the baseline noise can be made, but no more.&lt;/p&gt;&lt;p&gt;To trim the lightcurve for submission under this policy, mark the leftmost point that should be included by clicking on it. Similarly, mark the rightmost point. Then click this button.&lt;/p&gt;&lt;p&gt;The button below named &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Show VizieR lightcurve (trimmed)&lt;/span&gt; can then be clicked to give a preview of the data submission (scaled to the VizieR standard).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="text">
+                <string>Trim left and right</string>
+               </property>
+              </widget>
+              <widget class="QPushButton" name="vzStartOverButton">
+               <property name="geometry">
+                <rect>
+                 <x>50</x>
+                 <y>440</y>
+                 <width>240</width>
+                 <height>18</height>
+                </rect>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>240</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>240</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If you want to select a different trim range, clear any previous trim zone by clicking this button.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="text">
+                <string>Clear trim settings</string>
+               </property>
+              </widget>
+              <widget class="QLabel" name="vizierLabel">
+               <property name="geometry">
+                <rect>
+                 <x>40</x>
+                 <y>10</y>
+                 <width>191</width>
+                 <height>16</height>
+                </rect>
+               </property>
+               <property name="font">
+                <font>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-family:'Arial'; color:#000000; background-color:#ffffff;&quot;&gt;Email your report, or a group of reports, with your zipped file of lightcurves as an attachment to:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;mailto:HeraldDR@bigpond.com&quot;&gt;&lt;span style=&quot; font-family:'Arial'; text-decoration: underline; text-decoration-color:#000000; color:#1155cc;&quot;&gt;HeraldDR@bigpond.com&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'Arial'; font-weight:700; color:#ff0000;&quot;&gt;Note:&lt;/span&gt;&lt;span style=&quot; font-family:'Arial'; color:#000000;&quot;&gt; This is &lt;/span&gt;&lt;span style=&quot; font-family:'Arial'; font-weight:700; color:#000000;&quot;&gt;NOT&lt;/span&gt;&lt;span style=&quot; font-family:'Arial'; color:#000000;&quot;&gt; Dave Herald's 'regular' email address but rather a special one for receiving these reports!&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'Arial'; color:#000000; background-color:#ffffff;&quot;&gt;The Subject line of the email &lt;/span&gt;&lt;span style=&quot; font-family:'Arial'; font-weight:700; color:#000000; background-color:#ffffff;&quot;&gt;must &lt;/span&gt;&lt;span style=&quot; font-family:'Arial'; color:#000000; background-color:#ffffff;&quot;&gt;be (to avoid being treated as spam)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'Arial'; font-weight:700; color:#ff0000; background-color:#ffffff;&quot;&gt;Light curve report&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'Arial'; color:#000000; background-color:#ffffff;&quot;&gt;There is no need to say anything in the body of the email, but if you do so, include the word &lt;/span&gt;&lt;span style=&quot; font-family:'Arial'; font-weight:700; color:#000000; background-color:#ffffff;&quot;&gt;attachment&lt;/span&gt;&lt;span style=&quot; font-family:'Arial'; color:#000000; background-color:#ffffff;&quot;&gt;. Some email clients will notice that word&lt;/span&gt;&lt;span style=&quot; font-family:'Arial'; font-weight:700; color:#000000; background-color:#ffffff;&quot;&gt; AND&lt;/span&gt;&lt;span style=&quot; font-family:'Arial'; color:#000000; background-color:#ffffff;&quot;&gt; the fact that you didn't actually add any attachment and warn you about that!&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'Arial'; color:#000000; background-color:#ffffff;&quot;&gt;You should receive an automatic acknowledgement of your email in a few minutes.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'Arial'; color:#000000; background-color:#ffffff;&quot;&gt;If there are any problems with the content of your report, you will be notified when the next batch of light curve reports are being processed. This may not be for several weeks or more.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'Arial'; color:#000000; background-color:#ffffff;&quot;&gt;Your light curve will be visible within Occult4 after it has been vetted - this may take a couple of weeks. It will later be archived at Vizier in Catalogue B/occ, which can be accessed at&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://vizier.u-strasbg.fr/viz-bin/VizieR?-source=B/occ&quot;&gt;&lt;span style=&quot; font-family:'Times New Roman'; font-size:12pt; text-decoration: underline; text-decoration-color:#000000; color:#1155cc;&quot;&gt;https://vizier.u-strasbg.fr/viz-bin/VizieR?-source=B/occ&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="text">
+                <string>VizieR lightcurve archive data</string>
+               </property>
+              </widget>
+              <widget class="QPushButton" name="vizierZipButton">
+               <property name="geometry">
+                <rect>
+                 <x>300</x>
+                 <y>440</y>
+                 <width>240</width>
+                 <height>18</height>
+                </rect>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>240</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>240</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clicking this button will cause the creation of a zip-file archive containing all of the lightcurves in your &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Documents\VizieR_lightcurves&lt;/span&gt; folder that have a .dat extension.&lt;/p&gt;&lt;p&gt;The zip-file archive will be created in your Documents folder and named &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;VizieR_lightcurves_yyyy-mm-dd_&amp;lt;username&amp;gt;_xxxxxxxx.zip&lt;/span&gt; where &lt;span style=&quot; font-weight:700; color:#550000;&quot;&gt;&amp;lt;username&amp;gt;&lt;/span&gt; is your computer user name, &lt;span style=&quot; font-weight:700; color:#550000;&quot;&gt;yyyy-mm-dd&lt;/span&gt; is the date when this file was created, and &lt;span style=&quot; font-weight:700; color:#550000;&quot;&gt;xxxxxxxx&lt;/span&gt; is a crc32 hash value of all the included .dat files, thus guaranteeing that will be no filename clashes.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="text">
+                <string>ZIP *.dat files in VizieR folder</string>
+               </property>
+              </widget>
+              <widget class="QLabel" name="vizierLabel_2">
+               <property name="geometry">
+                <rect>
+                 <x>30</x>
+                 <y>34</y>
+                 <width>131</width>
+                 <height>16</height>
+                </rect>
+               </property>
+               <property name="font">
+                <font>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-family:'Arial'; color:#000000; background-color:#ffffff;&quot;&gt;Email your report, or a group of reports, with your zipped file of lightcurves as an attachment to:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;mailto:HeraldDR@bigpond.com&quot;&gt;&lt;span style=&quot; font-family:'Arial'; text-decoration: underline; text-decoration-color:#000000; color:#1155cc;&quot;&gt;HeraldDR@bigpond.com&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'Arial'; font-weight:700; color:#ff0000;&quot;&gt;Note:&lt;/span&gt;&lt;span style=&quot; font-family:'Arial'; color:#000000;&quot;&gt; This is &lt;/span&gt;&lt;span style=&quot; font-family:'Arial'; font-weight:700; color:#000000;&quot;&gt;NOT&lt;/span&gt;&lt;span style=&quot; font-family:'Arial'; color:#000000;&quot;&gt; Dave Herald's 'regular' email address but rather a special one for receiving these reports!&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'Arial'; color:#000000; background-color:#ffffff;&quot;&gt;The Subject line of the email must be &lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'Arial'; font-weight:700; color:#ff0000; background-color:#ffffff;&quot;&gt;Light curve report&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'Arial'; color:#000000; background-color:#ffffff;&quot;&gt;There is no need to say anything in the body of the email, but if you do so, include the word &lt;/span&gt;&lt;span style=&quot; font-family:'Arial'; font-weight:700; color:#000000; background-color:#ffffff;&quot;&gt;attachment&lt;/span&gt;&lt;span style=&quot; font-family:'Arial'; color:#000000; background-color:#ffffff;&quot;&gt;. Some email clients will notice that word&lt;/span&gt;&lt;span style=&quot; font-family:'Arial'; font-weight:700; color:#000000; background-color:#ffffff;&quot;&gt; AND&lt;/span&gt;&lt;span style=&quot; font-family:'Arial'; color:#000000; background-color:#ffffff;&quot;&gt; the fact that you didn't actually add any attachment and warn you about that!&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'Arial'; color:#000000; background-color:#ffffff;&quot;&gt;You should receive an automatic acknowledgement of your email.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'Arial'; color:#000000; background-color:#ffffff;&quot;&gt;If there are any problems with the content of your report, you will be notified when the next batch of light curve reports are being processed. This may not be for several weeks or more.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'Arial'; color:#000000; background-color:#ffffff;&quot;&gt;Your light curve will be available within Occult. It will be archived at Vizier in Catalogue B/occ, which can be accessed at&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://vizier.u-strasbg.fr/viz-bin/VizieR?-source=B/occ&quot;&gt;&lt;span style=&quot; font-family:'Times New Roman'; font-size:12pt; text-decoration: underline; text-decoration-color:#000000; color:#1155cc;&quot;&gt;https://vizier.u-strasbg.fr/viz-bin/VizieR?-source=B/occ&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="text">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Observation date:&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
+              <widget class="QPushButton" name="vzInfoButton">
+               <property name="geometry">
+                <rect>
+                 <x>530</x>
+                 <y>10</y>
+                 <width>121</width>
+                 <height>18</height>
+                </rect>
+               </property>
+               <property name="font">
+                <font>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Light Curve Archive&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Introduction&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Occultation light curves can be archived for posterity to provide a demonstration of the basis of the occultation observation event details recorded in the Historical data set of Occultation Observations (&lt;span style=&quot; color:#00aa00;&quot;&gt;ref 1&lt;/span&gt;) . This data set alone provides the source of astrometry and asteroid profile diameters, including matching to Light Curve Inversion modelling. However the old adage of &lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;A picture is worth a thousand words&lt;/span&gt; remains true, so a means to archive the light curve data has been created and is offered for all occultation observations.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;VizieR&lt;/span&gt;&lt;/p&gt;&lt;p&gt;VizieR (&lt;span style=&quot; color:#00aa00;&quot;&gt;ref 2&lt;/span&gt;) provides the most complete library of published astronomical catalogues and the Light Curve Archive consists of two sub-categories, B/occ/Moon and B/occ/asteroid. (Pyote supports only the creation of data for the asteroid subcategory.) The Vizier website provides a means to search for a record by various fields and to display the light curve image.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Format&lt;/span&gt;&lt;/p&gt;&lt;p&gt;VizieR requires the data to be submitted as an asci text file, which includes some of the circumstances of the observation. The archiving of a raster image type (..jpg etc) is not offered.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Occult4&lt;/span&gt;&lt;/p&gt;&lt;p&gt;All submissions are emailed to a Global Collector and Occult (&lt;span style=&quot; color:#00aa00;&quot;&gt;ref 3&lt;/span&gt;) is used to collect and provide some Quality Assurance. The light curves are distributed within Occult for displaying when an event is opened using the Asteroid Observation Editor. Occult is also used to generate the files that are periodically archived at VizieR.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Why bother archiving your light curves?&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Going to the trouble of archiving light curves provides pictorial evidence of the observation to anyone who wants it, in a free and open manner, forever. It can be used to depict unusual observations like slow, stepped or double transitions that may well involve Fresnel Diffraction, double stars, binary asteroids or moons. Some observers may choose to archive unusual observations only, however it is hoped that all observations are added to the archive. Indeed some observers may choose to reprocess their entire back-file of observations if available.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;References&lt;/span&gt;&lt;/p&gt;&lt;p&gt;1) NASA PDS Small Bodies Asteroid/Dust Subnode - https://sbn.psi.edu/pds/resource/occ.html&lt;/p&gt;&lt;p&gt;2) VizieR - https://vizier.unistra.fr/&lt;/p&gt;&lt;p&gt;3) Occult - http://www.lunar-occultations.com/iota/occult4.htm&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="text">
+                <string>Info</string>
+               </property>
+              </widget>
+              <widget class="QLabel" name="label_9">
+               <property name="geometry">
+                <rect>
+                 <x>530</x>
+                 <y>40</y>
+                 <width>241</width>
+                 <height>16</height>
+                </rect>
+               </property>
+               <property name="font">
+                <font>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Right-click on items for additional info&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+              </widget>
+              <widget class="QPushButton" name="vzWhereToSendButton">
+               <property name="geometry">
+                <rect>
+                 <x>550</x>
+                 <y>440</y>
+                 <width>240</width>
+                 <height>18</height>
+                </rect>
+               </property>
+               <property name="font">
+                <font>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-family:'Arial'; color:#000000; background-color:#ffffff;&quot;&gt;Email your report, or a group of reports, with your zipped file of lightcurves as an attachment to:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;mailto:HeraldDR@bigpond.com&quot;&gt;&lt;span style=&quot; font-family:'Arial'; text-decoration: underline; text-decoration-color:#000000; color:#1155cc;&quot;&gt;HeraldDR@bigpond.com&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'Arial'; font-weight:700; color:#ff0000;&quot;&gt;Note:&lt;/span&gt;&lt;span style=&quot; font-family:'Arial'; color:#000000;&quot;&gt; This is &lt;/span&gt;&lt;span style=&quot; font-family:'Arial'; font-weight:700; color:#000000;&quot;&gt;NOT&lt;/span&gt;&lt;span style=&quot; font-family:'Arial'; color:#000000;&quot;&gt; Dave Herald's 'regular' email address but rather a special one for receiving these reports!&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'Arial'; color:#000000; background-color:#ffffff;&quot;&gt;The Subject line of the email &lt;/span&gt;&lt;span style=&quot; font-family:'Arial'; font-weight:700; color:#000000; background-color:#ffffff;&quot;&gt;must &lt;/span&gt;&lt;span style=&quot; font-family:'Arial'; color:#000000; background-color:#ffffff;&quot;&gt;be (to avoid being treated as spam)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'Arial'; font-weight:700; color:#ff0000; background-color:#ffffff;&quot;&gt;Light curve report&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'Arial'; color:#000000; background-color:#ffffff;&quot;&gt;There is no need to say anything in the body of the email, but if you do so, include the word &lt;/span&gt;&lt;span style=&quot; font-family:'Arial'; font-weight:700; color:#000000; background-color:#ffffff;&quot;&gt;attachment&lt;/span&gt;&lt;span style=&quot; font-family:'Arial'; color:#000000; background-color:#ffffff;&quot;&gt;. Some email clients will notice that word&lt;/span&gt;&lt;span style=&quot; font-family:'Arial'; font-weight:700; color:#000000; background-color:#ffffff;&quot;&gt; AND&lt;/span&gt;&lt;span style=&quot; font-family:'Arial'; color:#000000; background-color:#ffffff;&quot;&gt; the fact that you didn't actually add any attachment and warn you about that!&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'Arial'; color:#000000; background-color:#ffffff;&quot;&gt;You should receive an automatic acknowledgement of your email in a few minutes.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'Arial'; color:#000000; background-color:#ffffff;&quot;&gt;If there are any problems with the content of your report, you will be notified when the next batch of light curve reports are being processed. This may not be for several weeks or more.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'Arial'; color:#000000; background-color:#ffffff;&quot;&gt;Your light curve will be visible within Occult4 after it has been vetted - this may take a couple of weeks. It will later be archived at Vizier in Catalogue B/occ, which can be accessed at&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://vizier.u-strasbg.fr/viz-bin/VizieR?-source=B/occ&quot;&gt;&lt;span style=&quot; font-family:'Times New Roman'; font-size:12pt; text-decoration: underline; text-decoration-color:#000000; color:#1155cc;&quot;&gt;https://vizier.u-strasbg.fr/viz-bin/VizieR?-source=B/occ&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="text">
+                <string>Where to send ZIP file</string>
+               </property>
+              </widget>
+              <widget class="QWidget" name="">
+               <property name="geometry">
+                <rect>
+                 <x>30</x>
+                 <y>150</y>
+                 <width>271</width>
+                 <height>24</height>
+                </rect>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout_47">
+                <item>
+                 <spacer name="horizontalSpacer_15">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_14">
+                  <property name="font">
+                   <font>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Hipparcos (xxxxxx)</string>
+                  </property>
+                  <property name="textFormat">
+                   <enum>Qt::PlainText</enum>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="vzStarHipparcosEdit">
+                  <property name="minimumSize">
+                   <size>
+                    <width>90</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>90</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="maxLength">
+                   <number>6</number>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QWidget" name="">
+               <property name="geometry">
+                <rect>
+                 <x>30</x>
+                 <y>120</y>
+                 <width>271</width>
+                 <height>24</height>
+                </rect>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout_55">
+                <item>
+                 <spacer name="horizontalSpacer_57">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_18">
+                  <property name="font">
+                   <font>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Tycho2 (xxxx-xxxxx-x)</string>
+                  </property>
+                  <property name="textFormat">
+                   <enum>Qt::PlainText</enum>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="vzStarTycho2Edit">
+                  <property name="minimumSize">
+                   <size>
+                    <width>90</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>90</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="maxLength">
+                   <number>12</number>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QWidget" name="">
+               <property name="geometry">
+                <rect>
+                 <x>30</x>
+                 <y>90</y>
+                 <width>271</width>
+                 <height>24</height>
+                </rect>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout_56">
+                <item>
+                 <spacer name="horizontalSpacer_58">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_19">
+                  <property name="font">
+                   <font>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>UCAC4 (xxx-xxxxxx)</string>
+                  </property>
+                  <property name="textFormat">
+                   <enum>Qt::PlainText</enum>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="vzStarUCAC4Edit">
+                  <property name="minimumSize">
+                   <size>
+                    <width>90</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>90</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="maxLength">
+                   <number>10</number>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QWidget" name="">
+               <property name="geometry">
+                <rect>
+                 <x>410</x>
+                 <y>90</y>
+                 <width>241</width>
+                 <height>24</height>
+                </rect>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout_57">
+                <item>
+                 <spacer name="horizontalSpacer_59">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_21">
+                  <property name="font">
+                   <font>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Site longitude (deg)</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="vzSiteLongDegEdit">
+                  <property name="minimumSize">
+                   <size>
+                    <width>90</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>90</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="maxLength">
+                   <number>4</number>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QWidget" name="">
+               <property name="geometry">
+                <rect>
+                 <x>60</x>
+                 <y>470</y>
+                 <width>97</width>
+                 <height>23</height>
+                </rect>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout_67">
+                <item>
+                 <widget class="QLabel" name="label_35">
+                  <property name="minimumSize">
+                   <size>
+                    <width>60</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>60</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Dot size: </string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QSpinBox" name="vzDotSizeSpinner">
+                  <property name="font">
+                   <font>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="minimum">
+                   <number>1</number>
+                  </property>
+                  <property name="maximum">
+                   <number>12</number>
+                  </property>
+                  <property name="value">
+                   <number>3</number>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QWidget" name="">
+               <property name="geometry">
+                <rect>
+                 <x>300</x>
+                 <y>410</y>
+                 <width>296</width>
+                 <height>23</height>
+                </rect>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout_54">
+                <item>
+                 <widget class="QSpinBox" name="vzNagLevelSpinbox">
+                  <property name="minimumSize">
+                   <size>
+                    <width>50</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>50</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This spinner controls a 'nag' that will remind you that you have lightcurves available in your &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Documents\VizieR_lightcurves&lt;/span&gt; folder that have not been zipped for sending. &lt;/p&gt;&lt;p&gt;If you have a personal policy to only submit lightcurves when you have at least 5 (say) processed but not sent, set this spinner to 5. Whenever you start PyOTE, it will count the available lightcurves and alert you when that count is 5 or more with a popup message.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                  <property name="minimum">
+                   <number>1</number>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="vzNagLevelLabel">
+                  <property name="minimumSize">
+                   <size>
+                    <width>240</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>150</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This spinner controls a 'nag' that will remind you that you have lightcurves available in your &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Documents\VizieR_lightcurves&lt;/span&gt; folder that have not been zipped for sending. &lt;/p&gt;&lt;p&gt;If you have a personal policy to only submit lightcurves when you have at least 5 (say) processed but not sent, set this spinner to 5. Whenever you start PyOTE, it will count the available lightcurves and alert you when that count is 5 or more with a popup message.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                  <property name="text">
+                   <string>Time-to-send alert level </string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QWidget" name="">
+               <property name="geometry">
+                <rect>
+                 <x>169</x>
+                 <y>30</y>
+                 <width>97</width>
+                 <height>23</height>
+                </rect>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout_48">
+                <item>
+                 <widget class="QLabel" name="label_10">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>year </string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QSpinBox" name="vzDateYearSpinner">
+                  <property name="minimumSize">
+                   <size>
+                    <width>70</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>70</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="minimum">
+                   <number>1950</number>
+                  </property>
+                  <property name="maximum">
+                   <number>3050</number>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QWidget" name="">
+               <property name="geometry">
+                <rect>
+                 <x>290</x>
+                 <y>470</y>
+                 <width>501</width>
+                 <height>24</height>
+                </rect>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout_51">
+                <item>
+                 <spacer name="horizontalSpacer_56">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="vzSaveSiteCoordButton">
+                  <property name="minimumSize">
+                   <size>
+                    <width>240</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>240</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Entry of GPS site coordinates is error prone. The correctness of the site location is crucial, particularly for multi-chord campaigns. To help with this problem, this button can be used to save the longitude, latitude, altitude, and observer name as a named record (that name must be placed in the edit box to the right before this button will do anything) for later retrieval.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                  <property name="text">
+                   <string>Save site coords to:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="vzSiteCoordNameEdit">
+                  <property name="minimumSize">
+                   <size>
+                    <width>120</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>120</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Name the record of GPS site information when a 'save data' is performed (button to the left) This allows for later retrieval by use of the dropdown box to the right. This name will appear in the dropdown list.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QComboBox" name="vzCoordsComboBox">
+                  <property name="minimumSize">
+                   <size>
+                    <width>120</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>120</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This comboBox contains a dropdown list of GPS site coordinates that have been previously entered, named, and saved. Click on an entry in the dropdown list to restore that GPS data.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
              </widget>
              <widget class="QWidget" name="tab_3">
               <attribute name="title">
@@ -4038,7 +5542,7 @@
                 <rect>
                  <x>21</x>
                  <y>221</y>
-                 <width>151</width>
+                 <width>252</width>
                  <height>80</height>
                 </rect>
                </property>
@@ -4662,7 +6166,7 @@ Setting this value to zero will force Miss distance optimization to be skipped.<
                <item row="1" column="1">
                 <widget class="QCheckBox" name="allowNewVersionPopupCheckbox">
                  <property name="toolTip">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#aa0000;&quot;&gt;What's new:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;A small change is that during automatic block integration, if a block size is filled in (there is an edit box added to the right of the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Manual/automatic block integrate&lt;/span&gt; button on the analysis tab), then the program will determine the optimum offset for only that block size. This speeds up the process when the block size is known and avoids interference from a deep and/or long occultation.&lt;/p&gt;&lt;p&gt;Another small change involves the reporting of magDrop error bars. It is possible for a magDrop error bar calculation to produce an unreasonable answer - that is, the error bars imply a possible negative magDrop (such as magDrop = 1.5 +/- 4.2). In this case, an error bar is not reported and a % drop is reported instead.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Model selection tab:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;The big change is the addition of a new tab that provides comprehensive modeling of: optical diffraction (including a central spot when the asteroid rho is low enough for that to be significant); disk-on-disk for cases where the star disk and asteroid disk are not too different (geometric optics is used); and edge-on-disk where there is a significant star disk being occulted by a large asteroid - in which case a penumbral curve results and limb angles become an interesting parameter to fit (again, geometrical optics are employed).&lt;/p&gt;&lt;p&gt;For all models, it is possible to have a 'miss' (defined as the case where the star center does not intersect the asteroid) yet the observation will record some light changes - a 'miss' is a limiting case of a 'graze' where the centerline of the star passage lies outside the perimeter of the asteroid. In the case of a low rho asteroid (i.e., an asteroid that is less than 16 fresnel lengths in radius) diffraction event, such a 'miss' can even result in the light &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;increasing&lt;/span&gt; during the event. Such 'miss' events are fully modeled because, even though a chord duration cannot be computed, the 'miss' distance can be used to establish a limit to the edge of an asteroid.&lt;/p&gt;&lt;p&gt;A folder of example csv files has been written to C:\Users\&amp;lt;you&amp;gt;\Desktop\model-examples. They are useful in 'playing' with the new features as they include a 'noisy' version of a model lightcurve along within a noise-free version. This is useful in experimenting with the automatic fitting procedure. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This splash screen can be disabled on the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Settings/Misc.&lt;/span&gt; tab.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;What's new with this version:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;There is a new tab named &lt;/span&gt;&lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;VizieR export&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; that supports the submission of asteroid occultation lightcurves to &lt;/span&gt;&lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;VizieR&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt;. The lightcurves will - after processing through Occult4 under the supervision of Dave Herald - get added to the VizieR repository at: &lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://vizier.cds.unistra.fr/viz-bin/VizieR-3?-source=B/occ/asteroid&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;https://vizier.cds.unistra.fr/viz-bin/VizieR-3?-source=B/occ/asteroid &lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://vizier.cds.unistra.fr/viz-bin/VizieR-3?-source=B/occ/asteroid&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;Use of this system to memorialize your lightcurves and make them available in the public domain is encouraged.&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;What's sort-of new:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;A small change is that during automatic block integration, if a block size is filled in (there is an edit box added to the right of the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Manual/automatic block integrate&lt;/span&gt; button on the analysis tab), then the program will determine the optimum offset for only that block size. This speeds up the process when the block size is known and avoids interference from a deep and/or long occultation.&lt;/p&gt;&lt;p&gt;Another small change involves the reporting of magDrop error bars. It is possible for a magDrop error bar calculation to produce an unreasonable answer - that is, the error bars imply a possible negative magDrop (such as magDrop = 1.5 +/- 4.2). In this case, an error bar is not reported and a % drop is reported instead.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Model selection tab:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;The previous big change was the addition of a new tab that provides comprehensive modeling of: optical diffraction (including a central spot when the asteroid rho is low enough for that to be significant); disk-on-disk for cases where the star disk and asteroid disk are not too different (geometric optics is used); and edge-on-disk where there is a significant star disk being occulted by a large asteroid - in which case a penumbral curve results and limb angles become an interesting parameter to fit (again, geometrical optics are employed).&lt;/p&gt;&lt;p&gt;For all models, it is possible to have a 'miss' (defined as the case where the star center does not intersect the asteroid) yet the observation will record some light changes - a 'miss' is a limiting case of a 'graze' where the centerline of the star passage lies outside the perimeter of the asteroid. In the case of a low rho asteroid (i.e., an asteroid that is less than 16 fresnel lengths in radius) diffraction event, such a 'miss' can even result in the light &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;increasing&lt;/span&gt; during the event. Such 'miss' events are fully modeled because, even though a chord duration cannot be computed, the 'miss' distance can be used to establish a limit to the edge of an asteroid.&lt;/p&gt;&lt;p&gt;A folder of example csv files has been written to C:\Users\&amp;lt;you&amp;gt;\Documents\model-examples. They are useful in 'playing' with the new features as they include a 'noisy' version of a model lightcurve along within a noise-free version. This is useful in experimenting with the automatic fitting procedure. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                  </property>
                  <property name="text">
                   <string>allow 'new version' information pop-up</string>
@@ -6197,6 +7701,24 @@ Setting this value to zero will force Miss distance optimization to be skipped.<
   <tabstop>limbAnglePrecisionEdit</tabstop>
   <tabstop>missDistancePrecisionEdit</tabstop>
   <tabstop>beingOptimizedEdit</tabstop>
+  <tabstop>helpSqWaveButton</tabstop>
+  <tabstop>vzStarHipparcosEdit</tabstop>
+  <tabstop>vzStarTycho2Edit</tabstop>
+  <tabstop>vzStarUCAC4Edit</tabstop>
+  <tabstop>vzSiteLongDegEdit</tabstop>
+  <tabstop>vzSiteLongMinEdit</tabstop>
+  <tabstop>vzSiteLongSecsEdit</tabstop>
+  <tabstop>vzSiteLatDegEdit</tabstop>
+  <tabstop>vzSiteLatMinEdit</tabstop>
+  <tabstop>vzSiteLatSecsEdit</tabstop>
+  <tabstop>vzSiteAltitudeEdit</tabstop>
+  <tabstop>vzObserverNameEdit</tabstop>
+  <tabstop>vzAsteroidNumberEdit</tabstop>
+  <tabstop>vzAsteroidNameEdit</tabstop>
+  <tabstop>vzTrimButton</tabstop>
+  <tabstop>vzStartOverButton</tabstop>
+  <tabstop>vizierShowPlotButton</tabstop>
+  <tabstop>vizierExportButton</tabstop>
  </tabstops>
  <resources/>
  <connections/>

@@ -794,8 +794,15 @@ def bob():
 # operate if we wait until the user first invokes them after starting ppyote.  We
 # do this as a work-around to the pickle problem that keeps normal caching from working.
 
-_ = find_best_event_from_min_max_size(np.zeros(1), 0, 0, 0, 0)
-_ = locate_event_from_d_and_r_ranges(np.zeros(1), 0, 0, 0, 0, 0, 0)
+# _ = find_best_event_from_min_max_size(np.zeros(1), 0, 0, 0, 0)
+# _ = locate_event_from_d_and_r_ranges(np.zeros(1), 0, 0, 0, 0, 0, 0)
+
+# Vadim Nikitin suggestion to speed up loading and replaces the 2 lines commented out above...
+import threading
+T1 = threading.Thread(target=find_best_event_from_min_max_size, args=(np.zeros(1), 0, 0, 0, 0))
+T2 = threading.Thread(target=locate_event_from_d_and_r_ranges, args=(np.zeros(1), 0, 0, 0, 0, 0, 0))
+T1.start()
+T2.start()
 
 
 if __name__ == "__main__":

@@ -6,6 +6,9 @@ Created on Sat May 20 15:32:13 2017
 import pickle
 import string
 import glob
+import zipfile
+from contextlib import contextmanager
+import zlib
 
 # TODO Comment these lines out when not investigating memory usage issues
 # from pympler import muppy, summary
@@ -74,7 +77,7 @@ from pyoteapp import timestampDialog
 from pyoteapp import helpDialog
 from pyoteapp import exponentialEdgeUtilities as ex
 from pyoteapp.checkForNewerVersion import getLatestPackageVersion
-from pyoteapp.checkForNewerVersion import upgradePyote
+# from pyoteapp.checkForNewerVersion import upgradePyote
 from pyoteapp.csvreader import readLightCurve
 from pyoteapp.errorBarUtils import ciBars
 from pyoteapp.errorBarUtils import createDurDistribution
@@ -247,6 +250,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
     def __init__(self, csv_file):
         super(SimplePlot, self).__init__()
 
+        self.getListOfVizieRlightcurves()
+
         self.homeDir = os.path.split(__file__)[0]
 
         self.keepRunning = True
@@ -270,6 +275,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.parameterChangeEntryCount = 0
 
         self.yTimes = []
+
+        self.VizieRdict = None
 
         self.dataLen = None
         self.left = None
@@ -480,6 +487,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.smoothingIntervalSpinBox.editingFinished.connect(self.newRedrawMainPlot)
 
+        # Vizier export widgets
+
+        self.vizierShowPlotButton.installEventFilter(self)
+        self.vizierShowPlotButton.clicked.connect(self.showVizieRplot)
+
+        self.vizierExportButton.installEventFilter(self)
+        self.vizierExportButton.clicked.connect(self.exportVizieRtextFile)
+
         # Model lightcurves widgets
 
         self.beingOptimizedLabel.installEventFilter(self)
@@ -492,12 +507,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.saveCurrentEventButton.installEventFilter(self)
         self.saveCurrentEventButton.clicked.connect(self.saveCurrentEvent)
 
-        # self.editButton.installEventFilter(self)
-        # self.editButton.clicked.connect(self.enablePrimaryEntryEditBoxes)
-
         self.pastEventsLabel.installEventFilter(self)
         self.pastEventsComboBox.installEventFilter(self)
         self.pastEventsComboBox.activated.connect(self.handlePastEventSelection)
+
+        self.vzCoordsComboBox.activated.connect(self.handleSiteCoordSelection)
+        self.vzCoordsComboBox.installEventFilter(self)
 
         self.deleteEventButton.installEventFilter(self)
         self.deleteEventButton.clicked.connect(self.deletePastEvent)
@@ -787,6 +802,26 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.setDataLimits.clicked.connect(self.doTrim)
         self.setDataLimits.installEventFilter(self)
 
+        self.vzTrimButton.clicked.connect(self.doTrim)
+        self.vzTrimButton.installEventFilter(self)
+
+        self.vzSaveSiteCoordButton.clicked.connect(self.saveSiteCoords)
+        self.vzSaveSiteCoordButton.installEventFilter(self)
+
+        self.vzSiteCoordNameEdit.installEventFilter(self)
+
+        self.vzStartOverButton.clicked.connect(self.vizierStartOver)
+        self.vzStartOverButton.installEventFilter(self)
+
+
+        self.vzInfoButton.clicked.connect(self.vzInfoClicked)
+        self.vzInfoButton.installEventFilter(self)
+
+        self.vzWhereToSendButton.clicked.connect(self.vzWhereClicked)
+        self.vzWhereToSendButton.installEventFilter(self)
+
+        self.fillVzCoordsComboBox()
+
         # Button: Do block integration
         self.doBlockIntegration.clicked.connect(self.doIntegration)
         self.doBlockIntegration.installEventFilter(self)
@@ -937,6 +972,21 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.limbAnglePrecisionEdit.setText(self.settings.value('limbAngleFitPrecision', '1'))
         self.missDistancePrecisionEdit.setText(self.settings.value('missDistanceFitPrecision', '0.1'))
 
+        dotSize = self.settings.value('vizierPlotDotSize', '4')
+        self.vzDotSizeSpinner.setValue(int(dotSize))
+
+        nagLevel = self.settings.value('vizierNagLevel', '1')
+        self.vzNagLevelSpinbox.setValue(int(nagLevel))
+
+        obsYear = self.settings.value('vizierObsYear', '2023')
+        self.vzDateYearSpinner.setValue(int(obsYear))
+
+        self.vizierZipButton.clicked.connect(self.zipVizieRdatFiles)
+        self.vizierZipButton.installEventFilter(self)
+
+        self.vzNagLevelSpinbox.installEventFilter(self)
+        self.vzNagLevelLabel.installEventFilter(self)
+
         lineWidth = self.settings.value('lineWidth', '5')
         dotSize = self.settings.value('dotSize', '8')
 
@@ -986,6 +1036,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.showCameraResponseCheckBox.setChecked(showCameraResponse)
         showTimestamps = self.settings.value('showTimestamps', 'true') == 'true'
         self.showTimestampsCheckBox.setChecked(showTimestamps)
+
 
         self.ne3NotInUseRadioButton.setChecked(self.settings.value('ne3NotInUse', 'false') == 'true')
         self.ne3NotInUseRadioButton.clicked.connect(self.clearNe3SolutionPoints)
@@ -1075,9 +1126,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.showMsg(f'Could not find csv file specified: {self.externalCsvFilePath}')
                 self.externalCsvFilePath = None
 
-        # self.firstEvent = True
-        if self.allowNewVersionPopupCheckbox.isChecked():
-            self.showHelp(self.allowNewVersionPopupCheckbox)
+
 
         # noinspection PyTypeChecker
         self.Lcp: LightcurveParameters = None
@@ -1087,9 +1136,457 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.initializeModelLightcurvesPanel()
 
         self.showMsg(f'Home directory: {self.homeDir}', color='black', bold=True)
-        self.copy_modelExamples_to_desktop()
+        self.copy_modelExamples_to_Documents()
 
-# ====  New method entry point ===
+
+        if self.allowNewVersionPopupCheckbox.isChecked():
+            self.showHelp(self.allowNewVersionPopupCheckbox)
+
+        vizierFilesToSend = self.getListOfVizieRlightcurves()
+        count = len(vizierFilesToSend)
+        # self.showInfo(f'{count} VizieR files were found ready to send')
+        if count >= self.vzNagLevelSpinbox.value():
+            self.showInfo(f'You have {count} VizieR archive lightcurves\n'
+                          f'that have not been zipped and sent!')
+
+    # ====  New method entry point ===
+
+    def isValidInput(self, valueStr='', valueName='', entryType='int', negativeAllowed=True, allowEmpty=False):
+        # entryType: 'int' | 'float'
+
+        if not allowEmpty and len(valueStr) == 0:
+            self.showInfo(f'Please enter a value for {valueName}')
+            return False
+
+        try:
+            if entryType == 'int':
+                value = int(valueStr)
+                if not negativeAllowed and value < 0:
+                    self.showInfo(f'{valueName} cannot be negative.')
+                    return False
+                return True
+            elif entryType == 'float':
+                value = float(valueStr)
+                if not negativeAllowed and value < 0:
+                    self.showInfo(f'{valueName} cannot be negative.')
+                    return False
+                return True
+            else:
+                self.showInfo(f'entryType of {entryType} is not supported - parameter error.')
+                return False
+        except ValueError:
+            self.showInfo(f'The input string for {valueName} was {valueStr}\n\n'
+                          f' This is NOT a valid {entryType}')
+            return False
+
+    @staticmethod
+    def isNegZero(value):
+        if value == 0.0:
+            return math.copysign(1, value) < 0
+        else:
+            return False
+
+    def showVizieRplot(self):
+        self.processVizieRdataInput(plotWanted=True)
+
+    @staticmethod
+    @contextmanager
+    def changeWorkingDirectory(newDir):
+        oldpwd = os.getcwd()
+        os.chdir(newDir)
+        try:
+            yield
+        finally:
+            os.chdir(oldpwd)
+
+    def getListOfVizieRlightcurves(self):
+        VizieRdir = self.getVizieRdirectory()
+        if sys.platform == 'darwin' or sys.platform == 'linux':
+            filePaths = glob.glob(f'{VizieRdir}/*.dat')
+        else:
+            filePaths = glob.glob(f'{VizieRdir}\\*.dat')
+        # print(filePaths)
+        fileNames = []
+        for file in filePaths:
+            fileNames.append(os.path.basename(file))
+        return fileNames
+
+    def getPathsOfVizieRlightcurves(self):
+        VizieRdir = self.getVizieRdirectory()
+        if sys.platform == 'darwin' or sys.platform == 'linux':
+            filePaths = glob.glob(f'{VizieRdir}/*.dat')
+        else:
+            filePaths = glob.glob(f'{VizieRdir}\\*.dat')
+        return filePaths
+
+    def zipVizieRdatFiles(self):
+        targetDir = self.getDocumentsDirectory()
+        datFileNames = self.getListOfVizieRlightcurves()
+        if len(datFileNames) == 0:
+            self.showInfo(f'You have no VizieR files to be sent.')
+            return
+
+
+        # Get the crc32 value of all the files that are to be zipped
+        # We have to read all of the files.
+        datFilePaths = self.getPathsOfVizieRlightcurves()
+        code = 0
+        for filepath in datFilePaths:
+            with open(filepath, mode='r') as file:
+                all_of_it = file.read()
+                code = zlib.crc32(all_of_it.encode("utf8"), code)
+        crc32 = f'{code:8x}'
+
+        userName = self.getUserName()
+        today = str(datetime.date.today())
+        archiveName = f'VizieR_lightcurves_{today}_{userName}_{crc32}.zip'
+        archiveName = os.path.join(targetDir, archiveName)
+
+        with self.changeWorkingDirectory(self.getVizieRdirectory()):
+            with zipfile.ZipFile(archiveName, mode='w') as archive:
+                for filename in datFileNames:
+                    archive.write(filename)
+                    os.rename(filename, filename + ".zipped")
+                self.showInfo(f'Your VizieR archive of lightcurves has been written to:\n\n'
+                              f'{archiveName}')
+                self.showHelp(self.vizierLabel)
+
+    def processVizieRdataInput(self, plotWanted=False, fileWanted=False):
+        if self.VizieRdict is None:
+            self.showInfo(f'There is no data available.')
+            return
+
+        if self.left == 0 and self.right == (self.dataLen - 1) and fileWanted:
+            title = self.tr("Have you forgotten to trim the lightcurve ???")
+            query = self.tr(
+                f"The lightcurve has not been trimmed.\n\n"
+                f"Only the occultation event and enough points on either side\n"
+                f"of the event to allow baseline noise to be well respresented\n"
+                f"is needed. Typically around a hundred points on either side\n"
+                f"will be sufficient.\n\n"
+                f"Do you wish to apply a 'trim' ?"
+            )
+            reply = QMessageBox.question(
+                self,
+                title,
+                query,
+                QMessageBox.Yes,
+                QMessageBox.No
+            )
+
+            if reply == QMessageBox.Yes:
+                return
+
+        # We have to get correspondence between VizieR yValues (with inserted dropped readings)
+        # and self.yValues so that we can calculate numReadings with the inclusion of filled-in
+        # dropped readings.
+
+        # Create corrspondence table that maps self.yValue indices into VizieR["yValues"] indices
+        yValueIndicesToVizierIndices = []
+        k = 0  # index into self.yValues
+        for i in range(len(self.VizieRdict["yValues"])):
+            if not self.isNegZero(self.VizieRdict["yValues"][i]):
+                yValueIndicesToVizierIndices.append(k)
+            k += 1
+
+        vizierLeft = yValueIndicesToVizierIndices[self.left]
+        vizierRight = yValueIndicesToVizierIndices[self.right]
+
+        if plotWanted:
+            vizierY = self.VizieRdict["yValues"][vizierLeft:vizierRight + 1]
+
+            # Compute scale factor
+            maxValue = np.max(vizierY)
+            scaleFactor = 9524 / maxValue
+
+            for i, value in enumerate(vizierY):
+                if not self.isNegZero(value):
+                    scaledValue = round(value * scaleFactor)
+                    vizierY[i] = scaledValue
+
+            # Extract the plot segments created by dropped readings
+            plotYseg = [[]]
+            plotXseg = [[]]
+            missingX = []
+            missingY = []
+            for i, reading in enumerate(vizierY):
+                if self.isNegZero(reading):
+                    missingX.append(i)
+                    missingY.append(0)
+                    if not plotYseg[-1] == []:  # We need to start a new segment
+                        # Start a new segment
+                        plotYseg.append([])
+                        plotXseg.append([])
+                else:
+                    plotYseg[-1].append(reading)
+                    plotXseg[-1].append(i)
+
+            fig = plt.figure(constrained_layout=False, figsize=(8,4))
+            lowVal = min(-1000, np.min(vizierY)-1000)
+            plt.ylim(lowVal, 10000)
+            plt.plot([0,len(vizierY)], [0, 0], ls='-', color='lightgray')
+            fig.canvas.manager.set_window_title("VizieR archive lightcurve")
+            k = 0
+            while k < len(plotYseg):
+                plt.plot(plotXseg[k], plotYseg[k], ls='-', linewidth=1, color='black', marker='')
+                plt.plot(plotXseg[k], plotYseg[k], ls='', color='blue', marker='o',
+                         markersize=self.vzDotSizeSpinner.value())
+                k += 1
+
+            if not missingX == []:
+                plt.plot(missingX, missingY, ls='', color='red', marker='o',
+                         markersize=self.vzDotSizeSpinner.value(), label='dropped reading')
+                plt.legend()
+
+            plt.show()
+            return
+
+        # If we're not simply doing a plot, we fall through to this code which prepares to produce
+        # the VizieR lightcurve file
+
+        initialTimestamp = self.VizieRdict["timestamps"][vizierLeft]
+        finalTimestamp = self.VizieRdict["timestamps"][vizierRight]
+        deltaTime = convertTimeStringToTime(finalTimestamp) - convertTimeStringToTime(initialTimestamp)
+        time = convertTimeStringToTime(initialTimestamp)
+        roundedTimeStr = round(time * 100) / 100
+        vizierTimestamp = convertTimeToTimeString(float(roundedTimeStr))[1:-3]
+
+        year = self.vzDateYearSpinner.value()
+
+        month = self.vzDateMonthSpinner.value()
+
+        day = self.vzDateDaySpinner.value()
+
+        numReadings = vizierRight - vizierLeft
+
+        dateText = f'Date: {year}-{month}-{day} {vizierTimestamp}: {deltaTime:0.2f}: {numReadings}'
+
+
+        emptyStarFields = 0
+        UCAC4 = self.vzStarUCAC4Edit.text()
+        Tycho2 = self.vzStarTycho2Edit.text()
+        hipparcos = self.vzStarHipparcosEdit.text()
+
+        if UCAC4 == '':
+            emptyStarFields += 1
+
+        if Tycho2 == '':
+            emptyStarFields += 1
+
+        if hipparcos == '':
+            emptyStarFields += 1
+
+        if emptyStarFields == 3:
+            self.showInfo("Please enter a star number.\n\n"
+                          "Best practice is to use the star designation from the Occult4 prediction.")
+            return
+
+        if not emptyStarFields == 2:
+            self.showInfo("Please use a single star number.\n\n"
+                          "Best practice is to use the star designation from the Occult4 prediction.")
+            return
+
+        if hipparcos == '':
+            hipparcos = '0'
+        else:
+            if not self.isValidInput(hipparcos, 'Hipparcos'):
+                return
+
+        # The following star catalogue numbers are in the VizieR format, but are used for lunars or
+        # are no longer supported by Occult 4
+
+        # SAO = self.vzStarSAOedit.text()
+        # if SAO == '':
+        SAO = '0'
+        # XZ80Q = self.vzStarXZ80Qedit.text()
+        # if XZ80Q == '':
+        XZ80Q = '0'
+        # Kepler2 = self.vzStarKeplerEdit.text()
+        # if Kepler2 == '':
+        Kepler2 = '0'
+
+        if Tycho2 == '':
+            Tycho2 = '0-0-1'
+
+        if UCAC4 == '':
+            UCAC4 = '0-0'
+        else:
+            parts = UCAC4.split('-')
+            if not len(parts) == 2:
+                self.showInfo(f'UCAC4 star designation has incorrect format.\n\n'
+                              f'The correct form is: xxx-xxxxxx')
+                return
+            elif len(parts[0]) > 3 or len(parts[1]) > 6:
+                    self.showInfo(f'UCAC4 star designation has incorrect format.\n\n'
+                                  f'The correct form is: xxx-xxxxxx\n\n'
+                                  f'There are too many digits in one of the fields.')
+                    return
+            else:
+                if not (self.isValidInput(parts[0],'UCAC4') and self.isValidInput(parts[1],'UCAC4')):
+                    return
+
+        parts = Tycho2.split('-')
+        if not len(parts) == 3:
+            self.showInfo(f'Tycho2 star designation has incorrect format.\n\n'
+                          f'The correct form is: xxxx-xxxxx-x')
+            return
+        elif len(parts[0]) > 4 or len(parts[1]) > 5 or not len(parts[2]) == 1:
+            self.showInfo(f'Tycho2 star designation has incorrect format.\n\n'
+                          f'The correct form is: xxxx-xxxxx-x\n\n'
+                          f'There are too many digits in one of the fields.')
+            return
+        else:
+            if not (self.isValidInput(parts[0], 'Tycho2')
+                    and self.isValidInput(parts[1], 'Tycho2') and self.isValidInput(parts[2], 'Tycho2')):
+                return
+
+        starText = f'Star: {hipparcos}: {SAO}: {XZ80Q}: {Kepler2}: {Tycho2}: {UCAC4}'
+
+        longDeg = self.vzSiteLongDegEdit.text()
+        if not self.isValidInput(longDeg, "Site longitude (deg)"):
+            return
+        if not longDeg.startswith('-'):
+            longDeg = '+' + longDeg
+
+        longMin = self.vzSiteLongMinEdit.text()
+        if not self.isValidInput(longMin, "Site longitude (min)", negativeAllowed=False):
+            return
+
+        longSec = self.vzSiteLongSecsEdit.text()
+        if not self.isValidInput(longSec, "Site longitude (sec)", negativeAllowed=False, entryType='float'):
+            return
+
+        latDeg = self.vzSiteLatDegEdit.text()
+        if not self.isValidInput(latDeg, "Site latitude (deg)"):
+            return
+        if not latDeg.startswith('-'):
+            latDeg = '+' + latDeg
+
+        latMin = self.vzSiteLatMinEdit.text()
+        if not self.isValidInput(latMin, "Site latitude (min)", negativeAllowed=False):
+            return
+
+        latSec = self.vzSiteLatSecsEdit.text()
+        if not self.isValidInput(latSec, "Site latitude (sec)", negativeAllowed=False, entryType='float'):
+            return
+
+        altitude = self.vzSiteAltitudeEdit.text()
+        if not self.isValidInput(altitude, "altitude"):
+            return
+
+        observer = self.vzObserverNameEdit.text()
+        if len(observer) == 0:
+            self.showInfo(f'Please enter an observer name')
+            return
+
+        locationText = f'Observer: {longDeg}:{longMin}:{longSec}: {latDeg}:{latMin}:{latSec}: '
+        locationText += f'{altitude}: {self.vzObserverNameEdit.text()}'
+
+        asteroidNumber = self.vzAsteroidNumberEdit.text()
+        if not self.isValidInput(asteroidNumber, "asteroid number"):
+            return
+        if len(asteroidNumber) > 6:
+            self.showInfo(f'Asteroid number is restricted to a max of 6 digits')
+            return
+
+        asteroidName = self.vzAsteroidNameEdit.text()
+        if len(asteroidName) == 0:
+            self.showInfo(f'Please enter an asteroid name')
+            return
+
+        objectText = f'Object: Asteroid: {asteroidNumber}: {asteroidName}'
+
+        vizierY = self.VizieRdict["yValues"][vizierLeft:vizierRight+1]
+        numDroppedReadings = 0
+        for value in vizierY:
+            if self.isNegZero(value):
+                numDroppedReadings += 1
+
+        # Compute scale factor
+        maxValue = np.max(vizierY)
+        scaleFactor = 9524 / maxValue
+
+        # self.showInfo(f'There are {numPointsToPlot} points in the plot.\n\n'
+        #               f'There are {numDroppedReadings} dropped readings.\n\n'
+        #               f'max value is {maxValue}')
+
+        valuesText = "Values"
+        for i, value in enumerate(vizierY):
+            if self.isNegZero(value):
+                valuesText += ": "
+            else:
+                scaledValue = round(value * scaleFactor)
+                valuesText += f':{scaledValue}'
+                vizierY[i] = scaledValue
+
+        if fileWanted:
+
+            # Compose file name
+            parts1 = vizierTimestamp.split(':')
+            hh = f'{parts1[0]:02}'
+            mm = f'{parts1[1]:02}'
+            parts2 = parts1[2].split('.')
+            sss = f'{parts2[0]:>02}_{parts2[1]:>02}'
+
+            filename = f'({asteroidNumber})_{year}{month:>02}{day:>02}_{hh:>02}{mm:>02}{sss}.dat'
+            dest_dir = self.getVizieRdirectory()
+
+            if not os.path.exists(dest_dir):
+                # We create the directory
+                os.makedirs(dest_dir)
+
+            vizierFilePath = os.path.join(dest_dir, filename)
+
+            if platform.mac_ver()[0]:
+                CRLF = f'\r\n'
+            else:
+                # We must be on a Windows machine because Mac version number was empty
+                CRLF = f'\n'
+
+            with open(vizierFilePath, 'w') as fileObject:
+                fileObject.write(dateText + CRLF)
+                fileObject.write(starText + CRLF)
+                fileObject.write(locationText + CRLF)
+                fileObject.write(objectText + CRLF)
+                fileObject.write(valuesText + CRLF)
+
+            self.showInfo(f'Your VizieR lightcurve file was written to:\n\n{vizierFilePath}')
+
+            self.showHelp(self.vizierLabel)
+
+
+    @staticmethod
+    def getVizieRdirectory():
+        if platform.mac_ver()[0]:
+            dest_dir = f"{os.environ['HOME']}{r'/Documents/VizieR_lightcurves'}"
+        else:
+            # We must be on a Windows machine because Mac version number was empty
+            dest_dir = f"{os.environ.get('userprofile')}\\Documents\\VizieR_lightcurves"
+        return dest_dir
+
+    @staticmethod
+    def getUserName():
+        if platform.mac_ver()[0]:
+            homePath = f"{os.environ['HOME']}"
+            parts = homePath.split("/")
+        else:
+            # We must be on a Windows machine because Mac version number was empty
+            homePath = f"{os.environ.get('userprofile')}"
+            parts = homePath.split("\\")
+
+        return parts[-1]
+
+    @staticmethod
+    def getDocumentsDirectory():
+        if platform.mac_ver()[0]:
+            dest_dir = f"{os.environ['HOME']}{r'/Documents/'}"
+        else:
+            # We must be on a Windows machine because Mac version number was empty
+            dest_dir = f"{os.environ.get('userprofile')}\\Documents\\"
+        return dest_dir
+
+    def exportVizieRtextFile(self):
+        self.processVizieRdataInput(fileWanted=True)
 
     @ staticmethod
     def validFilename(file_name):
@@ -2105,7 +2602,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     def makeAchordTimeStep(self):
         if self.fitStatus.chordTime == abs(self.fitStatus.chordDelta) \
-                                       and self.fitStatus.chordDelta < 0:
+                and self.fitStatus.chordDelta < 0:
             return False  # because we are already at the smallest acceptable value
 
         current_chord_size = self.fitStatus.chordTime * self.Lcp.shadow_speed
@@ -2153,7 +2650,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     def makeDangleStep(self):
         if self.fitStatus.Dangle == abs(self.fitStatus.DangleDelta) \
-                                    and self.fitStatus.DangleDelta < 0:
+                and self.fitStatus.DangleDelta < 0:
             return False  # because we are already at the smallest acceptable value
 
         current_angle_size = self.fitStatus.Dangle
@@ -2181,7 +2678,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     def makeRangleStep(self):
         if self.fitStatus.Rangle == abs(self.fitStatus.RangleDelta) \
-                                    and self.fitStatus.RangleDelta < 0:
+                and self.fitStatus.RangleDelta < 0:
             return False  # because we are already at the smallest acceptable value
 
         current_angle_size = self.fitStatus.Rangle
@@ -2592,6 +3089,66 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.allCoreElementsEntered = True
         except FileNotFoundError:
             self.showInfo(f'{full_name} could not be found.')
+
+    def handleSiteCoordSelection(self):
+        file_selected = self.vzCoordsComboBox.currentText()
+        if file_selected == '<preset coords>':
+            return
+
+        sourceDir = self.homeDir
+        if sys.platform == 'darwin' or sys.platform == 'linux':
+            full_name = f'{sourceDir}/SiteCoord_{file_selected}.p'
+        else:
+            full_name = f'{sourceDir}\\SiteCoord_{file_selected}.p'
+        try:
+            pickle_file = open(full_name, "rb")
+            coorDict = pickle.load(pickle_file)
+            # Fill in the fields
+            self.vzSiteLongDegEdit.setText(coorDict["longitude deg"])
+            self.vzSiteLongMinEdit.setText(coorDict["longitude min"])
+            self.vzSiteLongSecsEdit.setText(coorDict["longitude sec"])
+            self.vzSiteLatDegEdit.setText(coorDict["latitude deg"])
+            self.vzSiteLatMinEdit.setText(coorDict["latitude min"])
+            self.vzSiteLatSecsEdit.setText(coorDict["latitude sec"])
+            self.vzSiteAltitudeEdit.setText(coorDict["altitude"])
+            self.vzObserverNameEdit.setText(coorDict["observer"])
+        except FileNotFoundError:
+            self.showInfo(f'{full_name} could not be found.')
+
+    def saveSiteCoords(self):
+        if self.vzSiteCoordNameEdit.text() == '':
+            self.showInfo('A site coordinates name is required before a "save" can be performed')
+            return
+
+        # Build a dictionary
+        siteCoordDict = {
+            "longitude deg": self.vzSiteLongDegEdit.text(),
+            "longitude min": self.vzSiteLongMinEdit.text(),
+            "longitude sec": self.vzSiteLongSecsEdit.text(),
+            "latitude deg": self.vzSiteLatDegEdit.text(),
+            "latitude min": self.vzSiteLongMinEdit.text(),
+            "latitude sec": self.vzSiteLongSecsEdit.text(),
+            "altitude": self.vzSiteAltitudeEdit.text(),
+            "observer": self.vzObserverNameEdit.text(),
+        }
+
+        destDir = self.homeDir
+
+        # We overwrite without warning an event file with the same name
+        try:
+            filename = f'SiteCoord_{self.vzSiteCoordNameEdit.text()}.p'
+            filepath = os.path.join(destDir, filename)
+            pickle.dump(siteCoordDict, open(filepath, 'wb'))
+
+            # TODO remove this debug print
+            # self.showInfo(f'The site coord data was written to '
+            #               f'\n\n{filepath}\n\n')
+        except Exception as e:
+            self.showInfo(f'Attempt to write site coordinate data: {e}')
+
+        # Update the site coordinates combo box
+        self.vzCoordsComboBox.clear()
+        self.fillVzCoordsComboBox()
 
     def saveCurrentEvent(self):
         if self.Lcp is None:
@@ -3053,6 +3610,18 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             clean_name = filename[4:-2]
             self.pastEventsComboBox.addItem(clean_name)
 
+    def fillVzCoordsComboBox(self):
+        self.vzCoordsComboBox.addItem('<preset coords>')
+        sourceDir = self.homeDir
+        if sys.platform == 'darwin' or sys.platform == 'linux':
+            file_list = glob.glob(f'{sourceDir}/SiteCoord_*.p')
+        else:
+            file_list = glob.glob(f'{sourceDir}\\SiteCoord_*.p')
+        for file in file_list:
+            filename = os.path.basename(file)
+            clean_name = filename[10:-2]
+            self.vzCoordsComboBox.addItem(clean_name)
+
     def initializeModelLightcurvesPanel(self):
 
         self.modelTimeOffset = 0.0
@@ -3345,6 +3914,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.recolorBlobs()
             self.yOffsetSpinBoxes[i].setEnabled(False)
             self.yOffsetSpinBoxes[i].setValue(0)
+            self.VizieRdict = {
+                "timestamps": None,
+                "yValues": None,
+                "yStatus": None,
+            }
+            self.timeDelta, self.droppedFrames, self.cadenceViolation, self.errRate, _ = \
+                getTimeStepAndOutliers(self.yTimes, self.yValues, self.yStatus, VizieRdict=self.VizieRdict)
         else:
             if self.noTargetSelected():
                 self.targetCheckBoxes[i].setChecked(True)
@@ -3791,6 +4367,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
     def helpButtonClicked(self):
         self.showHelp(self.helpButton)
 
+    def vzInfoClicked(self):
+        self.showHelp(self.vzInfoButton)
+
+    def vzWhereClicked(self):
+        self.showHelp(self.vzWhereToSendButton)
+
     def helpPdfButtonClicked(self):
         self.openModelHelpFile()
 
@@ -3875,7 +4457,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         _, name = os.path.split(self.csvFilePath)
         name = self.removeCsvExtension(name)
 
-        name += '.PYOTE.csv'
+        name += '.pyote.csv'
 
         myOptions = QFileDialog.Options()
         # myOptions |= QFileDialog.DontConfirmOverwrite
@@ -3935,7 +4517,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         _, name = os.path.split(self.csvFilePath)
         name = self.removeCsvExtension(name)
 
-        name += 'PYOTE.example-lightcurve.csv'
+        name += 'pyote.example-lightcurve.csv'
 
         myOptions = QFileDialog.Options()
         # myOptions |= QFileDialog.DontConfirmOverwrite
@@ -3965,14 +4547,18 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     fileObject.write(line + '\n')
                     readingTime += timeDelta
 
-    def copy_modelExamples_to_desktop(self):
+    def copy_modelExamples_to_Documents(self):
+        # Added in 5.0.3
+        if not self.allowNewVersionPopupCheckbox.isChecked():
+            return
+
         source_dir = os.path.join(self.homeDir, 'model-examples')
         if os.path.exists(source_dir):
             if platform.mac_ver()[0]:
-                dest_dir = f"{os.environ['HOME']}{r'/Desktop/model-examples'}"
+                dest_dir = f"{os.environ['HOME']}{r'/Documents/model-examples'}"
             else:
                 # We must be on a Windows machine because Mac version number was empty
-                dest_dir = f"{os.environ.get('userprofile')}\\Desktop\\model-examples"
+                dest_dir = f"{os.environ.get('userprofile')}\\Documents\\model-examples"
 
             if os.path.exists(dest_dir):
                 self.showMsg(f'We found {dest_dir} already present. Adding any new examples ...',
@@ -3990,7 +4576,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                         shutil.copy(source, destination)
 
             else:
-                # We write the entire folder to the Desktop (i.e., create the folder)
+                # We write the entire folder to Documents (i.e., create the folder)
                 shutil.copytree(source_dir, dest_dir)
                 self.showMsg(f'We have copied the example csv files from the distribution '
                              f'into {dest_dir} (useful for training purposes).',
@@ -4093,16 +4679,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         else:
             return 4 + len(self.extra)
 
-    def installLatestVersion(self, pyoteversion):
-        self.showMsg(f'Asking to upgrade to: {pyoteversion}')
-        pipResult = upgradePyote(pyoteversion)
-        for line in pipResult:
-            self.showMsg(line, blankLine=False)
-
-        self.showMsg('', blankLine=False)
-        self.showMsg('The new version is installed but not yet running.', color='red', bold=True)
-        self.showMsg('Close and reopen pyote to start the new version running.', color='red', bold=True)
-
     def checkForNewVersion(self):
         latestVersion = getLatestPackageVersion('pyote')
 
@@ -4129,21 +4705,21 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.showMsg(
                     f"==== for pip based installations, in a command window type: pip install pyote=={latestVersion} (note double = symbols)",
                     color='red', bold=True)
-                self.showMsg(
-                    f"==== for pipenv based installations, execute the ChangePyoteVersion.bat file.",
-                    color='red', bold=True)
+                # self.showMsg(
+                #     f"==== for pipenv based installations, execute the ChangePyoteVersion.bat file.",
+                #     color='red', bold=True)
         else:
             self.showMsg(f'latestVersion found: {latestVersion}')
 
-    @staticmethod
-    def queryWhetherNewVersionShouldBeInstalled():
-        msg = QMessageBox()
-        msg.setIcon(QMessageBox.Question)
-        msg.setText('A newer version of PyOTE is available. Do you wish to install it?')
-        msg.setWindowTitle('Get latest version of PyOTE query')
-        msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-        retval = msg.exec_()
-        return retval
+    # @staticmethod
+    # def queryWhetherNewVersionShouldBeInstalled():
+    #     msg = QMessageBox()
+    #     msg.setIcon(QMessageBox.Question)
+    #     msg.setText('A newer version of PyOTE is available. Do you wish to install it?')
+    #     msg.setWindowTitle('Get latest version of PyOTE query')
+    #     msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+    #     retval = msg.exec_()
+    #     return retval
 
     @staticmethod
     def queryWhetherBlockIntegrationShouldBeAccepted():
@@ -4166,22 +4742,22 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         exporter = FixedImageExporter(self.dBarPlotItem)
         exporter.makeWidthHeightInts()
-        targetFileD = self.graphicFile + '.D.PYOTE.png'
+        targetFileD = self.graphicFile + '.D_pyote.png'
         exporter.export(targetFileD)
 
         exporter = FixedImageExporter(self.durBarPlotItem)
         exporter.makeWidthHeightInts()
-        targetFileDur = self.graphicFile + '.R-D.PYOTE.png'
+        targetFileDur = self.graphicFile + '.R-D_pyote.png'
         exporter.export(targetFileDur)
 
         exporter = FixedImageExporter(self.falsePositivePlotItem)
         exporter.makeWidthHeightInts()
-        targetFileDur = self.graphicFile + '.false-positive.PYOTE.png'
+        targetFileDur = self.graphicFile + '.false-positive_pyote.png'
         exporter.export(targetFileDur)
 
         exporter = FixedImageExporter(self.mainPlot.getPlotItem())
         exporter.makeWidthHeightInts()
-        targetFile = self.graphicFile + '.PYOTE.png'
+        targetFile = self.graphicFile + '.pyote.png'
         exporter.export(targetFile)
 
     def exportBarPlots(self):
@@ -4208,17 +4784,17 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.graphicFile = self.removeCsvExtension(self.graphicFile)
             exporter = FixedImageExporter(self.dBarPlotItem)
             exporter.makeWidthHeightInts()
-            targetFileD = self.graphicFile + '.D.PYOTE.png'
+            targetFileD = self.graphicFile + '.D_pyote.png'
             exporter.export(targetFileD)
 
             exporter = FixedImageExporter(self.durBarPlotItem)
             exporter.makeWidthHeightInts()
-            targetFileDur = self.graphicFile + '.R-D.PYOTE.png'
+            targetFileDur = self.graphicFile + '.R-D_pyote.png'
             exporter.export(targetFileDur)
 
             exporter = FixedImageExporter(self.falsePositivePlotItem)
             exporter.makeWidthHeightInts()
-            targetFileDur = self.graphicFile + '.false-positive.PYOTE.png'
+            targetFileDur = self.graphicFile + '.false-positive_pyote.png'
             exporter.export(targetFileDur)
 
             self.showInfo('Wrote to: \r\r' + targetFileD + ' \r\r' + targetFileDur)
@@ -4251,7 +4827,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.graphicFile = self.removeCsvExtension(self.graphicFile)
             exporter = FixedImageExporter(self.mainPlot.getPlotItem())
             exporter.makeWidthHeightInts()
-            targetFile = self.graphicFile + '.PYOTE.png'
+            targetFile = self.graphicFile + '.pyote.png'
             exporter.export(targetFile)
             self.showInfo('Wrote to: \r\r' + targetFile)
 
@@ -4915,8 +5491,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.showMsg('Block integration started at entry ' + str(self.selPts[0]) +
                      ' with block size of ' + str(self.selPts[1] - self.selPts[0] + 1) + ' readings')
 
+        self.VizieRdict = {
+            "timestamps": None,
+            "yValues": None,
+            "yStatus": None,
+        }
         self.timeDelta, self.droppedFrames, self.cadenceViolation, self.errRate, _ = \
-            getTimeStepAndOutliers(self.yTimes, self.yValues, self.yStatus)
+            getTimeStepAndOutliers(self.yTimes, self.yValues, self.yStatus, VizieRdict=self.VizieRdict)
         self.showMsg('timeDelta: ' + fp.to_precision(self.timeDelta, 6) + ' seconds per block', blankLine=False)
         self.showMsg('timestamp error rate: ' + fp.to_precision(100 * self.errRate, 2) + '%')
 
@@ -5039,6 +5620,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.settings.setValue('lineWidth', self.lineWidthSpinner.value())
         self.settings.setValue('dotSize', self.dotSizeSpinner.value())
+
+        self.settings.setValue('vizierPlotDotSize', self.vzDotSizeSpinner.value())
+        self.settings.setValue('vizierNagLevel', self.vzNagLevelSpinbox.value())
+        self.settings.setValue('vizierObsYear', self.vzDateYearSpinner.value())
+
 
         tabOrderList = []
         numTabs = self.tabWidget.count()
@@ -6103,7 +6689,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             detectibiltyPlotPath = lightCurveDir + '/DetectabilityPlots/'
             if not os.path.exists(detectibiltyPlotPath):
                 os.mkdir(detectibiltyPlotPath)
-            targetFile = detectibiltyPlotPath + f'plot.detectability-dur{event_duration_secs:0.3f}-magDrop{event_magDrop:0.2f}.PYOTE.png'
+            targetFile = detectibiltyPlotPath + f'plot.detectability-dur{event_duration_secs:0.3f}-magDrop{event_magDrop:0.2f}.pyote.png'
 
             exporter = FixedImageExporter(pw.getPlotItem())
             exporter.makeWidthHeightInts()
@@ -7079,8 +7665,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 # then manualTime will be an empty list.
                 if manualTime:
                     self.yTimes = manualTime[:]
+
+                    self.VizieRdict = {
+                        "timestamps": None,
+                        "yValues": None,
+                        "yStatus": None,
+                    }
                     self.timeDelta, self.droppedFrames, self.cadenceViolation, self.errRate, _ = \
-                        getTimeStepAndOutliers(self.yTimes, self.yValues, self.yStatus)
+                        getTimeStepAndOutliers(self.yTimes, self.yValues, self.yStatus, VizieRdict=self.VizieRdict)
                     self.frameTimeEdit.setText(fp.to_precision(self.timeDelta, 6))
 
                     self.fillTableViewOfData()
@@ -7150,13 +7742,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.setWindowTitle('PYOTE Version: ' + version.version() + '  File being processed: ' + self.csvFilePath)
             dirpath, _ = os.path.split(self.csvFilePath)
             self.logFile, _ = os.path.splitext(self.csvFilePath)
-            self.logFile = self.logFile + '.PYOTE.log'
+            self.logFile = self.logFile + '.pyote_log.txt'
 
             self.detectabilityLogFile, _ = os.path.splitext(self.csvFilePath)
-            self.detectabilityLogFile = self.detectabilityLogFile + '.PYOTE.detectability.log'
+            self.detectabilityLogFile = self.detectabilityLogFile + '.pyote_detectability.txt'
 
             self.normalizationLogFile, _ = os.path.splitext(self.csvFilePath)
-            self.normalizationLogFile = self.normalizationLogFile + '.PYOTE.normalization.log'
+            self.normalizationLogFile = self.normalizationLogFile + '.pyote_normalization.txt'
 
             curDateTime = datetime.datetime.today().ctime()
             self.showMsg('')
@@ -7359,8 +7951,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.blockSizeEdit.setEnabled(True)
                 self.startOver.setEnabled(True)
 
+                self.VizieRdict = {
+                    "timestamps": None,
+                    "yValues": None,
+                    "yStatus": None,
+                }
                 self.timeDelta, self.droppedFrames, self.cadenceViolation, self.errRate, timingReport = \
-                    getTimeStepAndOutliers(self.yTimes, self.yValues, self.yStatus)
+                    getTimeStepAndOutliers(self.yTimes, self.yValues, self.yStatus, VizieRdict=self.VizieRdict)
 
                 # added in 5.0.1
                 if not timingReport == []:
@@ -7633,8 +8230,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.errBarWin.close()
 
         self.dataLen = len(self.yTimes)
+        self.VizieRdict = {
+            "timestamps": None,
+            "yValues": None,
+            "yStatus": None,
+        }
         self.timeDelta, self.droppedFrames, self.cadenceViolation, self.errRate, _ = \
-            getTimeStepAndOutliers(self.yTimes, self.yValues, self.yStatus)
+            getTimeStepAndOutliers(self.yTimes, self.yValues, self.yStatus, VizieRdict=self.VizieRdict)
         self.frameTimeEdit.setText(fp.to_precision(self.timeDelta, 6))
 
         self.fillTableViewOfData()
@@ -7674,6 +8276,31 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         # self.mainPlot.autoRange()
         # self.showMsg('*' * 20 + ' starting over ' + '*' * 20, color='blue')
 
+    def vizierStartOver(self):
+        # Show all data points as INCLUDED
+        try:
+            if self.yStatus:
+                self.yStatus = [INCLUDED for _i in range(self.dataLen)]
+            else:
+                return
+        except AttributeError:
+            return
+
+        # Set the 'left' and 'right' edges of 'included' data to 'all'
+        self.left = 0
+        self.right = self.dataLen - 1
+
+        self.VizieRdict = {
+            "timestamps": None,
+            "yValues": None,
+            "yStatus": None,
+        }
+        self.timeDelta, self.droppedFrames, self.cadenceViolation, self.errRate, _ = \
+            getTimeStepAndOutliers(self.yTimes, self.yValues, self.yStatus, VizieRdict=self.VizieRdict)
+
+        self.newRedrawMainPlot()
+
+
     def extendAndDrawModelLightcurve(self):
 
         if not self.timestampListIsEmpty(self.yTimes):
@@ -7686,7 +8313,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
             tModelDur = (self.modelXkm[-1] - self.modelXkm[0]) / self.Lcp.shadow_speed  # in seconds
             self.modelDuration = tModelDur
-            modelLengthKm = self.modelDuration * self.Lcp.shadow_speed
+            # modelLengthKm = self.modelDuration * self.Lcp.shadow_speed
 
             # Convert model edge D and R locations from km to time - relative to model center
             if self.modelDedgeKm is not None:
@@ -7694,15 +8321,15 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.modelRedgeSecs = self.modelRedgeKm / self.Lcp.shadow_speed
 
                 # Convert edge locations from time in model space to time in observation space
-                DedgeKm = self.modelDedgeKm - self.modelXkm[0]
-                RedgeKm = self.modelRedgeKm - self.modelXkm[0]
-                edgeCenterTime = (DedgeKm + RedgeKm) / 2.0 / self.Lcp.shadow_speed
+                # DedgeKm = self.modelDedgeKm - self.modelXkm[0]
+                # RedgeKm = self.modelRedgeKm - self.modelXkm[0]
+                # edgeCenterTime = (DedgeKm + RedgeKm) / 2.0 / self.Lcp.shadow_speed
             else:
                 self.modelDedgeSecs = self.modelDuration / 2
                 self.modelRedgeSecs = self.modelDuration / 2
-                DedgeKm = modelLengthKm / 2 - self.modelXkm[0]
-                RedgeKm = modelLengthKm / 2 - self.modelXkm[0]
-                edgeCenterTime = (DedgeKm + RedgeKm) / 2.0 / self.Lcp.shadow_speed
+                # DedgeKm = modelLengthKm / 2 - self.modelXkm[0]
+                # RedgeKm = modelLengthKm / 2 - self.modelXkm[0]
+                # edgeCenterTime = (DedgeKm + RedgeKm) / 2.0 / self.Lcp.shadow_speed
 
             # self.modelDedgeSecs += self.modelTimeOffset + edgeCenterTime
             # self.modelRedgeSecs += self.modelTimeOffset + edgeCenterTime
@@ -7864,6 +8491,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                             style=QtCore.Qt.PenStyle.DashLine,)
             rPen = pg.mkPen((100, 100, 100), width=self.lineWidthSpinner.value(),
                             style=QtCore.Qt.PenStyle.DashLine,)
+            underlyingPen = pg.mkPen((150, 100, 100), width=self.lineWidthSpinner.value())
 
             if self.magDropSqwaveEdit.text() == '':
                 bottom = self.A
@@ -7878,23 +8506,43 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     bottom = self.A
 
             if self.eventType == 'DandR':
-                plot([self.left, D - 1], [self.B, self.B], pen=solutionPen)
-                plot([D-1, D], [self.B, bottom], pen=solutionPen)
-                plot([D, R], [bottom, bottom], pen=solutionPen)
-                plot([R, R+1], [bottom, self.B], pen=solutionPen)
-                plot([R+1, self.right], [self.B, self.B], pen=solutionPen)
-                plot([D, D], [lo_int, hi_int], pen=dPen)
-                plot([R, R], [lo_int, hi_int], pen=rPen)
+                if self.showCameraResponseCheckBox.isChecked():
+                    plot([self.left, D - 1], [self.B, self.B], pen=solutionPen)
+                    plot([D-1, D], [self.B, bottom], pen=solutionPen)
+                    plot([D, R], [bottom, bottom], pen=solutionPen)
+                    plot([R, R+1], [bottom, self.B], pen=solutionPen)
+                    plot([R+1, self.right], [self.B, self.B], pen=solutionPen)
+                if self.showUnderlyingLightcurveCheckBox.isChecked():
+                    plot([self.left, D], [self.B, self.B], pen=underlyingPen)
+                    plot([D, D], [self.B, bottom], pen=underlyingPen)
+                    plot([D, R], [bottom, bottom], pen=underlyingPen)
+                    plot([R, R], [bottom, self.B], pen=underlyingPen)
+                    plot([R, self.right], [self.B, self.B], pen=underlyingPen)
+                if self.showEdgesCheckBox.isChecked():
+                    plot([D, D], [lo_int, hi_int], pen=dPen)
+                    plot([R, R], [lo_int, hi_int], pen=rPen)
             elif self.eventType == 'Donly':
-                plot([self.left, D - 1], [self.B, self.B], pen=solutionPen)
-                plot([D - 1, D], [self.B, bottom], pen=solutionPen)
-                plot([D, self.right], [bottom, bottom], pen=solutionPen)
-                plot([D, D], [lo_int, hi_int], pen=dPen)
+                if self.showCameraResponseCheckBox.isChecked():
+                    plot([self.left, D - 1], [self.B, self.B], pen=solutionPen)
+                    plot([D - 1, D], [self.B, bottom], pen=solutionPen)
+                    plot([D, self.right], [bottom, bottom], pen=solutionPen)
+                if self.showUnderlyingLightcurveCheckBox.isChecked():
+                    plot([self.left, D], [self.B, self.B], pen=underlyingPen)
+                    plot([D, D], [self.B, bottom], pen=underlyingPen)
+                    plot([D, self.right], [bottom, bottom], pen=underlyingPen)
+                if self.showEdgesCheckBox.isChecked():
+                    plot([D, D], [lo_int, hi_int], pen=dPen)
             else:
-                plot([self.left, R], [bottom, bottom], pen=solutionPen)
-                plot([R, R + 1], [bottom, self.B], pen=solutionPen)
-                plot([R + 1, self.right], [self.B, self.B], pen=solutionPen)
-                plot([R, R], [lo_int, hi_int], pen=rPen)
+                if self.showCameraResponseCheckBox.isChecked():
+                    plot([self.left, R], [bottom, bottom], pen=solutionPen)
+                    plot([R, R + 1], [bottom, self.B], pen=solutionPen)
+                    plot([R + 1, self.right], [self.B, self.B], pen=solutionPen)
+                if self.showUnderlyingLightcurveCheckBox.isChecked():
+                    plot([self.left, R], [bottom, bottom], pen=underlyingPen)
+                    plot([R, R], [bottom, self.B], pen=underlyingPen)
+                    plot([R, self.right], [self.B, self.B], pen=underlyingPen)
+                if self.showEdgesCheckBox.isChecked():
+                    plot([R, R], [lo_int, hi_int], pen=rPen)
 
             return
         elif self.exponentialDtheoryPts is None:
@@ -8239,6 +8887,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.showMsg(header + str(selPts))
 
     def doTrim(self):
+        if self.dataLen is None:
+            return
+
         if len(self.selectedPoints) != 0:
             if len(self.selectedPoints) != 2:
                 self.showInfo('Exactly two points must be selected for a trim operation')
@@ -8319,7 +8970,7 @@ def main(csv_file_path=None):
     form = SimplePlot(csv_file_path)
     form.show()
     app.exec_()
-    quit()
+    sys.exit()
 
 
 if __name__ == '__main__':

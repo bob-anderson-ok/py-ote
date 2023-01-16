@@ -58,7 +58,7 @@ def improveTimeStep(outliers, deltaTime):
     return betterTimeStep
 
 
-def getTimeStepAndOutliers(timestamps, yValues, yStatus):
+def getTimeStepAndOutliers(timestamps, yValues, yStatus, VizieRdict=None):
 
     # yValue is a numpy array; timestamps and yStatus are lists
 
@@ -108,15 +108,14 @@ def getTimeStepAndOutliers(timestamps, yValues, yStatus):
             timingReport.append(f'========== Number of cadence errors... {len(cadenceViolationIndices)}')
             timingReport.append('')
 
-    # cadenceViolationIndices = [i for i, dt in enumerate(deltaTime)
-    #                            if dt < cadence_low or dt > cadence_high]
+    # Added for exporting lightcurve in archive format (only used during initial read of file)
+    if VizieRdict is not None:
+        newTimeStamps, newYvalues, newYstatus = insertDroppedReadings(timestamps, yValues, yStatus, improvedTimeStep)
+        VizieRdict["timestamps"] = newTimeStamps
+        VizieRdict["yValues"] = newYvalues
+        VizieRdict["yStatus"] = newYstatus
 
-    # TODO Use this routine for exporting lightcurve in archive format
-    # newTimeStamps, newYvalues, newYstatus = insertDroppedReadings(timestamps, yValues, yStatus, improvedTimeStep)
-    # return (improvedTimeStep, droppedFrameIndices, cadenceViolationIndices, timestampErrorRate,
-    #         newTimeStamps, newYvalues, newYstatus)
     return improvedTimeStep, droppedFrameIndices, cadenceViolationIndices, timestampErrorRate, timingReport
-
 
 
 # Status of points and associated dot colors ---
