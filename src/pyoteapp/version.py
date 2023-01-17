@@ -1,2 +1,2 @@
 def version():
-    return '5.0.4'
+    return '5.0.5'

@@ -3371,14 +3371,17 @@
                  </spacer>
                 </item>
                 <item>
-                 <widget class="QLabel" name="label_24">
+                 <widget class="QLabel" name="vzSiteLatLabel">
                   <property name="font">
                    <font>
                     <bold>true</bold>
                    </font>
                   </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use a minus sign to indicate South latitude.&lt;/p&gt;&lt;p&gt;If no sign is supplied, North latitude is assumed.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
                   <property name="text">
-                   <string>Site latitude (deg)</string>
+                   <string>Site latitude (+/- deg)</string>
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -3925,7 +3928,7 @@
                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-family:'Arial'; color:#000000; background-color:#ffffff;&quot;&gt;Email your report, or a group of reports, with your zipped file of lightcurves as an attachment to:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;mailto:HeraldDR@bigpond.com&quot;&gt;&lt;span style=&quot; font-family:'Arial'; text-decoration: underline; text-decoration-color:#000000; color:#1155cc;&quot;&gt;HeraldDR@bigpond.com&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'Arial'; font-weight:700; color:#ff0000;&quot;&gt;Note:&lt;/span&gt;&lt;span style=&quot; font-family:'Arial'; color:#000000;&quot;&gt; This is &lt;/span&gt;&lt;span style=&quot; font-family:'Arial'; font-weight:700; color:#000000;&quot;&gt;NOT&lt;/span&gt;&lt;span style=&quot; font-family:'Arial'; color:#000000;&quot;&gt; Dave Herald's 'regular' email address but rather a special one for receiving these reports!&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'Arial'; color:#000000; background-color:#ffffff;&quot;&gt;The Subject line of the email must be &lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'Arial'; font-weight:700; color:#ff0000; background-color:#ffffff;&quot;&gt;Light curve report&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'Arial'; color:#000000; background-color:#ffffff;&quot;&gt;There is no need to say anything in the body of the email, but if you do so, include the word &lt;/span&gt;&lt;span style=&quot; font-family:'Arial'; font-weight:700; color:#000000; background-color:#ffffff;&quot;&gt;attachment&lt;/span&gt;&lt;span style=&quot; font-family:'Arial'; color:#000000; background-color:#ffffff;&quot;&gt;. Some email clients will notice that word&lt;/span&gt;&lt;span style=&quot; font-family:'Arial'; font-weight:700; color:#000000; background-color:#ffffff;&quot;&gt; AND&lt;/span&gt;&lt;span style=&quot; font-family:'Arial'; color:#000000; background-color:#ffffff;&quot;&gt; the fact that you didn't actually add any attachment and warn you about that!&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'Arial'; color:#000000; background-color:#ffffff;&quot;&gt;You should receive an automatic acknowledgement of your email.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'Arial'; color:#000000; background-color:#ffffff;&quot;&gt;If there are any problems with the content of your report, you will be notified when the next batch of light curve reports are being processed. This may not be for several weeks or more.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'Arial'; color:#000000; background-color:#ffffff;&quot;&gt;Your light curve will be available within Occult. It will be archived at Vizier in Catalogue B/occ, which can be accessed at&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://vizier.u-strasbg.fr/viz-bin/VizieR?-source=B/occ&quot;&gt;&lt;span style=&quot; font-family:'Times New Roman'; font-size:12pt; text-decoration: underline; text-decoration-color:#000000; color:#1155cc;&quot;&gt;https://vizier.u-strasbg.fr/viz-bin/VizieR?-source=B/occ&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
                <property name="text">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Observation date:&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Observation date (UT):&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -4201,14 +4204,17 @@
                  </spacer>
                 </item>
                 <item>
-                 <widget class="QLabel" name="label_21">
+                 <widget class="QLabel" name="vzSiteLongLabel">
                   <property name="font">
                    <font>
                     <bold>true</bold>
                    </font>
                   </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use a minus sign to indicate West longitude.&lt;/p&gt;&lt;p&gt;If no sign is provided, East longitude is assumed.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
                   <property name="text">
-                   <string>Site longitude (deg)</string>
+                   <string>Site longitude (+/- deg)</string>
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -5542,7 +5548,7 @@
                 <rect>
                  <x>21</x>
                  <y>221</y>
-                 <width>252</width>
+                 <width>151</width>
                  <height>80</height>
                 </rect>
                </property>
@@ -7702,9 +7708,12 @@ Setting this value to zero will force Miss distance optimization to be skipped.<
   <tabstop>missDistancePrecisionEdit</tabstop>
   <tabstop>beingOptimizedEdit</tabstop>
   <tabstop>helpSqWaveButton</tabstop>
-  <tabstop>vzStarHipparcosEdit</tabstop>
-  <tabstop>vzStarTycho2Edit</tabstop>
+  <tabstop>vzDateYearSpinner</tabstop>
+  <tabstop>vzDateMonthSpinner</tabstop>
+  <tabstop>vzDateDaySpinner</tabstop>
   <tabstop>vzStarUCAC4Edit</tabstop>
+  <tabstop>vzStarTycho2Edit</tabstop>
+  <tabstop>vzStarHipparcosEdit</tabstop>
   <tabstop>vzSiteLongDegEdit</tabstop>
   <tabstop>vzSiteLongMinEdit</tabstop>
   <tabstop>vzSiteLongSecsEdit</tabstop>
@@ -7715,10 +7724,18 @@ Setting this value to zero will force Miss distance optimization to be skipped.<
   <tabstop>vzObserverNameEdit</tabstop>
   <tabstop>vzAsteroidNumberEdit</tabstop>
   <tabstop>vzAsteroidNameEdit</tabstop>
+  <tabstop>vzSiteCoordNameEdit</tabstop>
   <tabstop>vzTrimButton</tabstop>
   <tabstop>vzStartOverButton</tabstop>
   <tabstop>vizierShowPlotButton</tabstop>
   <tabstop>vizierExportButton</tabstop>
+  <tabstop>vzDotSizeSpinner</tabstop>
+  <tabstop>vizierZipButton</tabstop>
+  <tabstop>vzNagLevelSpinbox</tabstop>
+  <tabstop>vzCoordsComboBox</tabstop>
+  <tabstop>vzSaveSiteCoordButton</tabstop>
+  <tabstop>vzInfoButton</tabstop>
+  <tabstop>vzWhereToSendButton</tabstop>
  </tabstops>
  <resources/>
  <connections/>

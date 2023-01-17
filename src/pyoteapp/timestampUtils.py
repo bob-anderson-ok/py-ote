@@ -91,12 +91,16 @@ def getTimeStepAndOutliers(timestamps, yValues, yStatus, VizieRdict=None):
     if showDetails:
         cumDroppedReadings = 0
         cumDuplicatedReading = 0
+        cumTimestampErrors = 0
         for index in droppedFrameIndices:
             timeChange = deltaTime[index]
             droppedReadings = round(timeChange / improvedTimeStep) - 1
             if droppedReadings > 0:
                 cumDroppedReadings += droppedReadings
                 timingReport.append(f'At reading {index:05}: time delta to next reading = {timeChange:0.4f} : likely {droppedReadings} dropped readings')
+            elif droppedReadings < 0:
+                timingReport.append(f'At reading {index:05}: time delta to next reading = {timeChange:0.4f} : likely a timestamp error')
+                cumTimestampErrors += 1
             else:
                 cumDuplicatedReading += 1
                 timingReport.append(f'At reading {index:05}: time delta to next reading = {timeChange:0.4f} : likely a duplicated reading')
@@ -105,6 +109,7 @@ def getTimeStepAndOutliers(timestamps, yValues, yStatus, VizieRdict=None):
             timingReport.append('')
             timingReport.append(f'========== Total dropped readings..... {cumDroppedReadings}')
             timingReport.append(f'========== Num duplicated readings.... {cumDuplicatedReading}')
+            timingReport.append(f'========== Number timestamp errors.... {cumTimestampErrors}')
             timingReport.append(f'========== Number of cadence errors... {len(cadenceViolationIndices)}')
             timingReport.append('')
 
@@ -156,14 +161,18 @@ def insertDroppedReadings(timestamps, yValues, yStatus, timeStep):
             timeChange = tNext - tNow
             numDroppedReadings: int = round(timeChange / timeStep) - 1
 
-            tNext = tNow + timeStep
-            for i in range(numDroppedReadings):
+            if numDroppedReadings < 0:
+                # This is likely a timestamp reading error. Ignoring it is the best we can do.
+                numDroppedReadings = 0
+            else:
                 tNext = tNow + timeStep
-                yValuesExpanded.append(MISSING_READING_VALUE)
-                timestampsExpanded.append(convertTimeToTimeString(tNext))
-                yStatusExpanded.append(MISSING)
-                tNow = tNext
-            k -= 1
+                for i in range(numDroppedReadings):
+                    tNext = tNow + timeStep
+                    yValuesExpanded.append(MISSING_READING_VALUE)
+                    timestampsExpanded.append(convertTimeToTimeString(tNext))
+                    yStatusExpanded.append(MISSING)
+                    tNow = tNext
+                k -= 1
         k += 1
 
     return timestampsExpanded, np.array(yValuesExpanded), yStatusExpanded

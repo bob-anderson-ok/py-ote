@@ -817,6 +817,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.vzInfoButton.clicked.connect(self.vzInfoClicked)
         self.vzInfoButton.installEventFilter(self)
 
+        self.vzSiteLatLabel.installEventFilter(self)
+        self.vzSiteLongLabel.installEventFilter(self)
+
         self.vzWhereToSendButton.clicked.connect(self.vzWhereClicked)
         self.vzWhereToSendButton.installEventFilter(self)
 
@@ -1239,14 +1242,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         userName = self.getUserName()
         today = str(datetime.date.today())
-        archiveName = f'VizieR_lightcurves_{today}_{userName}_{crc32}.zip'
+        archiveName = f'Archive_of_VizieR_lightcurves_{today}_{userName}_{crc32}.zip'
         archiveName = os.path.join(targetDir, archiveName)
 
         with self.changeWorkingDirectory(self.getVizieRdirectory()):
             with zipfile.ZipFile(archiveName, mode='w') as archive:
                 for filename in datFileNames:
                     archive.write(filename)
-                    os.rename(filename, filename + ".zipped")
+                    os.rename(filename, filename + ".addedtoziparchive")
                 self.showInfo(f'Your VizieR archive of lightcurves has been written to:\n\n'
                               f'{archiveName}')
                 self.showHelp(self.vizierLabel)
@@ -1290,7 +1293,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             k += 1
 
         vizierLeft = yValueIndicesToVizierIndices[self.left]
-        vizierRight = yValueIndicesToVizierIndices[self.right]
+        try:
+            vizierRight = yValueIndicesToVizierIndices[self.right]
+        except IndexError:
+            vizierRight = self.right
 
         if plotWanted:
             vizierY = self.VizieRdict["yValues"][vizierLeft:vizierRight + 1]
@@ -1506,10 +1512,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         maxValue = np.max(vizierY)
         scaleFactor = 9524 / maxValue
 
-        # self.showInfo(f'There are {numPointsToPlot} points in the plot.\n\n'
-        #               f'There are {numDroppedReadings} dropped readings.\n\n'
-        #               f'max value is {maxValue}')
-
         valuesText = "Values"
         for i, value in enumerate(vizierY):
             if self.isNegZero(value):
@@ -1554,6 +1556,26 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
             self.showHelp(self.vizierLabel)
 
+            self.clearVizieRinputs()
+
+    def clearVizieRinputs(self):
+        self.vzStarUCAC4Edit.clear()
+        self.vzStarTycho2Edit.clear()
+        self.vzStarHipparcosEdit.clear()
+
+        self.vzSiteLongDegEdit.clear()
+        self.vzSiteLongMinEdit.clear()
+        self.vzSiteLongSecsEdit.clear()
+
+        self.vzSiteLatDegEdit.clear()
+        self.vzSiteLatMinEdit.clear()
+        self.vzSiteLatSecsEdit.clear()
+
+        self.vzSiteAltitudeEdit.clear()
+        self.vzObserverNameEdit.clear()
+
+        self.vzAsteroidNumberEdit.clear()
+        self.vzAsteroidNameEdit.clear()
 
     @staticmethod
     def getVizieRdirectory():
@@ -3309,26 +3331,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         try:
             empty = ''
-            # baselineAduEntered = not self.baselineADUedit.text() == empty
-            # frameTimeEntered = not self.frameTimeEdit.text() == empty
-            # magDropEntered = not self.magDropEdit.text() == empty
-            #
-            # if self.Lcp is not None:
-            #     self.showInfo('We are in core data entry with an Lcp already defined. How?')
-            #     if baselineAduEntered and magDropEntered and frameTimeEntered:
-            #         magDrop = float(self.magDropEdit.text())
-            #         baselineADU = float(self.baselineADUedit.text())
-            #         bottomADU = self.calcBottomADU(baselineADU=baselineADU, magDrop=magDrop)
-            #         self.bottomADUedit.setText(f'{bottomADU:0.1f}')
-            #
-            #         self.Lcp.set('baseline_ADU', float(self.baselineADUedit.text()))
-            #         self.Lcp.set('bottom_ADU', float(self.bottomADUedit.text()))
-            #         self.Lcp.set('frame_time', float(self.frameTimeEdit.text()))
-            #         self.Lcp.set('miss_distance_km', float(self.missDistanceKmEdit.text()))
-            #         return
-            #     else:
-            #         self.showInfo('There must be a value provided for baseline, magDrop, and frame_time!')
-            #         return
 
             frameTimeEntered = not self.frameTimeEdit.text() == empty
             try:
@@ -3540,7 +3542,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
             msg = QMessageBox()
             msg.setIcon(QMessageBox.Question)
-            msg.setText(f'Do you wish to save the event data entered so far?')
+            msg.setText(f'Do you wish to save the event data entered so far?\n\n'
+                        f'Answer Yes IF you are going to analyze multiple chords from the same event and wish'
+                        f' to create a "template" to be inserted manually into the folder for each lightcurve.\n\n'
+                        f'For other than this specialty use, this question should answered with No\n\n'
+                        f'For normal use, finish entering the rest of the data and then click the Save Event '
+                        f'button!')
             msg.setWindowTitle('Save core data')
             msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
             retval = msg.exec_()
