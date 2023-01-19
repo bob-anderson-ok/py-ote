@@ -4622,7 +4622,7 @@
                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If this box is grayed out and empty, it is because &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Model to use:&lt;/span&gt; is not &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;edge on disk&lt;/span&gt;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                     </property>
                     <property name="text">
-                     <string>D (degrees)</string>
+                     <string>D (deg)</string>
                     </property>
                    </widget>
                   </item>
@@ -4651,7 +4651,7 @@
                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If this box is grayed out and empty, it is because &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Model to use:&lt;/span&gt; is not &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;edge on disk&lt;/span&gt;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                     </property>
                     <property name="text">
-                     <string>R (degrees)</string>
+                     <string>R (deg)</string>
                     </property>
                    </widget>
                   </item>
@@ -4697,7 +4697,7 @@
                      </font>
                     </property>
                     <property name="text">
-                     <string>seconds</string>
+                     <string>secs</string>
                     </property>
                    </widget>
                   </item>
@@ -4716,7 +4716,7 @@
                      </font>
                     </property>
                     <property name="text">
-                     <string>km        </string>
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;km &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                     </property>
                    </widget>
                   </item>
@@ -5463,7 +5463,7 @@
                 <rect>
                  <x>170</x>
                  <y>100</y>
-                 <width>111</width>
+                 <width>121</width>
                  <height>82</height>
                 </rect>
                </property>
@@ -5658,7 +5658,7 @@
                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When a value is entered in this edit box, if there is already a value present in the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Baseline ADU&lt;/span&gt; edit box, the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Bottom ADU&lt;/span&gt; value will be automatically calculated from the predicted magDrop for the event.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                     </property>
                     <property name="text">
-                     <string>Predicted magDrop</string>
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;magDrop&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                     </property>
                    </widget>
                   </item>

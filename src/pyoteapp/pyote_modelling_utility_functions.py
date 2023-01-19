@@ -596,7 +596,8 @@ class LightcurveParameters:
             output_str = []
 
         output_str.append(f"baseline intensity: {self.baseline_ADU:0.2f} ADU")
-        output_str.append(f"bottom   intensity: {self.bottom_ADU:0.2f} ADU\n")
+        output_str.append(f"bottom   intensity: {self.bottom_ADU:0.2f} ADU")
+        output_str.append(f"magDrop: {self.magDrop:0.4f}\n")
 
         if self.fresnel_length_km is not None:
             output_str.append(f"fresnel_length: {self.fresnel_length_km:0.2f} km\n")
@@ -888,7 +889,11 @@ def generalizedDiffraction(LCP, wavelength1=None, wavelength2=None, skip_central
 
     half_chord = LCP.chord_length_km / 2
     if LCP.miss_distance_km == 0:
-        graze_offset_km = np.sqrt((LCP.asteroid_diameter_km / 2) ** 2 - half_chord ** 2)
+        asteroidRadius = LCP.asteroid_diameter_km / 2
+        if half_chord < asteroidRadius:
+            graze_offset_km = np.sqrt(asteroidRadius ** 2 - half_chord ** 2)
+        else:
+            graze_offset_km = 0.0
     else:
         graze_offset_km = LCP.miss_distance_km + LCP.asteroid_diameter_km / 2
 
@@ -1426,7 +1431,15 @@ def illustrateEdgeOnDiskEvent(LCP: LightcurveParameters, axes,
 def eodModel(LCP: LightcurveParameters, star_master_x, star_master_y):
     # Even in a graze D_first_actual and R_last_actual are still usable.
     D_first_actual, D_last_actual, R_first_actual, R_last_actual = contactPoints(LCP)
-    dvalues = np.linspace(D_first_actual - 10, R_last_actual + 10, LCP.npoints)
+    # Restore symmetry to dvalues
+    left = D_first_actual - 10
+    right = R_last_actual + 10
+    if right > abs(left):
+        left = -right
+    else:
+        right = -left
+    # dvalues = np.linspace(D_first_actual - 10, R_last_actual + 10, LCP.npoints)
+    dvalues = np.linspace(left, right, LCP.npoints)
 
     if LCP.miss_distance_km > 0:
         Cx, Cy = edgeIntersection(LCP)

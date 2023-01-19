@@ -625,7 +625,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.demoModelButton.clicked.connect(self.demoModel)
 
         self.printEventParametersButton.installEventFilter(self)
-        self.printEventParametersButton.clicked.connect(self.printFinalReport)
+        self.printEventParametersButton.clicked.connect(self.printEventParameters)
 
         self.showDetailsCheckBox.installEventFilter(self)
         self.versusTimeCheckBox.installEventFilter(self)
@@ -1525,6 +1525,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
             # Compose file name
             parts1 = vizierTimestamp.split(':')
+            if len(parts1) < 3:
+                self.showInfo(f'There is no timestamp data in this file.')
+                return
             hh = f'{parts1[0]:02}'
             mm = f'{parts1[1]:02}'
             parts2 = parts1[2].split('.')
@@ -1648,7 +1651,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 else:
                     self.showInfo(f"{filepath} does not exist")
 
-    def printFinalReport(self):
+    def printEventParameters(self):
+        self.printFinalReport(onlyLcpValuesWanted = True)
+
+    def printFinalReport(self, onlyLcpValuesWanted=False):
         if self.Lcp is not None:
             self.showMsg('Lightcurve Model Parameters...',
                          color='black', bold=True, blankLine=True)
@@ -1665,7 +1671,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             elif self.diskOnDiskRadioButton.isChecked():
                 self.showMsg('Model used: disk on disk', color='black', bold=True)
 
-            if self.modelDedgeSecs is not None:
+            if self.modelDedgeSecs is not None and not onlyLcpValuesWanted:
                 self.showMsg('', blankLine=False)
                 self.printEdgeOrMissReport()
 
@@ -1674,6 +1680,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                              color='black', bold=True, blankLine=False)
                 self.showMsg(f'R limb angle: {self.Lcp.R_limb_angle_degrees:0.1f}',
                              color='black', bold=True, blankLine=False)
+
+            if math.isclose(self.Lcp.chord_length_km, self.Lcp.asteroid_diameter_km) and not onlyLcpValuesWanted:
+                self.showInfo(f'The chord length is at its upper limit compared to the asteroid size.\n\n'
+                              f'If the fit is not very good, it may be because the fit routine tried a \n'
+                              f'bigger chord, but was constrained by the asteroid diameter.\n\n'
+                              f'Consider trying a fit with a different asteroid diameter.')
 
     def processDangleEditFinish(self):
         try:
@@ -1799,6 +1811,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.showInfo(f'asteroidDiameterKmEdit: {e}')
             return
 
+        if self.Lcp is not None:
+            self.Lcp.set("asteroid_diameter_km", None)
+            self.Lcp.set("asteroid_diameter_mas", None)
+            self.Lcp.set("asteroid_diameter_km", value)
+
         self.processModelLightcurveCoreEdit()
 
     def processAsteroidDiameterMasFinish(self):
@@ -1891,7 +1908,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                               f'MagDrop value can be entered.')
                 return
             else:
-                self.processModelParameterChange()
+                if not self.magDropEdit.text() == '':
+                    self.Lcp.set("magDrop", float(self.magDropEdit.text()))
+                    self.processModelParameterChange()
                 return
 
         self.magDropEdit.clear()
@@ -2137,6 +2156,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.beingOptimizedEdit.setStyleSheet("background-color: lightblue")
 
         eodAlgorithm = self.edgeOnDiskRadioButton.isChecked()
+        # TODO Remove this test code
+        eodAlgorithm = False
 
         # Get the starting value of the metric
         self.calcModelFitMetric(showData=False)
@@ -2577,8 +2598,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
     def returnToBestChordFit(self):
         bestChordTime = self.bestFit.chordTime
         self.fitStatus.chordTime = self.bestFit.chordTime
-        self.Lcp.set('chord_length_km', None)
-        self.Lcp.set('chord_length_sec', bestChordTime)
+        try:
+            self.Lcp.set('chord_length_km', None)
+            self.Lcp.set('chord_length_sec', bestChordTime)
+        except ValueError as e:
+            self.showInfo(f'{e}')
+            self.Lcp.set('chord_length_sec', None)
+            self.Lcp.set('chord_length_km', self.Lcp.asteroid_diameter_km)
         self.chordSizeKmEdit.setText(f'{self.Lcp.chord_length_km:0.5f}')
         self.chordSizeSecondsEdit.setText(f'{self.Lcp.chord_length_sec:0.5f}')
 
@@ -3041,23 +3067,23 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.chordSizeKmEdit.clear()
 
         if self.Lcp.star_diameter_mas is not None:
-            self.starSizeMasEdit.setText(f'{self.Lcp.star_diameter_mas:0.5}')
+            self.starSizeMasEdit.setText(f'{self.Lcp.star_diameter_mas:0.3}')
         else:
             self.starSizeMasEdit.clear()
 
         if self.Lcp.star_diameter_km is not None:
-            self.starSizeKmEdit.setText(f'{self.Lcp.star_diameter_km:0.5f}')
+            self.starSizeKmEdit.setText(f'{self.Lcp.star_diameter_km:0.3f}')
         else:
             self.starSizeKmEdit.clear()
 
-        self.fresnelSizeKmEdit.setText(f'{self.Lcp.fresnel_length_km:0.5f}')
-        self.fresnelSizeSecondsEdit.setText(f'{self.Lcp.fresnel_length_sec:0.5f}')
+        self.fresnelSizeKmEdit.setText(f'{self.Lcp.fresnel_length_km:0.3f}')
+        self.fresnelSizeSecondsEdit.setText(f'{self.Lcp.fresnel_length_sec:0.3f}')
 
         self.disablePrimaryEntryEditBoxes()
 
         self.baselineADUedit.setEnabled(False)
         self.bottomADUedit.setEnabled(False)
-        self.magDropEdit.setEnabled(False)
+        self.magDropEdit.setEnabled(True)
         self.baselineADUbutton.setEnabled(True)
         self.clearBaselineADUselectionButton.setEnabled(True)
 
@@ -3231,7 +3257,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.calcBaselineADUbutton.setEnabled(True)
 
         self.bottomADUedit.setEnabled(False)
-        self.magDropEdit.setEnabled(False)
+        self.magDropEdit.setEnabled(True)
 
         self.frameTimeEdit.setEnabled(True)
 
@@ -3292,11 +3318,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             if not self.starSizeMasEdit.text() == empty and self.starSizeMasEdited:
                 self.Lcp.set('star_diameter_km', None)
                 self.Lcp.set('star_diameter_mas', float(self.starSizeMasEdit.text()))
-                self.starSizeKmEdit.setText(f'{self.Lcp.star_diameter_km:0.5f}')
+                self.starSizeKmEdit.setText(f'{self.Lcp.star_diameter_km:0.3f}')
             elif not self.starSizeKmEdit.text() == empty and self.starSizeKmEdited:
                 self.Lcp.set('star_diameter_mas', None)
                 self.Lcp.set('star_diameter_km', float(self.starSizeKmEdit.text()))
-                self.starSizeMasEdit.setText(f'{self.Lcp.star_diameter_mas:0.5f}')
+                self.starSizeMasEdit.setText(f'{self.Lcp.star_diameter_mas:0.3f}')
 
             if not self.magDropEdit.text() == empty:
                 magDrop = float(self.magDropEdit.text())
@@ -3537,8 +3563,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
             self.disablePrimaryEntryEditBoxes()
 
-            self.fresnelSizeKmEdit.setText(f'{self.Lcp.fresnel_length_km:0.5f}')
-            self.fresnelSizeSecondsEdit.setText(f'{self.Lcp.fresnel_length_sec:0.5f}')
+            self.fresnelSizeKmEdit.setText(f'{self.Lcp.fresnel_length_km:0.3f}')
+            self.fresnelSizeSecondsEdit.setText(f'{self.Lcp.fresnel_length_sec:0.3f}')
 
             msg = QMessageBox()
             msg.setIcon(QMessageBox.Question)
@@ -3596,6 +3622,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.frameTimeEdit.setEnabled(False)
         self.missDistanceKmEdit.setEnabled(True)
         self.asteroidDiameterKmEdit.setEnabled(True)
+        self.magDropEdit.setEnabled(True)
         self.asteroidDiameterMasEdit.setEnabled(False)
         self.asteroidSpeedShadowEdit.setEnabled(False)
         self.asteroidSpeedSkyEdit.setEnabled(False)
