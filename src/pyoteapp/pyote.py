@@ -1528,12 +1528,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             if len(parts1) < 3:
                 self.showInfo(f'There is no timestamp data in this file.')
                 return
-            hh = f'{parts1[0]:02}'
-            mm = f'{parts1[1]:02}'
+            hh = f'{parts1[0]}'
+            mm = f'{parts1[1]}'
             parts2 = parts1[2].split('.')
-            sss = f'{parts2[0]:>02}_{parts2[1]:>02}'
+            sss = f'{parts2[0]:>2}_{parts2[1]:>2}'
 
-            filename = f'({asteroidNumber})_{year}{month:>02}{day:>02}_{hh:>02}{mm:>02}{sss}.dat'
+            filename = f'({asteroidNumber})_{year}{month:>02}{day:>02}_{hh}{mm}{sss}.dat'
             dest_dir = self.getVizieRdirectory()
 
             if not os.path.exists(dest_dir):
@@ -3174,8 +3174,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             "longitude min": self.vzSiteLongMinEdit.text(),
             "longitude sec": self.vzSiteLongSecsEdit.text(),
             "latitude deg": self.vzSiteLatDegEdit.text(),
-            "latitude min": self.vzSiteLongMinEdit.text(),
-            "latitude sec": self.vzSiteLongSecsEdit.text(),
+            "latitude min": self.vzSiteLatMinEdit.text(),
+            "latitude sec": self.vzSiteLatSecsEdit.text(),
             "altitude": self.vzSiteAltitudeEdit.text(),
             "observer": self.vzObserverNameEdit.text(),
         }
