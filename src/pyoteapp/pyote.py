@@ -1383,13 +1383,17 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             emptyStarFields += 1
 
         if emptyStarFields == 3:
-            self.showInfo("Please enter a star number.\n\n"
-                          "Best practice is to use the star designation from the Occult4 prediction.")
-            return
+            self.showInfo("You have not entered a star catalog number. This is acceptable IF intentional.\n\n"
+                          "It may be intentional because the involved star does not have a supported catalog number type.\n\n"
+                          "VizieR accepts a no-star entry, so it is not a problem to leave all star fields empty.\n\n"
+                          "Particularly in the case of a G star, the proper course is to leave the star number empty.\n\n"
+                          "Best practice is to use the star designation from the Occult4 prediction whenever possible "
+                          "- if there were a reliable correlation between a G star designation and a Hipparcos, UCAC4, or Tycho2 "
+                          "designation, it would have been found and supplied by Occult4.")
 
-        if not emptyStarFields == 2:
+        if emptyStarFields == 1 or emptyStarFields == 0:
             self.showInfo("Please use a single star number.\n\n"
-                          "Best practice is to use the star designation from the Occult4 prediction.")
+                          "Best practice is to use the star designation from the Occult4 prediction whenever possible.")
             return
 
         if hipparcos == '':
