@@ -278,7 +278,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.VizieRdict = None
 
+        self.userDataSetAdditions = []
+
         self.dataLen = None
+        self.yFrame = None
         self.left = None
         self.right = None
 
@@ -343,6 +346,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.suppressNormalization = False
 
         self.targetIndex = 0
+
+        self.referenceKey = ''  # The key into self.fullDataDictionary for the reference curve used in normalization
+        self.targetKey = ''     # The key into self.fullDataDictionary for the target curve that is to be normalized
 
         self.targetCheckBoxes = [self.targetCheckBox_1, self.targetCheckBox_2, self.targetCheckBox_3,
                                  self.targetCheckBox_4, self.targetCheckBox_5, self.targetCheckBox_6,
@@ -430,6 +436,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.yOffsetStep10radioButton.setChecked(True)
 
+        self.curveSelectionComboBox.activated.connect(self.handleDataSetSelection)
+        self.curveSelectionComboBox.installEventFilter(self)
+
         self.targetCheckBox_1.clicked.connect(self.processTargetSelection1)
         self.targetCheckBox_2.clicked.connect(self.processTargetSelection2)
         self.targetCheckBox_3.clicked.connect(self.processTargetSelection3)
@@ -463,31 +472,34 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.referenceCheckBox_9.clicked.connect(self.processReferenceSelection9)
         self.referenceCheckBox_10.clicked.connect(self.processReferenceSelection10)
 
-        self.yOffsetSpinBox_1.editingFinished.connect(self.processYoffsetChange)
-        self.yOffsetSpinBox_2.editingFinished.connect(self.processYoffsetChange)
-        self.yOffsetSpinBox_3.editingFinished.connect(self.processYoffsetChange)
-        self.yOffsetSpinBox_4.editingFinished.connect(self.processYoffsetChange)
-        self.yOffsetSpinBox_5.editingFinished.connect(self.processYoffsetChange)
-        self.yOffsetSpinBox_6.editingFinished.connect(self.processYoffsetChange)
-        self.yOffsetSpinBox_7.editingFinished.connect(self.processYoffsetChange)
-        self.yOffsetSpinBox_8.editingFinished.connect(self.processYoffsetChange)
-        self.yOffsetSpinBox_9.editingFinished.connect(self.processYoffsetChange)
-        self.yOffsetSpinBox_10.editingFinished.connect(self.processYoffsetChange)
+        self.yOffsetSpinBox_1.valueChanged.connect(self.processYoffsetChange)
+        self.yOffsetSpinBox_2.valueChanged.connect(self.processYoffsetChange)
+        self.yOffsetSpinBox_3.valueChanged.connect(self.processYoffsetChange)
+        self.yOffsetSpinBox_4.valueChanged.connect(self.processYoffsetChange)
+        self.yOffsetSpinBox_5.valueChanged.connect(self.processYoffsetChange)
+        self.yOffsetSpinBox_6.valueChanged.connect(self.processYoffsetChange)
+        self.yOffsetSpinBox_7.valueChanged.connect(self.processYoffsetChange)
+        self.yOffsetSpinBox_8.valueChanged.connect(self.processYoffsetChange)
+        self.yOffsetSpinBox_9.valueChanged.connect(self.processYoffsetChange)
+        self.yOffsetSpinBox_10.valueChanged.connect(self.processYoffsetChange)
 
-        self.xOffsetSpinBox_1.editingFinished.connect(self.processXoffsetChange)
-        self.xOffsetSpinBox_2.editingFinished.connect(self.processXoffsetChange)
-        self.xOffsetSpinBox_3.editingFinished.connect(self.processXoffsetChange)
-        self.xOffsetSpinBox_4.editingFinished.connect(self.processXoffsetChange)
-        self.xOffsetSpinBox_5.editingFinished.connect(self.processXoffsetChange)
-        self.xOffsetSpinBox_6.editingFinished.connect(self.processXoffsetChange)
-        self.xOffsetSpinBox_7.editingFinished.connect(self.processXoffsetChange)
-        self.xOffsetSpinBox_8.editingFinished.connect(self.processXoffsetChange)
-        self.xOffsetSpinBox_9.editingFinished.connect(self.processXoffsetChange)
-        self.xOffsetSpinBox_10.editingFinished.connect(self.processXoffsetChange)
+        self.xOffsetSpinBox_1.valueChanged.connect(self.processXoffsetChange)
+        self.xOffsetSpinBox_2.valueChanged.connect(self.processXoffsetChange)
+        self.xOffsetSpinBox_3.valueChanged.connect(self.processXoffsetChange)
+        self.xOffsetSpinBox_4.valueChanged.connect(self.processXoffsetChange)
+        self.xOffsetSpinBox_5.valueChanged.connect(self.processXoffsetChange)
+        self.xOffsetSpinBox_6.valueChanged.connect(self.processXoffsetChange)
+        self.xOffsetSpinBox_7.valueChanged.connect(self.processXoffsetChange)
+        self.xOffsetSpinBox_8.valueChanged.connect(self.processXoffsetChange)
+        self.xOffsetSpinBox_9.valueChanged.connect(self.processXoffsetChange)
+        self.xOffsetSpinBox_10.valueChanged.connect(self.processXoffsetChange)
 
-        self.smoothingIntervalSpinBox.editingFinished.connect(self.newRedrawMainPlot)
+        self.smoothingIntervalSpinBox.valueChanged.connect(self.newRedrawMainPlot)
 
         # Vizier export widgets
+
+        self.fillFromNAxlsxFileButton.clicked.connect(self.fillFromNAxlsxFile)
+        self.fillFromNAxlsxFileButton.installEventFilter(self)
 
         self.vizierShowPlotButton.installEventFilter(self)
         self.vizierShowPlotButton.clicked.connect(self.showVizieRplot)
@@ -723,7 +735,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.normMarkBaselineRegionButton.clicked.connect(self.markBaselineRegion)
         self.normMarkBaselineRegionButton.installEventFilter(self)
 
-        self.pymovieDataColumnPrefixComboBox.currentTextChanged.connect(self.handlePymovieColumnChange)
+        # self.pymovieDataColumnPrefixComboBox.currentTextChanged.connect(self.handlePymovieColumnChange)
 
         self.clearBaselineRegionsButton.clicked.connect(self.clearBaselineRegions)
         self.clearBaselineRegionsButton.installEventFilter(self)
@@ -964,6 +976,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.minDetectableDurationRdgs = None  # Used for detectability demonstration
         self.minDetectableDurationSecs = None  # Used for detectability demonstration
         self.aperture_names = []
+        self.fullDataDictionary = {}
+        self.additionalDataSetNames = []
         self.initializeTableView()  # Mostly just establishes column headers
 
         # Open (or create) file for holding 'sticky' stuff
@@ -1075,11 +1089,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.pymovieFileInUse = False
 
-        self.pymovieDataColumnPrefixComboBox.addItem("signal")
-        self.pymovieDataColumnPrefixComboBox.addItem("appsum")
-        self.pymovieDataColumnPrefixComboBox.addItem("avgbkg")
-        self.pymovieDataColumnPrefixComboBox.addItem("stdbkg")
-        self.pymovieDataColumnPrefixComboBox.addItem("nmaskpx")
+        # self.pymovieDataColumnPrefixComboBox.addItem("signal")
+        # self.pymovieDataColumnPrefixComboBox.addItem("appsum")
+        # self.pymovieDataColumnPrefixComboBox.addItem("avgbkg")
+        # self.pymovieDataColumnPrefixComboBox.addItem("stdbkg")
+        # self.pymovieDataColumnPrefixComboBox.addItem("nmaskpx")
 
         self.droppedFrames = []
         self.cadenceViolation = []
@@ -1153,6 +1167,42 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                           f'that have not been zipped and sent!')
 
     # ====  New method entry point ===
+
+    def handleDataSetSelection(self):
+        dataSetSelected = self.curveSelectionComboBox.currentText()
+        if dataSetSelected.startswith('Remove'):
+            self.userDataSetAdditions = []
+            for i in range(len(self.aperture_names), 10):
+                self.lightcurveTitles[i].clear()
+                if i == 1:
+                    self.LC2 = np.array([])
+                    continue
+                if i == 2:
+                    self.LC3 = np.array([])
+                    continue
+                if i == 3:
+                    self.LC4 = np.array([])
+                    continue
+                else:
+                    self.extra = []
+
+            for i in range(len(self.aperture_names), 10):
+                self.targetCheckBoxes[i].setChecked(False)
+                self.targetCheckBoxes[i].setEnabled(False)
+                self.showCheckBoxes[i].setChecked(False)
+                self.showCheckBoxes[i].setEnabled(False)
+                self.referenceCheckBoxes[i].setChecked(False)
+                self.referenceCheckBoxes[i].setEnabled(False)
+                self.yOffsetSpinBoxes[i].setEnabled(False)
+                self.yOffsetSpinBoxes[i].setValue(0)
+                self.xOffsetSpinBoxes[i].setEnabled(False)
+                self.xOffsetSpinBoxes[i].setValue(0)
+
+            self.newRedrawMainPlot()
+
+        elif not dataSetSelected in self.userDataSetAdditions:
+            self.userDataSetAdditions.append(dataSetSelected)
+        self.initializeTableView()
 
     def isValidInput(self, valueStr='', valueName='', entryType='int', negativeAllowed=True, allowEmpty=False):
         # entryType: 'int' | 'float'
@@ -2159,8 +2209,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.clearColoredParameters()
         self.beingOptimizedEdit.setStyleSheet("background-color: lightblue")
 
-        eodAlgorithm = self.edgeOnDiskRadioButton.isChecked()
-        # TODO Remove this test code
+        # eodAlgorithm = self.edgeOnDiskRadioButton.isChecked()
+        # TODO Remove this test code (unless everything works)
         eodAlgorithm = False
 
         # Get the starting value of the metric
@@ -3813,7 +3863,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             spinBox.setValue(0)
             spinBox.setEnabled(False)
         self.yOffsetSpinBoxes[0].setValue(0)
-        self.yOffsetSpinBoxes[0].setEnabled(False)
+        self.yOffsetSpinBoxes[0].setEnabled(True)
 
         for spinBox in self.xOffsetSpinBoxes:
             spinBox.setValue(0)
@@ -3849,9 +3899,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         # Undo any previous normalization
         self.fillTableViewOfData()
         self.smoothingIntervalSpinBox.setValue(0)
+        self.referenceKey = ''
 
         if self.referenceCheckBoxes[i].isChecked():
-            self.showMsg(f'{self.lightcurveTitles[i].text()} is selected as the reference curve for normalization.')
+            self.referenceKey = self.lightcurveTitles[i].text()
+            self.showMsg(f'{self.referenceKey} is selected as the reference curve for normalization.')
             self.clearReferenceSelections()
             self.xOffsetSpinBoxes[i].setEnabled(True)
             self.referenceCheckBoxes[i].setChecked(True)
@@ -3921,8 +3973,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
     def clearTargetSelections(self):
         for checkBox in self.targetCheckBoxes:
             checkBox.setChecked(False)
-        for yOffsetSpin in self.yOffsetSpinBoxes:
-            yOffsetSpin.setEnabled(True)
+        # for yOffsetSpin in self.yOffsetSpinBoxes:
+        #     yOffsetSpin.setEnabled(True)
 
     def noTargetSelected(self):
         for checkBox in self.targetCheckBoxes:
@@ -3931,11 +3983,16 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         return True
 
     def processTargetSelection(self, i, redraw):
+
+        self.targetKey = ''
+
         if self.targetCheckBoxes[i].isChecked():
+            self.targetKey = self.lightcurveTitles[i].text()
+            self.showMsg(f'{self.targetKey} is the target curve.')
             self.clearTargetSelections()
             self.targetCheckBoxes[i].setChecked(True)
             self.showCheckBoxes[i].setChecked(True)
-            self.yOffsetSpinBoxes[i].setEnabled(False)
+            self.yOffsetSpinBoxes[i].setEnabled(True)
             self.yOffsetSpinBoxes[i].setValue(0)
             if i == 0:
                 self.yValues = self.LC1.copy()
@@ -3950,8 +4007,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             if redraw:
                 self.newRedrawMainPlot()
             self.recolorBlobs()
-            self.yOffsetSpinBoxes[i].setEnabled(False)
-            self.yOffsetSpinBoxes[i].setValue(0)
             self.VizieRdict = {
                 "timestamps": None,
                 "yValues": None,
@@ -3963,7 +4018,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             if self.noTargetSelected():
                 self.targetCheckBoxes[i].setChecked(True)
                 self.showCheckBoxes[i].setChecked(True)
-                self.yOffsetSpinBoxes[i].setEnabled(False)
+                self.yOffsetSpinBoxes[i].setEnabled(True)
                 self.yOffsetSpinBoxes[i].setValue(0)
 
     def processTargetSelection1(self):
@@ -4181,6 +4236,98 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 else:
                     return self.yTimes[readingNumber]
         return '???'
+
+    def fillFromNAxlsxFile(self):
+        # Open a file select dialog
+        xlsxfilepath, _ = QFileDialog.getOpenFileName(
+            self,  # parent
+            "Select Asteroid Occultation Report form",  # title for dialog
+            self.settings.value('lightcurvedir', ""),  # starting directory
+            "Excel files (*.xlsx)")
+
+        if xlsxfilepath:
+            # noinspection PyBroadException
+            wb = load_workbook(xlsxfilepath)
+            try:
+                sheet = wb['DATA']
+
+                # Validate that a proper Asteroid Occultation Report Form was selected by reading the report header
+                if not sheet['G1'].value == 'Asteroid Occultation Report Form':
+                    self.showMsg(f'The xlsx file selected does not appear to be an Asteroid Occultation Report Form')
+                    return
+
+                Longitude = 'N18'
+                LongitudeEW = 'R18'
+                longitudeStr = sheet[Longitude].internal_value
+                longitudeEW = sheet[LongitudeEW].internal_value
+                print(f'Longitude: {longitudeStr} {longitudeEW}')
+
+                longParts = longitudeStr.split(' ')
+                if longitudeEW == 'W':
+                    self.vzSiteLongDegEdit.setText(f'-{longParts[0]}')
+                else:
+                    self.vzSiteLongDegEdit.setText(f'+{longParts[0]}')
+
+                self.vzSiteLongMinEdit.setText(longParts[1])
+                self.vzSiteLongSecsEdit.setText(longParts[2])
+
+                Latitude = 'E18'
+                LatitudeNS = 'J18'
+                latitudeStr = sheet[Latitude].internal_value
+                latitudeNS = sheet[LatitudeNS].internal_value
+                print(f'Longitude: {latitudeStr} {latitudeNS}')
+
+                latParts = latitudeStr.split(' ')
+                if latitudeNS == 'S':
+                    self.vzSiteLatDegEdit.setText(f'-{latParts[0]}')
+                else:
+                    self.vzSiteLatDegEdit.setText(f'+{latParts[0]}')
+
+                self.vzSiteLatMinEdit.setText(latParts[1])
+                self.vzSiteLatSecsEdit.setText(latParts[2])
+
+                Altitude = 'V18'
+                AltitudeUnits = 'W18'
+                altitude = sheet[Altitude].internal_value
+                altitudeUnits = sheet[AltitudeUnits].internal_value
+                if altitudeUnits == 'm':
+                    self.vzSiteAltitudeEdit.setText(f'{altitude}')
+                else:
+                    self.vzSiteAltitudeEdit.setText(f'{altitude * 0.3048}')
+                print(f'Altitude: {altitude} {altitudeUnits}')
+
+                Observer = 'D9'
+                observer = sheet[Observer].internal_value
+                self.vzObserverNameEdit.setText(observer)
+                print(f'Observer: {observer}')
+
+                StarType = 'S7'
+                StarNumber = 'X7'
+                starType = sheet[StarType].internal_value
+                starNumber = sheet[StarNumber].internal_value
+                if starType == 'TYC':
+                    self.vzStarTycho2Edit.setText(starNumber)
+                elif starType == 'HIP':
+                    self.vzStarHipparcosEdit.setText(starNumber)
+                elif starType == 'UCAC4':
+                    self.vzStarUCAC4Edit.setText(starNumber)
+
+                print(f'Star id: {starType} {starNumber}')
+
+                AsteroidNumber = 'E7'
+                AsteroidName = 'K7'
+                asteroidNumber = sheet[AsteroidNumber].internal_value
+                asteroidName = sheet[AsteroidName].internal_value
+                self.vzAsteroidNameEdit.setText(asteroidName)
+                self.vzAsteroidNumberEdit.setText(f'{asteroidNumber}')
+                print(f'{asteroidName}({asteroidNumber})')
+
+            except Exception as e:
+                self.showMsg(repr(e))
+                self.showMsg(f'FAILED to extract needed data from Asteroid Occultation Report Form', color='red', bold=True)
+                return
+
+            self.showInfo(f'Excel spreadsheet Asteroid Report Form entries extracted successfully.')
 
     def fillExcelReport(self):
         # Open a file select dialog
@@ -5181,6 +5328,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                      f'(readings: {self.smoothingIntervalSpinBox.value()})  (X offset: {xOffset})',
                      color='green', bold=True, alternateLogFile=self.normalizationLogFile)
 
+        self.fullDataDictionary[self.targetKey] = self.yValues
+        self.fullDataDictionary[self.referenceKey] = self.yRefStar
+
         self.fillTableViewOfData()  # This should capture/write the effects of the normalization to the table
 
         self.normalized = True
@@ -5441,11 +5591,24 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         newDemoLightCurve = []
         newExtra = [[] for _ in range(len(self.extra))]
 
+        # Create a new (local) fullDataDictionary using self.fullDataDictionary as the template
+        emptyDataDictionary = self.fullDataDictionary.copy()
+        for key in emptyDataDictionary.keys():
+            emptyDataDictionary[key] = []
+
+        # emptyDataDictionary = dict.fromkeys(self.fullDataDictionary.keys(), [])
+
         if not self.blockSize % 2 == 0:
             self.showInfo(f'Blocksize is {self.blockSize}\n\nAn odd number for blocksize is likely an error!')
 
         p = p0 - span  # Start working toward the left
         while p > 0:
+
+            for key in emptyDataDictionary.keys():
+                if not (key == 'timeInfo' or key == 'FrameNum'):
+                    avg = np.mean(self.fullDataDictionary[key][p:(p + span)])
+                    emptyDataDictionary[key].insert(0, avg)
+
             avg = np.mean(self.LC1[p:(p + span)])
             newLC1.insert(0, avg)
 
@@ -5472,10 +5635,20 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
             newFrame.insert(0, self.yFrame[p])
             newTime.insert(0, self.yTimes[p])
+
+            emptyDataDictionary['FrameNum'].insert(0, self.fullDataDictionary['FrameNum'][p])
+            emptyDataDictionary['timeInfo'].insert(0, self.fullDataDictionary['timeInfo'][p])
+
             p = p - span
 
         p = p0  # Start working toward the right
         while p < self.dataLen - span:
+
+            for key in emptyDataDictionary.keys():
+                if not (key == 'timeInfo' or key == 'FrameNum'):
+                    avg = np.mean(self.fullDataDictionary[key][p:(p + span)])
+                    emptyDataDictionary[key].append(avg)
+
             avg = np.mean(self.LC1[p:(p + span)])
             newLC1.append(avg)
 
@@ -5502,7 +5675,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
             newFrame.append(self.yFrame[p])
             newTime.append(self.yTimes[p])
+
+            emptyDataDictionary['FrameNum'].append(self.fullDataDictionary['FrameNum'][p])
+            emptyDataDictionary['timeInfo'].append(self.fullDataDictionary['timeInfo'][p])
+
             p = p + span
+
+        self.fullDataDictionary = emptyDataDictionary.copy()
 
         self.dataLen = len(newLC1)
 
@@ -5624,10 +5803,61 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
             self.table.setColumnCount(6)
         else:
-            self.table.setColumnCount(2 + len(self.aperture_names))
             colLabels = ['FrameNum', 'timeInfo']
+            dataColumnNames = self.fullDataDictionary.keys()
+
+            columnsToDisplay = [name for name in dataColumnNames if name.startswith('signal')]
+            columnsToDisplay += self.userDataSetAdditions
+
+            self.table.setColumnCount(2 + len(columnsToDisplay))
+
+            self.additionalDataSetNames = [name for name in dataColumnNames if name.startswith('appsum')]
+            self.additionalDataSetNames += [name for name in dataColumnNames if name.startswith('avgbkg')]
+            self.additionalDataSetNames += [name for name in dataColumnNames if name.startswith('stdbkg')]
+            self.additionalDataSetNames += [name for name in dataColumnNames if name.startswith('nmask')]
+            self.curveSelectionComboBox.clear()
+            self.curveSelectionComboBox.addItem('Remove "other" data sets that you added')
+            for dataSetName in self.additionalDataSetNames:
+                self.curveSelectionComboBox.addItem(dataSetName)
+
+            self.yFrame = self.fullDataDictionary['FrameNum']
+            self.yTimes = self.fullDataDictionary['timeInfo']
             k = 0
-            for column_name in self.aperture_names:
+            if k < len(columnsToDisplay):
+                self.LC1 = np.array(self.fullDataDictionary[columnsToDisplay[k]])
+                k += 1
+            if k < len(columnsToDisplay):
+                self.LC2 = np.array(self.fullDataDictionary[columnsToDisplay[k]])
+                k += 1
+            if k < len(columnsToDisplay):
+                self.LC3 = np.array(self.fullDataDictionary[columnsToDisplay[k]])
+                k += 1
+            if k < len(columnsToDisplay):
+                self.LC4 = np.array(self.fullDataDictionary[columnsToDisplay[k]])
+                k += 1
+            if k < len(columnsToDisplay):
+                self.extra = []
+                self.extra.append(np.array(self.fullDataDictionary[columnsToDisplay[k]]))
+                k += 1
+            if k < len(columnsToDisplay):
+                self.extra.append(np.array(self.fullDataDictionary[columnsToDisplay[k]]))
+                k += 1
+            if k < len(columnsToDisplay):
+                self.extra.append(np.array(self.fullDataDictionary[columnsToDisplay[k]]))
+                k += 1
+            if k < len(columnsToDisplay):
+                self.extra.append(np.array(self.fullDataDictionary[columnsToDisplay[k]]))
+                k += 1
+            if k < len(columnsToDisplay):
+                self.extra.append(np.array(self.fullDataDictionary[columnsToDisplay[k]]))
+                k += 1
+            if k < len(columnsToDisplay):
+                self.extra.append(np.array(self.fullDataDictionary[columnsToDisplay[k]]))
+                k += 1
+
+            # print(f'{sequentialLightcurveList}')
+            k = 0
+            for column_name in columnsToDisplay:
                 colLabels.append(column_name)
                 if k < 10:
                     self.lightcurveTitles[k].setText(column_name)
@@ -5636,9 +5866,22 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     self.yOffsetSpinBoxes[k].setEnabled(True)
                     self.yOffsetSpinBoxes[k].setValue(0)
                     self.referenceCheckBoxes[k].setEnabled(True)
+                    if k == len(columnsToDisplay) - 1:
+                        self.showCheckBoxes[k].setChecked(True)
+                        self.newRedrawMainPlot()
+                        # print(f'setting line {k} (zero-based) to show checked')
                     k += 1
 
         self.table.setHorizontalHeaderLabels(colLabels)
+        if self.dataLen and self.yFrame:
+            self.fillTableViewOfData()
+
+    def findDataSetsCurrentlyDisplayed(self):
+        ans = []
+        for title in self.lightcurveTitles:
+            if not title.text() == '':
+                ans.append(title.text())
+        return ans
 
     def closeEvent(self, event):
         # Open (or create) file for holding 'sticky' stuff
@@ -7627,46 +7870,46 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             neatStr = fp.to_precision(self.yValues[i], 6)
             newitem = QtWidgets.QTableWidgetItem(str(neatStr))
             self.table.setItem(i, self.targetIndex + 2, newitem)
-            newitem = QtWidgets.QTableWidgetItem(str(self.yTimes[i]))
-            self.table.setItem(i, 1, newitem)
+            newitem = QtWidgets.QTableWidgetItem(str(self.yTimes[i]))  # Add timestamps
+            self.table.setItem(i, 1, newitem)  # Put timestamps in column 1
             frameNum = float(self.yFrame[i])
             if not np.ceil(frameNum) == np.floor(frameNum):
                 self.fieldMode = True
             newitem = QtWidgets.QTableWidgetItem(str(self.yFrame[i]))
-            self.table.setItem(i, 0, newitem)
+            self.table.setItem(i, 0, newitem)  # Put frame numbers in column 0
             nextColumn = 2
             if len(self.LC1) > 0:
                 neatStr = fp.to_precision(self.LC1[i], 6)
                 newitem = QtWidgets.QTableWidgetItem(str(neatStr))
                 if not nextColumn == self.targetIndex + 2:
-                    self.table.setItem(i, 2, newitem)
+                    self.table.setItem(i, 2, newitem)  # Put LC1 in column 2
                 nextColumn += 1
             if len(self.LC2) > 0:
                 neatStr = fp.to_precision(self.LC2[i], 6)
                 newitem = QtWidgets.QTableWidgetItem(str(neatStr))
                 if not nextColumn == self.targetIndex + 2:
-                    self.table.setItem(i, 3, newitem)
+                    self.table.setItem(i, 3, newitem)  # Put LC2 in column 3
                 nextColumn += 1
             if len(self.LC3) > 0:
                 neatStr = fp.to_precision(self.LC3[i], 6)
                 newitem = QtWidgets.QTableWidgetItem(str(neatStr))
                 if not nextColumn == self.targetIndex + 2:
-                    self.table.setItem(i, 4, newitem)
+                    self.table.setItem(i, 4, newitem)  # Put LC3 in column 4
                 nextColumn += 1
             if len(self.LC4) > 0:
                 neatStr = fp.to_precision(self.LC4[i], 6)
                 newitem = QtWidgets.QTableWidgetItem(str(neatStr))
                 if not nextColumn == self.targetIndex + 2:
-                    self.table.setItem(i, 5, newitem)
+                    self.table.setItem(i, 5, newitem)  # Put LC4 in column 5
                 nextColumn += 1
             if len(self.extra) > 0:
                 for k, lightcurve in enumerate(self.extra):
                     neatStr = fp.to_precision(lightcurve[i], 6)
                     newitem = QtWidgets.QTableWidgetItem(str(neatStr))
                     if not nextColumn == self.targetIndex + 2:
-                        self.table.setItem(i, 6 + k, newitem)
+                        self.table.setItem(i, 6 + k, newitem)  # Put extras in order in next columns
                     nextColumn += 1
-            if len(self.demoLightCurve) > 0:
+            if len(self.demoLightCurve) > 0:  # This is only used for detectability demonstration
                 neatStr = fp.to_precision(self.demoLightCurve[i], 6)
                 newitem = QtWidgets.QTableWidgetItem(str(neatStr))
                 self.table.setItem(i, nextColumn, newitem)
@@ -7763,6 +8006,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.initializeLightcurvePanel()
             self.initializeModelLightcurvesPanel()
 
+            self.userDataSetAdditions = []
+
             # Get rid of any previously displayed model and displayed metric info
             self.modelY = None
             self.modelYsamples = None
@@ -7808,14 +8053,16 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.settings.sync()
             self.showMsg('filename: ' + self.csvFilePath, bold=True, color="red")
 
-            columnPrefix = self.pymovieDataColumnPrefixComboBox.currentText()
+            # columnPrefix = self.pymovieDataColumnPrefixComboBox.currentText()
+            columnPrefix = 'signal'
 
             try:
                 self.droppedFrames = []
                 self.cadenceViolation = []
+                self.fullDataDictionary = {}
                 frame, time, value, self.secondary, self.ref2, self.ref3, self.extra, \
                     self.aperture_names, self.headers = \
-                    readLightCurve(self.csvFilePath, pymovieColumnType=columnPrefix)
+                    readLightCurve(self.csvFilePath, pymovieColumnType=columnPrefix, pymovieDict=self.fullDataDictionary)
                 self.showMsg(f'If the csv file came from PyMovie - columns with prefix: {columnPrefix} will be read.')
                 values = [float(item) for item in value]
                 self.yValues = np.array(values)  # yValues = curve to analyze
@@ -7918,7 +8165,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                         self.extra[i] = np.array(vals[:])
 
                 self.initializeTableView()
-                self.yOffsetSpinBoxes[0].setEnabled(False)
+                self.yOffsetSpinBoxes[0].setEnabled(True)
 
                 # If no timestamps were found in the input file, prompt for manual entry
                 if self.timestampListIsEmpty(time):

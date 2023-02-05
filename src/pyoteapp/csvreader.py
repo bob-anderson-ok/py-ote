@@ -12,17 +12,23 @@ tangraNeedsBackgroundSubtraction = True
 
 pymovieSignalColumnCount = 0
 
+pymovieTotalDataDict = {}
+
 pymovieDataColumns = []
+
+pymovieColumnNames = []
 
 pymovieColumnNamePrefix = 'signal'
 
 
-def readLightCurve(filepath, pymovieColumnType='signal'):
+def readLightCurve(filepath, pymovieColumnType='signal', pymovieDict={}):  # noqa
     """
     Reads the intensities and timestamps from Limovie,
     Tangra, PYOTE, or R-OTE csv files.  (PYOTE and R-OTE file formats are equal)
     """
-    global pymovieColumnNamePrefix
+    global pymovieColumnNamePrefix, pymovieTotalDataDict
+
+    pymovieTotalDataDict = pymovieDict
 
     pymovieColumnNamePrefix = pymovieColumnType
     if fileCanBeOpened(filepath):
@@ -146,12 +152,25 @@ def roteParser(line, frame, time, value, ref1, ref2, ref3, extra):
 # noinspection PyUnusedLocal
 def pymovieParser(line, frame, time, value, ref1, ref2, ref3, extra):
     """
-    R-OTE sample line ---
+    PyOTE sample line ---
         1.00,[17:25:39.3415],2737.8,3897.32,675.3,892.12
     """
-    global pymovieDataColumns
+    global pymovieDataColumns, pymovieTotalDataDict
 
     part = line.split(',')
+    part[-1] = part[-1][:-1]  # Remove \n from last column data
+    if not pymovieTotalDataDict == {}:
+        for i in range(len(part)):
+            if i == 1:
+                pymovieTotalDataDict[pymovieColumnNames[i]].append(part[i])
+            else:
+                try:
+                    convertedValue = float(part[i])
+                    pymovieTotalDataDict[pymovieColumnNames[i]].append(convertedValue)
+                except ValueError as e:
+                    print(f'At frame {part[0]}: {part[i]} caused exception: {e}')
+                    pymovieTotalDataDict[pymovieColumnNames[i]].append(-0.0)
+
     frame.append(part[0])
     time.append(part[1])
     dataColumnIndex = 0
@@ -193,6 +212,7 @@ def rawParser(line, frame, time, value, secondary, ref2, ref3, extra):
 def readAs(file):
     global tangraNeedsBackgroundSubtraction
     global pymovieSignalColumnCount, pymovieDataColumns, pymovieColumnNamePrefix
+    global pymovieTotalDataDict, pymovieColumnNames
 
     kind = getFileKind(file)
     
@@ -206,6 +226,7 @@ def readAs(file):
     extra = []
     headers = []
     aperture_names = []
+    pymovieColumnNames = []
     
     if kind == 'Tangra':
         colHeaderKey = 'FrameNo'
@@ -246,6 +267,7 @@ def readAs(file):
                         pymovieDataColumns = []
                         columnIndex = 0
                         for part in parts:
+                            pymovieColumnNames.append(part)
                             if part.startswith(pymovieColumnNamePrefix):
                                 pymovieSignalColumnCount += 1
                                 aperture_names.append(part.split('-')[1])
@@ -255,6 +277,11 @@ def readAs(file):
                             # extra to hold those columns
                         for i in range(5, pymovieSignalColumnCount+1):
                             extra.append([])
+                        if pymovieTotalDataDict is not None:
+                            # Build an empty dictionary with keys form pyMovieColumnNames list
+                            for key in pymovieColumnNames:
+                                pymovieTotalDataDict[key] = []
+                            pass
 
                     while True:
                         line = fileobject.readline()
