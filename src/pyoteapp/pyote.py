@@ -735,8 +735,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.normMarkBaselineRegionButton.clicked.connect(self.markBaselineRegion)
         self.normMarkBaselineRegionButton.installEventFilter(self)
 
-        # self.pymovieDataColumnPrefixComboBox.currentTextChanged.connect(self.handlePymovieColumnChange)
-
         self.clearBaselineRegionsButton.clicked.connect(self.clearBaselineRegions)
         self.clearBaselineRegionsButton.installEventFilter(self)
 
@@ -927,8 +925,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         # as does horizontalLayout_?
         axesPen = pg.mkPen((0, 0, 0), width=3)
 
-        timeAxis = TimestampAxis(orientation='bottom', pen=axesPen)
-        timeAxis.setFetcher(self.getTimestampFromRdgNum)
+        self.timeAxis = TimestampAxis(orientation='bottom', pen=axesPen)
+        self.timeAxis.setFetcher(self.getTimestampFromRdgNum)
 
         toptimeAxis = TimestampAxis(orientation='top', pen=axesPen)
         toptimeAxis.setFetcher(self.getTimestampFromRdgNum)
@@ -938,7 +936,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         oldMainPlot = self.mainPlot
         self.mainPlot = PlotWidget(self.splitterTwo,
                                    viewBox=CustomViewBox(border=(255, 255, 255)),
-                                   axisItems={'bottom': timeAxis, 'top': toptimeAxis, 'left': leftAxis},
+                                   axisItems={'bottom': self.timeAxis, 'top': toptimeAxis, 'left': leftAxis},
                                    enableMenu=False, stretch=1)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding,
                                            QtWidgets.QSizePolicy.Policy.Expanding)
@@ -1054,6 +1052,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         showTimestamps = self.settings.value('showTimestamps', 'true') == 'true'
         self.showTimestampsCheckBox.setChecked(showTimestamps)
 
+        self.removeAddedDataSetsButton.clicked.connect(self.removeAddedDataSets)
+        self.removeAddedDataSetsButton.installEventFilter(self)
 
         self.ne3NotInUseRadioButton.setChecked(self.settings.value('ne3NotInUse', 'false') == 'true')
         self.ne3NotInUseRadioButton.clicked.connect(self.clearNe3SolutionPoints)
@@ -1088,12 +1088,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.splitterThree.restoreState(self.settings.value('splitterThree'))
 
         self.pymovieFileInUse = False
-
-        # self.pymovieDataColumnPrefixComboBox.addItem("signal")
-        # self.pymovieDataColumnPrefixComboBox.addItem("appsum")
-        # self.pymovieDataColumnPrefixComboBox.addItem("avgbkg")
-        # self.pymovieDataColumnPrefixComboBox.addItem("stdbkg")
-        # self.pymovieDataColumnPrefixComboBox.addItem("nmaskpx")
 
         self.droppedFrames = []
         self.cadenceViolation = []
@@ -1133,7 +1127,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         # for an Anaconda3 install or a pip install pyote==x.y.z
         # self.copy_desktop_icon_file_to_home_directory()
 
-        self.helperThing = HelpDialog()
+        # self.helperThing = HelpDialog()
 
         if self.externalCsvFilePath is not None:
             if os.path.exists(self.externalCsvFilePath):
@@ -1168,40 +1162,44 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     # ====  New method entry point ===
 
+    def removeAddedDataSets(self):
+        self.userDataSetAdditions = []
+        # for i in range(len(self.aperture_names), 10):
+        for i in range(1, 10):
+            self.lightcurveTitles[i].clear()
+            if i == 1:
+                self.LC2 = np.array([])
+                continue
+            if i == 2:
+                self.LC3 = np.array([])
+                continue
+            if i == 3:
+                self.LC4 = np.array([])
+                continue
+            else:
+                self.extra = []
+
+        for i in range(1, 10):
+            self.targetCheckBoxes[i].setChecked(False)
+            self.targetCheckBoxes[i].setEnabled(False)
+            self.showCheckBoxes[i].setChecked(False)
+            self.showCheckBoxes[i].setEnabled(False)
+            self.referenceCheckBoxes[i].setChecked(False)
+            self.referenceCheckBoxes[i].setEnabled(False)
+            self.yOffsetSpinBoxes[i].setEnabled(False)
+            self.yOffsetSpinBoxes[i].setValue(0)
+            self.xOffsetSpinBoxes[i].setEnabled(False)
+            self.xOffsetSpinBoxes[i].setValue(0)
+
+        self.targetCheckBoxes[0].setChecked(True)
+        self.referenceCheckBoxes[0].setChecked(False)
+        self.showCheckBoxes[0].setChecked(True)
+
+        self.newRedrawMainPlot()
+
     def handleDataSetSelection(self):
         dataSetSelected = self.curveSelectionComboBox.currentText()
-        if dataSetSelected.startswith('Remove'):
-            self.userDataSetAdditions = []
-            for i in range(len(self.aperture_names), 10):
-                self.lightcurveTitles[i].clear()
-                if i == 1:
-                    self.LC2 = np.array([])
-                    continue
-                if i == 2:
-                    self.LC3 = np.array([])
-                    continue
-                if i == 3:
-                    self.LC4 = np.array([])
-                    continue
-                else:
-                    self.extra = []
-
-            for i in range(len(self.aperture_names), 10):
-                self.targetCheckBoxes[i].setChecked(False)
-                self.targetCheckBoxes[i].setEnabled(False)
-                self.showCheckBoxes[i].setChecked(False)
-                self.showCheckBoxes[i].setEnabled(False)
-                self.referenceCheckBoxes[i].setChecked(False)
-                self.referenceCheckBoxes[i].setEnabled(False)
-                self.yOffsetSpinBoxes[i].setEnabled(False)
-                self.yOffsetSpinBoxes[i].setValue(0)
-                self.xOffsetSpinBoxes[i].setEnabled(False)
-                self.xOffsetSpinBoxes[i].setValue(0)
-
-            self.newRedrawMainPlot()
-
-        elif not dataSetSelected in self.userDataSetAdditions:
-            self.userDataSetAdditions.append(dataSetSelected)
+        self.userDataSetAdditions.append(dataSetSelected)
         self.initializeTableView()
 
     def isValidInput(self, valueStr='', valueName='', entryType='int', negativeAllowed=True, allowEmpty=False):
@@ -1596,10 +1594,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
             vizierFilePath = os.path.join(dest_dir, filename)
 
-            if platform.mac_ver()[0]:
+            if sys.platform == 'darwin' or sys.platform == 'linux':
                 CRLF = f'\r\n'
             else:
-                # We must be on a Windows machine because Mac version number was empty
+                # We must be on a Windows machine
                 CRLF = f'\n'
 
             with open(vizierFilePath, 'w') as fileObject:
@@ -1636,20 +1634,20 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     @staticmethod
     def getVizieRdirectory():
-        if platform.mac_ver()[0]:
+        if sys.platform == 'darwin' or sys.platform == 'linux':
             dest_dir = f"{os.environ['HOME']}{r'/Documents/VizieR_lightcurves'}"
         else:
-            # We must be on a Windows machine because Mac version number was empty
+            # We must be on a Windows machine
             dest_dir = f"{os.environ.get('userprofile')}\\Documents\\VizieR_lightcurves"
         return dest_dir
 
     @staticmethod
     def getUserName():
-        if platform.mac_ver()[0]:
+        if sys.platform == 'darwin' or sys.platform == 'linux':
             homePath = f"{os.environ['HOME']}"
             parts = homePath.split("/")
         else:
-            # We must be on a Windows machine because Mac version number was empty
+            # We must be on a Windows machine
             homePath = f"{os.environ.get('userprofile')}"
             parts = homePath.split("\\")
 
@@ -1657,10 +1655,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     @staticmethod
     def getDocumentsDirectory():
-        if platform.mac_ver()[0]:
+        if sys.platform == 'darwin' or sys.platform == 'linux':
             dest_dir = f"{os.environ['HOME']}{r'/Documents/'}"
         else:
-            # We must be on a Windows machine because Mac version number was empty
+            # We must be on a Windows machine
             dest_dir = f"{os.environ.get('userprofile')}\\Documents\\"
         return dest_dir
 
@@ -2209,8 +2207,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.clearColoredParameters()
         self.beingOptimizedEdit.setStyleSheet("background-color: lightblue")
 
-        # eodAlgorithm = self.edgeOnDiskRadioButton.isChecked()
-        # TODO Remove this test code (unless everything works)
         eodAlgorithm = False
 
         # Get the starting value of the metric
@@ -3241,10 +3237,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             filename = f'SiteCoord_{self.vzSiteCoordNameEdit.text()}.p'
             filepath = os.path.join(destDir, filename)
             pickle.dump(siteCoordDict, open(filepath, 'wb'))
-
-            # TODO remove this debug print
-            # self.showInfo(f'The site coord data was written to '
-            #               f'\n\n{filepath}\n\n')
         except Exception as e:
             self.showInfo(f'Attempt to write site coordinate data: {e}')
 
@@ -4256,11 +4248,33 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     self.showMsg(f'The xlsx file selected does not appear to be an Asteroid Occultation Report Form')
                     return
 
+                Year = 'D5'
+                year = sheet[Year].internal_value
+                self.vzDateYearSpinner.setValue(year)
+
+                Month = 'K5'
+                monthStr = sheet[Month].internal_value
+                months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August',
+                          'September', 'October', 'November', 'December']
+                month = None
+                for i in range(len(months)):
+                    if monthStr == months[i]:
+                        month = i + 1
+                        break
+                if month is not None:
+                    self.vzDateMonthSpinner.setValue(month)
+                else:
+                    raise Exception('Invalid month string in xlsx file')
+
+                Day = 'P5'
+                day = sheet[Day].internal_value
+                self.vzDateDaySpinner.setValue(day)
+
                 Longitude = 'N18'
                 LongitudeEW = 'R18'
                 longitudeStr = sheet[Longitude].internal_value
                 longitudeEW = sheet[LongitudeEW].internal_value
-                print(f'Longitude: {longitudeStr} {longitudeEW}')
+                # print(f'Longitude: {longitudeStr} {longitudeEW}')
 
                 longParts = longitudeStr.split(' ')
                 if longitudeEW == 'W':
@@ -4275,7 +4289,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 LatitudeNS = 'J18'
                 latitudeStr = sheet[Latitude].internal_value
                 latitudeNS = sheet[LatitudeNS].internal_value
-                print(f'Longitude: {latitudeStr} {latitudeNS}')
+                # print(f'Longitude: {latitudeStr} {latitudeNS}')
 
                 latParts = latitudeStr.split(' ')
                 if latitudeNS == 'S':
@@ -4294,12 +4308,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     self.vzSiteAltitudeEdit.setText(f'{altitude}')
                 else:
                     self.vzSiteAltitudeEdit.setText(f'{altitude * 0.3048}')
-                print(f'Altitude: {altitude} {altitudeUnits}')
+                # print(f'Altitude: {altitude} {altitudeUnits}')
 
                 Observer = 'D9'
                 observer = sheet[Observer].internal_value
                 self.vzObserverNameEdit.setText(observer)
-                print(f'Observer: {observer}')
+                # print(f'Observer: {observer}')
 
                 StarType = 'S7'
                 StarNumber = 'X7'
@@ -4312,7 +4326,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 elif starType == 'UCAC4':
                     self.vzStarUCAC4Edit.setText(starNumber)
 
-                print(f'Star id: {starType} {starNumber}')
+                # print(f'Star id: {starType} {starNumber}')
 
                 AsteroidNumber = 'E7'
                 AsteroidName = 'K7'
@@ -4320,7 +4334,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 asteroidName = sheet[AsteroidName].internal_value
                 self.vzAsteroidNameEdit.setText(asteroidName)
                 self.vzAsteroidNumberEdit.setText(f'{asteroidNumber}')
-                print(f'{asteroidName}({asteroidNumber})')
+                # print(f'{asteroidName}({asteroidNumber})')
 
             except Exception as e:
                 self.showMsg(repr(e))
@@ -4430,7 +4444,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
             # noinspection PyBroadException
             try:
-                if platform.system() == 'Darwin':
+                if sys.platform == 'darwin' or sys.platform == 'linux':
                     subprocess.call(['open', xlsxfilepath])
                 elif platform.system() == 'Windows':
                     os.startfile(xlsxfilepath)
@@ -4739,7 +4753,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         source_dir = os.path.join(self.homeDir, 'model-examples')
         if os.path.exists(source_dir):
-            if platform.mac_ver()[0]:
+            if sys.platform == 'darwin' or sys.platform == 'linux':
                 dest_dir = f"{os.environ['HOME']}{r'/Documents/model-examples'}"
             else:
                 # We must be on a Windows machine because Mac version number was empty
@@ -4771,7 +4785,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     @staticmethod
     def copy_desktop_icon_file_to_home_directory():
-        if platform.mac_ver()[0]:
+        if sys.platform == 'darwin' or sys.platform == 'linux':
             icon_dest_path = f"{os.environ['HOME']}{r'/Desktop/run-pyote'}"
             if not os.path.exists(icon_dest_path):
                 # Here is where the .bat file will be when running an installed pyote
@@ -5807,16 +5821,20 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             dataColumnNames = self.fullDataDictionary.keys()
 
             columnsToDisplay = [name for name in dataColumnNames if name.startswith('signal')]
+            # TODO Experimental
+            columnsToDisplay = [columnsToDisplay[0]]
             columnsToDisplay += self.userDataSetAdditions
 
             self.table.setColumnCount(2 + len(columnsToDisplay))
 
-            self.additionalDataSetNames = [name for name in dataColumnNames if name.startswith('appsum')]
+            # TODO Experimental
+            self.additionalDataSetNames = [name for name in dataColumnNames if name.startswith('signal')]
+            self.additionalDataSetNames += [name for name in dataColumnNames if name.startswith('appsum')]
             self.additionalDataSetNames += [name for name in dataColumnNames if name.startswith('avgbkg')]
             self.additionalDataSetNames += [name for name in dataColumnNames if name.startswith('stdbkg')]
             self.additionalDataSetNames += [name for name in dataColumnNames if name.startswith('nmask')]
             self.curveSelectionComboBox.clear()
-            self.curveSelectionComboBox.addItem('Remove "other" data sets that you added')
+            # self.curveSelectionComboBox.addItem('Remove "other" data sets that you added')
             for dataSetName in self.additionalDataSetNames:
                 self.curveSelectionComboBox.addItem(dataSetName)
 
@@ -7946,6 +7964,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 # then manualTime will be an empty list.
                 if manualTime:
                     self.yTimes = manualTime[:]
+                    self.fullDataDictionary['timeInfo'] = manualTime[:]
 
                     self.VizieRdict = {
                         "timestamps": None,
@@ -7968,6 +7987,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                                                                    self.errRate,
                                                                    3) + '%')
                     self.fillTableViewOfData()
+                    self.timeAxis.update()
 
     def enableDisableFrameViewControls(self, state_to_set):
         self.viewFrameButton.setEnabled(state_to_set)
