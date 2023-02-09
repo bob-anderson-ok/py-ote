@@ -1503,7 +1503,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         longDeg = self.vzSiteLongDegEdit.text()
         if not self.isValidInput(longDeg, "Site longitude (deg)"):
             return
-        if not longDeg.startswith('-'):
+        if not longDeg.startswith('-') and not longDeg.startswith('+'):
             longDeg = '+' + longDeg
 
         longMin = self.vzSiteLongMinEdit.text()
@@ -1517,7 +1517,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         latDeg = self.vzSiteLatDegEdit.text()
         if not self.isValidInput(latDeg, "Site latitude (deg)"):
             return
-        if not latDeg.startswith('-'):
+        if not latDeg.startswith('-') and not latDeg.startswith('+'):
             latDeg = '+' + latDeg
 
         latMin = self.vzSiteLatMinEdit.text()
