@@ -6710,7 +6710,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         if self.errBarWin is not None:
             self.errBarWin.close()
 
-        self.errBarWin = pg.GraphicsWIndow(
+        self.errBarWin = pg.GraphicsWindow(
             title='Solution distributions with containment intervals marked --- false positive distribution')
         self.errBarWin.resize(1200, 1000)
         layout = QtWidgets.QGridLayout()
