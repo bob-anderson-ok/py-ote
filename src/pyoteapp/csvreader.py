@@ -8,7 +8,7 @@ Created on Tue May 23 07:24:21 2017
 
 import os
 
-tangraNeedsBackgroundSubtraction = True
+tangraNeedsBackgroundSubtraction = None
 
 pymovieSignalColumnCount = 0
 
@@ -20,15 +20,18 @@ pymovieColumnNames = []
 
 pymovieColumnNamePrefix = 'signal'
 
+kind = ''
+
 
 def readLightCurve(filepath, pymovieColumnType='signal', pymovieDict={}):  # noqa
     """
     Reads the intensities and timestamps from Limovie,
     Tangra, PYOTE, or R-OTE csv files.  (PYOTE and R-OTE file formats are equal)
     """
-    global pymovieColumnNamePrefix, pymovieTotalDataDict
+    global pymovieColumnNamePrefix, pymovieTotalDataDict, tangraNeedsBackgroundSubtraction
 
     pymovieTotalDataDict = pymovieDict
+    tangraNeedsBackgroundSubtraction = None
 
     pymovieColumnNamePrefix = pymovieColumnType
     if fileCanBeOpened(filepath):
@@ -70,11 +73,23 @@ def tangraParser(line, frame, time, value, ref1, ref2, ref3, extra):
     """
     We only accept Tangra files that have been formatted
     according to the AOTA default which is ---
-       UT time field formatted as  [hh:mm:ss.sss]
+       UT time field formatted as  [hh:mm:ss.sssssss]
        We detect the state of background subtraction (either done or needed)
        An example data line:  11,[16:00:14.183],2837.8,100.0,4097.32,200.0
     """
     part = line.split(',')
+
+    # New policy for dealing with empty data fields: drop the whole line/frame if timeInfo or LC1 field is empty,
+    # otherwise substitute 0
+    for i, item in enumerate(part):
+        if item == '':
+            if i == 1:
+                # timeInfo is missing - this is fatal - drop the entire line
+                return
+            if i == 2:
+                # empty field for LC1 (assumed to be target) - treat as dropped frame by dropping the whole line
+                return
+
     if len(part) < 2:
         raise Exception(line + " :is an invalid Tangra file entry.")
     else:
@@ -82,9 +97,15 @@ def tangraParser(line, frame, time, value, ref1, ref2, ref3, extra):
         time.append(part[1])
 
     try:
-        for item in part:
+        # This was removed when we decided to deal with empty fields by dropping the whole frame (see new policy above)
+        # for item in part:
+        #     if item == '':
+        #         raise Exception(line + " :cannot be parsed.  Are there empty fields in data lines? Fix them all!")
+
+        # Deal with empty fields other than timeInfo and LC1 by replacing with '0'
+        for i, item in enumerate(part):
             if item == '':
-                raise Exception(line + " :cannot be parsed.  Are there empty fields in data lines? Fix them all!")
+                part[i] = '0'
 
         if tangraNeedsBackgroundSubtraction:
             value.append(str(float(part[2]) - float(part[3])))
@@ -212,7 +233,7 @@ def rawParser(line, frame, time, value, secondary, ref2, ref3, extra):
 def readAs(file):
     global tangraNeedsBackgroundSubtraction
     global pymovieSignalColumnCount, pymovieDataColumns, pymovieColumnNamePrefix
-    global pymovieTotalDataDict, pymovieColumnNames
+    global pymovieTotalDataDict, pymovieColumnNames, kind
 
     kind = getFileKind(file)
     
@@ -250,14 +271,19 @@ def readAs(file):
     with fileobject:
         while True:
             line = fileobject.readline()
+            # if line.startswith('#'):
+            if 'SignalMinusBackground' in line:
+                tangraNeedsBackgroundSubtraction = False
             if line:
-                if colHeaderKey in line:
+                if colHeaderKey in line or 'BinNo' in line:  # To deal with Tangra binned files
 
                     if kind == 'Tangra':
-                        if line.find('SignalMinusBackground') > 0:
-                            tangraNeedsBackgroundSubtraction = False
-                        else:
-                            tangraNeedsBackgroundSubtraction = True
+                        if tangraNeedsBackgroundSubtraction is None:
+                            if line.find('SignalMinusBackground') > 0:
+                                tangraNeedsBackgroundSubtraction = False
+                            else:
+                                tangraNeedsBackgroundSubtraction = True
+                        headers.append('FrameNum,timeInfo,signal-LC1')  # Just enough so that pyote doesn't reject the file
 
                     if kind == 'PyMovie':
                         # We need to count the number of times 'signal" starts
@@ -286,6 +312,10 @@ def readAs(file):
                     while True:
                         line = fileobject.readline()
                         if line:
+                            if kind == 'Tangra':
+                                line = line.rstrip()  # Get rid of possible trailing new line \n
+                                if line[-1] == ',':
+                                    line += '0'
                             # noinspection PyBroadException
                             try:
                                 parser(line, frame, time, value, ref1, ref2, ref3, extra)

@@ -252,6 +252,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.getListOfVizieRlightcurves()
 
+
+        self.firstLightCurveDisplayed = True
+        self.availableLightCurvesForDisplay = []
+
         self.homeDir = os.path.split(__file__)[0]
 
         self.keepRunning = True
@@ -1201,6 +1205,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         dataSetSelected = self.curveSelectionComboBox.currentText()
         self.userDataSetAdditions.append(dataSetSelected)
         self.initializeTableView()
+        self.checkForBothCorrectAndTargetPresent()
 
     def isValidInput(self, valueStr='', valueName='', entryType='int', negativeAllowed=True, allowEmpty=False):
         # entryType: 'int' | 'float'
@@ -3958,9 +3963,76 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             if checkBox.isChecked():
                 self.showCheckBoxes[i].setChecked(True)
 
+    def calcCorrectVersusTargetMetric(self, target_index, correct_index):
+        if self.right is not None:
+            right = min(self.dataLen, self.right + 1)
+        else:
+            right = self.dataLen
+        if self.left is None:
+            left = 0
+        else:
+            left = self.left
+
+        if target_index == 0:
+            yi = [self.LC1[i] for i in range(left, right)]
+        elif target_index == 1:
+            yi = [self.LC2[i] for i in range(left, right)]
+        elif target_index == 2:
+            yi = [self.LC3[i] for i in range(left, right)]
+        elif target_index == 3:
+            yi = [self.LC4[i] for i in range(left, right)]
+        else:
+            yi = [self.extra[target_index - 4][j] for j in range(left, right)]
+
+        if correct_index == 0:
+            yj = [self.LC1[i] for i in range(left, right)]
+        elif correct_index == 1:
+            yj = [self.LC2[i] for i in range(left, right)]
+        elif correct_index == 2:
+            yj = [self.LC3[i] for i in range(left, right)]
+        elif correct_index == 3:
+            yj = [self.LC4[i] for i in range(left, right)]
+        else:
+            yj = [self.extra[correct_index   - 4][i] for i in range(left, right)]
+
+        metric = 0
+        for i in range(len(yi)):
+            metric += (yi[i] - yj[i])**2
+        metric = np.sqrt(metric)
+        self.showMsg(f'sqrt(sum((signal-correct - signal-target)**2)): {metric:0.3f}')
+        # print(f'metric: {metric:0.3f}')
+
+    def checkForBothCorrectAndTargetPresent(self):
+        correct_lightcurve_showing = False
+        correct_lightcurve_index = None
+        target_lightcurve_showing = False
+        target_lightcurve_index = None
+        for i, title in enumerate(self.lightcurveTitles):
+            if title.text().startswith('signal-correct'):
+                if self.showCheckBoxes[i].isChecked():
+                    correct_lightcurve_showing = True
+                    correct_lightcurve_index = i
+                    # self.showInfo(f'The theoretically correct lightcurve is present at index {i} and showing')
+                else:
+                    # self.showInfo(f'The theoretically correct lightcurve is present at index {i} but not showing')
+                    pass
+            elif title.text().startswith('signal-target'):
+                if self.showCheckBoxes[i].isChecked():
+                    target_lightcurve_showing = True
+                    target_lightcurve_index = i
+                    # self.showInfo(f'The target lightcurve is present at index {i} and showing')
+                else:
+                    # self.showInfo(f'The targetlightcurve is present at index {i} but not showing')
+                    pass
+        if correct_lightcurve_showing and target_lightcurve_showing:
+            # self.showInfo(f'target and correct are both present and showing. We will calculate metric.')
+            self.calcCorrectVersusTargetMetric(target_lightcurve_index, correct_lightcurve_index)
+
+
     def processShowSelection(self):
         self.forceTargetToShow()
         self.newRedrawMainPlot()
+        self.checkForBothCorrectAndTargetPresent()
 
     def clearTargetSelections(self):
         for checkBox in self.targetCheckBoxes:
@@ -5820,23 +5892,26 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             colLabels = ['FrameNum', 'timeInfo']
             dataColumnNames = self.fullDataDictionary.keys()
 
-            columnsToDisplay = [name for name in dataColumnNames if name.startswith('signal')]
-            # TODO Experimental
-            columnsToDisplay = [columnsToDisplay[0]]
-            columnsToDisplay += self.userDataSetAdditions
+            if not self.userDataSetAdditions:
+                columnsToDisplay = [name for name in dataColumnNames if name.startswith('signal')]
+            else:
+                # columnsToDisplay = [columnsToDisplay[0]]
+                # columnsToDisplay += self.userDataSetAdditions
+                columnsToDisplay = [self.lightcurveTitle_1.text()]
+                columnsToDisplay += self.userDataSetAdditions
 
             self.table.setColumnCount(2 + len(columnsToDisplay))
 
-            # TODO Experimental
             self.additionalDataSetNames = [name for name in dataColumnNames if name.startswith('signal')]
             self.additionalDataSetNames += [name for name in dataColumnNames if name.startswith('appsum')]
             self.additionalDataSetNames += [name for name in dataColumnNames if name.startswith('avgbkg')]
             self.additionalDataSetNames += [name for name in dataColumnNames if name.startswith('stdbkg')]
             self.additionalDataSetNames += [name for name in dataColumnNames if name.startswith('nmask')]
             self.curveSelectionComboBox.clear()
-            # self.curveSelectionComboBox.addItem('Remove "other" data sets that you added')
+            self.availableLightCurvesForDisplay = []
             for dataSetName in self.additionalDataSetNames:
                 self.curveSelectionComboBox.addItem(dataSetName)
+                self.availableLightCurvesForDisplay.append(dataSetName)
 
             self.yFrame = self.fullDataDictionary['FrameNum']
             self.yTimes = self.fullDataDictionary['timeInfo']
@@ -5885,21 +5960,37 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     self.yOffsetSpinBoxes[k].setValue(0)
                     self.referenceCheckBoxes[k].setEnabled(True)
                     if k == len(columnsToDisplay) - 1:
-                        self.showCheckBoxes[k].setChecked(True)
-                        self.newRedrawMainPlot()
-                        # print(f'setting line {k} (zero-based) to show checked')
+                        # Only 'show' the first signal
+                        if k == 0:
+                            self.showCheckBoxes[k].setChecked(True)
+                            self.newRedrawMainPlot()
                     k += 1
 
         self.table.setHorizontalHeaderLabels(colLabels)
         if self.dataLen and self.yFrame:
             self.fillTableViewOfData()
 
-    def findDataSetsCurrentlyDisplayed(self):
-        ans = []
-        for title in self.lightcurveTitles:
-            if not title.text() == '':
-                ans.append(title.text())
-        return ans
+        if not self.firstLightCurveDisplayed:
+            self.firstLightCurveDisplayed = True
+            lightCurveInfo = f'Only the first light curve in the csv file will be displayed initially.\n\n' \
+                             f'Below is the list of all light curves available for selection and display:\n\n'
+
+            if len(self.availableLightCurvesForDisplay) > 0:
+                for entry in self.availableLightCurvesForDisplay:
+                    lightCurveInfo += f'{entry}\n'
+            else:
+                lightCurveInfo += 'LC1 to LC4 (input file came from Tangra)\n'
+
+            lightCurveInfo += f'\nSwitch to the Lightcurves tab and use the Add data set drop down selection widget' \
+                              f' to add additional curves to the display.'
+            self.showInfo(lightCurveInfo)
+
+    # def findDataSetsCurrentlyDisplayed(self):
+    #     ans = []
+    #     for title in self.lightcurveTitles:
+    #         if not title.text() == '':
+    #             ans.append(title.text())
+    #     return ans
 
     def closeEvent(self, event):
         # Open (or create) file for holding 'sticky' stuff
@@ -7877,6 +7968,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.table.setRowCount(self.dataLen)
         self.table.setVerticalHeaderLabels([str(i) for i in range(self.dataLen)])
+        self.table.setFont(QtGui.QFont('Arial', 10))
 
         min_frame = int(trunc(float(self.yFrame[0])))
         max_frame = int(trunc(float(self.yFrame[-1])))
@@ -8023,7 +8115,17 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.externalCsvFilePath = None
 
         if self.csvFilePath:
+            self.firstLightCurveDisplayed = False
+
+            # These are used to (try to) avoid exception when a new file is read while a reference curve is active
+            self.smoothingIntervalSpinBox.setValue(0)
+            self.yRefStar = []
+            self.smoothSecondary = []
+
+            QtGui.QGuiApplication.processEvents()
+
             self.initializeLightcurvePanel()
+
             self.initializeModelLightcurvesPanel()
 
             self.userDataSetAdditions = []
@@ -8083,7 +8185,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 frame, time, value, self.secondary, self.ref2, self.ref3, self.extra, \
                     self.aperture_names, self.headers = \
                     readLightCurve(self.csvFilePath, pymovieColumnType=columnPrefix, pymovieDict=self.fullDataDictionary)
-                self.showMsg(f'If the csv file came from PyMovie - columns with prefix: {columnPrefix} will be read.')
+                # self.showMsg(f'If the csv file came from PyMovie - columns with prefix: {columnPrefix} will be read.')
                 values = [float(item) for item in value]
                 self.yValues = np.array(values)  # yValues = curve to analyze
                 self.dataLen = len(self.yValues)
@@ -9094,7 +9196,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.suppressNormalization = False
 
             # Plot the normalization reference lightcurve
-            if refIndex is not None and self.showCheckBoxes[refIndex].isChecked():
+            if refIndex is not None and self.showCheckBoxes[refIndex].isChecked() and self.left is not None:
                 minY = min(minY, np.min(self.yRefStar + self.yOffsetSpinBoxes[refIndex].value()))
                 maxY = max(maxY, np.max(self.yRefStar + self.yOffsetSpinBoxes[refIndex].value()))
                 xOffset = self.xOffsetSpinBoxes[refIndex].value()
@@ -9253,8 +9355,9 @@ def main(csv_file_path=None):
     else:
         print(f'os: Windows')
         PyQt5.QtWidgets.QApplication.setStyle('windows')
-        app.setStyleSheet("QLabel, QPushButton, QToolButton, QCheckBox, "
-                          "QRadioButton, QLineEdit , QTextEdit {font-size: 8pt}")
+        app.setStyleSheet("QTabWidget, QComboBox, QLabel, QTableWidget, QTextEdit, QDoubleSpinBox, QSpinBox,"
+                          "QProgressBar, QAbstractButton, QPushButton, QToolButton, QCheckBox, "
+                          "QRadioButton, QLineEdit {font-size: 8pt}")
 
     # Save the current/proper sys.excepthook object
     saved_excepthook = sys.excepthook

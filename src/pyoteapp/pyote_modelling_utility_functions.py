@@ -1,4 +1,5 @@
 import gc
+import pickle
 
 import numpy as np
 from dataclasses import dataclass, field
@@ -1614,6 +1615,11 @@ def demo_event(LCP: LightcurveParameters, model, title='Generic model', showLege
                                                shift_needed=len(sample) - 1)
             else:
                 camera_y = y
+
+        # TODO Experimental
+        model_dict = {'y': camera_y, 't_start': x[0] / LCP.shadow_speed, 't_end': x[-1] / LCP.shadow_speed}
+        pickle.dump(model_dict, open("model_dict_diffraction.p", "wb"))
+        # print(f'x[0]: {x[0]/LCP.shadow_speed:0.4f}  x[-1]: {x[-1]/LCP.shadow_speed:0.4f}')
         return x, camera_y, D_edge, R_edge
     else:
         raise Exception(f"Model '{model}' is unknown.")
@@ -1624,7 +1630,13 @@ def demo_event(LCP: LightcurveParameters, model, title='Generic model', showLege
     if LCP.R_limb_angle_degrees == 89.999:
         LCP.set('R_limb_angle_degrees', 90)
 
-    return x, cameraIntegration(x, y, LCP), D_edge, R_edge
+    final_y = cameraIntegration(x, y, LCP)
+    # TODO Experimental
+    model_dict = {'y': final_y, 't_start': x[0]/LCP.shadow_speed, 't_end':x[-1]/LCP.shadow_speed}
+    pickle.dump(model_dict, open("model_dict_diffraction.p", "wb"))
+    # print(f'x[0]: {x[0]/LCP.shadow_speed:0.4f}  x[-1]: {x[-1]/LCP.shadow_speed:0.4f}')
+
+    return x, final_y, D_edge, R_edge
 
 
 def timeSampleLightcurve(x_km, y_ADU, D_km, R_km, LCP, start_time=0):
