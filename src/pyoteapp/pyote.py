@@ -1167,6 +1167,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
     # ====  New method entry point ===
 
     def removeAddedDataSets(self):
+
+        # If lightcurves came from Tangra, we must not remove LC2, LC3, or LC4 because they cannot be
+        # replaced - they are not in the curveSelectionComboBox widget.
+        if self.lightcurveTitle_1.text() == 'LC1':
+            return
+
         self.userDataSetAdditions = []
         # for i in range(len(self.aperture_names), 10):
         for i in range(1, 10):
@@ -8116,6 +8122,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         if self.csvFilePath:
             self.firstLightCurveDisplayed = False
+            self.availableLightCurvesForDisplay = []
+            self.curveSelectionComboBox.clear()
 
             # These are used to (try to) avoid exception when a new file is read while a reference curve is active
             self.smoothingIntervalSpinBox.setValue(0)
