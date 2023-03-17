@@ -65,6 +65,12 @@ def getTimeStepAndOutliers(timestamps, yValues, yStatus, VizieRdict=None):
     time = [convertTimeStringToTime(item) for item in timestamps]
     deltaTime = np.diff(time)
 
+    # 5.2.0
+    for i, delta in enumerate(deltaTime):
+        if delta < -86000:
+            # We've passed through midnight
+            deltaTime[i] = deltaTime[i-1]
+
     # Changed in 5.0.1
     # timeStep = np.median(deltaTime)
     timeStep = np.mean(deltaTime)
@@ -94,6 +100,8 @@ def getTimeStepAndOutliers(timestamps, yValues, yStatus, VizieRdict=None):
         cumTimestampErrors = 0
         for index in droppedFrameIndices:
             timeChange = deltaTime[index]
+            if improvedTimeStep == 0:
+                print(f'Found timestep of zero')
             droppedReadings = round(timeChange / improvedTimeStep) - 1
             if droppedReadings > 0:
                 cumDroppedReadings += droppedReadings
