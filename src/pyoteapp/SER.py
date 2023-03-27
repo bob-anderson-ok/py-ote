@@ -58,8 +58,8 @@ def getMetaData(fpath):
         ColorID = np.fromfile(f, dtype='<i4', count=1)[0]
         ans.update(ColorID=ColorID)
 
-        if not ColorID == 0:  # monochrome image
-            raise ValueError("Color SER files not supported.  Only mono")
+        # if not ColorID == 0:  # monochrome image
+        #     raise ValueError("Color SER files not supported.  Only mono")
 
         LittleEndian = np.fromfile(f, dtype='<i4', count=1)[0]
         ans.update(LittleEndian=LittleEndian)

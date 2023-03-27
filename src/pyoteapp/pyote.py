@@ -4397,6 +4397,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 StarNumber = 'X7'
                 starType = sheet[StarType].internal_value
                 starNumber = sheet[StarNumber].internal_value
+                if type(starNumber) is int:
+                    starNumber = f'{starNumber}'
                 if starType == 'TYC':
                     self.vzStarTycho2Edit.setText(starNumber)
                 elif starType == 'HIP':
