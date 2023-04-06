@@ -6164,7 +6164,7 @@ Setting this value to zero will force Miss distance optimization to be skipped.<
                    </font>
                   </property>
                   <property name="text">
-                   <string>Elliptical asteroid parameters     major axis(km)(y):</string>
+                   <string>Ellipse specs:     major axis(km)(y):</string>
                   </property>
                  </widget>
                 </item>
