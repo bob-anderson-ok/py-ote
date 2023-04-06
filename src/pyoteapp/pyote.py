@@ -637,6 +637,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.fitLightcurveButton.clicked.connect(self.fitModelLightcurveButtonClicked)
         self.showDiffractionButton.clicked.connect(self.plotDiffractionPatternOnGround)
 
+        self.majorAxisEdit.editingFinished.connect(self.validateEllipseParameters)
+        self.minorAxisEdit.editingFinished.connect(self.validateEllipseParameters)
+        self.ellipseAngleEdit.editingFinished.connect(self.validateEllipseParameters)
+        self.useUpperEllipseChord.clicked.connect(self.validateEllipseParameters)
+
         self.demoModelButton.installEventFilter(self)
         self.demoModelButton.clicked.connect(self.demoModel)
 
@@ -2235,6 +2240,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 return failure
 
         self.Lcp.use_upper_chord = self.useUpperEllipseChord.isChecked()
+        self.Lcp.asteroid_minor_axis = minorAxis
+        self.Lcp.asteroid_major_axis = majorAxis
+        self.Lcp.ellipse_angle_degrees = ellipseAngle
 
         return majorAxis, minorAxis, ellipseAngle
 
@@ -2947,15 +2955,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.newRedrawMainPlot()
                 QtWidgets.QApplication.processEvents()
 
-            majorAxis, minorAxis, thetaDegrees = self.validateEllipseParameters()
+            # majorAxis, minorAxis, thetaDegrees = self.validateEllipseParameters()
             try:
                 self.modelXkm, self.modelY, self.modelDedgeKm, self.modelRedgeKm = \
                     demo_event(LCP=self.Lcp, model='diffraction', showLegend=showLegend,
                                title=self.currentEventEdit.text(),
                                showNotes=showNotes, plot_versus_time=versusTime,
-                               plots_wanted=plots_wanted,
-                               majorAxis=majorAxis, minorAxis=minorAxis, thetaDegrees=thetaDegrees,
-                               upperChordWanted=self.useUpperEllipseChord.isChecked())
+                               plots_wanted=plots_wanted)
             except ValueError as e:
                 self.showInfo(f'{e}')
                 return

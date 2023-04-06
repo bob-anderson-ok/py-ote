@@ -1754,8 +1754,7 @@ def cameraIntegration(x, y, LCP):
 
 
 def demo_event(LCP: LightcurveParameters, model, title='Generic model', showLegend=False, showNotes=False,
-               plot_versus_time=False, plots_wanted=True, majorAxis=None, minorAxis=None, thetaDegrees=None,
-               upperChordWanted=True):
+               plot_versus_time=False, plots_wanted=True):
 
     # To avoid possible infinities at 90 degrees, fudge those values a little.
     # The original values will be restored on exit
@@ -1783,6 +1782,10 @@ def demo_event(LCP: LightcurveParameters, model, title='Generic model', showLege
         wavelength1 = LCP.wavelength_nm - 100
         wavelength2 = LCP.wavelength_nm + 100
         if plots_wanted:
+            majorAxis = LCP.asteroid_major_axis
+            minorAxis = LCP.asteroid_minor_axis
+            thetaDegrees = LCP.ellipse_angle_degrees
+            upperChordWanted = LCP.use_upper_chord
             plot_diffraction(x=x, y=y, first_wavelength=wavelength1,
                              last_wavelength=wavelength2, LCP=LCP, title=title,
                              showLegend=showLegend, showNotes=showNotes, plot_versus_time=plot_versus_time, zoom=1,
