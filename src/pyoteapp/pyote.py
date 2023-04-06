@@ -989,7 +989,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.edgeTimePrecisionEdit.setText(self.settings.value('edgeTimeFitPrecision', '0.010'))
         self.chordDurationPrecisionEdit.setText(self.settings.value('chordDurationFitPrecision', '0.010'))
         self.limbAnglePrecisionEdit.setText(self.settings.value('limbAngleFitPrecision', '1'))
-        self.missDistancePrecisionEdit.setText(self.settings.value('missDistanceFitPrecision', '0.1'))
+        self.missDistancePrecisionEdit.setText(self.settings.value('missDistanceFitPrecision', '0.01'))
 
         dotSize = self.settings.value('vizierPlotDotSize', '4')
         self.vzDotSizeSpinner.setValue(int(dotSize))
@@ -2200,11 +2200,51 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
     def showModelChoiceAdvice(self):
         self.showInfo(decide_model_to_use(self.Lcp))
 
+    def validateEllipseParameters(self):
+        failure = (None, None, None)
+        try:
+            if not self.majorAxisEdit.text() == '':
+                majorAxis = float(self.majorAxisEdit.text())
+            else:
+                majorAxis = None
+        except ValueError as e:
+            self.showInfo(f'error in majorAxis input: {e}')
+            return failure
+
+        try:
+            if not self.minorAxisEdit.text() == '':
+                minorAxis = float(self.minorAxisEdit.text())
+            else:
+                minorAxis = None
+        except ValueError as e:
+            self.showInfo(f'error in minorAxis input: {e}')
+            return failure
+
+        try:
+            if not self.ellipseAngleEdit.text() == '':
+                ellipseAngle = float(self.ellipseAngleEdit.text())
+            else:
+                ellipseAngle = None
+        except ValueError as e:
+            self.showInfo(f'error in ellipse angle input: {e}')
+            return failure
+
+        if minorAxis is not None or majorAxis is not None or ellipseAngle is not None:
+            if minorAxis is None or majorAxis is None or ellipseAngle is None:
+                self.showInfo(f'Incomplete specification of asteroid ellipse shape')
+                return failure
+
+        return majorAxis, minorAxis, ellipseAngle
+
     def plotDiffractionPatternOnGround(self):
         self.showDiffractionButton.setText('... computation in progress')
         QtWidgets.QApplication.processEvents()
         try:
-            demo_diffraction_field(self.Lcp, title_adder=self.currentEventEdit.text())
+            majorAxis, minorAxis, ellipseAngle = self.validateEllipseParameters()
+
+            demo_diffraction_field(self.Lcp, title_adder=self.currentEventEdit.text(), majorAxis=majorAxis,
+                                   minorAxis=minorAxis, ellipseAngle=ellipseAngle,
+                                   useUpperPath=self.useUpperEllipseChord.isChecked())
         except ValueError as e:
             self.showInfo(f'plotDiffractionPatternOnGround(): {e}')
         self.showDiffractionButton.setText('Show diffraction pattern on the ground')
@@ -2907,11 +2947,18 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.newRedrawMainPlot()
                 QtWidgets.QApplication.processEvents()
 
-            self.modelXkm, self.modelY, self.modelDedgeKm, self.modelRedgeKm = \
-                demo_event(LCP=self.Lcp, model='diffraction', showLegend=showLegend,
-                           title=self.currentEventEdit.text(),
-                           showNotes=showNotes, plot_versus_time=versusTime,
-                           plots_wanted=plots_wanted)
+            majorAxis, minorAxis, thetaDegrees = self.validateEllipseParameters()
+            try:
+                self.modelXkm, self.modelY, self.modelDedgeKm, self.modelRedgeKm = \
+                    demo_event(LCP=self.Lcp, model='diffraction', showLegend=showLegend,
+                               title=self.currentEventEdit.text(),
+                               showNotes=showNotes, plot_versus_time=versusTime,
+                               plots_wanted=plots_wanted,
+                               majorAxis=majorAxis, minorAxis=minorAxis, thetaDegrees=thetaDegrees,
+                               upperChordWanted=self.useUpperEllipseChord.isChecked())
+            except ValueError as e:
+                self.showInfo(f'{e}')
+                return
 
             self.pauseFitButton.setEnabled(True)
 

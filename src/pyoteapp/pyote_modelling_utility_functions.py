@@ -37,7 +37,7 @@ def get_star_chord_samples(x, plot_margin, LCP) -> Tuple[np.ndarray, np.ndarray,
     n_star_chords_in_radius = int(LCP.star_diameter_km / 2 / distance_resolution)
 
     if n_star_chords_in_radius < 3:
-        return None, None
+        return None, None  # noqa
 
     # print(f'distance_resolution: {distance_resolution:0.4f}  n_star_chords: {n_star_chords_in_radius}')
     # print(f'n_star_chords_in_radius: {n_star_chords_in_radius}')
@@ -66,8 +66,7 @@ def get_star_chord_samples(x, plot_margin, LCP) -> Tuple[np.ndarray, np.ndarray,
     scaler = max_chord * 2
     normed_chords = [c / scaler for c in star_chords]
 
-    return np.array(normed_chords), np.array(normed_chords_standalone)
-
+    return np.array(normed_chords), np.array(normed_chords_standalone)  # noqa
 
 def lightcurve_convolve(sample: np.ndarray, lightcurve: np.ndarray, shift_needed: int) -> np.ndarray:
     """
@@ -722,51 +721,69 @@ def y_from_x(x, angle, px, py):
 
 def plot_diffraction(x, y, first_wavelength, last_wavelength, LCP, figsize=(14, 6),
                      title='Diffraction model plot',
-                     showLegend=False, showNotes=False, plot_versus_time=False, zoom=1):
+                     showLegend=False, showNotes=False, plot_versus_time=False, zoom=1,
+                     majorAxis=None, minorAxis=None, thetaDegrees=None, upperChordWanted=True):
     zoom_factor = zoom
-    asteroid_radius_km = LCP.asteroid_diameter_km / 2
 
-    rho = LCP.asteroid_rho
-
-    half_chord = LCP.chord_length_km / 2
-    if LCP.miss_distance_km == 0:
-        graze_offset_km = np.sqrt((LCP.asteroid_diameter_km / 2) ** 2 - half_chord ** 2)
+    if majorAxis is None:
+        asteroid_radius_km = LCP.asteroid_diameter_km / 2
     else:
-        graze_offset_km = LCP.miss_distance_km + LCP.asteroid_diameter_km / 2
+        asteroid_radius_km = None
 
-    if graze_offset_km > asteroid_radius_km:
-        left_edge = None
-        right_edge = None
+    if majorAxis is None:
+        rho = LCP.asteroid_rho
     else:
-        right_edge = np.sqrt(asteroid_radius_km ** 2 - graze_offset_km ** 2)
-        left_edge = -right_edge
+        rho = (majorAxis + minorAxis) / 4 / LCP.fresnel_length_km
+
+    graze_offset_km = getGrazeOffset(LCP, majorAxis, minorAxis, thetaDegrees)
+
+    if not upperChordWanted:
+        graze_offset_km = - graze_offset_km
 
     fig = plt.figure(constrained_layout=False, figsize=figsize)
     fig.canvas.manager.set_window_title(title)
 
-    # ax2 = fig.add_subplot(1, 4, (1, 2))  # lightcurve axes
-    # ax1 = fig.add_subplot(1, 4, (3, 4))  # event illustration axes
     ax2 = fig.add_subplot(1, 2, 1)  # lightcurve axes
     ax1 = fig.add_subplot(1, 2, 2)  # event illustration axes
 
-    circle1 = patches.Circle((0, 0), radius=asteroid_radius_km, facecolor="None", edgecolor='red')
+    if majorAxis is None:
+        asteroid_shape = patches.Circle((0, 0), radius=asteroid_radius_km, facecolor="None", edgecolor='red')
+    else:
+        asteroid_shape = patches.Ellipse((0, 0), minorAxis, majorAxis, thetaDegrees,
+                                  facecolor="None", edgecolor='red', linewidth=1)
 
-    right_limit = (3 * asteroid_radius_km / zoom_factor)
-    left_limit = - right_limit
+    if majorAxis is None:
+        right_limit = (3 * asteroid_radius_km / zoom_factor)
+        left_limit = - right_limit
+    else:
+        right_limit = (3 * (majorAxis + minorAxis) / 4) / zoom_factor
+        left_limit = - right_limit
 
     ax1.axis('equal')
 
+    if right_limit < abs(graze_offset_km):
+        right_limit = 3 * graze_offset_km
+        left_limit = - right_limit
+
+
     ax1.set_xlim(left_limit, right_limit)
     ax1.set_ylim(left_limit, right_limit)
-    ax1.add_patch(circle1)
-    ax1.hlines(graze_offset_km, xmin=left_limit * 0.9, xmax=right_limit * 0.9, ls='--', color='black')
+    ax1.add_patch(asteroid_shape)
+    ax1.hlines(graze_offset_km, xmin=left_limit * 0.9, xmax=right_limit * 0.9, ls='--', color='gray')
     ax1.grid()
     ax1.set_xlabel('Kilometers')
     ax1.set_ylabel('KM')
     ax1.set_title(f'Observation path')
 
+    if majorAxis is not None:
+        x1, x2 = ellipseChord(graze_offset_km, major_axis_km=majorAxis, minor_axis_km=minorAxis,
+                              theta_degrees=thetaDegrees)
+        ax1.hlines(graze_offset_km, xmin=x1, xmax=x2, ls='-', color='blue')
+
+
     # Get star disk chords
     star_disk_y = None
+    camera_y = None
     if not LCP.star_diameter_km == 0.0:
         d_chords, d_chords_alone, *_ = get_star_chord_samples(x=x, plot_margin=20, LCP=LCP)
         if d_chords is not None:
@@ -784,17 +801,6 @@ def plot_diffraction(x, y, first_wavelength, last_wavelength, LCP, figsize=(14, 
                                                shift_needed=len(sample) - 1)
         else:
             camera_y = y
-        # star_disk_y = lightcurve_convolve(sample=d_chords_alone,
-        #                                   lightcurve=y,
-        #                                   shift_needed=len(d_chords_alone) - 1)
-        #
-        # # Block integrate star_disk_y by frame_time to get camera_y
-        # span_km = x[-1] - x[0]
-        # resolution_km = span_km / LCP.npoints
-        # n_sample_points = round(LCP.frame_time * LCP.shadow_speed / resolution_km)
-        # sample = np.repeat(1.0 / n_sample_points, n_sample_points)
-        # camera_y = lightcurve_convolve(sample=sample, lightcurve=star_disk_y,
-        #                                shift_needed=len(sample) - 1)
     else:
         # Block integrate y by frame_time to get camera_y
         span_km = x[-1] - x[0]
@@ -821,9 +827,7 @@ def plot_diffraction(x, y, first_wavelength, last_wavelength, LCP, figsize=(14, 
         ax2.set_xlabel('Kilometers')
         ax2.set_ylabel('ADU')
 
-    # if not LCP.star_diameter_km == 0.0:
-    #     ax2.plot(x, star_disk_y, '-', color='blue', label="Star disk response")
-        # ax2.plot(x, d_chords * LCP.baseline_ADU, '-', color='orange', label='Star disk chords')
+    left_edge, right_edge = getChordEdges(LCP, asteroid_radius_km, graze_offset_km, majorAxis, minorAxis, thetaDegrees)
 
     if left_edge is not None:
         if plot_versus_time:
@@ -835,8 +839,9 @@ def plot_diffraction(x, y, first_wavelength, last_wavelength, LCP, figsize=(14, 
                        label='Geometric edge')
     else:
         ax2.vlines([-graze_offset_km, graze_offset_km], color='gray', ymin=0, ymax=1.4, ls='--', label='graze position')
-        ax2.vlines([-asteroid_radius_km, asteroid_radius_km], color='black',
-                   ymin=0, ymax=1.4, ls='--', label='asteroid radius')
+        if asteroid_radius_km is not None:
+            ax2.vlines([-asteroid_radius_km, asteroid_radius_km], color='black',
+                       ymin=0, ymax=1.4, ls='--', label='asteroid radius')
 
     if showLegend:
         ax2.legend(loc='best', fontsize=8)
@@ -853,28 +858,79 @@ def plot_diffraction(x, y, first_wavelength, last_wavelength, LCP, figsize=(14, 
         ax2.set_title(f'Integrated diffraction (wavelength range: \n{first_wavelength}nm to '
                       f'{last_wavelength}nm in 10 nm steps)\n{rho_adder}')
 
-    if plot_versus_time:
-        ax2.set_xlim(-3 * asteroid_radius_km / zoom_factor / LCP.shadow_speed,
-                     3 * asteroid_radius_km / zoom_factor / LCP.shadow_speed)
+    if majorAxis is None:
+        size = asteroid_radius_km
     else:
-        ax2.set_xlim(-3 * asteroid_radius_km / zoom_factor, 3 * asteroid_radius_km / zoom_factor)
+        size = max(majorAxis, minorAxis)
+
+    if plot_versus_time:
+        ax2.set_xlim(-3 * size / zoom_factor / LCP.shadow_speed,
+                     3 * size / zoom_factor / LCP.shadow_speed)
+    else:
+        ax2.set_xlim(-3 * size / zoom_factor, 3 * size / zoom_factor)
 
     ax2.grid()
 
     # Add text annotation to plot for asteroid diameter, distance, etc
-    s = f'asteroid diameter: {LCP.asteroid_diameter_km:0.2f} km'
-    s = s + f'\nasteroid distance: {LCP.asteroid_distance_AU:0.2f} AU'
-    s = s + f'\nframe time: {LCP.frame_time:0.3f} sec'
-    s = s + f'\ngraze offset: {graze_offset_km:0.2f} km'
-    s = s + f'\nrho: {rho:0.2f} @ {rho_wavelength} nm'
+    if majorAxis is None:  # Do legend for round asteroid
+        s = f'asteroid diameter: {LCP.asteroid_diameter_km:0.2f} km'
+        s = s + f'\nasteroid distance: {LCP.asteroid_distance_AU:0.2f} AU'
+        s = s + f'\nframe time: {LCP.frame_time:0.3f} sec'
+        s = s + f'\ngraze offset: {graze_offset_km:0.2f} km'
+        s = s + f'\nrho: {rho:0.2f} @ {rho_wavelength} nm'
+    else:
+        s = f'asteroid majorAxis: {majorAxis:0.2f} km'
+        s = s + f'\nasteroid minorAxis: {minorAxis:0.2f} km'
+        s = s + f'\nasteroid angle: {thetaDegrees:0.2f} degrees'
+        s = s + f'\nframe time: {LCP.frame_time:0.3f} sec'
+        s = s + f'\ngraze offset: {graze_offset_km:0.2f} km'
+        s = s + f'\nrho: {rho:0.2f} @ {rho_wavelength} nm'
 
     if showNotes:
         ax2.text(0.01, 0.03, s, transform=ax2.transAxes,
                  bbox=dict(facecolor='white', alpha=1), fontsize=10)
     plt.show()
 
+def ellipseChord(y, major_axis_km, minor_axis_km, theta_degrees):
+    v = major_axis_km / 2
+    h = minor_axis_km / 2
+    alpha = np.radians(theta_degrees)
 
-def generalizedDiffraction(LCP, wavelength1=None, wavelength2=None, skip_central_calc=False):
+    a = (v * np.cos(alpha)) ** 2 + (h * np.sin(alpha)) ** 2
+    b = 2 * y * np.cos(alpha) * np.sin(alpha) * (v * v - h * h)
+    c = y * y * ((v * np.sin(alpha)) ** 2 + (h * np.cos(alpha)) ** 2) - h * h * v * v
+
+    arg = b * b - 4 * a * c
+    if arg < 0:
+        return None, None
+    quad = np.sqrt(arg)
+    x1 = (-b - quad) / (2 * a)
+    x2 = (-b + quad) / (2 * a)
+    return x1, x2
+
+def grazeOffsetFromChord(chord_size_km, major_axis_km, minor_axis_km, theta_degrees):
+    y = 0.0
+    x1, x2 = ellipseChord(y, major_axis_km, minor_axis_km, theta_degrees)
+    current_chord = x2 - x1
+
+    if chord_size_km > current_chord:
+        # The chord_size_km is larger than can be contained within the ellipse
+        return None
+    elif chord_size_km == current_chord:
+        return 0.0
+
+    delta = max(major_axis_km, minor_axis_km) / 1000
+    while True:
+        y += delta
+        x1, x2 = ellipseChord(y, major_axis_km, minor_axis_km, theta_degrees)
+        if x1 is None:
+            return y - delta
+        new_chord = x2 - x1
+        if new_chord <= chord_size_km:
+            return y
+
+def generalizedDiffraction(LCP, wavelength1=None, wavelength2=None, skip_central_calc=False,
+                           majorAxis=None, minorAxis=None, thetaDegrees=None, upperChordWanted=True):
     # A family of central spot lightcurves are calculated when rho <= 16, otherwise the
     # analytic diffraction equation is used to produce the curve family that is
     # subsequently integrated.
@@ -888,15 +944,10 @@ def generalizedDiffraction(LCP, wavelength1=None, wavelength2=None, skip_central
     asteroid_diam_km = LCP.asteroid_diameter_km
     asteroid_distance_AU = LCP.asteroid_distance_AU
 
-    half_chord = LCP.chord_length_km / 2
-    if LCP.miss_distance_km == 0:
-        asteroidRadius = LCP.asteroid_diameter_km / 2
-        if half_chord < asteroidRadius:
-            graze_offset_km = np.sqrt(asteroidRadius ** 2 - half_chord ** 2)
-        else:
-            graze_offset_km = 0.0
-    else:
-        graze_offset_km = LCP.miss_distance_km + LCP.asteroid_diameter_km / 2
+    graze_offset_km = getGrazeOffset(LCP, majorAxis, minorAxis, thetaDegrees)
+
+    if not upperChordWanted:
+        graze_offset_km = - graze_offset_km
 
     y_avg = []
     x_avg = []
@@ -932,20 +983,17 @@ def generalizedDiffraction(LCP, wavelength1=None, wavelength2=None, skip_central
     asteroid_radius_km = asteroid_diam_km / 2
 
     # Compose title
-    title = f'graze-{graze_offset_km:0.2f}km_astdiam-{asteroid_diam_km:0.2f}km_astdist-{asteroid_distance_AU}AU'
+    if majorAxis is not None:
+        title = f'graze-{graze_offset_km:0.2f}km_majorAxis-{majorAxis:0.2f}km_minorAxis-{minorAxis:0.2f}km_astdist-{asteroid_distance_AU}AU'
+    else:
+        title = f'graze-{graze_offset_km:0.2f}km_astdiam-{asteroid_diam_km:0.2f}km_astdist-{asteroid_distance_AU}AU'
+
     if not single_wavelength:
         title += f'_{wavelength1}-to-{wavelength2}nm'
     else:
         title += f'_{wavelength1}nm'
 
-    if graze_offset_km == 0:
-        right_edge = asteroid_radius_km
-        left_edge = -right_edge
-    elif graze_offset_km > asteroid_radius_km:
-        right_edge = left_edge = None
-    else:
-        right_edge = np.sqrt(asteroid_radius_km ** 2 - graze_offset_km ** 2)
-        left_edge = -right_edge
+    left_edge, right_edge = getChordEdges(LCP, asteroid_radius_km, graze_offset_km, majorAxis, minorAxis, thetaDegrees)
 
     rho = asteroid_radius_km / fresnelLength(wavelength_nm=rho_wavelength, Z_AU=asteroid_distance_AU)
 
@@ -958,7 +1006,9 @@ def generalizedDiffraction(LCP, wavelength1=None, wavelength2=None, skip_central
                 n_off = convert_km_distance_to_pixels(graze_offset_km, N, fresnel_length_km)
                 if n_off > max_n_off:
                     n_off = max_n_off
-            my_field, fresnel_length_km, L_km, x_fl = basicCalcField(N, fresnel_length_km, diam_km=asteroid_diam_km)
+            my_field, fresnel_length_km, L_km, x_fl = basicCalcField(N, fresnel_length_km, diam_km=asteroid_diam_km,
+                                                                     majorAxis=majorAxis, minorAxis=minorAxis,
+                                                                     ellipseAngle=thetaDegrees)
             transform = (fft2(my_field)) / N
             image = abs(transform) ** 2
             row = image[N // 2 + n_off, :]
@@ -1011,6 +1061,53 @@ def generalizedDiffraction(LCP, wavelength1=None, wavelength2=None, skip_central
     return np.array(x_avg), y_ADU, left_edge, right_edge
 
 
+def getChordEdges(LCP, asteroid_radius_km, graze_offset_km, majorAxis, minorAxis, thetaDegrees):
+    if majorAxis is None:  # Asteroid is round
+        if graze_offset_km == 0:
+            right_edge = asteroid_radius_km
+            left_edge = -right_edge
+        elif graze_offset_km > asteroid_radius_km:
+            right_edge = left_edge = None
+        else:
+            right_edge = np.sqrt(asteroid_radius_km ** 2 - graze_offset_km ** 2)
+            left_edge = -right_edge
+    else:  # Asteroid is ellipse
+        if LCP.miss_distance_km == 0:
+            left_edge, right_edge = ellipseChord(graze_offset_km,
+                                                 major_axis_km=majorAxis, minor_axis_km=minorAxis,
+                                                 theta_degrees=thetaDegrees)
+        else:
+            right_edge = left_edge = None
+    return left_edge, right_edge
+
+
+def getGrazeOffset(LCP, majorAxis, minorAxis, thetaDegrees):
+    if majorAxis is None:
+        # Compute the graze offset for a circular asteroid
+        half_chord = LCP.chord_length_km / 2
+        if LCP.miss_distance_km == 0:
+            asteroidRadius = LCP.asteroid_diameter_km / 2
+            if half_chord < asteroidRadius:
+                graze_offset_km = np.sqrt(asteroidRadius ** 2 - half_chord ** 2)
+            else:
+                graze_offset_km = 0.0
+        else:
+            graze_offset_km = LCP.miss_distance_km + LCP.asteroid_diameter_km / 2
+    else:
+        if LCP.miss_distance_km == 0:
+            graze_offset_km = grazeOffsetFromChord(chord_size_km=LCP.chord_length_km,
+                                                   major_axis_km=majorAxis, minor_axis_km=minorAxis,
+                                                   theta_degrees=thetaDegrees)
+            if graze_offset_km is None:
+                raise ValueError('Chord size is too large for the specified ellipse')
+        else:
+            graze_offset_km = grazeOffsetFromChord(chord_size_km=0,
+                                                   major_axis_km=majorAxis, minor_axis_km=minorAxis,
+                                                   theta_degrees=thetaDegrees)
+            graze_offset_km += LCP.miss_distance_km
+    return graze_offset_km
+
+
 @jit(nopython=True)
 def tresterModifiedAperture(aperture, N):
     modified_aperture = zeros((N, N), dtype=complex128)
@@ -1043,10 +1140,54 @@ def convert_fresnel_distance_to_pixels(fresnel_distance, N):
 def convert_km_distance_to_pixels(km_distance, N, fresnel_length_km):
     return convert_fresnel_distance_to_pixels(km_distance / fresnel_length_km, N)
 
+@jit(nopython=True)
+def ellipseCoefficients(major_axis, minor_axis, theta_degrees):
+    a = major_axis / 2.0
+    b = minor_axis / 2.0
+    theta = np.radians(theta_degrees)
+    A = np.sin(theta) ** 2 / b ** 2 + np.cos(theta) ** 2 / a ** 2
+    B = np.cos(theta) ** 2 / b ** 2 + np.sin(theta) ** 2 / a ** 2
+    C = -2 * np.sin(theta) * np.cos(theta) / b ** 2 + 2 * np.sin(theta) * np.cos(theta) / a ** 2
+    return A, B, C
+
+def ellipsePerimeterPoints(major_axis, minor_axis, theta_degrees, num_points=1000):
+    a = major_axis / 2.0
+    b = minor_axis / 2.0
+    theta = np.radians(theta_degrees)
+
+    rot_matrix = np.array([[np.cos(theta), -np.sin(theta)], [np.sin(theta), np.cos(theta)]])
+
+    xvals = np.linspace(-a, a, num_points)
+    yvals_upper = np.sqrt(b ** 2 * (1 - xvals ** 2 / a ** 2))
+    yvals_lower = -yvals_upper
+
+    # Point pairs  to be plotted as:
+    # plt.plot(xrot_lower, yrot_lower, color='k')
+    # plt.plot(xrot_upper, yrot_upper, color='k')
+
+    xrot_upper, yrot_upper = np.dot(rot_matrix, [xvals, yvals_upper])
+    xrot_lower, yrot_lower = np.dot(rot_matrix, [xvals, yvals_lower])
+    return xrot_upper, yrot_upper, xrot_lower, yrot_lower
+
+@jit(nopython=True)
+def insideEllipse(x, y, ellipse_A, ellipse_B, ellipse_C):
+    return ellipse_A * x ** 2 + ellipse_B * y ** 2 + ellipse_C * x * y <= 1
+
+# @jit(nopython=True)
+# def validDots(num_dots, ellipse_A, ellipse_B, ellipse_C):
+#     x_pts = np.random.randint(-1000, 1000, num_dots) / 100
+#     y_pts = np.random.randint(-1000, 1000, num_dots) / 100
+#     x_dots = []
+#     y_dots = []
+#     for i in range(len(x_pts)):
+#         if insideEllipse(x_pts[i], y_pts[i], ellipse_A=ellipse_A, ellipse_B=ellipse_B, ellipse_C=ellipse_C):
+#             x_dots.append(x_pts[i])
+#             y_dots.append(y_pts[i])
+#     return x_dots, y_dots
 
 # We use Numba to greatly speedup the calculation of the modified aperture.
 @jit(nopython=True)
-def basicCalcField(N, fresnel_length_km, diam_km):
+def basicCalcField(N, fresnel_length_km, diam_km, majorAxis, minorAxis, ellipseAngle):
     # None of the following values are used in the computation of the modified aperture field
     # in the plane of the asteroid, but are needed to interpret the result in useful
     # physical parameters of field-of-view (in kilometers) and fresnel lengths, so we compute
@@ -1062,18 +1203,31 @@ def basicCalcField(N, fresnel_length_km, diam_km):
 
     amplitude = 1.0 + 0.0j
 
-    r = diam_km / 2.0
-    r2 = r * r
+    if majorAxis is not None:
+        # Create an elliptical asteroid profile
+        c1 = 1j * pi / N
+        ellipse_A, ellipse_B, ellipse_C = ellipseCoefficients(major_axis=majorAxis,
+                                                              minor_axis=minorAxis,
+                                                              theta_degrees=ellipseAngle)
+        for i in range(N):
+            for j in range(N):
+                c2 = i * i + j * j
+                if not insideEllipse(x[i], x[j], ellipse_A, ellipse_B, ellipse_C):
+                    my_field[i, j] = amplitude * np.exp(c1 * c2)
+    else:
+        # Create a circular asteroid profile
+        r = diam_km / 2.0
+        r2 = r * r
 
-    c1 = 1j * pi / N
+        c1 = 1j * pi / N
 
-    for i in range(N):
-        for j in range(N):
-            c2 = i * i + j * j
-            in_target = (x[j] * x[j] + x[i] * x[i]) < r2
-            in_target = in_target or (x[j] * x[j] + x[i] * x[i]) < r2
-            if not in_target:
-                my_field[i, j] = amplitude * np.exp(c1 * c2)
+        for i in range(N):
+            for j in range(N):
+                c2 = i * i + j * j
+                in_target = (x[j] * x[j] + x[i] * x[i]) < r2
+                in_target = in_target or (x[j] * x[j] + x[i] * x[i]) < r2
+                if not in_target:
+                    my_field[i, j] = amplitude * np.exp(c1 * c2)
 
     return my_field, fresnel_length_km, L_km, x_fl
 
@@ -1106,29 +1260,56 @@ def analyticDiffraction(u_value, D_or_R):
 
 
 def demo_diffraction_field(LCP, title_adder='',
-                           figsize=(8, 5)):
+                           figsize=(8, 5), majorAxis=None, minorAxis=None, ellipseAngle=None, useUpperPath=True):
     if LCP.asteroid_rho > 32:
         raise ValueError(
             f'The asteroid rho is {LCP.asteroid_rho:0.2f} which is greater than 32, the max that we can display.')
 
-    title = f'Diffraction pattern on the ground: {title_adder}'
+    title = f'Diffraction pattern on the ground (single wavelength computation at {LCP.wavelength_nm} nm): {title_adder}'
     N = 2048
+
+    graze_offset_km = None
 
     fig = plt.figure(constrained_layout=True, figsize=figsize)
     fig.canvas.manager.set_window_title(title)
     ax1 = fig.add_subplot()
 
     my_field, fresnel_length_km, L_km, x_fl = basicCalcField(N=N, fresnel_length_km=LCP.fresnel_length_km,
-                                                             diam_km=LCP.asteroid_diameter_km)
+                                                             diam_km=LCP.asteroid_diameter_km, majorAxis=majorAxis,
+                                                             minorAxis=minorAxis, ellipseAngle=ellipseAngle)
     transform = (fft2(my_field)) / N
     image = abs(transform) ** 2
 
     ax1.matshow(image[512:1536, 512:1536], cmap='gray')
 
-    circle1 = patches.Circle((512, 511),
-                             radius=convert_km_distance_to_pixels(LCP.asteroid_diameter_km / 2, N, fresnel_length_km),
-                             facecolor="None", edgecolor='red', linewidth=2)
-    ax1.add_patch(circle1)
+    if majorAxis is not None:
+        # A better way to show the ellipse outline
+        pixels_in_major_axis = convert_km_distance_to_pixels(majorAxis, N, fresnel_length_km)
+        pixels_in_minor_axis = convert_km_distance_to_pixels(minorAxis, N, fresnel_length_km)
+        ellipse = patches.Ellipse((512,511), pixels_in_minor_axis, pixels_in_major_axis, -ellipseAngle,
+                                  facecolor="None", edgecolor='red', linewidth=1)
+        ax1.add_patch(ellipse)
+
+    else:
+        circle1 = patches.Circle((512, 511),
+                                 radius=convert_km_distance_to_pixels(LCP.asteroid_diameter_km / 2, N, fresnel_length_km),
+                                 facecolor="None", edgecolor='red', linewidth=1)
+        ax1.add_patch(circle1)
+
+    if majorAxis is not None:
+        graze_offset_km = getGrazeOffset(LCP, majorAxis=majorAxis, minorAxis=minorAxis, thetaDegrees=ellipseAngle)
+
+    if graze_offset_km is None:
+        xyA = (24, 511)
+        xyB = (1000, 511)
+    else:
+        path_offset = convert_km_distance_to_pixels(graze_offset_km, N, fresnel_length_km)
+        if not useUpperPath:
+            path_offset = - path_offset
+        xyA = (24, 511 - path_offset)
+        xyB = (1000, 511 - path_offset)
+
+    ax1.plot([xyA[0], xyB[0]], [xyA[1], xyB[1]], "-", color='yellow', linewidth=1)
     plt.show()
 
 
@@ -1554,7 +1735,8 @@ def cameraIntegration(x, y, LCP):
 
 
 def demo_event(LCP: LightcurveParameters, model, title='Generic model', showLegend=False, showNotes=False,
-               plot_versus_time=False, plots_wanted=True):
+               plot_versus_time=False, plots_wanted=True, majorAxis=None, minorAxis=None, thetaDegrees=None,
+               upperChordWanted=True):
 
     # To avoid possible infinities at 90 degrees, fudge those values a little.
     # The original values will be restored on exit
@@ -1577,13 +1759,18 @@ def demo_event(LCP: LightcurveParameters, model, title='Generic model', showLege
                               plot_versus_time=plot_versus_time)
     elif model == 'diffraction':
         x, y, D_edge, R_edge = generalizedDiffraction(LCP=LCP, wavelength1=None, wavelength2=None,
-                                                      skip_central_calc=False)
+                                                      skip_central_calc=False,majorAxis=majorAxis,
+                                                      minorAxis=minorAxis,thetaDegrees=thetaDegrees,
+                                                      upperChordWanted=upperChordWanted)
+
         wavelength1 = LCP.wavelength_nm - 100
         wavelength2 = LCP.wavelength_nm + 100
         if plots_wanted:
             plot_diffraction(x=x, y=y, first_wavelength=wavelength1,
                              last_wavelength=wavelength2, LCP=LCP, title=title,
-                             showLegend=showLegend, showNotes=showNotes, plot_versus_time=plot_versus_time)
+                             showLegend=showLegend, showNotes=showNotes, plot_versus_time=plot_versus_time, zoom=1,
+                             majorAxis=majorAxis, minorAxis=minorAxis, thetaDegrees=thetaDegrees,
+                             upperChordWanted=upperChordWanted)
 
         camera_y = None
         # Get star disk chords
