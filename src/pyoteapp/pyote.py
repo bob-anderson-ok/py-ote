@@ -2234,6 +2234,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.showInfo(f'Incomplete specification of asteroid ellipse shape')
                 return failure
 
+        self.Lcp.use_upper_chord = self.useUpperEllipseChord.isChecked()
+
         return majorAxis, minorAxis, ellipseAngle
 
     def plotDiffractionPatternOnGround(self):
@@ -2242,9 +2244,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         try:
             majorAxis, minorAxis, ellipseAngle = self.validateEllipseParameters()
 
-            demo_diffraction_field(self.Lcp, title_adder=self.currentEventEdit.text(), majorAxis=majorAxis,
-                                   minorAxis=minorAxis, ellipseAngle=ellipseAngle,
-                                   useUpperPath=self.useUpperEllipseChord.isChecked())
+            demo_diffraction_field(self.Lcp, title_adder=self.currentEventEdit.text())
         except ValueError as e:
             self.showInfo(f'plotDiffractionPatternOnGround(): {e}')
         self.showDiffractionButton.setText('Show diffraction pattern on the ground')
@@ -3146,6 +3146,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.asteroidDiameterKmEdit.setText(f'{self.Lcp.asteroid_diameter_km:0.5f}')
         self.asteroidDiameterMasEdit.setText(f'{self.Lcp.asteroid_diameter_mas:0.5f}')
 
+        if self.Lcp.asteroid_major_axis is not None:
+            self.majorAxisEdit.setText(f'{self.Lcp.asteroid_major_axis:0.3f}')
+            self.minorAxisEdit.setText(f'{self.Lcp.asteroid_minor_axis:0.3f}')
+            self.ellipseAngleEdit.setText(f'{self.Lcp.ellipse_angle_degrees:0.3f}')
+
         self.asteroidSpeedShadowEdit.setText(f'{self.Lcp.shadow_speed:0.5f}')
         self.asteroidSpeedSkyEdit.setText(f'{self.Lcp.sky_motion_mas_per_sec:0.5f}')
 
@@ -3220,6 +3225,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             pickle_file = open(full_name, "rb")
             lcp_item = pickle.load(pickle_file)
             self.Lcp = lcp_item
+            try:
+                self.useUpperEllipseChord.setChecked(self.Lcp.use_upper_chord)
+            except Exception:  # noqa
+                pass
             self.fillLightcurvePanelEditBoxes()
             self.enableLightcurveButtons()
             self.handleModelSelectionRadioButtonClick()
@@ -3311,12 +3320,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.showInfo('An event name is required before a "save" can be performed')
             return
 
-        # anUnsetParameterFound, parameterName = self.Lcp.check_for_none()
-        # if anUnsetParameterFound:
-        #     self.showInfo(f'{parameterName} has not been set.\n\n'
-        #                   f'There may be others.')
-        #     return
-
         if not self.allCoreElementsEntered:
             self.showInfo(f'There are some core event parameters yet to be entered.\n\n'
                           f'The core event parameters are those between the first pair of black bars.')
@@ -3324,6 +3327,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.Lcp.sourceFile = os.path.split(self.csvFilePath)[1]
 
         LCPdirectory = os.path.dirname(self.csvFilePath)
+
+        majorAxis, minorAxis, thetaDegrees = self.validateEllipseParameters()
+        if majorAxis is not None:
+            self.Lcp.asteroid_major_axis = majorAxis
+            self.Lcp.asteroid_minor_axis = minorAxis
+            self.Lcp.ellipse_angle_degrees = thetaDegrees
+            self.Lcp.use_upper_chord = self.useUpperEllipseChord.isChecked()
 
         # We overwrite without warning an event file with the same name
         try:

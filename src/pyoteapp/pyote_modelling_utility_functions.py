@@ -444,6 +444,11 @@ class LightcurveParameters:
 
     sourceFile: str = field(default='?')
 
+    asteroid_major_axis: float = None
+    asteroid_minor_axis: float = None
+    ellipse_angle_degrees: float = None
+    use_upper_chord: bool = False
+
     asteroid_diameter_km: float = None
     asteroid_diameter_mas: float = None
     asteroid_rho: float = None
@@ -735,7 +740,7 @@ def plot_diffraction(x, y, first_wavelength, last_wavelength, LCP, figsize=(14, 
     else:
         rho = (majorAxis + minorAxis) / 4 / LCP.fresnel_length_km
 
-    graze_offset_km = getGrazeOffset(LCP, majorAxis, minorAxis, thetaDegrees)
+    graze_offset_km = getGrazeOffset(LCP)
 
     if not upperChordWanted:
         graze_offset_km = - graze_offset_km
@@ -929,8 +934,7 @@ def grazeOffsetFromChord(chord_size_km, major_axis_km, minor_axis_km, theta_degr
         if new_chord <= chord_size_km:
             return y
 
-def generalizedDiffraction(LCP, wavelength1=None, wavelength2=None, skip_central_calc=False,
-                           majorAxis=None, minorAxis=None, thetaDegrees=None, upperChordWanted=True):
+def generalizedDiffraction(LCP, wavelength1=None, wavelength2=None, skip_central_calc=False):
     # A family of central spot lightcurves are calculated when rho <= 16, otherwise the
     # analytic diffraction equation is used to produce the curve family that is
     # subsequently integrated.
@@ -940,11 +944,15 @@ def generalizedDiffraction(LCP, wavelength1=None, wavelength2=None, skip_central
 
     # Grazing observation lightcurves can be generated with any amount of offset, including
     # outside the geometrical shadow.
+    majorAxis = LCP.asteroid_major_axis
+    minorAxis = LCP.asteroid_minor_axis
+    thetaDegrees = LCP.ellipse_angle_degrees
+    upperChordWanted = LCP.use_upper_chord
 
     asteroid_diam_km = LCP.asteroid_diameter_km
     asteroid_distance_AU = LCP.asteroid_distance_AU
 
-    graze_offset_km = getGrazeOffset(LCP, majorAxis, minorAxis, thetaDegrees)
+    graze_offset_km = getGrazeOffset(LCP)
 
     if not upperChordWanted:
         graze_offset_km = - graze_offset_km
@@ -1081,8 +1089,8 @@ def getChordEdges(LCP, asteroid_radius_km, graze_offset_km, majorAxis, minorAxis
     return left_edge, right_edge
 
 
-def getGrazeOffset(LCP, majorAxis, minorAxis, thetaDegrees):
-    if majorAxis is None:
+def getGrazeOffset(LCP):
+    if LCP.asteroid_major_axis is None:
         # Compute the graze offset for a circular asteroid
         half_chord = LCP.chord_length_km / 2
         if LCP.miss_distance_km == 0:
@@ -1096,14 +1104,16 @@ def getGrazeOffset(LCP, majorAxis, minorAxis, thetaDegrees):
     else:
         if LCP.miss_distance_km == 0:
             graze_offset_km = grazeOffsetFromChord(chord_size_km=LCP.chord_length_km,
-                                                   major_axis_km=majorAxis, minor_axis_km=minorAxis,
-                                                   theta_degrees=thetaDegrees)
+                                                   major_axis_km=LCP.asteroid_major_axis,
+                                                   minor_axis_km=LCP.asteroid_minor_axis,
+                                                   theta_degrees=LCP.ellipse_angle_degrees)
             if graze_offset_km is None:
                 raise ValueError('Chord size is too large for the specified ellipse')
         else:
             graze_offset_km = grazeOffsetFromChord(chord_size_km=0,
-                                                   major_axis_km=majorAxis, minor_axis_km=minorAxis,
-                                                   theta_degrees=thetaDegrees)
+                                                   major_axis_km=LCP.asteroid_major_axis,
+                                                   minor_axis_km=LCP.asteroid_minor_axis,
+                                                   theta_degrees=LCP.ellipse_angle_degrees)
             graze_offset_km += LCP.miss_distance_km
     return graze_offset_km
 
@@ -1259,8 +1269,7 @@ def analyticDiffraction(u_value, D_or_R):
     return diffraction_u(u_value, D_or_R)
 
 
-def demo_diffraction_field(LCP, title_adder='',
-                           figsize=(8, 5), majorAxis=None, minorAxis=None, ellipseAngle=None, useUpperPath=True):
+def demo_diffraction_field(LCP, title_adder='', figsize=(8, 5)):
     if LCP.asteroid_rho > 32:
         raise ValueError(
             f'The asteroid rho is {LCP.asteroid_rho:0.2f} which is greater than 32, the max that we can display.')
@@ -1275,18 +1284,28 @@ def demo_diffraction_field(LCP, title_adder='',
     ax1 = fig.add_subplot()
 
     my_field, fresnel_length_km, L_km, x_fl = basicCalcField(N=N, fresnel_length_km=LCP.fresnel_length_km,
-                                                             diam_km=LCP.asteroid_diameter_km, majorAxis=majorAxis,
-                                                             minorAxis=minorAxis, ellipseAngle=ellipseAngle)
+                                                             diam_km=LCP.asteroid_diameter_km,
+                                                             majorAxis=LCP.asteroid_major_axis,
+                                                             minorAxis=LCP.asteroid_minor_axis,
+                                                             ellipseAngle=LCP.ellipse_angle_degrees)
     transform = (fft2(my_field)) / N
     image = abs(transform) ** 2
 
+
     ax1.matshow(image[512:1536, 512:1536], cmap='gray')
 
-    if majorAxis is not None:
-        # A better way to show the ellipse outline
-        pixels_in_major_axis = convert_km_distance_to_pixels(majorAxis, N, fresnel_length_km)
-        pixels_in_minor_axis = convert_km_distance_to_pixels(minorAxis, N, fresnel_length_km)
-        ellipse = patches.Ellipse((512,511), pixels_in_minor_axis, pixels_in_major_axis, -ellipseAngle,
+    if LCP.asteroid_major_axis is not None:
+        pixels_in_major_axis = convert_km_distance_to_pixels(LCP.asteroid_major_axis, N, fresnel_length_km)
+        if pixels_in_major_axis > 1024:
+            raise ValueError(
+                f'The asteroid major axis value of {LCP.asteroid_major_axis:0.3f} km is too large.')
+
+        pixels_in_minor_axis = convert_km_distance_to_pixels(LCP.asteroid_minor_axis, N, fresnel_length_km)
+        if pixels_in_minor_axis > 1024:
+            raise ValueError(
+                f'The asteroid minor axis value of {LCP.asteroid_minor_axis:0.3f} km is too large.')
+
+        ellipse = patches.Ellipse((512,511), pixels_in_minor_axis, pixels_in_major_axis, -LCP.ellipse_angle_degrees,
                                   facecolor="None", edgecolor='red', linewidth=1)
         ax1.add_patch(ellipse)
 
@@ -1296,22 +1315,22 @@ def demo_diffraction_field(LCP, title_adder='',
                                  facecolor="None", edgecolor='red', linewidth=1)
         ax1.add_patch(circle1)
 
-    if majorAxis is not None:
-        graze_offset_km = getGrazeOffset(LCP, majorAxis=majorAxis, minorAxis=minorAxis, thetaDegrees=ellipseAngle)
+    if LCP.asteroid_major_axis is not None:
+        graze_offset_km = getGrazeOffset(LCP)
 
     if graze_offset_km is None:
         xyA = (24, 511)
         xyB = (1000, 511)
     else:
         path_offset = convert_km_distance_to_pixels(graze_offset_km, N, fresnel_length_km)
-        if not useUpperPath:
+        if not LCP.use_upper_chord:
             path_offset = - path_offset
         xyA = (24, 511 - path_offset)
         xyB = (1000, 511 - path_offset)
 
     ax1.plot([xyA[0], xyB[0]], [xyA[1], xyB[1]], "-", color='yellow', linewidth=1)
-    plt.show()
 
+    plt.show()
 
 def dodModel(margin, LCP):
     star_radius = LCP.star_radius_km
@@ -1759,9 +1778,7 @@ def demo_event(LCP: LightcurveParameters, model, title='Generic model', showLege
                               plot_versus_time=plot_versus_time)
     elif model == 'diffraction':
         x, y, D_edge, R_edge = generalizedDiffraction(LCP=LCP, wavelength1=None, wavelength2=None,
-                                                      skip_central_calc=False,majorAxis=majorAxis,
-                                                      minorAxis=minorAxis,thetaDegrees=thetaDegrees,
-                                                      upperChordWanted=upperChordWanted)
+                                                      skip_central_calc=False)
 
         wavelength1 = LCP.wavelength_nm - 100
         wavelength2 = LCP.wavelength_nm + 100
