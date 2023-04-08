@@ -175,7 +175,7 @@
            <item>
             <widget class="QTabWidget" name="tabWidget">
              <property name="currentIndex">
-              <number>1</number>
+              <number>3</number>
              </property>
              <property name="movable">
               <bool>true</bool>
@@ -5175,6 +5175,26 @@
                   </property>
                   <property name="text">
                    <string>Demo model lightcurve</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="plotFamilyButton">
+                  <property name="enabled">
+                   <bool>false</bool>
+                  </property>
+                  <property name="text">
+                   <string>Plot family of lightcurves</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="setMetricLimitsButton">
+                  <property name="enabled">
+                   <bool>false</bool>
+                  </property>
+                  <property name="text">
+                   <string>Set limits for metric calculation</string>
                   </property>
                  </widget>
                 </item>

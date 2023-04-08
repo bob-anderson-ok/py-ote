@@ -434,9 +434,14 @@ class LightcurveParameters:
     frame_time: float
     shadow_speed: float
 
+
+
     wavelength_nm: float
 
     sky_motion_mas_per_sec: float
+
+    metricLimitLeft: int = None
+    metricLimitRight: int = None
 
     sigmaB: float = None  # standard deviation of baseline points (needed for metric)
 
@@ -1269,19 +1274,21 @@ def analyticDiffraction(u_value, D_or_R):
     return diffraction_u(u_value, D_or_R)
 
 
-def demo_diffraction_field(LCP, title_adder='', figsize=(8, 5)):
+def demo_diffraction_field(LCP, title_adder='', figsize=(11, 5)):
     if LCP.asteroid_rho > 32:
         raise ValueError(
             f'The asteroid rho is {LCP.asteroid_rho:0.2f} which is greater than 32, the max that we can display.')
 
-    title = f'Diffraction pattern on the ground (single wavelength computation at {LCP.wavelength_nm} nm): {title_adder}'
+    title = f'Diffraction pattern on ground uses a single wavelength of  {LCP.wavelength_nm} nm): {title_adder}'
     N = 2048
 
     graze_offset_km = None
 
     fig = plt.figure(constrained_layout=True, figsize=figsize)
     fig.canvas.manager.set_window_title(title)
-    ax1 = fig.add_subplot()
+    # ax1 = fig.add_subplot()
+    ax2 = fig.add_subplot(1, 2, 2)  # lightcurve axes
+    ax1 = fig.add_subplot(1, 2, 1)  # ground image
 
     my_field, fresnel_length_km, L_km, x_fl = basicCalcField(N=N, fresnel_length_km=LCP.fresnel_length_km,
                                                              diam_km=LCP.asteroid_diameter_km,
@@ -1329,6 +1336,20 @@ def demo_diffraction_field(LCP, title_adder='', figsize=(8, 5)):
         xyB = (1000, 511 - path_offset)
 
     ax1.plot([xyA[0], xyB[0]], [xyA[1], xyB[1]], "-", color='yellow', linewidth=1)
+    ax1.set_title(f'Image at single wavelength of {LCP.wavelength_nm} nm')
+
+    x, y, left_edge, right_edge = generalizedDiffraction(LCP=LCP, wavelength1=LCP.wavelength_nm - 100, wavelength2=LCP.wavelength_nm + 100)
+
+    ax2.plot(x,y)
+    ax2.set_title(f'Underlying light curve integrated over wavelengths\n from {LCP.wavelength_nm-100} nm '
+                  f'to {LCP.wavelength_nm + 100} nm\n'
+                  f'Asteriod is moving left to right.\n'
+                  f'Camera exposure/star diameter effects not included.')
+    ax2.plot([left_edge, left_edge], [0, max(y)], "--", color='gray')
+    ax2.plot([right_edge, right_edge], [0, max(y)], "--", color='gray')
+    ax2.set_ylim(0, 1.1 * max(y))
+    ax2.set_xlabel("KM")
+    ax2.grid()
 
     plt.show()
 

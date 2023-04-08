@@ -10,6 +10,8 @@ import zipfile
 from contextlib import contextmanager
 import zlib
 
+from pyoteapp.likelihood_calculations import cum_loglikelihood
+
 # TODO Comment these lines out when not investigating memory usage issues
 # from pympler import muppy, summary
 # from resource import getrusage, RUSAGE_SELF
@@ -128,6 +130,7 @@ INCLUDED_COLOR = (0, 32, 255)    # blue + green tinge
 LINESIZE = 2
 
 acfCoefThreshold = 0.05  # To match what is being done in R-OTE 4.5.4+
+
 
 
 @dataclass
@@ -251,6 +254,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         super(SimplePlot, self).__init__()
 
         self.getListOfVizieRlightcurves()
+
+        self.metricLimitLeft = None
+        self.metricLimitRight = None
 
 
         self.firstLightCurveDisplayed = True
@@ -632,6 +638,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.fitLightcurveButton.installEventFilter(self)
         self.askAdviceButton.installEventFilter(self)
         self.showDiffractionButton.installEventFilter(self)
+
+        self.plotFamilyButton.clicked.connect(self.plotFamilyOfLightcurves)
+        self.plotFamilyButton.installEventFilter(self)
+
+        self.setMetricLimitsButton.clicked.connect(self.setMetricLimits)
+        self.setMetricLimitsButton.installEventFilter(self)
 
         self.askAdviceButton.clicked.connect(self.showModelChoiceAdvice)
         self.fitLightcurveButton.clicked.connect(self.fitModelLightcurveButtonClicked)
@@ -1170,6 +1182,54 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                           f'that have not been zipped and sent!')
 
     # ====  New method entry point ===
+
+    def setMetricLimits(self):
+        leftLimit, done = QtWidgets.QInputDialog.getInt(self, ' ', 'Lefthand reading number of data to be used for metric:', min=0)
+        if done:
+            rightLimit, done = QtWidgets.QInputDialog.getInt(self, ' ',
+                                                            'Righthand reading number of data to be used for metric:', min=0)
+            if done:
+                if 0 <= leftLimit < rightLimit:
+                    self.metricLimitLeft = leftLimit
+                    self.metricLimitRight = rightLimit
+                    self.Lcp.metricLimitLeft = leftLimit
+                    self.Lcp.metricLimitRight = rightLimit
+                    self.showInfo(f'Metric will be calculated using data points from {leftLimit} to {rightLimit} inclusive.')
+                else:
+                    self.showInfo(f'The reading numbers supplied are invalid.')
+
+    def plotFamilyOfLightcurves(self):
+        # name, done1 = QtWidgets.QInputDialog.getText(
+        #     self, 'Input Dialog', 'Enter your name:')
+        #
+        # roll, done2 = QtWidgets.QInputDialog.getInt(
+        #     self, 'Input Dialog', 'Enter your roll:')
+        #
+        # cgpa, done3 = QtWidgets.QInputDialog.getDouble(
+        #     self, 'Input Dialog', 'Enter your CGPA:')
+
+
+        params = ['Miss distance', 'ellipse angle', 'major axis', 'minor axis', 'asteroid diameter']
+        param, done4 = QtWidgets.QInputDialog.getItem(
+            self, ' ', 'Select parameter to change:', params, editable=False)
+
+        if done4:
+            # Showing confirmation message along
+            # with information provided by user.
+            # self.showInfo(f'Parameter to change is "{param}"')
+            startValue, done = QtWidgets.QInputDialog.getDouble(self, ' ', 'Start parameter value as:', decimals=5)
+            if done:
+                # self.showInfo(f'Starting value for {param} is {startValue}')
+                stepValue, done = QtWidgets.QInputDialog.getDouble(self, ' ', 'Step change of parameter:', decimals=5)
+                if done:
+                    # self.showInfo(f'Step change for {param} is {stepValue}')
+                    numSteps, done = QtWidgets.QInputDialog.getInt(self, ' ', 'Number of steps:', min=1)
+                    if done:
+                        self.showInfo(f'{param} will start at {startValue} and make {numSteps} steps of size {stepValue}\n\n'
+                                      f'THIS FEATURE IS NOT YET IMPLEMENTED')
+        else:
+            self.showInfo('No selection made')
+        return
 
     def removeAddedDataSets(self):
 
@@ -2089,13 +2149,42 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         modelSigmaB = self.Lcp.sigmaB
         matchingObsYvalues = []
         modelYsamples = []
+        sigmaValues = []  # We will use these for the likelihood calculations
         i = self.modelXsamples[0]  # Units: frame number
         k = 0
         while i < len(self.yValues) and k < self.modelYsamples.size:
-            matchingObsYvalues.append(self.yValues[i])
-            modelYsamples.append(self.modelYsamples[k])
+            try:
+                # This 'try' can fail if an older LCP is in use that did not have these fields
+                self.metricLimitLeft = self.Lcp.metricLimitLeft
+                self.metricLimitRight = self.Lcp.metricLimitRight
+            except Exception:  # noqa
+                pass
+            # TODO Experiment to limit region used in metric calculation
+            if self.metricLimitLeft is not None:
+                if self.metricLimitLeft <= i <= self.metricLimitRight:
+                    matchingObsYvalues.append(self.yValues[i])
+                    modelYsamples.append(self.modelYsamples[k])
+                    sigmaValues.append(modelSigmaB)
+            else:
+                matchingObsYvalues.append(self.yValues[i])
+                modelYsamples.append(self.modelYsamples[k])
+                sigmaValues.append(modelSigmaB)
+
             i += 1
             k += 1
+
+        if self.metricLimitLeft is not None and len(matchingObsYvalues) == 0:
+            self.showInfo(f'Given the metric limits supplied, no metric points were found.\n\n'
+                          f'Did you accidentally use frame numbers rather than reading numbers to specify your choices?')
+            return 0.0
+
+        yVals = np.array(matchingObsYvalues)
+        mVals = np.array(modelYsamples)
+        sigVals = np.array(sigmaValues)
+        log_likelihood = cum_loglikelihood(yVals, mVals, sigVals, 0, len(sigmaValues)-1)
+        # TODO Remove this print statement
+        # self.showMsg(f'log_likelihood: {log_likelihood:0.4f}')
+
         matchingObsYvalues = np.array(matchingObsYvalues)
         modelYsamples = np.array(modelYsamples)
 
@@ -2250,7 +2339,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.showDiffractionButton.setText('... computation in progress')
         QtWidgets.QApplication.processEvents()
         try:
-            majorAxis, minorAxis, ellipseAngle = self.validateEllipseParameters()
+            self.validateEllipseParameters()
 
             demo_diffraction_field(self.Lcp, title_adder=self.currentEventEdit.text())
         except ValueError as e:
@@ -2642,6 +2731,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.showMsg(f'Maximum improvement has been achieved with metric: '
                      f'{self.bestFit.thisPassMetric:0.5f}  ',
                      color='black', bold=True)
+        if self.metricLimitLeft is not None:
+            self.showMsg(f'The metric above was calculated using only readings {self.metricLimitLeft}'
+                         f' to {self.metricLimitRight} inclusive.', color='black', bold=True)
+
         self.beingOptimizedEdit.clear()
         self.printFinalReport()
         self.fitLightcurveButton.setStyleSheet("background-color: yellow")
@@ -3854,6 +3947,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.starSizeKmEdit.clear()
 
         self.fitLightcurveButton.setEnabled(False)
+        self.plotFamilyButton.setEnabled(False)
+        self.setMetricLimitsButton.setEnabled(False)
         self.pauseFitButton.setEnabled(False)
         self.askAdviceButton.setEnabled(False)
         self.showDiffractionButton.setEnabled(False)
@@ -3881,6 +3976,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.askAdviceButton.setEnabled(True)
         self.showDiffractionButton.setEnabled(self.diffractionRadioButton.isChecked())
         self.demoModelButton.setEnabled(True)
+        self.plotFamilyButton.setEnabled(True)
+        self.setMetricLimitsButton.setEnabled(True)
         self.printEventParametersButton.setEnabled(True)
 
     def processYoffsetStepBy10(self):
@@ -8164,6 +8261,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.initializeVariablesThatDontDependOnAfile()
         self.blockSize = 1
         self.fieldMode = False
+
+        self.metricLimitLeft = None
+        self.metricLimitRight = None
 
         self.pathToVideo = None
 
