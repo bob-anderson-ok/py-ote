@@ -679,6 +679,13 @@ class LightcurveParameters:
         else:
             output_str.append(f"chord_length_sec: None\n")
 
+        if self.asteroid_major_axis is not None:  # We only check one - the 'setting' routine must fill all or none
+            output_str.append('\n')
+            output_str.append(f"\nasteroid_major_axis:  {self.asteroid_major_axis:0.4f} km\n")
+            output_str.append(f"asteroid_minor_axis:  {self.asteroid_minor_axis:0.4f} km\n")
+            output_str.append(f"ellipse_angle_degrees:  {self.ellipse_angle_degrees:0.4f} degrees\n")
+            output_str.append('\n')
+
         output_str.append(
             f"miss_distance_km: {self.miss_distance_km:0.2f}\n")
 

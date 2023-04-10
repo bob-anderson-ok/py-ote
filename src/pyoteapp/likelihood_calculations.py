@@ -26,7 +26,7 @@ def aicc(logLikelihood, n, k):
     k = number of degrees of freedom
     """
     assert(n > k + 2)
-    return -2 * logLikelihood + 2 * k * n / (n - k - 1)
+    return -2 * logLikelihood + 2 * k + (2 * k**2 + 2 * k) / (n - k - 1)
 
 
 def likelihood(y, m, sigma):

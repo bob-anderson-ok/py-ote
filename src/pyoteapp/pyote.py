@@ -3,6 +3,7 @@ Created on Sat May 20 15:32:13 2017
 
 @author: Bob Anderson
 """
+import copy
 import pickle
 import string
 import glob
@@ -10,7 +11,7 @@ import zipfile
 from contextlib import contextmanager
 import zlib
 
-from pyoteapp.likelihood_calculations import cum_loglikelihood
+# from pyoteapp.likelihood_calculations import cum_loglikelihood, aicc
 
 # TODO Comment these lines out when not investigating memory usage issues
 # from pympler import muppy, summary
@@ -43,7 +44,7 @@ import platform
 
 from openpyxl import load_workbook
 
-from pyoteapp.pyote_modelling_utility_functions import LightcurveParameters
+from pyoteapp.pyote_modelling_utility_functions import LightcurveParameters, generalizedDiffraction
 from pyoteapp.pyote_modelling_utility_functions import decide_model_to_use
 from pyoteapp.pyote_modelling_utility_functions import demo_event
 from pyoteapp.pyote_modelling_utility_functions import demo_diffraction_field
@@ -1199,37 +1200,113 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     self.showInfo(f'The reading numbers supplied are invalid.')
 
     def plotFamilyOfLightcurves(self):
-        # name, done1 = QtWidgets.QInputDialog.getText(
-        #     self, 'Input Dialog', 'Enter your name:')
-        #
-        # roll, done2 = QtWidgets.QInputDialog.getInt(
-        #     self, 'Input Dialog', 'Enter your roll:')
-        #
-        # cgpa, done3 = QtWidgets.QInputDialog.getDouble(
-        #     self, 'Input Dialog', 'Enter your CGPA:')
 
-
-        params = ['Miss distance', 'ellipse angle', 'major axis', 'minor axis', 'asteroid diameter']
-        param, done4 = QtWidgets.QInputDialog.getItem(
+        params = ['miss distance km', 'ellipse angle degrees', 'major axis km', 'minor axis km', 'asteroid diameter km']
+        param, gotParam = QtWidgets.QInputDialog.getItem(
             self, ' ', 'Select parameter to change:', params, editable=False)
 
-        if done4:
-            # Showing confirmation message along
-            # with information provided by user.
-            # self.showInfo(f'Parameter to change is "{param}"')
-            startValue, done = QtWidgets.QInputDialog.getDouble(self, ' ', 'Start parameter value as:', decimals=5)
-            if done:
-                # self.showInfo(f'Starting value for {param} is {startValue}')
-                stepValue, done = QtWidgets.QInputDialog.getDouble(self, ' ', 'Step change of parameter:', decimals=5)
-                if done:
-                    # self.showInfo(f'Step change for {param} is {stepValue}')
-                    numSteps, done = QtWidgets.QInputDialog.getInt(self, ' ', 'Number of steps:', min=1)
-                    if done:
-                        self.showInfo(f'{param} will start at {startValue} and make {numSteps} steps of size {stepValue}\n\n'
-                                      f'THIS FEATURE IS NOT YET IMPLEMENTED')
+        if gotParam:
+            startValue, gotStartValue = QtWidgets.QInputDialog.getDouble(self, ' ', 'Start parameter value as:', decimals=5)
+            if gotStartValue:
+                stepValue, gotStepValue = QtWidgets.QInputDialog.getDouble(self, ' ', 'Step change of parameter:', decimals=5)
+                if gotStepValue:
+                    numSteps, gotNumSteps = QtWidgets.QInputDialog.getInt(self, ' ', 'Number of steps:', min=1)
+                else:
+                    self.showInfo('No step change value given')
+                    return
+                if not gotNumSteps:
+                    self.showInfo('No step count given')
+                    return
+            else:
+                self.showInfo('No start value given')
+                return
+            self.showInfo(f'{param} will start at {startValue} and make {numSteps} steps of size {stepValue}\n\n')
+            self.showMsg('', blankLine=False)
+            self.showMsg(f'{param} will start at {startValue} and make {numSteps} steps of size {stepValue}',
+                         color='black', bold=True)
         else:
-            self.showInfo('No selection made')
-        return
+            self.showInfo('No parameter selection given')
+            return
+
+        fig = plt.figure(constrained_layout=False, figsize=(10,8))
+        fig.canvas.manager.set_window_title("Family plot")
+        ax1 = fig.add_subplot(1, 1, 1)  # lightcurve axes
+
+        savedLcp = copy.deepcopy(self.Lcp)
+
+        if param == 'miss distance km':
+            self.Lcp.miss_distance_km = startValue
+        elif param == 'ellipse angle degrees':
+            self.Lcp.ellipse_angle_degrees = startValue
+        elif param == 'major axis km':
+            self.Lcp.asteroid_major_axis = startValue
+        elif param == 'minor axis km':
+            self.Lcp.asteroid_minor_axis = startValue
+        elif param == 'asteroid diameter km':
+            self.Lcp.asteroid_diameter_km = startValue
+        else:
+            self.showInfo(f'Programming error: no such parameter named {param}!')
+            return
+
+        yVec = []
+
+        for i in range(1,numSteps+1):
+            # self.showMsg(f'Computing curve {i}', bold=True, color='red', blankLine=False)
+            QtWidgets.QApplication.processEvents()
+            x, y, D_edge, R_edge = generalizedDiffraction(LCP=self.Lcp, wavelength1=None, wavelength2=None,
+                                                          skip_central_calc=False)
+            yVec.append(y)
+            if param == 'miss distance km':
+                label = f'{i}: {param} {self.Lcp.miss_distance_km:0.4f} km'
+                self.showMsg(f'Computing curve {label}', bold=True, color='red', blankLine=False)
+                ax1.plot(x,y, label=label)
+                self.Lcp.miss_distance_km += stepValue
+            elif param == 'ellipse angle degrees':
+                label = f'{i}: {param} {self.Lcp.ellipse_angle_degrees:0.4f} degrees'
+                self.showMsg(f'Computing curve {label}', bold=True, color='red', blankLine=False)
+                ax1.plot(x, y, label=label)
+                self.Lcp.ellipse_angle_degrees += stepValue
+            elif param == 'major axis km':
+                label = f'{i}: {param} {self.Lcp.asteroid_major_axis:0.4f} km'
+                self.showMsg(f'Computing curve {label}', bold=True, color='red', blankLine=False)
+                ax1.plot(x,y, label=label)
+                self.Lcp.asteroid_major_axis += stepValue
+            elif param == 'minor axis km':
+                label = f'{i}: {param} {self.Lcp.asteroid_minor_axis:0.4f} km'
+                self.showMsg(f'Computing curve {label}', bold=True, color='red', blankLine=False)
+                ax1.plot(x,y, label=label)
+                self.Lcp.asteroid_minor_axis += stepValue
+            elif param == 'asteroid diameter km':
+                label = f'{i}: {param} {self.Lcp.asteroid_diameter_km:0.4f} km'
+                self.showMsg(f'Computing curve {label}', bold=True, color='red', blankLine=False)
+                ax1.plot(x, y, label=label)
+                self.Lcp.asteroid_diameter_km += stepValue
+            else:
+                self.showInfo(f'Programming error: no such parameter named {param}!')
+                return
+
+
+        self.Lcp = copy.deepcopy(savedLcp)  # Restore the original
+        ax1.set_ylim(0, 1.1 * np.max(yVec[:]))
+        ax1.set_xlabel("Kilometers")
+        ax1.legend(loc='best', fontsize=8)
+        # plt.show()
+
+        reply = QMessageBox.question(
+            self,
+            "Model comparisons",
+            "Do you want to do a noise/model comparison",
+            QMessageBox.Yes,
+            QMessageBox.No
+        )
+
+        if reply == QMessageBox.No:
+            plt.show()
+            return
+        else:
+            self.showInfo(f'OK. We will get started.\n\n'
+                          f'This feature is under construction.')
+            plt.show()
 
     def removeAddedDataSets(self):
 
@@ -2178,12 +2255,15 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                           f'Did you accidentally use frame numbers rather than reading numbers to specify your choices?')
             return 0.0
 
-        yVals = np.array(matchingObsYvalues)
-        mVals = np.array(modelYsamples)
-        sigVals = np.array(sigmaValues)
-        log_likelihood = cum_loglikelihood(yVals, mVals, sigVals, 0, len(sigmaValues)-1)
+        # yVals = np.array(matchingObsYvalues)
+        # mVals = np.array(modelYsamples)
+        # sigVals = np.array(sigmaValues)
+        # log_likelihood = cum_loglikelihood(yVals, mVals, sigVals, 0, len(sigmaValues)-1)
+        # TODO Figure out if this is appropriate
+        # I'm setting k to 1 because only a single parameter is varied - all others are given
+        # aiccValue = aicc(log_likelihood, n=len(sigmaValues), k=1)
         # TODO Remove this print statement
-        # self.showMsg(f'log_likelihood: {log_likelihood:0.4f}')
+        # self.showMsg(f'log_likelihood: {log_likelihood:0.4f}  aicc: {aiccValue:0.4f}')
 
         matchingObsYvalues = np.array(matchingObsYvalues)
         modelYsamples = np.array(modelYsamples)
@@ -4901,7 +4981,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         myOptions = QFileDialog.Options()
         # myOptions |= QFileDialog.DontConfirmOverwrite
         myOptions |= QFileDialog.DontUseNativeDialog
-        myOptions |= QFileDialog.ShowDirsOnly
+        # myOptions |= QFileDialog.ShowDirsOnly
 
         starterFilePath = str(Path(self.settings.value('lightcurvedir', "") + '/' + name))
 
@@ -4909,9 +4989,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self,  # parent
             "Select directory/modify filename",  # title for dialog
             starterFilePath,  # starting directory
-            "", options=myOptions)
+            "csv files (*.csv)", options=myOptions)
 
         if self.csvFile:
+            if not self.csvFile.endswith('.csv'):
+                self.csvFile += '.csv'
             with open(self.csvFile, 'w') as fileObject:
                 if not self.aperture_names:
                     fileObject.write('# ' + 'PYOTE ' + version.version() + '\n')
@@ -4933,15 +5015,37 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     columnHeadings = 'FrameNum,timeInfo'
                     for column_name in self.aperture_names:
                         columnHeadings += f',signal-{column_name}'
+                # TODO New feature being added
+                if self.modelYsamples is not None:
+                    columnHeadings += f',signal-model'
+
                 fileObject.write(columnHeadings + '\n')
 
-                for i in range(self.table.rowCount()):
+                k = None
+                for i in range(self.table.rowCount()):  # i is reading number (0-based row in output table)
                     if self.left <= i <= self.right:
                         line = self.table.item(i, 0).text()
                         for j in range(1, self.table.columnCount()):
                             # Deal with empty columns
                             if self.table.item(i, j) is not None:
                                 line += ',' + self.table.item(i, j).text()
+                        if self.modelYsamples is not None:
+                            if i == self.modelXsamples[0]:
+                                k = 0  # Start writing model Y values
+                            if k is not None:
+                                line += ',' + f'{self.modelYsamples[k]:0.3f}'
+                                k += 1
+                                if k >= len(self.modelYsamples):
+                                    k = None  # Terminate writing of model values
+                            else:
+                                if i < self.modelXsamples[0]:
+                                    line += ',' + f'{self.modelYsamples[0]:0.3f}'
+                                elif i > self.modelXsamples[-1]:
+                                    line += ',' + f'{self.modelYsamples[-1]:0.3f}'
+                                else:
+                                    self.showInfo(f'We should not be here in writeCSVfile()')
+
+
                         fileObject.write(line + '\n')
 
     @staticmethod
