@@ -661,6 +661,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.printEventParametersButton.installEventFilter(self)
         self.printEventParametersButton.clicked.connect(self.printEventParameters)
 
+        self.majorAxisLabel.installEventFilter(self)
+        self.minorAxisLabel.installEventFilter(self)
+        self.ellipseAngleLabel.installEventFilter(self)
+        self.useUpperEllipseChord.installEventFilter(self)
+
         self.showDetailsCheckBox.installEventFilter(self)
         self.versusTimeCheckBox.installEventFilter(self)
         self.showAnnotationsCheckBox.installEventFilter(self)
@@ -1200,40 +1205,246 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     self.showInfo(f'The reading numbers supplied are invalid.')
 
     def plotFamilyOfLightcurves(self):
+        def move_figure(f, x, y):
+            backend = matplotlib.get_backend()
+            if backend == 'TkAgg':
+                f.canvas.manager.window.wm_geometry("+%d+%d" % (x,y))
+            elif backend == 'WXAgg':
+                f.canvas.manager.window.SetPosition((x,y))
+            else:
+                f.canvas.manager.window.move(x,y)
+
+        def plot_curve_set(calculate_curves, x, yOut):
+            fig = plt.figure(constrained_layout=False, figsize=(10, 8))
+            fig.canvas.manager.set_window_title("Family plot")
+            ax1 = fig.add_subplot(1, 1, 1)  # lightcurve axes
+
+            self.showMsg("", blankLine=False)
+            if calculate_curves:
+                self.showMsg(f'Initiating computations ...', bold=True, color='red', blankLine=False)
+            for i in range(1, numCurves + 1):
+                if calculate_curves:
+                    QtWidgets.QApplication.processEvents()
+                    x, y, D_edge, R_edge = generalizedDiffraction(LCP=self.Lcp, wavelength1=None, wavelength2=None,
+                                                                  skip_central_calc=False)
+                    if i == 1:
+                        ax1.set_ylim(0, 1.1 * np.max(y))
+
+                    yOut.append(y)
+                else:
+                    y = yOut[i-1]
+
+                if param == 'miss distance km':
+                    label = f'{i}: {param} {self.Lcp.miss_distance_km:0.4f} km'
+                    if calculate_curves:
+                        self.showMsg(f'Computed curve {label}', bold=True, color='red', blankLine=False)
+                    ax1.plot(x, y, label=label)
+                    plt.draw()
+                    self.Lcp.miss_distance_km += stepValue
+                elif param == 'ellipse angle degrees':
+                    label = f'{i}: {param} {self.Lcp.ellipse_angle_degrees:0.4f} degrees'
+                    if calculate_curves:
+                        self.showMsg(f'Computed curve {label}', bold=True, color='red', blankLine=False)
+                    ax1.plot(x, y, label=label)
+                    self.Lcp.ellipse_angle_degrees += stepValue
+                elif param == 'major axis km':
+                    label = f'{i}: {param} {self.Lcp.asteroid_major_axis:0.4f} km'
+                    if calculate_curves:
+                        self.showMsg(f'Computed curve {label}', bold=True, color='red', blankLine=False)
+                    ax1.plot(x, y, label=label)
+                    self.Lcp.asteroid_major_axis += stepValue
+                elif param == 'minor axis km':
+                    label = f'{i}: {param} {self.Lcp.asteroid_minor_axis:0.4f} km'
+                    if calculate_curves:
+                        self.showMsg(f'Computed curve {label}', bold=True, color='red', blankLine=False)
+                    ax1.plot(x, y, label=label)
+                    self.Lcp.asteroid_minor_axis += stepValue
+                elif param == 'asteroid diameter km':
+                    label = f'{i}: {param} {self.Lcp.asteroid_diameter_km:0.4f} km'
+                    if calculate_curves:
+                        self.showMsg(f'Computed curve {label}', bold=True, color='red', blankLine=False)
+                    ax1.plot(x, y, label=label)
+                    self.Lcp.asteroid_diameter_km += stepValue
+                else:
+                    self.showInfo(f'Programming error: no such parameter named {param}!')
+                    return
+
+            self.Lcp = copy.deepcopy(savedLcp)  # Restore the original self.Lcp structure
+            ax1.set_ylim(0, 1.1 * np.max(yVec[:]))
+            ax1.set_xlabel("Kilometers")
+            ax1.legend(loc='best', fontsize=8)
+            return fig, ax1, x
+
+        if not self.diffractionRadioButton.isChecked():
+            self.showInfo(f'Use of this feature is restricted to diffraction models')
+            return
 
         params = ['miss distance km', 'ellipse angle degrees', 'major axis km', 'minor axis km', 'asteroid diameter km']
         param, gotParam = QtWidgets.QInputDialog.getItem(
             self, ' ', 'Select parameter to change:', params, editable=False)
 
         if gotParam:
-            startValue, gotStartValue = QtWidgets.QInputDialog.getDouble(self, ' ', 'Start parameter value as:', decimals=5)
-            if gotStartValue:
-                stepValue, gotStepValue = QtWidgets.QInputDialog.getDouble(self, ' ', 'Step change of parameter:', decimals=5)
+            centerValue, gotCenterValue = QtWidgets.QInputDialog.getDouble(
+                self, ' ', 'Parameter value to use for center curve:', decimals=5)
+            if gotCenterValue:
+                stepValue, gotStepValue = QtWidgets.QInputDialog.getDouble(
+                    self, ' ', 'Step change between curves:', decimals=5)
                 if gotStepValue:
-                    numSteps, gotNumSteps = QtWidgets.QInputDialog.getInt(self, ' ', 'Number of steps:', min=1)
+                    numSideCurves, gotNumSideCurves = QtWidgets.QInputDialog.getInt(
+                        self, ' ', 'Number of curves on either side of center curve:', min=1)
                 else:
-                    self.showInfo('No step change value given')
+                    self.showInfo('No step change between curves value given')
                     return
-                if not gotNumSteps:
-                    self.showInfo('No step count given')
+                if not gotNumSideCurves:
+                    self.showInfo('The number of side curves wanted was not given')
                     return
             else:
-                self.showInfo('No start value given')
+                self.showInfo('No value given for center curve parameter')
                 return
-            self.showInfo(f'{param} will start at {startValue} and make {numSteps} steps of size {stepValue}\n\n')
+            startValue = centerValue - numSideCurves * stepValue
+            endValue = centerValue + numSideCurves * stepValue
+            numCurves = 2 * numSideCurves + 1
+            reply = QMessageBox.question(
+                self, "Family plot information",
+                f'{param} will start at {startValue:0.4f} and go to {endValue:0.4f}  in {numCurves} steps.\n\n'
+                f'The center value of {param} is {centerValue:0.4f}.\n\n'
+                f'Is that OK?', QMessageBox.Yes, QMessageBox.No )
+            if reply == QMessageBox.No:
+                return
             self.showMsg('', blankLine=False)
-            self.showMsg(f'{param} will start at {startValue} and make {numSteps} steps of size {stepValue}',
+            self.showMsg(f'{param} will start at {startValue:0.4f} and go to {endValue:0.4f} in {numCurves} steps '
+                         f'of size {stepValue:0.4f}',
                          color='black', bold=True)
         else:
             self.showInfo('No parameter selection given')
             return
 
-        fig = plt.figure(constrained_layout=False, figsize=(10,8))
-        fig.canvas.manager.set_window_title("Family plot")
-        ax1 = fig.add_subplot(1, 1, 1)  # lightcurve axes
 
         savedLcp = copy.deepcopy(self.Lcp)
 
+        self.setFamilyPlotStartValues(param, startValue)
+
+        yVec = []
+        fig_num, ax1, x = plot_curve_set(calculate_curves=True, x=None, yOut=yVec)
+        move_figure(fig_num, 50, 50)
+        plt.show()
+
+
+        reply = QMessageBox.question(
+            self, "Model comparisons", "Do you want to do a noise/model comparison", QMessageBox.Yes, QMessageBox.No
+        )
+
+        if reply == QMessageBox.No:
+            plt.show()
+            return
+        else:
+
+            sample_index_step = self.Lcp.shadow_speed * self.Lcp.frame_time / (x[1] - x[0])
+
+            referenceCurveNumber = numCurves // 2 + 1
+
+            noiseValues = []
+            noiseValue = None
+            gotNoiseValue = True
+            while gotNoiseValue:
+                if not noiseValues:
+                    noiseValue, gotNoiseValue = QtWidgets.QInputDialog.getDouble(
+                        self, ' ', 'First noise level (sigmaB) to use:', decimals=5)
+                else:
+                    noiseValue, gotNoiseValue = QtWidgets.QInputDialog.getDouble(
+                        self, ' ', '... another noise level to use (click cancel if done entering noise values):', decimals=5)
+                if gotNoiseValue:
+                    noiseValues.append(noiseValue)
+
+            if not noiseValues:
+                self.showMsg(f'No noise values provided --- finished.')
+                return
+
+            for value in noiseValues:
+                if value < 0:
+                    self.showInfo(f'A noise level specified is negative --- aborting.')
+                    return
+
+            sampled_y = [[] for _ in range(numCurves)]
+            xpts = []
+            i = 0
+            sample_index = -sample_index_step
+            i_limit = len(yVec[0])
+            for k in range(numCurves):
+                while True:
+                    sample_index += sample_index_step
+                    i = round(sample_index)
+                    if i >= i_limit:
+                        break
+                    sampled_y[k].append(yVec[k][i])
+                    if k == 0:
+                        xpts.append(x[i])
+                sample_index = -sample_index_step  # set up for another run (next k - next curve)
+
+            ref = np.array(sampled_y[referenceCurveNumber-1])
+            xpts = np.array(xpts)
+
+            noise_plot_num = 0
+            for noiseToUse in noiseValues:
+                noise_plot_num += 1
+                noiseVec = np.random.normal(0.0, noiseToUse, xpts.size)
+
+                noisedRef = ref + noiseVec  # For demo purposes on the plot
+
+                # Repeat the base plot in a new figure
+                self.setFamilyPlotStartValues(param, startValue)
+
+                fig_num, ax1, x = plot_curve_set(calculate_curves=False, x=x, yOut=yVec)
+                move_figure(fig_num, 50 + 40 * noise_plot_num, 50 + 40 * noise_plot_num)
+                plt.show()
+
+                ax1.plot(xpts, ref, ".", label="ref sample points")
+                ax1.plot(xpts, noisedRef,"-", marker='.', label="example simulated observation",
+                         color='gray', alpha=0.5)
+                ax1.legend(loc='best', fontsize=8)
+
+                # Compute model comparison stats
+                numTrials=10000
+                cum_aic_weights = None
+
+                for j in range(numTrials):
+                    # re-noise the reference and comparison light curves
+                    noiseVec = np.random.normal(0.0, noiseToUse, xpts.size)
+                    noisedObs = ref + noiseVec  # re-create the observation signal using ref and noiseVec
+
+                    # Calculate the metrics and relative probabilities
+                    rss = []
+                    aic = []
+                    for k in range(numCurves):
+                        rss.append(np.sum(((noisedObs - np.array(sampled_y[k]))/noiseToUse)**2) / xpts.size)
+                        aic.append(xpts.size * np.log(rss[-1]))
+                    aic = np.array(aic)
+                    min_aic = np.min(aic)
+                    delta_aic = aic - min_aic
+                    denom = np.sum(np.exp(-delta_aic/2.0))
+                    aic_weights = np.exp(-delta_aic/2.0) / denom
+
+                    if cum_aic_weights is None:
+                        cum_aic_weights = np.exp(-delta_aic/2.0) / denom
+                    else:
+                        cum_aic_weights += aic_weights
+
+                avg_aic_weight = cum_aic_weights / numTrials
+                text_for_plot = f'Noise (sigmaB) used: {noiseToUse:0.1f}  SNR = {self.Lcp.baseline_ADU/noiseToUse:0.2f}\n'
+                self.showMsg(f'{text_for_plot}', bold=True, blankLine=False)
+
+                for i in range(numCurves):
+                    text_line = f'curve {i+1} relative probability: {avg_aic_weight[i]:0.2f}'
+                    self.showMsg(f'{text_line}', bold=True, blankLine=False)
+                    text_for_plot += text_line + '\n'
+                text_for_plot = text_for_plot[:-1]  # Get rid of trailing \n
+
+                ax1.text(0.5, 0.03, text_for_plot, transform=ax1.transAxes,
+                         bbox=dict(facecolor='white', alpha=1), fontsize=10)
+
+            plt.show()
+
+    def setFamilyPlotStartValues(self, param, startValue):
         if param == 'miss distance km':
             self.Lcp.miss_distance_km = startValue
         elif param == 'ellipse angle degrees':
@@ -1246,67 +1457,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.Lcp.asteroid_diameter_km = startValue
         else:
             self.showInfo(f'Programming error: no such parameter named {param}!')
-            return
-
-        yVec = []
-
-        for i in range(1,numSteps+1):
-            # self.showMsg(f'Computing curve {i}', bold=True, color='red', blankLine=False)
-            QtWidgets.QApplication.processEvents()
-            x, y, D_edge, R_edge = generalizedDiffraction(LCP=self.Lcp, wavelength1=None, wavelength2=None,
-                                                          skip_central_calc=False)
-            yVec.append(y)
-            if param == 'miss distance km':
-                label = f'{i}: {param} {self.Lcp.miss_distance_km:0.4f} km'
-                self.showMsg(f'Computing curve {label}', bold=True, color='red', blankLine=False)
-                ax1.plot(x,y, label=label)
-                self.Lcp.miss_distance_km += stepValue
-            elif param == 'ellipse angle degrees':
-                label = f'{i}: {param} {self.Lcp.ellipse_angle_degrees:0.4f} degrees'
-                self.showMsg(f'Computing curve {label}', bold=True, color='red', blankLine=False)
-                ax1.plot(x, y, label=label)
-                self.Lcp.ellipse_angle_degrees += stepValue
-            elif param == 'major axis km':
-                label = f'{i}: {param} {self.Lcp.asteroid_major_axis:0.4f} km'
-                self.showMsg(f'Computing curve {label}', bold=True, color='red', blankLine=False)
-                ax1.plot(x,y, label=label)
-                self.Lcp.asteroid_major_axis += stepValue
-            elif param == 'minor axis km':
-                label = f'{i}: {param} {self.Lcp.asteroid_minor_axis:0.4f} km'
-                self.showMsg(f'Computing curve {label}', bold=True, color='red', blankLine=False)
-                ax1.plot(x,y, label=label)
-                self.Lcp.asteroid_minor_axis += stepValue
-            elif param == 'asteroid diameter km':
-                label = f'{i}: {param} {self.Lcp.asteroid_diameter_km:0.4f} km'
-                self.showMsg(f'Computing curve {label}', bold=True, color='red', blankLine=False)
-                ax1.plot(x, y, label=label)
-                self.Lcp.asteroid_diameter_km += stepValue
-            else:
-                self.showInfo(f'Programming error: no such parameter named {param}!')
-                return
-
-
-        self.Lcp = copy.deepcopy(savedLcp)  # Restore the original
-        ax1.set_ylim(0, 1.1 * np.max(yVec[:]))
-        ax1.set_xlabel("Kilometers")
-        ax1.legend(loc='best', fontsize=8)
-        # plt.show()
-
-        reply = QMessageBox.question(
-            self,
-            "Model comparisons",
-            "Do you want to do a noise/model comparison",
-            QMessageBox.Yes,
-            QMessageBox.No
-        )
-
-        if reply == QMessageBox.No:
-            plt.show()
-            return
-        else:
-            self.showInfo(f'OK. We will get started.\n\n'
-                          f'This feature is under construction.')
-            plt.show()
+            # return
 
     def removeAddedDataSets(self):
 
@@ -2180,6 +2331,42 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.processModelLightcurveCoreEdit()
 
+    # TODO Remove this experimental code
+    def sampleFamilyLightCurve(self, x_values_km, y_values):
+        # Build interpolation function. This is done to deal with the finite resolution of
+        # the 2048 point lightcurve
+        x_values_sec = x_values_km / self.Lcp.shadow_speed
+        x_values_sec -= x_values_sec[0]
+        tObsStart = convertTimeStringToTime(self.yTimes[0])
+        x_values_sec += self.modelTimeOffset + tObsStart
+
+        interpolator = interpolate.interp1d(x_values_sec, y_values)
+
+        sample_time = tObsStart
+
+        # x_vals will be reading numbers
+        x_vals = []
+        y_vals = []
+
+        while sample_time <= x_values_sec[-1]:
+            if sample_time >= x_values_sec[0]:
+                # Compute x_vals as reading number
+                x_vals.append(round((sample_time - tObsStart) / self.Lcp.frame_time))
+                y_vals.append(interpolator(sample_time))
+            sample_time += self.Lcp.frame_time
+            # This keeps us from from sampling the model curve past
+            # the end of the observation
+            if len(x_vals) >= self.dataLen:
+                break
+
+        if len(x_vals) == 0:
+            breakpoint()
+
+        x_samples = np.array(x_vals)
+        y_samples = np.array(y_vals)
+
+        return x_samples, y_samples
+
     def sampleModelLightcurve(self):
         # Build interpolation function. This is done to deal with the finite resolution of
         # the 2048 point lightcurve
@@ -2236,7 +2423,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.metricLimitRight = self.Lcp.metricLimitRight
             except Exception:  # noqa
                 pass
-            # TODO Experiment to limit region used in metric calculation
+            # This code added to limit region used in metric calculation
             if self.metricLimitLeft is not None:
                 if self.metricLimitLeft <= i <= self.metricLimitRight:
                     matchingObsYvalues.append(self.yValues[i])
@@ -2259,14 +2446,26 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         # mVals = np.array(modelYsamples)
         # sigVals = np.array(sigmaValues)
         # log_likelihood = cum_loglikelihood(yVals, mVals, sigVals, 0, len(sigmaValues)-1)
-        # TODO Figure out if this is appropriate
+        # Figure out if this is appropriate
         # I'm setting k to 1 because only a single parameter is varied - all others are given
         # aiccValue = aicc(log_likelihood, n=len(sigmaValues), k=1)
-        # TODO Remove this print statement
+        # Remove this print statement
         # self.showMsg(f'log_likelihood: {log_likelihood:0.4f}  aicc: {aiccValue:0.4f}')
 
         matchingObsYvalues = np.array(matchingObsYvalues)
         modelYsamples = np.array(modelYsamples)
+
+        # TODO Experimental code to measure uncertainty in metric
+        # metrics = []
+        # test_noise = modelSigmaB * 0.2
+        # num_trials = 4000
+        # for i in range(num_trials):
+        #     renoisedObs = matchingObsYvalues + np.random.normal(0, test_noise, matchingObsYvalues.size)
+        #     noisedMetric = np.sum(((modelYsamples - renoisedObs) / np.sqrt(modelSigmaB**2 + test_noise**2))**2) / modelYsamples.size
+        #     metrics.append(noisedMetric)
+        #
+        # metrics = np.array(metrics)
+        # self.showMsg(f'mean metric: {np.mean(metrics):0.4f}   std metrics: {np.std(metrics):0.4f}')
 
         # We produce these values as a side effect - only used during edge-on-disk (penumbral) fits
         self.dMetric = np.sum(((modelYsamples[0:center_frame] - matchingObsYvalues[0:center_frame]) / modelSigmaB)**2) / modelYsamples.size
@@ -3301,6 +3500,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     def handleModelSelectionRadioButtonClick(self):
         self.showDiffractionButton.setEnabled(self.diffractionRadioButton.isChecked())
+        self.plotFamilyButton.setEnabled(self.diffractionRadioButton.isChecked())
         self.DdegreesEdit.setEnabled(self.edgeOnDiskRadioButton.isChecked())
         self.RdegreesEdit.setEnabled(self.edgeOnDiskRadioButton.isChecked())
         self.limbAnglePrecisionEdit.setEnabled(self.edgeOnDiskRadioButton.isChecked())
@@ -5015,7 +5215,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     columnHeadings = 'FrameNum,timeInfo'
                     for column_name in self.aperture_names:
                         columnHeadings += f',signal-{column_name}'
-                # TODO New feature being added
                 if self.modelYsamples is not None:
                     columnHeadings += f',signal-model'
 
@@ -8986,6 +9185,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
 
     def extendAndDrawModelLightcurve(self):
+
+        if self.modelTimeOffset is None:
+            # This done to allow a saved LCP to be reloaded.
+            return
 
         if not self.timestampListIsEmpty(self.yTimes):
             # Compute time duration of lightcurve observation

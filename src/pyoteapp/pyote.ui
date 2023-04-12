@@ -5183,6 +5183,9 @@
                   <property name="enabled">
                    <bool>false</bool>
                   </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this button to get a simultaneous display of model lightcurves where only a single parameter is changed in a set pattern around a central value. It is intended for use in dealing with diffraction models, particularly if the asteroid is to be modelled as an ellipse. Elliptical light patterns are complex when the asteroid has dimensions that are comparable to the Fresnel length. In conjuction with the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Show diffraction pattern on ground&lt;/span&gt; button, this display of a set of model lightcurves can aid in setting reasonable initial values for the event parameters.&lt;/p&gt;&lt;p&gt;After the family plot is produced, an option to perform a noise analysis is offered. If selected, this procedure uses AIC (Akiake Information Criteria) model comparision to compute the relative probability of the curves in the family using the provided noise values and a Monte Carlo simulation at each noise value with 10,000 trials. In this process, the center lightcurve is 'noised' by adding Gaussian noise with a mean of 0 and a standard deviation of the noise value(s) provided - this is the simulated 'observation'. We are attempting to recreate that observation 10,000 times in order to estimate the distribution of 'solutions' as a function of the parameter value. This can be used to estimate the uncertainty limits of a parameter by selecting a step size that gives the center curve a desired relative probability (such as 0.95 ). In this approach, the 'family' is treated as a group of competing candidates for 'explaining' the observation. If the 'separation' of the parameter (its step size) is too small, adjacent curves will sometimes be a better fit to the simulated observation. If the step size is too large, the center value will always 'win' and give a relative probabilty of 1.00 --- a smaller step size is required in such a case. (The AIC value is computed from the RSS fit metric, a valid calculation because the models have the same number of degrees of freedom, the same number of points, and the same noise distribution.)&lt;/p&gt;&lt;p&gt;Before starting a noise analysis, you should determine what the baseline noise (ADU) of the actual observation is. That can be obtained by clicking the button &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Print event parameters&lt;/span&gt; and noting the value for &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;baseline noise&lt;/span&gt; that is reported.&lt;/p&gt;&lt;p&gt;The value for baseline noise for the actual observation would normally always be given as a noise value. However, it is possible to provide hypothetical noise values as a way to estimate what noise level would have to be present to give a desired uncertainty in the parameter value, i.e. a way to answer the question 'how low would the noise level have to be so that one can determine a particular parameter value to a desired resolution?'.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
                   <property name="text">
                    <string>Plot family of lightcurves</string>
                   </property>
@@ -5193,6 +5196,9 @@
                   <property name="enabled">
                    <bool>false</bool>
                   </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sometimes there is an area of the observation light curve that needs to be excluded from the fit metric calculation. Use this button to start a dialog for selecting the starting &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;reading number&lt;/span&gt; (NOT &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;frame number&lt;/span&gt;) and the ending &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;reading number&lt;/span&gt;. The fit metric calculation will include those points and all in between in determining the RSS (Residual Sum of Squares) that is used as the fit metric.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Note:&lt;/span&gt; It is easy to make the error of using the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;frame numbe&lt;/span&gt;r (column 1 in the data table in the lower left) instead of the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;reading number&lt;/span&gt;. The &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;reading number&lt;/span&gt; is the row label just to the left.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Tip:&lt;/span&gt; A quick way to determine the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;reading numer&lt;/span&gt; for a point is to click on it in the plot. This will cause the data table to reposition to that point and highlight the row of the selected point.&lt;/p&gt;&lt;p&gt;Once a selection has been made, it is saved in the Light Curve Parameters, so this process need only be done once.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
                   <property name="text">
                    <string>Set limits for metric calculation</string>
                   </property>
@@ -5201,7 +5207,7 @@
                 <item>
                  <widget class="QPushButton" name="printEventParametersButton">
                   <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clicking this button causes a listing of all the current lightcurve parameters to be shown in the log panel.&lt;/p&gt;&lt;p&gt;This is the same action that is automatically called at the end of a successful fit to provide a completed final report, so normally one would have no need to use this button.&lt;/p&gt;&lt;p&gt;One possible time to use this button is if &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Pause fit in progress&lt;/span&gt; was clicked and you wish the current fit achieved to be treated as the best fit and want to add the current lightcurve settings to the final report.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clicking this button causes a listing of all the current lightcurve parameters to be shown in the log panel.&lt;/p&gt;&lt;p&gt;This is the same action that is automatically called at the end of a successful fit to provide a completed final report, so normally one would have no need to use this button.&lt;/p&gt;&lt;p&gt;One possible time to use this button is if &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Pause fit in progress&lt;/span&gt; was clicked and you wish the current fit achieved to be treated as the best fit and want to add the current lightcurve settings to the final report.&lt;/p&gt;&lt;p&gt;Another possible use is to get the baseline noise value for use in noise analysis of elliptical asteroid events.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="text">
                    <string>Print event parameters</string>
@@ -6166,7 +6172,7 @@ Setting this value to zero will force Miss distance optimization to be skipped.<
                 </item>
                </layout>
               </widget>
-              <widget class="QWidget" name="">
+              <widget class="QWidget" name="layoutWidget">
                <property name="geometry">
                 <rect>
                  <x>25</x>
@@ -6177,11 +6183,14 @@ Setting this value to zero will force Miss distance optimization to be skipped.<
                </property>
                <layout class="QHBoxLayout" name="horizontalLayout_52">
                 <item>
-                 <widget class="QLabel" name="label_5">
+                 <widget class="QLabel" name="majorAxisLabel">
                   <property name="font">
                    <font>
                     <bold>true</bold>
                    </font>
+                  </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If a value is entered in this edit box (and all the others in this row), an elliptical shape for the asteroid will be used during diffraction modelling, automatically overriding the asteroid diameter entry.&lt;/p&gt;&lt;p&gt;The major axis is the vertical axis (y) in plots of the diffraction pattern on the ground&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="text">
                    <string>Ellipse specs:     major axis(km)(y):</string>
@@ -6192,11 +6201,14 @@ Setting this value to zero will force Miss distance optimization to be skipped.<
                  <widget class="QLineEdit" name="majorAxisEdit"/>
                 </item>
                 <item>
-                 <widget class="QLabel" name="label_6">
+                 <widget class="QLabel" name="minorAxisLabel">
                   <property name="font">
                    <font>
                     <bold>true</bold>
                    </font>
+                  </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If a value is entered in this edit box (and all the others in this row), an elliptical shape for the asteroid will be used during diffraction modelling, automatically overriding the asteroid diameter entry.&lt;/p&gt;&lt;p&gt;The minor axis is the horizontal axis (x) in plots of the diffraction pattern on the ground&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="text">
                    <string>   minor axis(km)(x):</string>
@@ -6207,11 +6219,14 @@ Setting this value to zero will force Miss distance optimization to be skipped.<
                  <widget class="QLineEdit" name="minorAxisEdit"/>
                 </item>
                 <item>
-                 <widget class="QLabel" name="label_7">
+                 <widget class="QLabel" name="ellipseAngleLabel">
                   <property name="font">
                    <font>
                     <bold>true</bold>
                    </font>
+                  </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If a value is entered in this edit box (and all the others in this row), an elliptical shape for the asteroid will be used during diffraction modelling, automatically overriding the asteroid diameter entry.&lt;/p&gt;&lt;p&gt;The ellipse angle is relative to the observation path with positive values treated as counter-clockwise rotation. The angle units are degrees, not radians&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="text">
                    <string>    angle(degrees)(ccw):</string>
@@ -6240,6 +6255,9 @@ Setting this value to zero will force Miss distance optimization to be skipped.<
                    <font>
                     <bold>true</bold>
                    </font>
+                  </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;For a given chord length, for both a circular asteroid shape and an elliptical asteroid shape, there are two positions of the observation path relative to the asteroid center that will yield the same chord length (unless the observation path is exactly onthe centerline).&lt;/p&gt;&lt;p&gt;Because the light pattern projected on the ground is symmetrical for a circular asteroid shape, this doesn't matter as the model lightcurve shape is the same in either position. This is &lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;NOT&lt;/span&gt; true for an elliptical asteroid, therefore it is necessary for the user to specify which of the two positions should be used in generating the model lightcurve. Upper means above the centerline (positive y). If unchecked, the lower position (below the centerline) will be used.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="text">
                    <string>Use upper chord</string>

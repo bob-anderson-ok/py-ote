@@ -434,8 +434,6 @@ class LightcurveParameters:
     frame_time: float
     shadow_speed: float
 
-
-
     wavelength_nm: float
 
     sky_motion_mas_per_sec: float
@@ -606,8 +604,16 @@ class LightcurveParameters:
             output_str = []
 
         output_str.append(f"baseline intensity: {self.baseline_ADU:0.2f} ADU")
+        output_str.append(f"baseline noise    : {self.sigmaB:0.2f} ADU")
         output_str.append(f"bottom   intensity: {self.bottom_ADU:0.2f} ADU")
         output_str.append(f"magDrop: {self.magDrop:0.4f}\n")
+
+        if self.metricLimitLeft is not None:
+            output_str.append(f"metric_limit_left_ (reading number): {self.metricLimitLeft}")
+            output_str.append(f"metric_limit_right (reading number): {self.metricLimitRight}\n")
+        else:
+            output_str.append(f" metric_limit_left: None")
+            output_str.append(f"metric_limit_right: None\n")
 
         if self.fresnel_length_km is not None:
             output_str.append(f"fresnel_length: {self.fresnel_length_km:0.2f} km\n")
@@ -1851,7 +1857,7 @@ def demo_event(LCP: LightcurveParameters, model, title='Generic model', showLege
             else:
                 camera_y = y
 
-        # TODO Experimental
+        # TODO Experimental - used to provide model light curves for test file generator
         model_dict = {'y': camera_y, 't_start': x[0] / LCP.shadow_speed, 't_end': x[-1] / LCP.shadow_speed}
         pickle.dump(model_dict, open("model_dict_diffraction.p", "wb"))
         # print(f'x[0]: {x[0]/LCP.shadow_speed:0.4f}  x[-1]: {x[-1]/LCP.shadow_speed:0.4f}')
@@ -1866,7 +1872,7 @@ def demo_event(LCP: LightcurveParameters, model, title='Generic model', showLege
         LCP.set('R_limb_angle_degrees', 90)
 
     final_y = cameraIntegration(x, y, LCP)
-    # TODO Experimental
+    # TODO Experimental - used to provide model light curves for test file generator
     model_dict = {'y': final_y, 't_start': x[0]/LCP.shadow_speed, 't_end':x[-1]/LCP.shadow_speed}
     pickle.dump(model_dict, open("model_dict_diffraction.p", "wb"))
     # print(f'x[0]: {x[0]/LCP.shadow_speed:0.4f}  x[-1]: {x[-1]/LCP.shadow_speed:0.4f}')
