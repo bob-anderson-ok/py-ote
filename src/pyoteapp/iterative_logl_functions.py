@@ -219,11 +219,11 @@ def find_best_r_only_from_min_max_size(
 
     # Use numpy version of metric calculator to initialize iteration variables
 
-    # changed in 4.4.7
-    # b_s, b_s2, b_n, b_var = calc_metric_numpy(y[r + 1:right + 1])
-    b_s, b_s2, b_n, b_var = calc_metric_numpy(y[r:right + 1])
+    # B excludes y[r] and the extra point at right - but this is meaningless because r is incorrect at this point
+    b_s, b_s2, b_n, b_var = calc_metric_numpy(y[r + 1:right])
 
-    a_s, a_s2, a_n, a_var = calc_metric_numpy(y[left:r])
+    # A always excludes y[r]) - but this is meaningless because r is incorrect at this point
+    a_s, a_s2, a_n, a_var = calc_metric_numpy(y[left + 1:r])
 
     b = b_s / b_n
     a = a_s / a_n
@@ -232,17 +232,15 @@ def find_best_r_only_from_min_max_size(
     metric = calc_metric()
     update_best_solution()
 
-    r_final = left + max_event
+    r_final = left + max_event - 1
 
     while r < r_final:
         # calc metric for next r position from current position
 
-        # changed in 4.4.7
-        # b_s, b_s2, b_n, b_var = sub_entry(y[r+1], b_s, b_s2, b_n, True)
-        b_s, b_s2, b_n, b_var = sub_entry(y[r], b_s, b_s2, b_n, True)
-
         a_s, a_s2, a_n, a_var = add_entry(y[r], a_s, a_s2, a_n, True)
         r += 1
+        b_s, b_s2, b_n, b_var = sub_entry(y[r], b_s, b_s2, b_n, True)
+
 
         metric = calc_metric()
         b = b_s / b_n
@@ -314,18 +312,15 @@ def find_best_d_only_from_min_max_size(
     d = right - max_event  # Initial d position
 
     # Use numpy version of metric calculator to initialize iteration variables
+
+    # Excludes d from B - this is meaningless because d is incorrect at this point
     b_s, b_s2, b_n, b_var = calc_metric_numpy(y[left:d])
 
-    # changed in 4.4.7
-    # a_s, a_s2, a_n, a_var = calc_metric_numpy(y[d+1:right+1])
-    # a_s, a_s2, a_n, a_var = calc_metric_numpy(y[d:right+1])
-    # changed in 4.4.8
-    a_s, a_s2, a_n, a_var = calc_metric_numpy(y[d:right])
+    # Excludes d from A - this is meaningless because d is incorrect at this point
+    a_s, a_s2, a_n, a_var = calc_metric_numpy(y[d+1:right])
 
     b = b_s / b_n
     a = a_s / a_n
-
-    # print(b, a, b_n, a_n)
 
     # Calculate metric for initial position of d
     metric = calc_metric()
@@ -341,9 +336,11 @@ def find_best_d_only_from_min_max_size(
 
         # changed in 4.4.7
         # a_s, a_s2, a_n, a_var = sub_entry(y[d+1], a_s, a_s2, a_n, True)
-        a_s, a_s2, a_n, a_var = sub_entry(y[d], a_s, a_s2, a_n, True)
+        # a_s, a_s2, a_n, a_var = sub_entry(y[d], a_s, a_s2, a_n, True)
 
         d += 1
+        a_s, a_s2, a_n, a_var = sub_entry(y[d], a_s, a_s2, a_n, True)
+
 
         metric = calc_metric()
         b = b_s / b_n
@@ -485,7 +482,6 @@ def locate_fixed_event_position(
 
     return d_max, r_max, b_max, a_max, sigma_b, sigma_a, max_metric, solution_count
 
-
 @njit  # cache=True gave pickling error
 def locate_event_from_d_and_r_ranges(
         y: np.ndarray, left: int, right: int, d_start: int, d_end: int,
@@ -524,7 +520,7 @@ def locate_event_from_d_and_r_ranges(
         r = r_start
 
         if d > left:
-            b_sl, b_s2l, b_nl, b_varl = calc_metric_numpy(y[left:d])
+            b_sl, b_s2l, b_nl, b_varl = calc_metric_numpy(y[left+1:d])
             # Lefthand wing
         else:
             b_sl = 0.0
@@ -532,9 +528,7 @@ def locate_event_from_d_and_r_ranges(
             b_nl = 0
             b_varl = 0.0
 
-        # changed in 4.4.7
-        # b_sr, b_s2r, b_nr, b_varr = calc_metric_numpy(y[r+1:right+1])
-        b_sr, b_s2r, b_nr, b_varr = calc_metric_numpy(y[r:right+1])
+        b_sr, b_s2r, b_nr, b_varr = calc_metric_numpy(y[r+1:right])
 
         # Righthand wing
 
@@ -543,9 +537,7 @@ def locate_event_from_d_and_r_ranges(
         b_n = b_nl + b_nr
         b_var = b_varl + b_varr
 
-        # changed in 4.4.7
-        # a_s, a_s2, a_n, a_var = calc_metric_numpy(y[d+1:r])
-        a_s, a_s2, a_n, a_var = calc_metric_numpy(y[d:r])
+        a_s, a_s2, a_n, a_var = calc_metric_numpy(y[d+1:r])
 
         # ============== calc_metric() =================
         max_var = max(a_var, b_var, MIN_FLOAT)
@@ -588,11 +580,9 @@ def locate_event_from_d_and_r_ranges(
 
         while r < r_end:
             b_s, b_s2, b_n, b_var = sub_entry(y[r], b_s, b_s2, b_n, True)
-            # changed in 4.4.8
-            # a_s, a_s2, a_n, a_var = add_entry(y[r-1], a_s, a_s2, a_n, True)
+            r += 1
             a_s, a_s2, a_n, a_var = add_entry(y[r], a_s, a_s2, a_n, True)
 
-            r += 1
             # ============== calc_metric() =================
             max_var = max(a_var, b_var, MIN_FLOAT)
 

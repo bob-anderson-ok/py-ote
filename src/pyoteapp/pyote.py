@@ -1205,7 +1205,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     self.showInfo(f'The reading numbers supplied are invalid.')
 
     def plotFamilyOfLightcurves(self):
-        def move_figure(f, x, y):
+        def move_figure(f, x, y):  # noqa
             backend = matplotlib.get_backend()
             if backend == 'TkAgg':
                 f.canvas.manager.window.wm_geometry("+%d+%d" % (x,y))
@@ -1214,18 +1214,18 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             else:
                 f.canvas.manager.window.move(x,y)
 
-        def plot_curve_set(calculate_curves, x, yOut):
+        def plot_curve_set(calculate_curves, x, yOut):  # noqa
             fig = plt.figure(constrained_layout=False, figsize=(10, 8))
             fig.canvas.manager.set_window_title("Family plot")
-            ax1 = fig.add_subplot(1, 1, 1)  # lightcurve axes
+            ax1 = fig.add_subplot(1, 1, 1)  # noqa lightcurve axes
 
             self.showMsg("", blankLine=False)
             if calculate_curves:
                 self.showMsg(f'Initiating computations ...', bold=True, color='red', blankLine=False)
-            for i in range(1, numCurves + 1):
+            for i in range(1, numCurves + 1):  # noqa
                 if calculate_curves:
                     QtWidgets.QApplication.processEvents()
-                    x, y, D_edge, R_edge = generalizedDiffraction(LCP=self.Lcp, wavelength1=None, wavelength2=None,
+                    x, y, D_edge, R_edge = generalizedDiffraction(LCP=self.Lcp, wavelength1=None, wavelength2=None,  # noqa
                                                                   skip_central_calc=False)
                     if i == 1:
                         ax1.set_ylim(0, 1.1 * np.max(y))
@@ -1344,7 +1344,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             referenceCurveNumber = numCurves // 2 + 1
 
             noiseValues = []
-            noiseValue = None
             gotNoiseValue = True
             while gotNoiseValue:
                 if not noiseValues:
@@ -1367,7 +1366,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
             sampled_y = [[] for _ in range(numCurves)]
             xpts = []
-            i = 0
             sample_index = -sample_index_step
             i_limit = len(yVec[0])
             for k in range(numCurves):
@@ -2331,42 +2329,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.processModelLightcurveCoreEdit()
 
-    # TODO Remove this experimental code
-    def sampleFamilyLightCurve(self, x_values_km, y_values):
-        # Build interpolation function. This is done to deal with the finite resolution of
-        # the 2048 point lightcurve
-        x_values_sec = x_values_km / self.Lcp.shadow_speed
-        x_values_sec -= x_values_sec[0]
-        tObsStart = convertTimeStringToTime(self.yTimes[0])
-        x_values_sec += self.modelTimeOffset + tObsStart
-
-        interpolator = interpolate.interp1d(x_values_sec, y_values)
-
-        sample_time = tObsStart
-
-        # x_vals will be reading numbers
-        x_vals = []
-        y_vals = []
-
-        while sample_time <= x_values_sec[-1]:
-            if sample_time >= x_values_sec[0]:
-                # Compute x_vals as reading number
-                x_vals.append(round((sample_time - tObsStart) / self.Lcp.frame_time))
-                y_vals.append(interpolator(sample_time))
-            sample_time += self.Lcp.frame_time
-            # This keeps us from from sampling the model curve past
-            # the end of the observation
-            if len(x_vals) >= self.dataLen:
-                break
-
-        if len(x_vals) == 0:
-            breakpoint()
-
-        x_samples = np.array(x_vals)
-        y_samples = np.array(y_vals)
-
-        return x_samples, y_samples
-
     def sampleModelLightcurve(self):
         # Build interpolation function. This is done to deal with the finite resolution of
         # the 2048 point lightcurve
@@ -2454,18 +2416,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         matchingObsYvalues = np.array(matchingObsYvalues)
         modelYsamples = np.array(modelYsamples)
-
-        # TODO Experimental code to measure uncertainty in metric
-        # metrics = []
-        # test_noise = modelSigmaB * 0.2
-        # num_trials = 4000
-        # for i in range(num_trials):
-        #     renoisedObs = matchingObsYvalues + np.random.normal(0, test_noise, matchingObsYvalues.size)
-        #     noisedMetric = np.sum(((modelYsamples - renoisedObs) / np.sqrt(modelSigmaB**2 + test_noise**2))**2) / modelYsamples.size
-        #     metrics.append(noisedMetric)
-        #
-        # metrics = np.array(metrics)
-        # self.showMsg(f'mean metric: {np.mean(metrics):0.4f}   std metrics: {np.std(metrics):0.4f}')
 
         # We produce these values as a side effect - only used during edge-on-disk (penumbral) fits
         self.dMetric = np.sum(((modelYsamples[0:center_frame] - matchingObsYvalues[0:center_frame]) / modelSigmaB)**2) / modelYsamples.size
@@ -7780,14 +7730,18 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.corCoefs = []
 
         if D and R:
-            self.sigmaA = None
-            # self.corCoefs = []
+            # D - 1 is specified so that the D point is excluded from the noise and B level calculations
+            self.processBaselineNoiseFromIterativeSolution(self.left, D - 1)  # Left side
+            newBleft = self.B  # This is filled in by the above call
 
-            self.processBaselineNoiseFromIterativeSolution(self.left, D - 1)
+            # R + 1 is specified so that the R point is excluded from the noise and B level calculations
+            self.processBaselineNoiseFromIterativeSolution(R + 1, self.right)  # Right side
+            newBright = self.B
 
-            self.processBaselineNoiseFromIterativeSolution(R, self.right)
+            self.B = (newBleft + newBright) / 2
 
-            self.processEventNoiseFromIterativeSolution(D, R - 1)
+            # D + 1 and R -1 are used to excluded the D and R points from noise and A and B values
+            self.processEventNoiseFromIterativeSolution(D + 1, R - 1)
 
             # Try to warn user about the possible need for block integration by testing the lag 1
             # and lag 2 correlation coefficients.  The tests are just guesses on my part, so only
@@ -7812,21 +7766,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             if self.sigmaA is None:
                 self.sigmaA = self.sigmaB
         elif D:
-            self.sigmaA = None
-
             self.processBaselineNoiseFromIterativeSolution(self.left, D - 1)
-
-            self.processEventNoiseFromIterativeSolution(D, self.right)
-            if self.sigmaA is None:
-                self.sigmaA = self.sigmaB
+            self.processEventNoiseFromIterativeSolution(D+1, self.right)
         else:  # R only
-            self.sigmaA = None
-
-            self.processBaselineNoiseFromIterativeSolution(R, self.right)
-
+            self.processBaselineNoiseFromIterativeSolution(R+1, self.right)
             self.processEventNoiseFromIterativeSolution(self.left, R - 1)
-            if self.sigmaA is None:
-                self.sigmaA = self.sigmaB
 
         self.prettyPrintCorCoefs()
 
@@ -8090,9 +8034,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 blankLine=False)
             self.displaySolution(subframe=False)  # First solution
 
-            # This fills in self.sigmaB and self.sigmaA (incorrectly) but is useful
+            # This fills in self.sigmaB and self.sigmaA and self.B and self.A Also, it is useful
             # because it tests correlation coefficients to warn of the need for block integration
-            self.extract_noise_parameters_from_iterative_solution()
+            self.extract_noise_parameters_from_iterative_solution()  # This does proper exclusions at D and R
 
             DfitMetric = RfitMetric = 0.0
 
@@ -8111,7 +8055,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
             # Here is where we get sigmaB and sigmaA with the transition points excluded
             subDandR, new_b, new_a, newSigmaB, newSigmaA = subFrameAdjusted(
-                eventType=self.eventType, cand=(d, r), B=b, A=a,
+                eventType=self.eventType, cand=(d, r), B=self.B, A=self.A,
                 sigmaB=self.sigmaB, sigmaA=self.sigmaA, yValues=self.yValues,
                 left=self.left, right=self.right)
 
@@ -8944,9 +8888,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     def processEventNoiseFromIterativeSolution(self, left, right):
 
-        if (right - left) < 9:
-            return
-
         assert left >= self.left
         assert right <= self.right
 
@@ -8955,6 +8896,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         for i in range(left, right + 1):
             self.eventXvals.append(i)
             self.eventYvals.append(self.yValues[i])
+
+        # Recalculate A with D and R points excluded
+        self.A = np.mean(self.eventYvals)
 
         _, self.numNApts, self.sigmaA = getCorCoefs(self.eventXvals,
                                                     self.eventYvals)
@@ -9048,6 +8992,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         for i in range(left, right + 1):
             self.baselineXvals.append(i)
             self.baselineYvals.append(self.yValues[i])
+
+        # Recalculate baseline with D and R points excluded
+        self.B = np.mean(self.baselineYvals)
 
         if not self.userDeterminedBaselineStats:
             self.newCorCoefs, self.numNApts, sigB = getCorCoefs(self.baselineXvals,

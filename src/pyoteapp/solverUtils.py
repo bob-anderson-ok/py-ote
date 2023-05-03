@@ -15,9 +15,10 @@ from numba import njit
 
 
 def aicModelValue(*, obsValue=None, B=None, A=None, sigmaB=None, sigmaA=None):
-    assert(B >= A)
-    assert(sigmaA > 0.0)
-    assert(sigmaB > 0.0)
+    assert B >= A
+    # assert sigmaA > 0.0
+    # assert sigmaB > 0.0
+
     # This function determines if an observation point should categorized as a baseline (B)
     # point, an event (A) point, or a valid intermediate point using the Akaike Information Criterion
     # An intermediate point reflects a more complex model (higher dimension model)
@@ -27,6 +28,13 @@ def aicModelValue(*, obsValue=None, B=None, A=None, sigmaB=None, sigmaA=None):
         return A  # Categorize as event point
     if B == A:
         return B
+
+    # We do this to allow test files with zero noise to be processed
+    if sigmaA == 0:
+        if sigmaB == 0:
+            return obsValue
+        else:
+            assert sigmaA > 0.0
 
     sigmaM = sigmaA + (sigmaB - sigmaA) * ((obsValue - A) / (B - A))
     loglB = loglikelihood(obsValue, B, sigmaB)
@@ -251,10 +259,12 @@ def newCalcBandA(*, yValues=None, tpList=None, left=None, right=None, cand=None)
         else:
             # changed in 4.4.7
             # B = np.mean(yValues[R+1:right+1])
-            valuesToUse = [val for i, val in enumerate(yValues[R:right + 1]) if i not in tpList]
+            # Changed i to i + R in 5.2.3 to solve flash edge time problem
+            valuesToUse = [val for i, val in enumerate(yValues[R:right + 1]) if i + R not in tpList]
             B = np.mean(valuesToUse)
             sigmaB = np.std(valuesToUse)
-        valuesToUse = valuesToBeUsed(left, R)
+        # Changed to R - 1 in 5.2.3 to solve flash edge time problem
+        valuesToUse = valuesToBeUsed(left, R - 1)
         A = np.mean(valuesToUse)
         sigmaA = np.std(valuesToUse)
         if A >= B:
@@ -452,11 +462,6 @@ def subFrameAdjusted(*, eventType=None, cand=None, B=None, A=None,
     #  all B pixels have a constant value.  Limovie can produce a sigmaA=0
     # when a rectangular aperture is in use as well
 
-    if sigmaA == 0.0:
-        sigmaA = MIN_SIGMA
-    if sigmaB == 0.0:
-        sigmaB = MIN_SIGMA
-
     if eventType == 'Donly':
         if aicModelValue(obsValue=yValues[D], B=B, A=A, sigmaB=sigmaB, sigmaA=sigmaA) == yValues[D]:
             # If point at D categorizes as M (valid mid-point), do sub-frame
@@ -524,8 +529,6 @@ def subFrameAdjusted(*, eventType=None, cand=None, B=None, A=None,
             # (finishes D)
             adjD = adjustD()
             transitionPoints.append(D)
-            B, A, sigmaB, sigmaA = newCalcBandA(yValues=yValues, tpList=transitionPoints,
-                                                left=left, right=right, cand=(D, R))
         elif aicModelValue(obsValue=yValues[D], B=B, A=A, sigmaB=sigmaB, sigmaA=sigmaA) == B:
             # The point at D categorizes as B, set D to D+1 and recalculate B and A
             D = D + 1
@@ -536,8 +539,6 @@ def subFrameAdjusted(*, eventType=None, cand=None, B=None, A=None,
                     sigmaA=sigmaA) == yValues[D]:
                 adjD = adjustD()
                 transitionPoints.append(D)
-                B, A, sigmaB, sigmaA = newCalcBandA(yValues=yValues, tpList=transitionPoints,
-                                                    left=left, right=right, cand=(D, R))
         elif aicModelValue(obsValue=yValues[D-1], B=B, A=A, sigmaB=sigmaB,
                            sigmaA=sigmaA) == yValues[D-1]:
             # The point at D categorizes as A, and we have found
@@ -546,30 +547,22 @@ def subFrameAdjusted(*, eventType=None, cand=None, B=None, A=None,
             D = D - 1
             adjD = adjustD()
             transitionPoints.append(D)
-            B, A, sigmaB, sigmaA = newCalcBandA(yValues=yValues, tpList=transitionPoints,
-                                                left=left, right=right, cand=(D, R))
 
         if aicModelValue(
                 obsValue=yValues[R], B=B, A=A, sigmaB=sigmaB, sigmaA=sigmaA) == yValues[R]:
             # The point at R categorizes as M, do sub-frame adjustment
             adjR = adjustR()
             transitionPoints.append(R)
-            B, A, sigmaB, sigmaA = newCalcBandA(yValues=yValues, tpList=transitionPoints,
-                                                left=left, right=right, cand=(D, R))
         elif aicModelValue(obsValue=yValues[R], B=B, A=A, sigmaB=sigmaB, sigmaA=sigmaA) == A:
             # The point at R categorizes as A, set R to R + 1 and recalculate B and A
             R = R + 1
             adjR = R
-            B, A, sigmaB, sigmaA = newCalcBandA(yValues=yValues, tpList=transitionPoints,
-                                                left=left, right=right, cand=(D, R))
             # It's possible that this new point qualifies as M --- so we check
             if aicModelValue(
                     obsValue=yValues[R], B=B, A=A, sigmaB=sigmaB,
                     sigmaA=sigmaA) == yValues[R]:
                 adjR = adjustR()
                 transitionPoints.append(R)
-                B, A, sigmaB, sigmaA = newCalcBandA(yValues=yValues, tpList=transitionPoints,
-                                                    left=left, right=right, cand=(D, R))
         elif aicModelValue(obsValue=yValues[R - 1], B=B, A=A, sigmaB=sigmaB,
                            sigmaA=sigmaA) == yValues[R - 1]:
             # The point at R categorizes as B, and we have found
@@ -578,8 +571,6 @@ def subFrameAdjusted(*, eventType=None, cand=None, B=None, A=None,
             R = R - 1
             adjR = adjustR()
             transitionPoints.append(R)
-            B, A, sigmaB, sigmaA = newCalcBandA(yValues=yValues, tpList=transitionPoints,
-                                                left=left, right=right, cand=(D, R))
         return [adjD, adjR], B, A, sigmaB, sigmaA
 
     else:

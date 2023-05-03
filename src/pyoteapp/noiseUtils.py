@@ -55,4 +55,9 @@ def getCorCoefs(x, y):
         for lag in range(11):
             ans.append(laggedCoef(residuals, lag))
 
-    return np.array(ans), len(x), np.std(residuals)
+    # This deals with no-noise test sets.
+    sigma = np.std(np.diff(np.array(y))) / np.sqrt(2.0)  # In place of: np.std(residuals)
+    if sigma == 0:
+        ans = [1.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+    return np.array(ans), len(x), sigma

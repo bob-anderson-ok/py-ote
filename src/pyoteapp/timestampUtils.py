@@ -50,9 +50,12 @@ def improveTimeStep(outliers, deltaTime):
     # be found.  In that case, we return a timeStep of 0.0 and let the
     # program respond to this invalid value at a higher level.
     if validIntervals:
-        # Changed in 5.0.1
+        # Changed in 5.0.1  put back in 5.2.3
         # betterTimeStep = np.mean(validIntervals)
-        betterTimeStep = np.median(validIntervals)
+        # removed in 5.2.3
+        # betterTimeStep = np.median(validIntervals)
+        betterTimeStep = np.mean(validIntervals)
+
     else:
         betterTimeStep = 0.0
     return betterTimeStep
