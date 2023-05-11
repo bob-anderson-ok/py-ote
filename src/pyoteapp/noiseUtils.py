@@ -41,6 +41,12 @@ def getCorCoefs(x, y):
     combo = list(zip(x, y))
     combo.sort()
     yvalsConcat = np.array([item[1] for item in combo])
+
+    # 5.2.4 We can't calculate sigmaA from just two points - we return None and this causes
+    # sigmaA = sigmaB to be executed when the caller finds no sigmaA was returned
+    if len(yvalsConcat) < 3:
+        return np.array([1.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]), len(x), None
+
     try:
         trend = savgolTrendLine(yvalsConcat, window=301, degree=1)
         residuals = yvalsConcat - trend
