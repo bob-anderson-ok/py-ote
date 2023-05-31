@@ -185,19 +185,6 @@
                <string>Lightcurves</string>
               </attribute>
               <layout class="QGridLayout" name="gridLayout_8">
-               <item row="0" column="0">
-                <spacer name="horizontalSpacer_27">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>378</width>
-                   <height>20</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
                <item row="0" column="1" colspan="2">
                 <widget class="QPushButton" name="lightcurvesHelpButton">
                  <property name="sizePolicy">
@@ -220,18 +207,181 @@
                  </property>
                 </widget>
                </item>
-               <item row="0" column="3">
-                <spacer name="horizontalSpacer_28">
+               <item row="4" column="0" colspan="4">
+                <layout class="QHBoxLayout" name="horizontalLayout_9">
+                 <item>
+                  <widget class="QLabel" name="availableCurvesLabel">
+                   <property name="minimumSize">
+                    <size>
+                     <width>110</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>100</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <bold>true</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>Add data set</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QComboBox" name="curveSelectionComboBox">
+                   <property name="minimumSize">
+                    <size>
+                     <width>490</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>900</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Dataset (lightcurve) names have the form: &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;&amp;lt;prefix&amp;gt;-&amp;lt;aperture name&amp;gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;&amp;lt;aperture name&amp;gt;&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; comes from the name provided by the user when the aperture was placed on the image.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;&amp;lt;prefix&amp;gt;&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; refers to the the type of data extracted from the aperture with the following meanings:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;signal&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; is the background subtracted sum of the pixel values found within the mask.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;appsum&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; is the sum (no background subtraction) of the pixel values found within the mask.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;avgbkg&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; is the average background value for a single pixel. It is computed by a robust algorithm that uses selected pixels within an aperture by identifying those pixels that are legitimately in the background.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;stdbkg&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; is the standard deviation of the background pixel values - that is, the per-pixel noise (sqrt(variance)) - where the pixels considered to be in the background have been determined by a robust algorithm that avoids any pixels that are from the star image or any hidden companion stars.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;nmaskpx&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; is the number of pixels in the mask. If positive, the mask was computed dynamically from the star image. If negative, it gives the number of pixels in the fixed circular mask selected by the user&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="removeAddedDataSetsButton">
+                   <property name="minimumSize">
+                    <size>
+                     <width>180</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <bold>true</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>Remove all added data sets</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_16">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
+               </item>
+               <item row="7" column="0">
+                <widget class="QPushButton" name="markBaselineRegionLightcurvesButton">
+                 <property name="minimumSize">
+                  <size>
+                   <width>250</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>250</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="toolTip">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Click on a pair of points that enclose points from the 'target' that are valid to use for baseline noise (and mean value) calculations. Then click on &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Mark baseline region&lt;/span&gt;. &lt;/p&gt;&lt;p&gt;The procedure above can be repeated to select additional sets points. You would do it this way to avoid including a region where the data is not representative of baseline information.&lt;/p&gt;&lt;p&gt;By selecting pairs of points on the light curve being analyzed (target) and clicking the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Mark baseline region&lt;/span&gt; button, all of the regions of 'reliable baseline data' will be designated. They will be shown as orangish points instead of the normal blue color.&lt;/p&gt;&lt;p&gt;After you have selected all the points you consider to be baseline points, click on the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Calc baseline mean/sigma/corr coeffs&lt;/span&gt; button to actually perform the calculation. The results will appear in the text box in the lower right.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;NOTE:&lt;/span&gt; Regions marked on one curve are automatically applied to all curves. A common 'trick' is to leave the baseline points selected (by &lt;span style=&quot; font-weight:700;&quot;&gt;NOT&lt;/span&gt; clicking on the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Clear baseline regions&lt;/span&gt; button) and change the light curve that is designated 'target'. Then clicking on &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Calc baseline mean/sigma/corr coeffs&lt;/span&gt; will get the 'stats' for the newly designated 'target'.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;CRITICAL NOTE:&lt;/span&gt; Once this calculation has been performed, the baseline noise and mean will be used during a subsequent 'event' detection. This can be a useful feature when deliberately used in conjunction with 'event' detection, but one should not perform a 'detectability' test and &lt;span style=&quot; font-weight:700;&quot;&gt;then&lt;/span&gt; an 'event' detection as it is possible in that way to use improper values for baseline mean and noise during the subsequent 'event' finding. If you accidentally get into this state, start over from scratch by re-reading the csv file.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <property name="text">
+                  <string>Mark baseline region</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="9" column="0">
+                <widget class="QPushButton" name="clearBaselineRegionsLightcurvesButton">
+                 <property name="minimumSize">
+                  <size>
+                   <width>250</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>250</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="toolTip">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clear all marked regions by clicking on this button: &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Calc baseline mean/sigma/corr coeffs&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Note:&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; you may wish to leave the marked regions in place so that noise and mean value stats can be calculated for other available light curves. See the 'tip' in the context help for the &lt;/span&gt;&lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Mark baseline region&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; button.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <property name="text">
+                  <string>Clear baseline regions</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="0">
+                <spacer name="horizontalSpacer_27">
                  <property name="orientation">
                   <enum>Qt::Horizontal</enum>
                  </property>
                  <property name="sizeHint" stdset="0">
                   <size>
-                   <width>296</width>
+                   <width>378</width>
                    <height>20</height>
                   </size>
                  </property>
                 </spacer>
+               </item>
+               <item row="3" column="4">
+                <spacer name="horizontalSpacer_53">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>143</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="6" column="0">
+                <widget class="Line" name="line_7">
+                 <property name="minimumSize">
+                  <size>
+                   <width>250</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>250</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="frameShadow">
+                  <enum>QFrame::Plain</enum>
+                 </property>
+                 <property name="lineWidth">
+                  <number>4</number>
+                 </property>
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                </widget>
                </item>
                <item row="1" column="2">
                 <spacer name="verticalSpacer_15">
@@ -249,122 +399,53 @@
                  </property>
                 </spacer>
                </item>
-               <item row="2" column="0" colspan="4">
-                <layout class="QHBoxLayout" name="horizontalLayout">
-                 <item>
-                  <widget class="QLabel" name="label_30">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>16777215</width>
-                     <height>16777215</height>
-                    </size>
-                   </property>
-                   <property name="text">
-                    <string> target     ref      show</string>
-                   </property>
-                   <property name="textFormat">
-                    <enum>Qt::PlainText</enum>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <spacer name="horizontalSpacer_51">
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>124</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="label_33">
-                   <property name="minimumSize">
-                    <size>
-                     <width>200</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>16777215</width>
-                     <height>16777215</height>
-                    </size>
-                   </property>
-                   <property name="layoutDirection">
-                    <enum>Qt::LeftToRight</enum>
-                   </property>
-                   <property name="text">
-                    <string>Y offset step size:</string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QRadioButton" name="yOffsetStep10radioButton">
-                   <property name="text">
-                    <string>10</string>
-                   </property>
-                   <property name="checked">
-                    <bool>true</bool>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QRadioButton" name="yOffsetStep100radioButton">
-                   <property name="text">
-                    <string>100</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QRadioButton" name="yOffsetStep1000radioButton">
-                   <property name="text">
-                    <string>1000</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <spacer name="horizontalSpacer_52">
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                   <property name="sizeType">
-                    <enum>QSizePolicy::Fixed</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>140</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                </layout>
+               <item row="11" column="1">
+                <spacer name="verticalSpacer_13">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>40</height>
+                  </size>
+                 </property>
+                </spacer>
                </item>
-               <item row="3" column="4">
-                <spacer name="horizontalSpacer_53">
+               <item row="0" column="3">
+                <spacer name="horizontalSpacer_28">
                  <property name="orientation">
                   <enum>Qt::Horizontal</enum>
                  </property>
                  <property name="sizeHint" stdset="0">
                   <size>
-                   <width>143</width>
+                   <width>296</width>
                    <height>20</height>
                   </size>
                  </property>
                 </spacer>
+               </item>
+               <item row="8" column="0">
+                <widget class="QPushButton" name="calcStatsFromBaselineRegionsLightcurvesButton">
+                 <property name="minimumSize">
+                  <size>
+                   <width>250</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>250</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="toolTip">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When this button is clicked, all the points included in the marked regions will be collected and used to calculate the baseline/event mean, noise-sigma, and the noise-correlation coefficients. Unless a 'trim' is performed, these values will be used during error bar estimations and 'false-positive' estimation.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;NOTE:&lt;/span&gt; If a 'trim' is performed, &lt;span style=&quot; font-weight:600;&quot;&gt;the baseline mean will be determined from the 'fit' to the trimmed data,&lt;/span&gt; but the noise-sigma and noise-correlation coefficients extracted from the marked 'background' regions will continue to override those obtained from the trimmed light-curve.&lt;/p&gt;&lt;p&gt;This is done so that if the mean baseline level on either side of the event appears to be a little different than the overall baseline, one can get improved baseline noise stats by using points from the entire light-curve, yet trim the light-curve around the event and allow the 'finder/fitter' to calculate a baseline mean from the immediately adjacent points.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <property name="text">
+                  <string>Calc baseline mean/sigma/corr coeffs</string>
+                 </property>
+                </widget>
                </item>
                <item row="5" column="0" colspan="3">
                 <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -541,55 +622,62 @@
                  </item>
                 </layout>
                </item>
-               <item row="5" column="4">
-                <spacer name="horizontalSpacer_29">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>133</width>
-                   <height>20</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item row="6" column="1">
-                <spacer name="verticalSpacer_13">
-                 <property name="orientation">
-                  <enum>Qt::Vertical</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>20</width>
-                   <height>40</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item row="4" column="0" colspan="4">
-                <layout class="QHBoxLayout" name="horizontalLayout_9">
+               <item row="2" column="0" colspan="4">
+                <layout class="QHBoxLayout" name="horizontalLayout">
                  <item>
-                  <widget class="QLabel" name="availableCurvesLabel">
+                  <widget class="QLabel" name="label_30">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string> target     ref      show</string>
+                   </property>
+                   <property name="textFormat">
+                    <enum>Qt::PlainText</enum>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_51">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>124</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="label_33">
                    <property name="minimumSize">
                     <size>
-                     <width>110</width>
+                     <width>200</width>
                      <height>0</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>100</width>
+                     <width>16777215</width>
                      <height>16777215</height>
                     </size>
                    </property>
-                   <property name="font">
-                    <font>
-                     <bold>true</bold>
-                    </font>
+                   <property name="layoutDirection">
+                    <enum>Qt::LeftToRight</enum>
                    </property>
                    <property name="text">
-                    <string>Add data set</string>
+                    <string>Y offset step size:</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -597,50 +685,40 @@
                   </widget>
                  </item>
                  <item>
-                  <widget class="QComboBox" name="curveSelectionComboBox">
-                   <property name="minimumSize">
-                    <size>
-                     <width>490</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>900</width>
-                     <height>16777215</height>
-                    </size>
-                   </property>
-                   <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Dataset (lightcurve) names have the form: &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;&amp;lt;prefix&amp;gt;-&amp;lt;aperture name&amp;gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;&amp;lt;aperture name&amp;gt;&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; comes from the name provided by the user when the aperture was placed on the image.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;&amp;lt;prefix&amp;gt;&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; refers to the the type of data extracted from the aperture with the following meanings:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;signal&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; is the background subtracted sum of the pixel values found within the mask.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;appsum&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; is the sum (no background subtraction) of the pixel values found within the mask.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;avgbkg&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; is the average background value for a single pixel. It is computed by a robust algorithm that uses selected pixels within an aperture by identifying those pixels that are legitimately in the background.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;stdbkg&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; is the standard deviation of the background pixel values - that is, the per-pixel noise (sqrt(variance)) - where the pixels considered to be in the background have been determined by a robust algorithm that avoids any pixels that are from the star image or any hidden companion stars.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;nmaskpx&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; is the number of pixels in the mask. If positive, the mask was computed dynamically from the star image. If negative, it gives the number of pixels in the fixed circular mask selected by the user&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="removeAddedDataSetsButton">
-                   <property name="minimumSize">
-                    <size>
-                     <width>180</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                   <property name="font">
-                    <font>
-                     <bold>true</bold>
-                    </font>
-                   </property>
+                  <widget class="QRadioButton" name="yOffsetStep10radioButton">
                    <property name="text">
-                    <string>Remove all added data sets</string>
+                    <string>10</string>
+                   </property>
+                   <property name="checked">
+                    <bool>true</bool>
                    </property>
                   </widget>
                  </item>
                  <item>
-                  <spacer name="horizontalSpacer_16">
+                  <widget class="QRadioButton" name="yOffsetStep100radioButton">
+                   <property name="text">
+                    <string>100</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QRadioButton" name="yOffsetStep1000radioButton">
+                   <property name="text">
+                    <string>1000</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_52">
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
+                   <property name="sizeType">
+                    <enum>QSizePolicy::Fixed</enum>
+                   </property>
                    <property name="sizeHint" stdset="0">
                     <size>
-                     <width>40</width>
+                     <width>140</width>
                      <height>20</height>
                     </size>
                    </property>
@@ -2387,6 +2465,44 @@
                   </layout>
                  </item>
                 </layout>
+               </item>
+               <item row="5" column="4">
+                <spacer name="horizontalSpacer_29">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>133</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="10" column="0">
+                <widget class="Line" name="line_8">
+                 <property name="minimumSize">
+                  <size>
+                   <width>250</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>250</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="frameShadow">
+                  <enum>QFrame::Plain</enum>
+                 </property>
+                 <property name="lineWidth">
+                  <number>4</number>
+                 </property>
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                </widget>
                </item>
               </layout>
              </widget>
@@ -6834,8 +6950,23 @@ Setting this value to zero will force Miss distance optimization to be skipped.<
                </item>
                <item row="1" column="1">
                 <layout class="QVBoxLayout" name="verticalLayout_3">
+                 <property name="leftMargin">
+                  <number>171</number>
+                 </property>
                  <item>
                   <widget class="QPushButton" name="detectabilityHelpButton">
+                   <property name="minimumSize">
+                    <size>
+                     <width>250</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>250</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
                    <property name="toolTip">
                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The primary use of this tool is to perform a 'detectability' estimate. That estimate can be used to decide whether to attempt a future occultation observation or, to analyze an actual occultation observation to decide whether to report a &lt;span style=&quot; color:#fc0107;&quot;&gt;'miss'&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt;,&lt;/span&gt;&lt;span style=&quot; color:#fc0107;&quot;&gt; 'qualified miss'&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt;,&lt;/span&gt;&lt;span style=&quot; color:#fc0107;&quot;/&gt;or &lt;span style=&quot; color:#fc0107;&quot;&gt;'no observation'&lt;/span&gt;. Do this as follows:&lt;/p&gt;&lt;p&gt;1) If PyOTE could not find an event in an actual occultation observation and this tool says the event was detectable at a duration as short as one data frame, report a &lt;span style=&quot; color:#fc0107;&quot;&gt;'miss'&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt;.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;2) If PyOTE could not find an event in an actual occultation observation and this tool says the event was detectable at more than one data frame duration, then report a&lt;/span&gt;&lt;span style=&quot; color:#fc0107;&quot;&gt; 'qualified miss for a duration greater than the detectable limit'&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; and a &lt;/span&gt;&lt;span style=&quot; color:#fc0107;&quot;&gt;'no observation'&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; for a duration shorter than the detectable limit.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;3) If PyOTE could not find an event in actual occultation observation and the tool says the event was not detectable at a duration of more than 1.5 X the predicted duration, then report a &lt;/span&gt;&lt;span style=&quot; color:#fc0107;&quot;&gt;'no observation'&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt;.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;This tool is also useful with observations that have employed a 'GPS Flasher' to provide timing for the video observation. A side effect of having an LED light up at the entrance of your telescope is that it will affect the baseline values of the target star (and others) and so make it more difficult to extract the best possible baseline statistics (mean and noise-sigma and noise-correlation-coefficients) which benefit from having more points involved in the calculation. This tool allows the user to tell PyOTE where the baseline values are reliable enough(unaffected by flashes, or wind gusts, or telescope jostling, etc) to be used during baseline statistics calculation.&lt;/p&gt;&lt;p&gt;By repeatedly selecting pairs of points on the light curve being analyzed and clicking the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Mark baseline region&lt;/span&gt; button, the regions of 'reliable baseline/event data' can be designated. They will be shown as orangish points instead of the normal blue color.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;NOTE:&lt;/span&gt; Regions marked on one curve are automatically applied to all curves. &lt;/p&gt;&lt;p&gt;In general, normalization against a reference star should be performed first, then this operation. That will remove any 'trends' that would affect the mean and noise-sigma.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;FYI:&lt;/span&gt; One can also use this feature to calculate statistics on some set of points of interest (like a statistics in the event bottom) or for reference stars or ...&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
@@ -6846,6 +6977,18 @@ Setting this value to zero will force Miss distance optimization to be skipped.<
                  </item>
                  <item>
                   <widget class="Line" name="line_12">
+                   <property name="minimumSize">
+                    <size>
+                     <width>250</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>250</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
                    <property name="frameShadow">
                     <enum>QFrame::Plain</enum>
                    </property>
@@ -6859,6 +7002,18 @@ Setting this value to zero will force Miss distance optimization to be skipped.<
                  </item>
                  <item>
                   <widget class="QPushButton" name="markBaselineRegionButton">
+                   <property name="minimumSize">
+                    <size>
+                     <width>250</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>250</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
                    <property name="toolTip">
                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Click on a pair of points that enclose points from the 'target' that are valid to use for baseline noise (and mean value) calculations. Then click on &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Mark baseline region&lt;/span&gt;. &lt;/p&gt;&lt;p&gt;The procedure above can be repeated to select additional sets points. You would do it this way to avoid including a region where the data is not representative of baseline information.&lt;/p&gt;&lt;p&gt;By selecting pairs of points on the light curve being analyzed (target) and clicking the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Mark baseline region&lt;/span&gt; button, all of the regions of 'reliable baseline data' will be designated. They will be shown as orangish points instead of the normal blue color.&lt;/p&gt;&lt;p&gt;After you have selected all the points you consider to be baseline points, click on the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Calc baseline mean/sigma/corr coeffs&lt;/span&gt; button to actually perform the calculation. The results will appear in the text box in the lower right.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;NOTE:&lt;/span&gt; Regions marked on one curve are automatically applied to all curves. A common 'trick' is to leave the baseline points selected (by &lt;span style=&quot; font-weight:700;&quot;&gt;NOT&lt;/span&gt; clicking on the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Clear baseline regions&lt;/span&gt; button) and change the light curve that is designated 'target'. Then clicking on &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Calc baseline mean/sigma/corr coeffs&lt;/span&gt; will get the 'stats' for the newly designated 'target'.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;CRITICAL NOTE:&lt;/span&gt; Once this calculation has been performed, the baseline noise and mean will be used during a subsequent 'event' detection. This can be a useful feature when deliberately used in conjunction with 'event' detection, but one should not perform a 'detectability' test and &lt;span style=&quot; font-weight:700;&quot;&gt;then&lt;/span&gt; an 'event' detection as it is possible in that way to use improper values for baseline mean and noise during the subsequent 'event' finding. If you accidentally get into this state, start over from scratch by re-reading the csv file.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
@@ -6868,17 +7023,22 @@ Setting this value to zero will force Miss distance optimization to be skipped.<
                   </widget>
                  </item>
                  <item>
-                  <widget class="QPushButton" name="clearBaselineRegionsButton">
-                   <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clear all marked regions by clicking on this button: &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Calc baseline mean/sigma/corr coeffs&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Note:&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; you may wish to leave the marked regions in place so that noise and mean value stats can be calculated for other available light curves. See the 'tip' in the context help for the &lt;/span&gt;&lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Mark baseline region&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; button.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                   </property>
-                   <property name="text">
-                    <string>Clear baseline regions</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
                   <widget class="QPushButton" name="calcStatsFromBaselineRegionsButton">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>250</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>250</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
                    <property name="toolTip">
                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When this button is clicked, all the points included in the marked regions will be collected and used to calculate the baseline/event mean, noise-sigma, and the noise-correlation coefficients. Unless a 'trim' is performed, these values will be used during error bar estimations and 'false-positive' estimation.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;NOTE:&lt;/span&gt; If a 'trim' is performed, &lt;span style=&quot; font-weight:600;&quot;&gt;the baseline mean will be determined from the 'fit' to the trimmed data,&lt;/span&gt; but the noise-sigma and noise-correlation coefficients extracted from the marked 'background' regions will continue to override those obtained from the trimmed light-curve.&lt;/p&gt;&lt;p&gt;This is done so that if the mean baseline level on either side of the event appears to be a little different than the overall baseline, one can get improved baseline noise stats by using points from the entire light-curve, yet trim the light-curve around the event and allow the 'finder/fitter' to calculate a baseline mean from the immediately adjacent points.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
@@ -6888,7 +7048,44 @@ Setting this value to zero will force Miss distance optimization to be skipped.<
                   </widget>
                  </item>
                  <item>
+                  <widget class="QPushButton" name="clearBaselineRegionsButton">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>250</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>250</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clear all marked regions by clicking on this button: &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Calc baseline mean/sigma/corr coeffs&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Note:&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; you may wish to leave the marked regions in place so that noise and mean value stats can be calculated for other available light curves. See the 'tip' in the context help for the &lt;/span&gt;&lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Mark baseline region&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; button.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>Clear baseline regions</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
                   <widget class="Line" name="line_10">
+                   <property name="minimumSize">
+                    <size>
+                     <width>250</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>250</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
                    <property name="frameShadow">
                     <enum>QFrame::Plain</enum>
                    </property>
@@ -7043,8 +7240,14 @@ Setting this value to zero will force Miss distance optimization to be skipped.<
                   <widget class="QPushButton" name="calcDetectabilityButton">
                    <property name="minimumSize">
                     <size>
-                     <width>500</width>
+                     <width>250</width>
                      <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>250</width>
+                     <height>16777215</height>
                     </size>
                    </property>
                    <property name="toolTip">
@@ -7819,7 +8022,6 @@ Setting this value to zero will force Miss distance optimization to be skipped.<
   <tabstop>dotSizeSpinner</tabstop>
   <tabstop>detectabilityHelpButton</tabstop>
   <tabstop>markBaselineRegionButton</tabstop>
-  <tabstop>clearBaselineRegionsButton</tabstop>
   <tabstop>calcStatsFromBaselineRegionsButton</tabstop>
   <tabstop>observationDurEdit</tabstop>
   <tabstop>eventDurationEdit</tabstop>

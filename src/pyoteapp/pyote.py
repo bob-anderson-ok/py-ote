@@ -759,17 +759,26 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.markBaselineRegionButton.clicked.connect(self.markBaselineRegion)
         self.markBaselineRegionButton.installEventFilter(self)
 
+        self.markBaselineRegionLightcurvesButton.clicked.connect(self.markBaselineRegion)
+        self.markBaselineRegionLightcurvesButton.installEventFilter(self)
+
         self.normMarkBaselineRegionButton.clicked.connect(self.markBaselineRegion)
         self.normMarkBaselineRegionButton.installEventFilter(self)
 
         self.clearBaselineRegionsButton.clicked.connect(self.clearBaselineRegions)
         self.clearBaselineRegionsButton.installEventFilter(self)
 
+        self.clearBaselineRegionsLightcurvesButton.clicked.connect(self.clearBaselineRegions)
+        self.clearBaselineRegionsLightcurvesButton.installEventFilter(self)
+
         self.clearMetricPointsButton.clicked.connect(self.clearModelsBaselineRegion)
         self.clearMetricPointsButton.installEventFilter(self)
 
         self.calcStatsFromBaselineRegionsButton.clicked.connect(self.calcBaselineStatisticsFromMarkedRegions)
         self.calcStatsFromBaselineRegionsButton.installEventFilter(self)
+
+        self.calcStatsFromBaselineRegionsLightcurvesButton.clicked.connect(self.calcBaselineStatisticsFromMarkedRegions)
+        self.calcStatsFromBaselineRegionsLightcurvesButton.installEventFilter(self)
 
         self.calcDetectabilityButton.clicked.connect(self.calcDetectability)
         self.calcDetectabilityButton.installEventFilter(self)
@@ -4564,6 +4573,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.clearBaselineDotsFromPlot()
 
     def clearBaselineDotsFromPlot(self):
+        if self.dataLen is None:
+            return
         self.bkgndRegionLimits = []
         self.showMsg('Background regions cleared.')
         x = [i for i in range(self.dataLen) if self.yStatus[i] == BASELINE]
@@ -4656,6 +4667,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.showMsg(f'sigmaA: = {self.sigmaA:0.2f}')
 
     def calcBaselineStatisticsFromMarkedRegions(self):
+        if self.dataLen is None:
+            return
         xIndices = [i for i in range(self.dataLen) if self.yStatus[i] == BASELINE]
         y = [self.yValues[i] for i in range(self.dataLen) if self.yStatus[i] == BASELINE]
         mean = np.mean(y)
@@ -7894,8 +7907,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             else:
                 self.minEvent = int(minText)
                 if self.minEvent < 2:
-                    self.showInfo('minEvent must be greater than 1')
-                    return
+                    self.showInfo('minEvent must be greater than 1.\n\nSetting it to 2.')
+                    self.minEvent = 2
+                    self.minEventEdit.setText('2')
+                    # return
 
         if maxText:
             if not maxText.isnumeric():

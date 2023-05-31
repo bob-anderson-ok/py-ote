@@ -1859,7 +1859,7 @@ def demo_event(LCP: LightcurveParameters, model, title='Generic model', showLege
 
         # TODO This is used to provide model light curves for test file generator and must be left in.
         model_dict = {'y': camera_y, 't_start': x[0] / LCP.shadow_speed, 't_end': x[-1] / LCP.shadow_speed}
-        pickle.dump(model_dict, open("model_dict_diffraction.p", "wb"))
+        pickle.dump(model_dict, open("demo-event.p", "wb"))
         # print(f'x[0]: {x[0]/LCP.shadow_speed:0.4f}  x[-1]: {x[-1]/LCP.shadow_speed:0.4f}')
         return x, camera_y, D_edge, R_edge
     else:
@@ -1874,7 +1874,7 @@ def demo_event(LCP: LightcurveParameters, model, title='Generic model', showLege
     final_y = cameraIntegration(x, y, LCP)
     # TODO This is used to provide model light curves for test file generator and must be left in.
     model_dict = {'y': final_y, 't_start': x[0]/LCP.shadow_speed, 't_end':x[-1]/LCP.shadow_speed}
-    pickle.dump(model_dict, open("model_dict_diffraction.p", "wb"))
+    pickle.dump(model_dict, open("demo-event.p", "wb"))
     # print(f'x[0]: {x[0]/LCP.shadow_speed:0.4f}  x[-1]: {x[-1]/LCP.shadow_speed:0.4f}')
 
     return x, final_y, D_edge, R_edge

@@ -503,6 +503,9 @@ def locate_event_from_d_and_r_ranges(
 
     d = d_start
 
+    if d - left < 2:
+        d = left + 2
+
     max_metric = 0.0
     d_best = 0
     r_best = 0
@@ -520,7 +523,9 @@ def locate_event_from_d_and_r_ranges(
         r = r_start
 
         if d > left:
-            b_sl, b_s2l, b_nl, b_varl = calc_metric_numpy(y[left+1:d])
+            # TODO Validate thos change
+            # b_sl, b_s2l, b_nl, b_varl = calc_metric_numpy(y[left+1:d])
+            b_sl, b_s2l, b_nl, b_varl = calc_metric_numpy(y[left:d])
             # Lefthand wing
         else:
             b_sl = 0.0
@@ -565,6 +570,7 @@ def locate_event_from_d_and_r_ranges(
 
         b = b_s / b_n
         a = a_s / a_n
+
         if metric >= max_metric and b > a:
             # =========== update_best_solution() =======
             max_metric = metric
