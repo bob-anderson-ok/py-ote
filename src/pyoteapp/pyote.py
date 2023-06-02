@@ -4687,7 +4687,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         # the calculation of sigB
         self.newCorCoefs, self.numNApts, sigB = getCorCoefs(baselineXvals,
                                                             baselineYvals)
-        self.showMsg('Baseline noise analysis done using ' + str(self.numNApts) +
+
+        if self.targetKey == '':
+            self.targetKey = self.lightcurveTitles[0].text()
+
+        self.showMsg(f'{self.targetKey} is the light curve undergoing baseline noise analysis.', bold=True)
+        self.showMsg('This baseline noise analysis uses ' + str(self.numNApts) +
                      ' baseline points')
         self.corCoefs = np.ndarray(shape=(len(self.newCorCoefs),))
         np.copyto(self.corCoefs, self.newCorCoefs)
@@ -6865,13 +6870,19 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.showMsg(f'fit metrics for {self.targetKey}', blankLine=False, bold=True)
 
         time_uncertainty = (self.deltaDhi95 - self.deltaDlo95) / 2.0 * self.timeDelta
-        stats_msg = f'\nfit metrics === dnr: {self.snrB:0.2f}  D95 time uncertainty: {time_uncertainty:0.4f} seconds'
+        stats_msg = f'\nfit metrics === dnr: {self.snrB:0.2f}  D uncertainty (0.95 ci): +/- {time_uncertainty:0.4f} seconds'
         self.showMsg(stats_msg, blankLine=False, bold=True)
 
         stats_msg = f'fit metrics === B: {self.B:0.2f}  A: {self.A:0.2f} sigmaB: {self.sigmaB:0.2f}  sigmaA: {self.sigmaA:0.2f}'
         self.showMsg(stats_msg, blankLine=False, bold=True)
 
-        stats_msg = f'fit metrics === observed drop: {self.observedDrop:0.2f}  max noise-induced drop: {self.maxNoiseInducedDrop:0.2f}'
+        margin = self.observedDrop - self.maxNoiseInducedDrop
+        if margin > 0:
+            stats_msg = f'fit metrics === from passed false-positive test: observed drop: ' \
+                        f'{self.observedDrop:0.1f}  max drop from noise: {self.maxNoiseInducedDrop:0.1f}  margin: {margin:0.1f}'
+        else:
+            stats_msg = f'fit metrics === from FAILED false-positive test: observed drop: ' \
+                        f'{self.observedDrop:0.1f}  max drop from noise: {self.maxNoiseInducedDrop:0.1f}  margin: {margin:0.1f}'
         self.showMsg(stats_msg, blankLine=False, bold=True)
 
         stats_msg = f'fit metrics === {self.magDropReportStr}'
@@ -6998,13 +7009,19 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.showMsg(f'fit metrics for {self.targetKey}', blankLine=False, bold=True)
 
         time_uncertainty = (self.deltaDhi95 - self.deltaDlo95) / 2.0 * self.timeDelta
-        stats_msg = f'\nfit metrics === dnr: {self.snrB:0.2f}  D95 time uncertainty: {time_uncertainty:0.4f} seconds'
+        stats_msg = f'\nfit metrics === dnr: {self.snrB:0.2f}  D uncertainty (0.95 ci): +/- {time_uncertainty:0.4f} seconds'
         self.showMsg(stats_msg, blankLine=False, bold=True)
 
         stats_msg = f'fit metrics === B: {self.B:0.2f}  A: {self.A:0.2f} sigmaB: {self.sigmaB:0.2f}  sigmaA: {self.sigmaA:0.2f}'
         self.showMsg(stats_msg, blankLine=False, bold=True)
 
-        stats_msg = f'fit metrics === observed drop: {self.observedDrop:0.2f}  max noise-induced drop: {self.maxNoiseInducedDrop:0.2f}'
+        margin = self.observedDrop - self.maxNoiseInducedDrop
+        if margin > 0:
+            stats_msg = f'fit metrics === from passed false-positive test: observed drop: ' \
+                        f'{self.observedDrop:0.1f}  max drop from noise: {self.maxNoiseInducedDrop:0.1f}  margin: {margin:0.1f}'
+        else:
+            stats_msg = f'fit metrics === from FAILED false-positive test: observed drop: ' \
+                        f'{self.observedDrop:0.1f}  max drop from noise: {self.maxNoiseInducedDrop:0.1f}  margin: {margin:0.1f}'
         self.showMsg(stats_msg, blankLine=False, bold=True)
 
         stats_msg = f'fit metrics === {self.magDropReportStr}'
