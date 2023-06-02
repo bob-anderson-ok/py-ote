@@ -503,6 +503,7 @@ def locate_event_from_d_and_r_ranges(
 
     d = d_start
 
+    # Introduced in 5.2.6 so that b_sl, b_s2l, b_nl, b_varl = calc_metric_numpy(y[left:d]) doesn't divide by zero
     if d - left < 2:
         d = left + 2
 

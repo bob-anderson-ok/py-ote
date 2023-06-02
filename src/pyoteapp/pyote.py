@@ -914,6 +914,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         # Button: Locate event
         self.locateEvent.clicked.connect(self.findEvent)
+        self.locateEventFromLightcurves.clicked.connect(self.findEvent)
+        self.locateEventFromLightcurves.installEventFilter(self)
 
         # Button: Cancel operation
         self.cancelButton.clicked.connect(self.requestCancel)
@@ -921,6 +923,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         # Button: Calculate error bars  (... write report)
         self.calcErrBars.clicked.connect(self.computeErrorBars)
         self.calcErrBars.installEventFilter(self)
+
+        self.suppressErrBarPlotsCheckbox.installEventFilter(self)
 
         # Button: Copy results to Asteroid Occultation Report Form (... fill Excel report)
         self.fillExcelReportButton.installEventFilter(self)
@@ -5443,6 +5447,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.verticalCursor.setPos(round(mousePoint.x()))
 
     def writeDefaultGraphicsPlots(self):
+        if self.suppressErrBarPlotsCheckbox.isChecked():
+            return
+
         self.graphicFile, _ = os.path.splitext(self.csvFilePath)
 
         exporter = FixedImageExporter(self.dBarPlotItem)
@@ -5979,6 +5986,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             offsetList = []
 
             self.progressBar.setValue(0)
+            self.progressBarLightcurves.setValue(0)
             progress = 0
             if specifiedBlockSize is None:
                 integrationSizes = [2, 4, 8, 16, 32, 48, 64, 96, 128, 256]
@@ -5990,6 +5998,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 ans = mean_std_versus_offset(k, self.yValues)
                 progress += 1
                 self.progressBar.setValue((progress // len(integrationSizes)) * 100)
+                self.progressBarLightcurves.setValue((progress // len(integrationSizes)) * 100)
 
                 QtWidgets.QApplication.processEvents()
                 offsetList.append(np.argmin(ans))
@@ -6005,6 +6014,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 QtWidgets.QApplication.processEvents()
 
             self.progressBar.setValue(0)
+            self.progressBarLightcurves.setValue(0)
             QtWidgets.QApplication.processEvents()
 
             best = int(np.argmin(notchList))
@@ -6068,7 +6078,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         layout = QtWidgets.QGridLayout()
         self.errBarWin.setLayout(layout)
         drop = self.B - self.yValues[selectedPoint]
-        pw, falsePositive, probability = self.falsePositiveReport(
+        pw, falsePositive, probability, *_ = self.falsePositiveReport(
             event_duration=1, num_trials=50000, observation_size=self.right - self.left + 1,
             observed_drop=drop,
             posCoefs=self.corCoefs, sigma=self.sigmaB)
@@ -6668,7 +6678,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.magdropReport(numSigmas)
 
-        self.showMsg('snr: %0.2f' % self.snrB)
+        self.showMsg('dnr: %0.2f' % self.snrB)
 
         if self.eventType == 'Donly':
             self.Dreport(deltaDhi, deltaDlo)
@@ -6699,7 +6709,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.magdropReport(numSigmas)
 
-        self.showMsg('snr: %0.2f' % self.snrB)
+        self.showMsg('dnr: %0.2f' % self.snrB)
 
         if self.eventType == 'Donly':
             self.Dreport(deltaDhi, deltaDlo)
@@ -6838,7 +6848,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.showMsg(f'magDrop report: {self.magDropString(self.B, self.A, 2)}')
         self.xlsxDict['Comment'] = f'magDrop report: {self.magDropString(self.B, self.A, 2)}'
 
-        self.showMsg('snr: %0.2f' % self.snrB)
+        self.showMsg('dnr: %0.2f' % self.snrB)
 
         self.doDtimeReport()
         self.doRtimeReport()
@@ -6850,6 +6860,18 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.showMsg('=========== end Summary report for Excel file =====================')
 
         self.showMsg("Solution 'envelope' in the main plot drawn using 0.95 containment interval error bars")
+
+        self.showMsg(f'fit metrics for {self.targetKey}', blankLine=False, bold=True)
+
+        time_uncertainty = (self.deltaDhi95 - self.deltaDlo95) / 2.0 * self.timeDelta
+        stats_msg = f'\nfit metrics === dnr: {self.snrB:0.2f}  D95 time uncertainty: {time_uncertainty:0.4f} seconds'
+        self.showMsg(stats_msg, blankLine=False, bold=True)
+
+        stats_msg = f'fit metrics === B: {self.B:0.2f}  A: {self.A:0.2f} sigmaB: {self.sigmaB:0.2f}  sigmaA: {self.sigmaA:0.2f}'
+        self.showMsg(stats_msg, blankLine=False, bold=True)
+
+        stats_msg = f'fit metrics === observed drop: {self.observedDrop:0.2f}  max noise-induced drop: {self.maxNoiseInducedDrop:0.2f}'
+        self.showMsg(stats_msg, bold=True)
 
         return
 
@@ -6954,7 +6976,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.showMsg(f'magDrop report: {self.magDropString(self.B, self.A, 2)}')
 
         # noinspection PyStringFormat
-        self.showMsg('snr: %0.2f' % self.snrB)
+        self.showMsg('dnr: %0.2f' % self.snrB)
 
         self.doDtimeReport()
         self.doRtimeReport()
@@ -6967,7 +6989,20 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.showMsg("Solution 'envelope' in the main plot drawn using 0.95 containment interval error bars")
 
-        self.showHelp(self.helpLabelForFalsePositive)
+        self.showMsg(f'fit metrics for {self.targetKey}', blankLine=False, bold=True)
+
+        time_uncertainty = (self.deltaDhi95 - self.deltaDlo95) / 2.0 * self.timeDelta
+        stats_msg = f'\nfit metrics === dnr: {self.snrB:0.2f}  D95 time uncertainty: {time_uncertainty:0.4f} seconds'
+        self.showMsg(stats_msg, blankLine=False, bold=True)
+
+        stats_msg = f'fit metrics === B: {self.B:0.2f}  A: {self.A:0.2f} sigmaB: {self.sigmaB:0.2f}  sigmaA: {self.sigmaA:0.2f}'
+        self.showMsg(stats_msg, blankLine=False, bold=True)
+
+        stats_msg = f'fit metrics === observed drop: {self.observedDrop:0.2f}  max noise-induced drop: {self.maxNoiseInducedDrop:0.2f}'
+        self.showMsg(stats_msg, bold=True)
+
+        if not self.suppressErrBarPlotsCheckbox.isChecked():
+            self.showHelp(self.helpLabelForFalsePositive)
 
     def doDframeReport(self):
         if self.eventType == 'DandR' or self.eventType == 'Donly':
@@ -7143,6 +7178,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     def computeErrorBars(self):
 
+        x1 = x2 = 0
+        pw = None
+        pw2 = None
+
+        self.falsePositivePlotItem = None
+
         if self.sigmaB == 0.0:
             self.sigmaB = MIN_SIGMA
 
@@ -7190,14 +7231,17 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                                      'treating noise as being uncorrelated.',
                                      bold=True, color='red')
                 self.progressBar.setValue(int(dist * 100))
+                self.progressBarLightcurves.setValue(int(dist * 100))
                 QtWidgets.QApplication.processEvents()
                 if self.cancelRequested:
                     self.cancelRequested = False
                     self.showMsg('Error bar calculation was cancelled')
                     self.progressBar.setValue(0)
+                    self.progressBarLightcurves.setValue(0)
                     return
             else:
                 self.progressBar.setValue(0)
+                self.progressBarLightcurves.setValue(0)
 
         # pickle.dump(dist, open('sample-dist.p', 'wb'))
 
@@ -7235,45 +7279,51 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         if self.errBarWin is not None:
             self.errBarWin.close()
 
-        self.errBarWin = pg.GraphicsWindow(
-            title='Solution distributions with containment intervals marked --- false positive distribution')
-        self.errBarWin.resize(1200, 1000)
-        layout = QtWidgets.QGridLayout()
-        self.errBarWin.setLayout(layout)
+        _, false_positive, false_probability, self.observedDrop, self.maxNoiseInducedDrop = self.doFalsePositiveReport(posCoefs)  # noqa
 
-        pw = PlotWidget(viewBox=CustomViewBox(border=(0, 0, 0)),
-                        enableMenu=False, title='Distribution of edge (D) errors due to noise',
-                        labels={'bottom': 'Reading blocks'})
-        self.dBarPlotItem = pw.getPlotItem()
-        pw.hideButtons()
+        if not self.suppressErrBarPlotsCheckbox.isChecked():
+            self.errBarWin = pg.GraphicsWindow(
+                title='Solution distributions with containment intervals marked --- false positive distribution')
+            self.errBarWin.resize(1200, 1000)
+            layout = QtWidgets.QGridLayout()
+            self.errBarWin.setLayout(layout)
 
-        pw2 = PlotWidget(viewBox=CustomViewBox(border=(0, 0, 0)),
-                         enableMenu=False, title='Distribution of duration (R - D) errors due to noise',
-                         labels={'bottom': 'Reading blocks'})
-        self.durBarPlotItem = pw2.getPlotItem()
-        pw2.hideButtons()
+            pw = PlotWidget(viewBox=CustomViewBox(border=(0, 0, 0)),
+                            enableMenu=False, title='Distribution of edge (D) errors due to noise',
+                            labels={'bottom': 'Reading blocks'})
+            self.dBarPlotItem = pw.getPlotItem()
+            pw.hideButtons()
 
-        pw3, false_positive, false_probability = self.doFalsePositiveReport(posCoefs)
-        self.falsePositivePlotItem = pw3.getPlotItem()
+            pw2 = PlotWidget(viewBox=CustomViewBox(border=(0, 0, 0)),
+                             enableMenu=False, title='Distribution of duration (R - D) errors due to noise',
+                             labels={'bottom': 'Reading blocks'})
+            self.durBarPlotItem = pw2.getPlotItem()
+            pw2.hideButtons()
 
-        layout.addWidget(pw, 0, 0)
-        layout.addWidget(pw2, 0, 1)
-        layout.addWidget(pw3, 1, 0, 1, 2)  # (pw3, row_start, col_start, n_rows_to_span, n_cols_to_span)
+            pw3, false_positive, false_probability, self.observedDrop, self.maxNoiseInducedDrop = self.doFalsePositiveReport(posCoefs)  # noqa
 
-        pw.plot(x - D, y, stepMode=True, fillLevel=0, brush=(0, 0, 255, 150))
-        pw.addLine(y=0, z=-10, pen=[0, 0, 255])
-        pw.addLine(x=0, z=+10, pen=[255, 0, 0])
+            # Suppress this print statement
+            # print(f'observed drop: {self.observedDrop:0.2f}  max noise-induced drop: {self.maxNoiseInducedDrop:0.2f}')
+            self.falsePositivePlotItem = pw3.getPlotItem()
 
-        yp = max(y) * 0.75
-        x1 = self.loDbar68 - D
-        pw.plot(x=[x1, x1], y=[0, yp], pen=pen)
+            layout.addWidget(pw, 0, 0)
+            layout.addWidget(pw2, 0, 1)
+            layout.addWidget(pw3, 1, 0, 1, 2)  # (pw3, row_start, col_start, n_rows_to_span, n_cols_to_span)
 
-        x2 = self.hiDbar68 - D
-        pw.plot(x=[x2, x2], y=[0, yp], pen=pen)
+            pw.plot(x - D, y, stepMode=True, fillLevel=0, brush=(0, 0, 255, 150))
+            pw.addLine(y=0, z=-10, pen=[0, 0, 255])
+            pw.addLine(x=0, z=+10, pen=[255, 0, 0])
 
-        pw.addLegend()
-        legend68 = '[%0.2f,%0.2f] @ 0.6827' % (x1, x2)
-        pw.plot(name=legend68)
+            yp = max(y) * 0.75
+            x1 = self.loDbar68 - D
+            pw.plot(x=[x1, x1], y=[0, yp], pen=pen)
+
+            x2 = self.hiDbar68 - D
+            pw.plot(x=[x2, x2], y=[0, yp], pen=pen)
+
+            pw.addLegend()
+            legend68 = '[%0.2f,%0.2f] @ 0.6827' % (x1, x2)
+            pw.plot(name=legend68)
 
         self.showMsg("Error bar report based on 100,000 simulations (units are readings)...")
 
@@ -7282,72 +7332,86 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         yp = max(y) * 0.25
         x1 = self.loDbar95 - D
-        pw.plot(x=[x1, x1], y=[0, yp], pen=pen)
         x2 = self.hiDbar95 - D
-        pw.plot(x=[x2, x2], y=[0, yp], pen=pen)
+
+        if not self.suppressErrBarPlotsCheckbox.isChecked():
+            pw.plot(x=[x1, x1], y=[0, yp], pen=pen)
+            pw.plot(x=[x2, x2], y=[0, yp], pen=pen)
 
         self.showMsg('loDbar   @ .95 ci: %8.4f' % (x1 * self.framesPerEntry()), blankLine=False)
         self.showMsg('hiDbar   @ .95 ci: %8.4f' % (x2 * self.framesPerEntry()), blankLine=False)
 
-        legend95 = '[%0.2f,%0.2f] @ 0.95' % (x1, x2)
-        pw.plot(name=legend95)
+        if not self.suppressErrBarPlotsCheckbox.isChecked():
+            legend95 = '[%0.2f,%0.2f] @ 0.95' % (x1, x2)
+            pw.plot(name=legend95)
 
         yp = max(y) * 0.15
         x1 = self.loDbar99 - D
-        pw.plot(x=[x1, x1], y=[0, yp], pen=pen)
         x2 = self.hiDbar99 - D
-        pw.plot(x=[x2, x2], y=[0, yp], pen=pen)
+
+        if not self.suppressErrBarPlotsCheckbox.isChecked():
+            pw.plot(x=[x1, x1], y=[0, yp], pen=pen)
+            pw.plot(x=[x2, x2], y=[0, yp], pen=pen)
 
         self.showMsg('loDbar   @ .9973 ci: %8.4f' % (x1 * self.framesPerEntry()), blankLine=False)
         self.showMsg('hiDbar   @ .9973 ci: %8.4f' % (x2 * self.framesPerEntry()), blankLine=True)
 
-        legend99 = '[%0.2f,%0.2f] @ 0.9973' % (x1, x2)
-        pw.plot(name=legend99)
+        if not self.suppressErrBarPlotsCheckbox.isChecked():
+            legend99 = '[%0.2f,%0.2f] @ 0.9973' % (x1, x2)
+            pw.plot(name=legend99)
 
-        pw.hideAxis('left')
+            pw.hideAxis('left')
 
-        pw2.plot(xdur, ydur, stepMode=True, fillLevel=0, brush=(0, 0, 255, 150))
-        pw2.addLine(y=0, z=-10, pen=[0, 0, 255])
-        pw2.addLine(x=0, z=+10, pen=[255, 0, 0])
+            pw2.plot(xdur, ydur, stepMode=True, fillLevel=0, brush=(0, 0, 255, 150))
+            pw2.addLine(y=0, z=-10, pen=[0, 0, 255])
+            pw2.addLine(x=0, z=+10, pen=[255, 0, 0])
 
         yp = max(ydur) * 0.75
         x1 = self.loDurbar68
-        pw2.plot(x=[x1, x1], y=[0, yp], pen=pen)
         x2 = self.hiDurbar68
-        pw2.plot(x=[x2, x2], y=[0, yp], pen=pen)
 
-        pw2.addLegend()
-        legend68 = '[%0.2f,%0.2f] @ 0.6827' % (x1, x2)
-        pw2.plot(name=legend68)
+        if not self.suppressErrBarPlotsCheckbox.isChecked():
+            pw2.plot(x=[x1, x1], y=[0, yp], pen=pen)
+            pw2.plot(x=[x2, x2], y=[0, yp], pen=pen)
+
+            pw2.addLegend()
+            legend68 = '[%0.2f,%0.2f] @ 0.6827' % (x1, x2)
+            pw2.plot(name=legend68)
 
         self.showMsg('loDurBar @ .68 ci: %8.4f' % (x1 * self.framesPerEntry()), blankLine=False)
         self.showMsg('hiDurBar @ .68 ci: %8.4f' % (x2 * self.framesPerEntry()), blankLine=False)
 
         yp = max(ydur) * 0.25
         x1 = self.loDurbar95
-        pw2.plot(x=[x1, x1], y=[0, yp], pen=pen)
         x2 = self.hiDurbar95
-        pw2.plot(x=[x2, x2], y=[0, yp], pen=pen)
+
+        if not self.suppressErrBarPlotsCheckbox.isChecked():
+            pw2.plot(x=[x1, x1], y=[0, yp], pen=pen)
+            pw2.plot(x=[x2, x2], y=[0, yp], pen=pen)
 
         self.showMsg('loDurBar @ .95 ci: %8.4f' % (x1 * self.framesPerEntry()), blankLine=False)
         self.showMsg('hiDurBar @ .95 ci: %8.4f' % (x2 * self.framesPerEntry()), blankLine=False)
 
-        legend95 = '[%0.2f,%0.2f] @ 0.95' % (x1, x2)
-        pw2.plot(name=legend95)
+        if not self.suppressErrBarPlotsCheckbox.isChecked():
+            legend95 = '[%0.2f,%0.2f] @ 0.95' % (x1, x2)
+            pw2.plot(name=legend95)
 
         yp = max(ydur) * 0.15
         x1 = self.loDurbar99
-        pw2.plot(x=[x1, x1], y=[0, yp], pen=pen)
         x2 = self.hiDurbar99
-        pw2.plot(x=[x2, x2], y=[0, yp], pen=pen)
+
+        if not self.suppressErrBarPlotsCheckbox.isChecked():
+            pw2.plot(x=[x1, x1], y=[0, yp], pen=pen)
+            pw2.plot(x=[x2, x2], y=[0, yp], pen=pen)
 
         self.showMsg('loDurBar @ .9973 ci: %8.4f' % (x1 * self.framesPerEntry()), blankLine=False)
         self.showMsg('hiDurBar @ .9973 ci: %8.4f' % (x2 * self.framesPerEntry()), blankLine=True)
 
-        legend99 = '[%0.2f,%0.2f] @ 0.9973' % (x1, x2)
-        pw2.plot(name=legend99)
+        if not self.suppressErrBarPlotsCheckbox.isChecked():
+            legend99 = '[%0.2f,%0.2f] @ 0.9973' % (x1, x2)
+            pw2.plot(name=legend99)
 
-        pw2.hideAxis('left')
+            pw2.hideAxis('left')
 
         self.writeBarPlots.setEnabled(True)
 
@@ -7653,7 +7717,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         else:
             false_probability = 1.0 - index_of_observed_drop_inside_sorted_drops / drops.size
             false_positive = True
-        return pw, false_positive, false_probability
+        return pw, false_positive, false_probability, observed_drop, np.max(x)
 
     def displaySolution(self, subframe=True):
         D, R = self.solution
@@ -8020,17 +8084,20 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             for item in solverGen:
                 if item[0] == 1.0:
                     self.progressBar.setValue(int(item[1] * 100))
+                    self.progressBarLightcurves.setValue(int(item[1] * 100))
                     QtWidgets.QApplication.processEvents()
                     if self.cancelRequested:
                         self.cancelRequested = False
                         self.runSolver = False
                         self.showMsg('Solution search was cancelled')
                         self.progressBar.setValue(0)
+                        self.progressBarLightcurves.setValue(0)
                         return
                 elif item[0] == -1.0:
                     self.showMsg(
                         'No event fitting search criteria could be found.')
                     self.progressBar.setValue(0)
+                    self.progressBarLightcurves.setValue(0)
                     self.runSolver = False
                     return
                 else:
@@ -8041,6 +8108,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                         r = None
                     self.solution = [d, r]
                     self.progressBar.setValue(0)
+                    self.progressBarLightcurves.setValue(0)
 
             self.showMsg('Integer (non-subframe) solution...', blankLine=False)
             self.showMsg(
@@ -8060,7 +8128,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 snr = b / sigmaB
                 if snr < 4.0:
                     self.dnrOffRadioButton.setChecked(True)
-                    self.showMsg(f'The snr of {snr:0.1f} is too low to use an NE3 exponential solution...', color='red',
+                    self.showMsg(f'The dnr of {snr:0.1f} is too low to use an NE3 exponential solution...', color='red',
                                  blankLine=False)
                     self.showMsg(f'... NE3 DNR:Off has been automatically checked.', color='red')
                 self.showUnderlyingLightcurveCheckBox.setChecked(True)
@@ -8158,6 +8226,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.newRedrawMainPlot()
 
         self.calcErrBars.setEnabled(True)
+        # TODO Make sure this works
+        self.computeErrorBars()
 
         if need_to_invite_user_to_verify_timestamps:
             self.showInfo(f'The timing of the event found depends on the correctness '
