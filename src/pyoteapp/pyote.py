@@ -6845,8 +6845,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.showMsg("Times are invalid due to corrupted timestamps!",
                          color='red', bold=True)
 
-        self.showMsg(f'magDrop report: {self.magDropString(self.B, self.A, 2)}')
-        self.xlsxDict['Comment'] = f'magDrop report: {self.magDropString(self.B, self.A, 2)}'
+        self.magDropReportStr = f'magDrop report: {self.magDropString(self.B, self.A, 2)}'
+        self.xlsxDict['Comment'] = self.magDropReportStr
+        self.showMsg(self.magDropReportStr)
 
         self.showMsg('dnr: %0.2f' % self.snrB)
 
@@ -6871,7 +6872,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.showMsg(stats_msg, blankLine=False, bold=True)
 
         stats_msg = f'fit metrics === observed drop: {self.observedDrop:0.2f}  max noise-induced drop: {self.maxNoiseInducedDrop:0.2f}'
+        self.showMsg(stats_msg, blankLine=False, bold=True)
+
+        stats_msg = f'fit metrics === {self.magDropReportStr}'
         self.showMsg(stats_msg, bold=True)
+
 
         return
 
@@ -6972,8 +6977,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                          'uncorrelated.',
                          bold=True, color='red')
 
-        self.xlsxDict['Comment'] = f'magDrop report: {self.magDropString(self.B, self.A, 2)}'
-        self.showMsg(f'magDrop report: {self.magDropString(self.B, self.A, 2)}')
+        self.magDropReportStr = f'magDrop report: {self.magDropString(self.B, self.A, 2)}'
+        self.xlsxDict['Comment'] = self.magDropReportStr
+        self.showMsg(self.magDropReportStr)
 
         # noinspection PyStringFormat
         self.showMsg('dnr: %0.2f' % self.snrB)
@@ -6999,6 +7005,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.showMsg(stats_msg, blankLine=False, bold=True)
 
         stats_msg = f'fit metrics === observed drop: {self.observedDrop:0.2f}  max noise-induced drop: {self.maxNoiseInducedDrop:0.2f}'
+        self.showMsg(stats_msg, blankLine=False, bold=True)
+
+        stats_msg = f'fit metrics === {self.magDropReportStr}'
         self.showMsg(stats_msg, bold=True)
 
         if not self.suppressErrBarPlotsCheckbox.isChecked():
