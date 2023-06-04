@@ -2646,6 +2646,19 @@
                      </property>
                     </widget>
                    </item>
+                   <item>
+                    <widget class="QPushButton" name="fillExcelReportButton">
+                     <property name="enabled">
+                      <bool>false</bool>
+                     </property>
+                     <property name="toolTip">
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this button to copy your results to the Asteroid Occultation Report Form (.xlsx spreadsheet - note file type is .xlsx, not .xls). This button will be inactive (grayed out) until a succesful &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;... write report&lt;/span&gt; has been accomplished.&lt;/p&gt;&lt;p&gt;The expected workflow is:&lt;/p&gt;&lt;p&gt;1) Given that PyOTE now has a solution that you wish to report (an occultation), leave PyOTE open ...&lt;/p&gt;&lt;p&gt;2) Run OccultWatcher to enter your event result report. Be sure to ask for a 'prefill' of the .xls version of the report ...&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;3) Convert that .xls file to .xlsx using either Excel (Windows) or LibreOffice (Mac or Linux)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;4) Go back to PyOTE and click this button ...&lt;/p&gt;&lt;p&gt;5) A file dialog will open; locate and select the prefilled and converted .xlsx report from steps 2 and 3.&lt;/p&gt;&lt;p&gt;6) If the file selected in step 5 was a valid Asteroid Occultation Report Form .xlsx file, the PyOTE results will be inserted.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Note: the excel format change from .xls to .xlsx will not affect the downstream processing adversely as the tool in use accepts either format equally well.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;The values that are inserted are:&lt;/p&gt;&lt;p&gt;--- all error bars&lt;/p&gt;&lt;p&gt;--- uncorrected D and/or R times&lt;/p&gt;&lt;p&gt;--- SNR&lt;/p&gt;&lt;p&gt;--- OTA used (PYOTE)&lt;/p&gt;&lt;p&gt;---A sentence summarizing magDrop information will be added in the Comments box&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     </property>
+                     <property name="text">
+                      <string>... fill Excel report</string>
+                     </property>
+                    </widget>
+                   </item>
                   </layout>
                  </item>
                  <item>
@@ -2693,6 +2706,12 @@
                    <property name="enabled">
                     <bool>false</bool>
                    </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>130</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
                    <property name="text">
                     <string>Find event, then ...</string>
                    </property>
@@ -2702,6 +2721,12 @@
                   <widget class="QPushButton" name="calcErrBars">
                    <property name="enabled">
                     <bool>false</bool>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>130</width>
+                     <height>16777215</height>
+                    </size>
                    </property>
                    <property name="toolTip">
                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;To get a 'Final Report', error bars are required. Clicking this button will start the computation of those error bars and, when complete, trigger the preparation of a 'Final Report'&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -2713,11 +2738,23 @@
                  </item>
                  <item>
                   <widget class="QCheckBox" name="suppressErrBarPlotsCheckbox">
+                   <property name="minimumSize">
+                    <size>
+                     <width>50</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>130</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
                    <property name="toolTip">
                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;It is sometimes useful to &lt;span style=&quot; font-weight:700;&quot;&gt;not&lt;/span&gt; show the error bar and false-positive plots during a find event/write report sequence. For example, if one is comparing the 'solution' for extractions from a set of apertures, it gets tiresome closing these plots because one is only interested in the fit metrics associated with each aperture until a choice is made as to which aperture contains the most reliable lightcurve. At that point, one would uncheck this box and repeat the find event sequence for the chosen aperture in order to add the plots as final report documentation.&lt;/p&gt;&lt;p&gt;If this box is checked, all of the normal calculations and reports are printed, but the plots do not appear and are not written out either.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="text">
-                    <string>Don't show error bar plots</string>
+                    <string>Disable err bar plots</string>
                    </property>
                   </widget>
                  </item>
@@ -2744,15 +2781,18 @@
                   </widget>
                  </item>
                  <item>
-                  <widget class="QPushButton" name="fillExcelReportButton">
-                   <property name="enabled">
-                    <bool>false</bool>
+                  <widget class="QPushButton" name="clearFitMetricCsvButton">
+                   <property name="maximumSize">
+                    <size>
+                     <width>130</width>
+                     <height>16777215</height>
+                    </size>
                    </property>
                    <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this button to copy your results to the Asteroid Occultation Report Form (.xlsx spreadsheet - note file type is .xlsx, not .xls). This button will be inactive (grayed out) until a succesful &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;... write report&lt;/span&gt; has been accomplished.&lt;/p&gt;&lt;p&gt;The expected workflow is:&lt;/p&gt;&lt;p&gt;1) Given that PyOTE now has a solution that you wish to report (an occultation), leave PyOTE open ...&lt;/p&gt;&lt;p&gt;2) Run OccultWatcher to enter your event result report. Be sure to ask for a 'prefill' of the .xls version of the report ...&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;3) Convert that .xls file to .xlsx using either Excel (Windows) or LibreOffice (Mac or Linux)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;4) Go back to PyOTE and click this button ...&lt;/p&gt;&lt;p&gt;5) A file dialog will open; locate and select the prefilled and converted .xlsx report from steps 2 and 3.&lt;/p&gt;&lt;p&gt;6) If the file selected in step 5 was a valid Asteroid Occultation Report Form .xlsx file, the PyOTE results will be inserted.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Note: the excel format change from .xls to .xlsx will not affect the downstream processing adversely as the tool in use accepts either format equally well.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;The values that are inserted are:&lt;/p&gt;&lt;p&gt;--- all error bars&lt;/p&gt;&lt;p&gt;--- uncorrected D and/or R times&lt;/p&gt;&lt;p&gt;--- SNR&lt;/p&gt;&lt;p&gt;--- OTA used (PYOTE)&lt;/p&gt;&lt;p&gt;---A sentence summarizing magDrop information will be added in the Comments box&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The fit metrics that are printed at the end of the final report are also written to a csv file (named &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;fit-metrics.csv&lt;/span&gt; in the current folder). As each light curve is processed in the search for the 'best fit', the metrics found are appended to this file. This supports further processing or for inclusion with a report.&lt;/p&gt;&lt;p&gt;To start over with this file, click this button - it erases the file.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="text">
-                    <string>... fill Excel report</string>
+                    <string>Clear fit metrics file</string>
                    </property>
                   </widget>
                  </item>
@@ -8016,7 +8056,6 @@ Setting this value to zero will force Miss distance optimization to be skipped.<
   <tabstop>setDataLimits</tabstop>
   <tabstop>locateEvent</tabstop>
   <tabstop>calcErrBars</tabstop>
-  <tabstop>fillExcelReportButton</tabstop>
   <tabstop>cancelButton</tabstop>
   <tabstop>writePlot</tabstop>
   <tabstop>writeBarPlots</tabstop>

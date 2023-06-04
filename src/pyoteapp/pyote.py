@@ -926,6 +926,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.suppressErrBarPlotsCheckbox.installEventFilter(self)
 
+        self.clearFitMetricCsvButton.clicked.connect(self.clearFitMetricCsvFile)
+        self.clearFitMetricCsvButton.installEventFilter(self)
+
         # Button: Copy results to Asteroid Occultation Report Form (... fill Excel report)
         self.fillExcelReportButton.installEventFilter(self)
         self.fillExcelReportButton.clicked.connect(self.fillExcelReport)
@@ -4835,6 +4838,19 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
             self.showInfo(f'Excel spreadsheet Asteroid Report Form entries extracted successfully.')
 
+    def clearFitMetricCsvFile(self):
+        if self.csvFilePath is None:
+            self.showInfo(f'A light curve has not been selected yet\n\n'
+                          f'so there is no fit metrics file to remove.')
+            return
+
+        lightCurveDir = os.path.dirname(self.csvFilePath)  # This gets the folder where the light-curve.csv is located
+        metric_file_path = lightCurveDir + r'\fit_metric.csv'
+        if os.path.exists(metric_file_path):
+            os.remove(metric_file_path)
+            self.showInfo(f'The fit metrics file has been cleared.')
+        return
+
     def fillExcelReport(self):
         # Open a file select dialog
         xlsxfilepath, _ = QFileDialog.getOpenFileName(
@@ -5185,8 +5201,16 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                         columnHeadings += ',LC4'
                 else:
                     columnHeadings = 'FrameNum,timeInfo'
-                    for column_name in self.aperture_names:
-                        columnHeadings += f',signal-{column_name}'
+                    column_number = 2
+                    while True:
+                        column_header_item = self.table.horizontalHeaderItem(column_number)
+                        if column_header_item is None:
+                            break
+                        else:
+                            column_name = column_header_item.text()
+                            columnHeadings += f',{column_name}'
+                            column_number += 1
+
                 if self.modelYsamples is not None:
                     columnHeadings += f',signal-model'
 
@@ -5215,7 +5239,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                                     line += ',' + f'{self.modelYsamples[-1]:0.3f}'
                                 else:
                                     self.showInfo(f'We should not be here in writeCSVfile()')
-
 
                         fileObject.write(line + '\n')
 
@@ -6741,7 +6764,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         If A is > 0, we calculate the nominal magDrop and it's error bar.
 
-        If the error bar is unreasonable (i.e., grater than the magDrop) we don't
+        If the error bar is unreasonable (i.e., greater than the magDrop) we don't
         output the error bar and attach a message indicating that the observation
         was too noisy for a valid error bar.
 
@@ -6751,6 +6774,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             percentDrop = 100.0 * (1.0 - A / B)
         else:
             percentDrop = 100.0
+
+        self.percentMagDrop = percentDrop  # Used for fit metrics report
 
         if not percentDrop == 100.0:
             # A was > 0.  Attempt error bar calculations
@@ -6870,11 +6895,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.showMsg(f'fit metrics for {self.targetKey}', blankLine=False, bold=True)
 
         time_uncertainty = (self.deltaDhi95 - self.deltaDlo95) / 2.0 * self.timeDelta
-        stats_msg = f'\nfit metrics === dnr: {self.snrB:0.2f}  D uncertainty (0.95 ci): +/- {time_uncertainty:0.4f} seconds'
+        stats_msg = f'\nfit metrics === dnr: {self.snrB:0.2f}  edge uncertainty (0.95 ci): +/- {time_uncertainty:0.4f} seconds'
         self.showMsg(stats_msg, blankLine=False, bold=True)
 
         stats_msg = f'fit metrics === B: {self.B:0.2f}  A: {self.A:0.2f} sigmaB: {self.sigmaB:0.2f}  sigmaA: {self.sigmaA:0.2f}'
         self.showMsg(stats_msg, blankLine=False, bold=True)
+
 
         margin = self.observedDrop - self.maxNoiseInducedDrop
         if margin > 0:
@@ -6886,10 +6912,28 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.showMsg(stats_msg, blankLine=False, bold=True)
 
         stats_msg = f'fit metrics === {self.magDropReportStr}'
-        self.showMsg(stats_msg, bold=True)
+        self.showMsg(stats_msg, blankLine=False, bold=True)
 
+        if self.eventType == 'Donly' or self.eventType == 'DandR':
+            stats_msg = f'\nfit metrics === D frame number: {self.solution[0]:0.4f}'
+            self.showMsg(stats_msg, blankLine=False, bold=True)
 
-        return
+        if self.eventType == 'Ronly' or self.eventType == 'DandR':
+            stats_msg = f'\nfit metrics === R frame number: {self.solution[1]:0.4f}'
+            self.showMsg(stats_msg, blankLine=False, bold=True)
+
+        if self.eventType == 'Donly' or self.eventType == 'DandR':
+            stats_msg = f'\nfit metrics === D time: {self.Dtimestring}'
+            self.showMsg(stats_msg, blankLine=False, bold=True)
+
+        if self.eventType == 'Ronly' or self.eventType == 'DandR':
+            stats_msg = f'\nfit metrics === R time: {self.Rtimestring}'
+            self.showMsg(stats_msg, blankLine=False, bold=True)
+
+        self.showMsg("")
+
+        self.updateFitMetricCsvFile()
+
 
     def finalReport(self, false_positive, false_probability):
 
@@ -7009,7 +7053,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.showMsg(f'fit metrics for {self.targetKey}', blankLine=False, bold=True)
 
         time_uncertainty = (self.deltaDhi95 - self.deltaDlo95) / 2.0 * self.timeDelta
-        stats_msg = f'\nfit metrics === dnr: {self.snrB:0.2f}  D uncertainty (0.95 ci): +/- {time_uncertainty:0.4f} seconds'
+        stats_msg = f'\nfit metrics === dnr: {self.snrB:0.2f}  edge uncertainty (0.95 ci): +/- {time_uncertainty:0.4f} seconds'
         self.showMsg(stats_msg, blankLine=False, bold=True)
 
         stats_msg = f'fit metrics === B: {self.B:0.2f}  A: {self.A:0.2f} sigmaB: {self.sigmaB:0.2f}  sigmaA: {self.sigmaA:0.2f}'
@@ -7025,10 +7069,91 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.showMsg(stats_msg, blankLine=False, bold=True)
 
         stats_msg = f'fit metrics === {self.magDropReportStr}'
-        self.showMsg(stats_msg, bold=True)
+        self.showMsg(stats_msg, blankLine=False, bold=True)
+
+        if self.eventType == 'Donly' or self.eventType == 'DandR':
+            stats_msg = f'\nfit metrics === D frame number: {self.solution[0]:0.4f}'
+            self.showMsg(stats_msg, blankLine=False, bold=True)
+
+        if self.eventType == 'Ronly' or self.eventType == 'DandR':
+            stats_msg = f'\nfit metrics === R frame number: {self.solution[1]:0.4f}'
+            self.showMsg(stats_msg, blankLine=False, bold=True)
+
+        if self.eventType == 'Donly' or self.eventType == 'DandR':
+            stats_msg = f'\nfit metrics === D time: {self.Dtimestring}'
+            self.showMsg(stats_msg, blankLine=False, bold=True)
+
+        if self.eventType == 'Ronly' or self.eventType == 'DandR':
+            stats_msg = f'\nfit metrics === R time: {self.Rtimestring}'
+            self.showMsg(stats_msg, blankLine=False, bold=True)
+
+        self.showMsg("")
+
+        self.updateFitMetricCsvFile()
 
         if not self.suppressErrBarPlotsCheckbox.isChecked():
             self.showHelp(self.helpLabelForFalsePositive)
+
+    def updateFitMetricCsvFile(self):
+        lightCurveDir = os.path.dirname(self.csvFilePath)  # This gets the folder where the light-curve.csv is located
+        metric_file_path = lightCurveDir + r'\fit_metric.csv'
+
+        if os.path.exists(metric_file_path):
+            # self.showInfo('We will append to an existing fit-metric.csv file')
+            pass
+        else:
+            # self.showInfo('We fill create a new fit-metric.csv file')
+            with open(metric_file_path, 'w') as fileObject:
+                fileObject.writelines('aperture-name,dnr,edge uncertainty (0.95ci),B,A,sigmaB,sigmaA,'
+                                      'observed drop,max noise induced drop,margin,'
+                                      'magDrop percentage,D frame,R frame,D time,R time\n')
+
+        with open(metric_file_path, 'a') as fileObject:
+            new_data = self.targetKey
+
+            # TODO Will this work for a R only???
+            time_uncertainty = (self.deltaDhi95 - self.deltaDlo95) / 2.0 * self.timeDelta
+            new_data += f',{self.snrB:0.2f}'
+            new_data += f',{time_uncertainty:0.4f}'
+
+            new_data += f',{self.B:0.2f}'
+            new_data += f',{self.A:0.2f}'
+            new_data += f',{self.sigmaB:0.2f}'
+            new_data += f',{self.sigmaA:0.2f}'
+
+            margin = self.observedDrop - self.maxNoiseInducedDrop
+
+            new_data += f',{self.observedDrop:0.1f}'
+            new_data += f',{self.maxNoiseInducedDrop:0.1f}'
+            new_data += f',{margin:0.1f}'
+
+            new_data += f',{self.percentMagDrop:0.1f}'
+
+            if self.eventType == 'Donly' or self.eventType == 'DandR':
+                new_data += f',{self.solution[0]:0.4f}'
+            else:
+                new_data += f',0'
+
+            if self.eventType == 'Ronly' or self.eventType == 'DandR':
+                new_data += f',{self.solution[1]:0.4f}'
+            else:
+                new_data += f',0'
+
+            if self.eventType == 'Donly' or self.eventType == 'DandR':
+                new_data += f',{self.Dtimestring}'
+            else:
+                new_data += f',[00:00:0.0000]'
+
+            if self.eventType == 'Ronly' or self.eventType == 'DandR':
+                new_data += f',{self.Rtimestring}'
+            else:
+                new_data += f',[00:00:0.0000]'
+
+            self.showMsg("")
+
+            fileObject.writelines(f'{new_data}\n')
+
+        return
 
     def doDframeReport(self):
         if self.eventType == 'DandR' or self.eventType == 'Donly':
@@ -7095,6 +7220,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.Dtime = adjTime  # This is needed for the duration report (assumed to follow!!!)
             ts = convertTimeToTimeString(adjTime)
 
+            self.Dtimestring = ts
+
             tsParts = ts[1:-1].split(':')
             self.xlsxDict['Dhour'] = tsParts[0]
             self.xlsxDict['Dmin'] = tsParts[1]
@@ -7126,6 +7253,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             adjTime = time + (R - int(R)) * self.timeDelta
             self.Rtime = adjTime  # This is needed for the duration report (assumed to follow!!!)
             ts = convertTimeToTimeString(adjTime)
+
+            self.Rtimestring = ts
 
             tsParts = ts[1:-1].split(':')
             self.xlsxDict['Rhour'] = tsParts[0]
