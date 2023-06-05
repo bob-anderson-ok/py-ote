@@ -6786,6 +6786,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             lnError = ratioError / ratio
             magdroperr = (2.5 / np.log(10.0)) * lnError
             magDrop = (np.log10(B) - np.log10(A)) * 2.5
+            self.unvettedMagDrop = magDrop
 
             # Check that error bar is unreasonable (greater than the calculated magDrop)
             if magdroperr < magDrop:
@@ -6800,6 +6801,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 return f'percentDrop: {percentDrop:0.1f}  magDrop: {magDrop:0.3f}  {ciStr}'
             return f'percentDrop: {percentDrop:0.1f}  magDrop: {magDrop:0.3f}  +/- {magdroperr:0.3f}  {ciStr}'
         else:
+            self.unvettedMagDrop = 25.0  # Return an exceptionally high (meaningless) magDrop for the fit metric
+
             # A was <= 0, so we can only report a maximum percent drop of 100
             return f'percentDrop: {percentDrop:0.1f}  (magDrop cannot be calculated because A < 0)'
 
@@ -6891,6 +6894,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.showMsg('=========== end Summary report for Excel file =====================')
 
         self.showMsg("Solution 'envelope' in the main plot drawn using 0.95 containment interval error bars")
+
+        if self.targetKey == '':
+            self.targetKey = self.lightcurveTitles[0].text()
 
         self.showMsg(f'fit metrics for {self.targetKey}', blankLine=False, bold=True)
 
@@ -7050,6 +7056,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.showMsg("Solution 'envelope' in the main plot drawn using 0.95 containment interval error bars")
 
+        if self.targetKey == '':
+            self.targetKey = self.lightcurveTitles[0].text()
+
         self.showMsg(f'fit metrics for {self.targetKey}', blankLine=False, bold=True)
 
         time_uncertainty = (self.deltaDhi95 - self.deltaDlo95) / 2.0 * self.timeDelta
@@ -7105,13 +7114,15 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             # self.showInfo('We fill create a new fit-metric.csv file')
             with open(metric_file_path, 'w') as fileObject:
                 fileObject.writelines('aperture-name,dnr,edge uncertainty (0.95ci),B,A,sigmaB,sigmaA,'
-                                      'observed drop,max noise induced drop,margin,'
+                                      'observed drop,max noise induced drop,margin,magDrop,'
                                       'magDrop percentage,D frame,R frame,D time,R time\n')
 
         with open(metric_file_path, 'a') as fileObject:
+            if self.targetKey == '':
+                self.targetKey = self.lightcurveTitles[0].text()
             new_data = self.targetKey
 
-            # TODO Will this work for a R only???
+            # This works even for an Ronly event
             time_uncertainty = (self.deltaDhi95 - self.deltaDlo95) / 2.0 * self.timeDelta
             new_data += f',{self.snrB:0.2f}'
             new_data += f',{time_uncertainty:0.4f}'
@@ -7127,6 +7138,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             new_data += f',{self.maxNoiseInducedDrop:0.1f}'
             new_data += f',{margin:0.1f}'
 
+            new_data += f',{self.unvettedMagDrop:0.2f}'  # This gets displayed even if magDrop report would have suppressed it.
             new_data += f',{self.percentMagDrop:0.1f}'
 
             if self.eventType == 'Donly' or self.eventType == 'DandR':
