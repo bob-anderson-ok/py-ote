@@ -2789,10 +2789,20 @@
                     </size>
                    </property>
                    <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The fit metrics that are printed at the end of the final report are also written to a csv file (named &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;fit-metrics.csv&lt;/span&gt; in the current folder). As each light curve is processed in the search for the 'best fit', the metrics found are appended to this file. This supports further processing or for inclusion with a report.&lt;/p&gt;&lt;p&gt;To start over with this file, click this button - it erases the file.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The fit metrics that are printed at the end of the final report are also appended to a csv file (named &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;fit-metrics.csv&lt;/span&gt; in the current folder). As each light curve is processed in the search for the 'best fit', the metrics found are appended to this file. One very important use for this file is for inclusion with a report as part of the documentation supporting your choice of the 'best' lightcurve.&lt;/p&gt;&lt;p&gt;To start over with this file, click this button - it erases the file.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Suggested workflow:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;1) Clear the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;fit_metrics.csv&lt;/span&gt; accumulation by clicking on this button.&lt;/p&gt;&lt;p&gt;2) Do a &amp;quot;find event&amp;quot; for each aperture - an orderly approach will simplify the use of this file in a report.&lt;/p&gt;&lt;p&gt;3) Rename &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;fit_metrics.csv&lt;/span&gt; to something else using the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Rename fit metrics&lt;/span&gt; button to avoid accidental/incidental additions.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="text">
-                    <string>Clear fit metrics file</string>
+                    <string>Clear fit metrics</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="renameFitMetricCsvButton">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;In order to preserve a record of fit metrics for a report, it should be renamed. This is needed because the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;fit_metrics.csv&lt;/span&gt; file is modified every time a &amp;quot;find event' is requested.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Suggested workflow:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;1) Clear the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;fit_metrics.csv&lt;/span&gt; accumulation file with the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Clear fit metrics&lt;/span&gt; button.&lt;/p&gt;&lt;p&gt;2) Do a &amp;quot;find event&amp;quot; for each aperture - an orderly approach will simplify the use of this file in a report.&lt;/p&gt;&lt;p&gt;3) Rename &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;fit_metrics.csv&lt;/span&gt; to something else using the dialog this button activates (to avoid accidental/incidental additions).&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>Rename fit metrics</string>
                    </property>
                   </widget>
                  </item>

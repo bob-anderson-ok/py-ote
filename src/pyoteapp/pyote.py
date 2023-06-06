@@ -929,6 +929,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.clearFitMetricCsvButton.clicked.connect(self.clearFitMetricCsvFile)
         self.clearFitMetricCsvButton.installEventFilter(self)
 
+        self.renameFitMetricCsvButton.clicked.connect(self.renameFitMetricFile)
+        self.renameFitMetricCsvButton.installEventFilter(self)
+
         # Button: Copy results to Asteroid Occultation Report Form (... fill Excel report)
         self.fillExcelReportButton.installEventFilter(self)
         self.fillExcelReportButton.clicked.connect(self.fillExcelReport)
@@ -4845,11 +4848,39 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             return
 
         lightCurveDir = os.path.dirname(self.csvFilePath)  # This gets the folder where the light-curve.csv is located
-        metric_file_path = lightCurveDir + r'\fit_metric.csv'
+        metric_file_path = lightCurveDir + r'\fit_metrics.csv'
         if os.path.exists(metric_file_path):
             os.remove(metric_file_path)
             self.showInfo(f'The fit metrics file has been cleared.')
         return
+
+    def renameFitMetricFile(self):
+        if self.csvFilePath is None:
+            self.showInfo('No lightcurve file selected yet.')
+            return
+
+        inp = QtWidgets.QInputDialog(self)
+        inp.setInputMode(QtWidgets.QInputDialog.InputMode.TextInput)
+        inp.setFixedSize(400, 200)
+        p = inp.palette()
+        p.setColor(inp.backgroundRole(), QtCore.Qt.GlobalColor.gray)
+        inp.setPalette(p)
+        inp.setWindowTitle('Rename fit metrics')
+        inp.setLabelText('Enter new name for the fit_metrics.csv file: ')
+
+        if inp.exec_() == QtWidgets.QDialog.DialogCode.Accepted:
+            # This gets the folder where the light-curve.csv is located
+            lightCurveDir = os.path.dirname(self.csvFilePath)
+            current_metric_filepath = lightCurveDir + '\\fit_metrics.csv'
+            name_given = inp.textValue()
+            if '.csv' in name_given:
+                new_metric_filepath = lightCurveDir + f'\\{name_given}'
+            else:
+                new_metric_filepath = lightCurveDir + f'\\{name_given}.csv'
+            os.rename(current_metric_filepath, new_metric_filepath)
+            # print(f'{new_metric_filepath}')
+
+        inp.deleteLater()
 
     def fillExcelReport(self):
         # Open a file select dialog
@@ -6656,6 +6687,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         frameNum = float(self.yFrame[intD])
 
         Dframe = (D - intD) * self.framesPerEntry() + frameNum
+        self.Dframe = Dframe  # For fit metric use
         self.showMsg('D: %.2f {+%.2f,-%.2f} (frame number)' % (Dframe, plusD * self.framesPerEntry(),
                                                                minusD * self.framesPerEntry()),
                      blankLine=False)
@@ -6680,6 +6712,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         intR = int(R)
         frameNum = float(self.yFrame[intR])
         Rframe = (R - intR) * self.framesPerEntry() + frameNum
+        self.Rframe = Rframe  # For fit metric use
         self.showMsg('R: %.2f {+%.2f,-%.2f} (frame number)' % (Rframe, plusR * self.framesPerEntry(),
                                                                minusR * self.framesPerEntry()),
                      blankLine=False)
@@ -6921,11 +6954,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.showMsg(stats_msg, blankLine=False, bold=True)
 
         if self.eventType == 'Donly' or self.eventType == 'DandR':
-            stats_msg = f'\nfit metrics === D frame number: {self.solution[0]:0.4f}'
+            stats_msg = f'\nfit metrics === D frame number: {self.Dframe:0.4f}'
             self.showMsg(stats_msg, blankLine=False, bold=True)
 
         if self.eventType == 'Ronly' or self.eventType == 'DandR':
-            stats_msg = f'\nfit metrics === R frame number: {self.solution[1]:0.4f}'
+            stats_msg = f'\nfit metrics === R frame number: {self.Rframe:0.4f}'
             self.showMsg(stats_msg, blankLine=False, bold=True)
 
         if self.eventType == 'Donly' or self.eventType == 'DandR':
@@ -7081,11 +7114,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.showMsg(stats_msg, blankLine=False, bold=True)
 
         if self.eventType == 'Donly' or self.eventType == 'DandR':
-            stats_msg = f'\nfit metrics === D frame number: {self.solution[0]:0.4f}'
+            stats_msg = f'\nfit metrics === D frame number: {self.Dframe:0.4f}'
             self.showMsg(stats_msg, blankLine=False, bold=True)
 
         if self.eventType == 'Ronly' or self.eventType == 'DandR':
-            stats_msg = f'\nfit metrics === R frame number: {self.solution[1]:0.4f}'
+            stats_msg = f'\nfit metrics === R frame number: {self.Rframe:0.4f}'
             self.showMsg(stats_msg, blankLine=False, bold=True)
 
         if self.eventType == 'Donly' or self.eventType == 'DandR':
@@ -7105,7 +7138,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     def updateFitMetricCsvFile(self):
         lightCurveDir = os.path.dirname(self.csvFilePath)  # This gets the folder where the light-curve.csv is located
-        metric_file_path = lightCurveDir + r'\fit_metric.csv'
+        metric_file_path = lightCurveDir + r'\fit_metrics.csv'
 
         if os.path.exists(metric_file_path):
             # self.showInfo('We will append to an existing fit-metric.csv file')
@@ -7113,9 +7146,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         else:
             # self.showInfo('We fill create a new fit-metric.csv file')
             with open(metric_file_path, 'w') as fileObject:
-                fileObject.writelines('aperture-name,dnr,edge uncertainty (0.95ci),B,A,sigmaB,sigmaA,'
+                fileObject.writelines('aperture-name,dnr,edge time uncertainty,B,A,sigmaB,sigmaA,'
                                       'observed drop,max noise induced drop,margin,magDrop,'
-                                      'magDrop percentage,D frame,R frame,D time,R time\n')
+                                      'percent drop,D frame,R frame,D time,R time\n')
 
         with open(metric_file_path, 'a') as fileObject:
             if self.targetKey == '':
