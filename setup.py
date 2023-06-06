@@ -39,7 +39,7 @@ CLASSIFIERS = [
 # makes no complaints about what pymovie needs, that way the order if intalling pymovie and pyote won't matter
 INSTALL_REQUIRES = ['pyqtgraph==0.12.4', 'opencv-python', 'astroquery', 'resource',
                     'scikit-image(>=0.15.0)', 'wheel', 'requests', 'pyephem',
-                    'PyQt5',
+                    'PyQt5', 'pandas',
                     'winshell;platform_system=="Windows"',
                     'pypiwin32;platform_system=="Windows"', 'matplotlib', 'numpy<=1.22', 'astropy', 'scikit-image',
                     'scipy', 'numba>=0.41.0', 'Adv2>=1.2.0', 'PyQt5', 'openpyxl', 'xlrd']

@@ -44,6 +44,8 @@ import platform
 
 from openpyxl import load_workbook
 
+import pandas as pd
+
 from pyoteapp.pyote_modelling_utility_functions import LightcurveParameters, generalizedDiffraction
 from pyoteapp.pyote_modelling_utility_functions import decide_model_to_use
 from pyoteapp.pyote_modelling_utility_functions import demo_event
@@ -926,7 +928,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.suppressErrBarPlotsCheckbox.installEventFilter(self)
 
-        self.clearFitMetricCsvButton.clicked.connect(self.clearFitMetricCsvFile)
+        self.clearFitMetricCsvButton.clicked.connect(self.clearFitMetricTxtFile)
         self.clearFitMetricCsvButton.installEventFilter(self)
 
         self.renameFitMetricCsvButton.clicked.connect(self.renameFitMetricFile)
@@ -4841,14 +4843,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
             self.showInfo(f'Excel spreadsheet Asteroid Report Form entries extracted successfully.')
 
-    def clearFitMetricCsvFile(self):
+    def clearFitMetricTxtFile(self):
         if self.csvFilePath is None:
             self.showInfo(f'A light curve has not been selected yet\n\n'
                           f'so there is no fit metrics file to remove.')
             return
 
         lightCurveDir = os.path.dirname(self.csvFilePath)  # This gets the folder where the light-curve.csv is located
-        metric_file_path = lightCurveDir + r'\fit_metrics.csv'
+        metric_file_path = lightCurveDir + r'\fit_metrics.txt'
         if os.path.exists(metric_file_path):
             os.remove(metric_file_path)
             self.showInfo(f'The fit metrics file has been cleared.')
@@ -4859,6 +4861,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.showInfo('No lightcurve file selected yet.')
             return
 
+        lightCurveDir = os.path.dirname(self.csvFilePath)
+        current_metric_filepath = lightCurveDir + '\\fit_metrics.txt'
+
+        if not os.path.exists(current_metric_filepath):
+            self.showInfo(f'There is no metrics file yet.')
+            return
+
         inp = QtWidgets.QInputDialog(self)
         inp.setInputMode(QtWidgets.QInputDialog.InputMode.TextInput)
         inp.setFixedSize(400, 200)
@@ -4866,18 +4875,19 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         p.setColor(inp.backgroundRole(), QtCore.Qt.GlobalColor.gray)
         inp.setPalette(p)
         inp.setWindowTitle('Rename fit metrics')
-        inp.setLabelText('Enter new name for the fit_metrics.csv file: ')
+        inp.setLabelText('Enter name to be used for the .xlsx file: ')
 
         if inp.exec_() == QtWidgets.QDialog.DialogCode.Accepted:
             # This gets the folder where the light-curve.csv is located
             lightCurveDir = os.path.dirname(self.csvFilePath)
-            current_metric_filepath = lightCurveDir + '\\fit_metrics.csv'
+            current_metric_filepath = lightCurveDir + '\\fit_metrics.txt'
             name_given = inp.textValue()
-            if '.csv' in name_given:
+            if '.xlsx' in name_given:
                 new_metric_filepath = lightCurveDir + f'\\{name_given}'
             else:
-                new_metric_filepath = lightCurveDir + f'\\{name_given}.csv'
-            os.rename(current_metric_filepath, new_metric_filepath)
+                new_metric_filepath = lightCurveDir + f'\\{name_given}.xlsx'
+            pd.read_csv(current_metric_filepath, index_col=0).to_excel(new_metric_filepath)
+            # os.rename(current_metric_filepath, new_metric_filepath)
             # print(f'{new_metric_filepath}')
 
         inp.deleteLater()
@@ -6971,7 +6981,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.showMsg("")
 
-        self.updateFitMetricCsvFile()
+        self.updateFitMetricTxtFile()
 
 
     def finalReport(self, false_positive, false_probability):
@@ -7131,14 +7141,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.showMsg("")
 
-        self.updateFitMetricCsvFile()
+        self.updateFitMetricTxtFile()
 
         if not self.suppressErrBarPlotsCheckbox.isChecked():
             self.showHelp(self.helpLabelForFalsePositive)
 
-    def updateFitMetricCsvFile(self):
+    def updateFitMetricTxtFile(self):
         lightCurveDir = os.path.dirname(self.csvFilePath)  # This gets the folder where the light-curve.csv is located
-        metric_file_path = lightCurveDir + r'\fit_metrics.csv'
+        metric_file_path = lightCurveDir + r'\fit_metrics.txt'
 
         if os.path.exists(metric_file_path):
             # self.showInfo('We will append to an existing fit-metric.csv file')
