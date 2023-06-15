@@ -5855,7 +5855,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.removePointSelections()
         # self.newRedrawMainPlot()
 
-        self.findEvent()
+        # We need to suppress the automatic report run
+        self.findEvent(auto_run_report=False)
 
         self.left = savedLeft
         self.right = savedRight
@@ -6190,8 +6191,22 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         newDemoLightCurve = []
         newExtra = [[] for _ in range(len(self.extra))]
 
-        # Create a new (local) fullDataDictionary using self.fullDataDictionary as the template
-        emptyDataDictionary = self.fullDataDictionary.copy()
+        # Create a new (local) fullDataDictionary using self.fullDataDictionary as the template if it exists.
+        if self.fullDataDictionary:
+            emptyDataDictionary = self.fullDataDictionary.copy()
+        else:
+            # This is a Tangra or Tangra-like csv, so we have to create the dictionary from scratch.
+            emptyDataDictionary = {}
+            emptyDataDictionary['FrameNum'] = []
+            emptyDataDictionary['timeInfo'] = []
+            emptyDataDictionary['LC1'] = []
+            if len(self.LC2) > 0:
+                emptyDataDictionary['LC2'] = []
+            if len(self.LC3) > 0:
+                emptyDataDictionary['LC3'] = []
+            if len(self.LC4) > 0:
+                emptyDataDictionary['LC4'] = []
+
         for key in emptyDataDictionary.keys():
             emptyDataDictionary[key] = []
 
@@ -6235,18 +6250,24 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             newFrame.insert(0, self.yFrame[p])
             newTime.insert(0, self.yTimes[p])
 
-            emptyDataDictionary['FrameNum'].insert(0, self.fullDataDictionary['FrameNum'][p])
-            emptyDataDictionary['timeInfo'].insert(0, self.fullDataDictionary['timeInfo'][p])
+            # Fix for Tangra block integration
+            if not self.fullDataDictionary:
+                emptyDataDictionary['FrameNum'].insert(0, self.yFrame[p])
+                emptyDataDictionary['timeInfo'].insert(0, self.yTimes[p])
+            else:
+                emptyDataDictionary['FrameNum'].insert(0, self.fullDataDictionary['FrameNum'][p])
+                emptyDataDictionary['timeInfo'].insert(0, self.fullDataDictionary['timeInfo'][p])
 
             p = p - span
 
         p = p0  # Start working toward the right
         while p < self.dataLen - span:
 
-            for key in emptyDataDictionary.keys():
-                if not (key == 'timeInfo' or key == 'FrameNum'):
-                    avg = np.mean(self.fullDataDictionary[key][p:(p + span)])
-                    emptyDataDictionary[key].append(avg)
+            if self.fullDataDictionary:
+                for key in emptyDataDictionary.keys():
+                    if not (key == 'timeInfo' or key == 'FrameNum'):
+                        avg = np.mean(self.fullDataDictionary[key][p:(p + span)])
+                        emptyDataDictionary[key].append(avg)
 
             avg = np.mean(self.LC1[p:(p + span)])
             newLC1.append(avg)
@@ -6275,8 +6296,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             newFrame.append(self.yFrame[p])
             newTime.append(self.yTimes[p])
 
-            emptyDataDictionary['FrameNum'].append(self.fullDataDictionary['FrameNum'][p])
-            emptyDataDictionary['timeInfo'].append(self.fullDataDictionary['timeInfo'][p])
+            # Fix for Tangra block integration
+            if not self.fullDataDictionary:
+                emptyDataDictionary['FrameNum'].append(self.yFrame[p])
+                emptyDataDictionary['timeInfo'].append(self.yTimes[p])
+            else:
+                emptyDataDictionary['FrameNum'].append(self.fullDataDictionary['FrameNum'][p])
+                emptyDataDictionary['timeInfo'].append(self.fullDataDictionary['timeInfo'][p])
 
             p = p + span
 
@@ -8139,7 +8165,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         return B, Bnoise, numBpts, A, Anoise, numApts
 
-    def findEvent(self):
+    def findEvent(self, auto_run_report=True):
 
         self.squareWaveRadioButton.setChecked(True)
 
@@ -8436,8 +8462,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.newRedrawMainPlot()
 
         self.calcErrBars.setEnabled(True)
-        # TODO Make sure this works
-        self.computeErrorBars()
+        if auto_run_report:
+            self.computeErrorBars()
 
         if need_to_invite_user_to_verify_timestamps:
             self.showInfo(f'The timing of the event found depends on the correctness '
