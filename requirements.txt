@@ -1,6 +1,7 @@
 numpy~=1.22.4
 PyQt5~=5.15.7
 pyqtgraph~=0.12.4
+pandas~=2.0.2
 astropy~=5.1
 matplotlib~=3.5.2
 scipy~=1.9.0

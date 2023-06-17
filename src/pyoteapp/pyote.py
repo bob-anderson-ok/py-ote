@@ -261,6 +261,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.metricLimitLeft = None
         self.metricLimitRight = None
 
+        self.suppressReport = False
 
         self.firstLightCurveDisplayed = True
         self.availableLightCurvesForDisplay = []
@@ -451,6 +452,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.curveSelectionComboBox.activated.connect(self.handleDataSetSelection)
         self.curveSelectionComboBox.installEventFilter(self)
+        self.availableCurvesLabel.installEventFilter(self)
 
         self.targetCheckBox_1.clicked.connect(self.processTargetSelection1)
         self.targetCheckBox_2.clicked.connect(self.processTargetSelection2)
@@ -5856,7 +5858,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         # self.newRedrawMainPlot()
 
         # We need to suppress the automatic report run
-        self.findEvent(auto_run_report=False)
+        self.suppressReport = True
+        self.findEvent()
 
         self.left = savedLeft
         self.right = savedRight
@@ -6196,7 +6199,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             emptyDataDictionary = self.fullDataDictionary.copy()
         else:
             # This is a Tangra or Tangra-like csv, so we have to create the dictionary from scratch.
-            emptyDataDictionary = {}
+            emptyDataDictionary = {}  # noqa
             emptyDataDictionary['FrameNum'] = []
             emptyDataDictionary['timeInfo'] = []
             emptyDataDictionary['LC1'] = []
@@ -7177,13 +7180,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         metric_file_path = lightCurveDir + r'\fit_metrics.txt'
 
         if os.path.exists(metric_file_path):
-            # self.showInfo('We will append to an existing fit-metric.csv file')
+            # self.showInfo('We will append to an existing fit_metric.csv file')
             pass
         else:
-            # self.showInfo('We fill create a new fit-metric.csv file')
+            # self.showInfo('We fill create a new fit_metric.csv file')
             with open(metric_file_path, 'w') as fileObject:
-                fileObject.writelines('aperture-name,dnr,edge time uncertainty,B,A,sigmaB,sigmaA,'
-                                      'observed drop,max noise induced drop,margin,magDrop,'
+                fileObject.writelines('aperture name,dnr,edge time 0.95 ci,B,A,sigmaB,sigmaA,'
+                                      'observed drop,false positive drop,false positive margin,magDrop,'
                                       'percent drop,D frame,R frame,D time,R time\n')
 
         with open(metric_file_path, 'a') as fileObject:
@@ -7207,7 +7210,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             new_data += f',{self.maxNoiseInducedDrop:0.1f}'
             new_data += f',{margin:0.1f}'
 
-            new_data += f',{self.unvettedMagDrop:0.2f}'  # This gets displayed even if magDrop report would have suppressed it.
+            new_data += f',{self.unvettedMagDrop:0.4f}'  # This gets displayed even if magDrop report would have suppressed it.
             new_data += f',{self.percentMagDrop:0.1f}'
 
             if self.eventType == 'Donly' or self.eventType == 'DandR':
@@ -8165,7 +8168,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         return B, Bnoise, numBpts, A, Anoise, numApts
 
-    def findEvent(self, auto_run_report=True):
+    def findEvent(self):
 
         self.squareWaveRadioButton.setChecked(True)
 
@@ -8462,8 +8465,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.newRedrawMainPlot()
 
         self.calcErrBars.setEnabled(True)
-        if auto_run_report:
+        if not self.suppressReport:
             self.computeErrorBars()
+        self.suppressReport = False
 
         if need_to_invite_user_to_verify_timestamps:
             self.showInfo(f'The timing of the event found depends on the correctness '
@@ -8854,6 +8858,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.externalCsvFilePath = None
 
         if self.csvFilePath:
+            self.targetKey = ''
+            # self.clearFitMetricTxtFile()
             self.firstLightCurveDisplayed = False
             self.availableLightCurvesForDisplay = []
             self.curveSelectionComboBox.clear()
