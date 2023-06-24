@@ -7187,7 +7187,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             with open(metric_file_path, 'w') as fileObject:
                 fileObject.writelines('aperture name,dnr,edge time 0.95 ci,B,A,sigmaB,sigmaA,'
                                       'observed drop,false positive drop,false positive margin,magDrop,'
-                                      'percent drop,D frame,R frame,D time,R time\n')
+                                      'percent drop,D reading num,R reading num,D time,R time\n')
 
         with open(metric_file_path, 'a') as fileObject:
             if self.targetKey == '':
@@ -8413,6 +8413,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             if not self.userDeterminedBaselineStats:
                 self.B = new_b
                 self.sigmaB = newSigmaB
+            else:
+                self.showInfo(f'You have requested a "find event" afer determining baseline statistics.\n\n'
+                              f'This may be what you want because of the need to exclude certain baseline regions '
+                              f'for this event ...\n\n'
+                              f'But if not, be aware that the baseline statistics are now "fixed" and will affect '
+                              f'all subsequent "find event" --- this may not be what you want.\n\n'
+                              f'To clear this state, it is necessary to start over completely.')
             if self.userTrimInEffect:
                 self.B = new_b
             if not self.userDeterminedEventStats:
