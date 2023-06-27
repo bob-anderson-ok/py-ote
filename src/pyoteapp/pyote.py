@@ -7130,11 +7130,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         # Calculate false-positive ratio
         margin = self.observedDrop - self.maxNoiseInducedDrop
-        false_positive_ratio = margin / self.maxNoiseInducedDrop
+        # false_positive_ratio = margin / self.maxNoiseInducedDrop
+        false_positive_metric = self.observedDrop / self.maxNoiseInducedDrop - 1.0
 
         time_uncertainty = (self.deltaDhi95 - self.deltaDlo95) / 2.0 * self.timeDelta
 
-        stats_msg = f'\nfit metrics === false-positive ratio: {false_positive_ratio:0.3f} ' \
+        stats_msg = f'\nfit metrics === false-positive metric: {false_positive_metric:0.3f} ' \
                     f'time error bar: +/- {time_uncertainty:0.4f} seconds' \
                     f'   DNR: {self.snrB:0.2f}  '
         self.showMsg(stats_msg, blankLine=False, bold=True)
@@ -7192,7 +7193,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         else:
             # self.showInfo('We fill create a new fit_metric.csv file')
             with open(metric_file_path, 'w') as fileObject:
-                fileObject.writelines('aperture name,false positive ratio,time err +/-secs,DNR,magDrop,'
+                fileObject.writelines('aperture name,false positive metric,time err +/-secs,DNR,magDrop,'
                                       'percent drop,duration (secs),D time,'
                                       'R time,D frame,R frame,B,A,sigmaB,sigmaA,'
                                       'observed drop,false positive drop,false positive margin\n')
@@ -7204,9 +7205,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             new_data = self.targetKey
 
             margin = self.observedDrop - self.maxNoiseInducedDrop
-            false_positive_ratio = margin / self.maxNoiseInducedDrop
+            # false_positive_ratio = margin / self.maxNoiseInducedDrop
+            false_positive_metric = self.observedDrop / self.maxNoiseInducedDrop - 1.0
 
-            new_data += f',{false_positive_ratio:0.3f}'  # add false positive ratio
+            new_data += f',{false_positive_metric:0.3f}'  # add false positive metric
 
             # This works even for an Ronly event
             time_uncertainty = (self.deltaDhi95 - self.deltaDlo95) / 2.0 * self.timeDelta
