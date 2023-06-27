@@ -917,18 +917,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.maxEventEdit.installEventFilter(self)
 
         # Button: Locate event
-        self.locateEvent.clicked.connect(self.findEvent)
-        self.locateEventFromLightcurves.clicked.connect(self.findEvent)
+        self.locateEvent.clicked.connect(self.findEventWithPlots)
+        self.locateEvent.installEventFilter(self)
+        self.locateEventFromLightcurves.clicked.connect(self.findEventNoPlots)
         self.locateEventFromLightcurves.installEventFilter(self)
 
         # Button: Cancel operation
         self.cancelButton.clicked.connect(self.requestCancel)
-
-        # Button: Calculate error bars  (... write report)
-        self.calcErrBars.clicked.connect(self.computeErrorBars)
-        self.calcErrBars.installEventFilter(self)
-
-        self.suppressErrBarPlotsCheckbox.installEventFilter(self)
 
         self.clearFitMetricCsvButton.clicked.connect(self.clearFitMetricTxtFile)
         self.clearFitMetricCsvButton.installEventFilter(self)
@@ -5517,8 +5512,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         mousePoint = self.mainPlotViewBox.mapSceneToView(pos)
         self.verticalCursor.setPos(round(mousePoint.x()))
 
-    def writeDefaultGraphicsPlots(self):
-        if self.suppressErrBarPlotsCheckbox.isChecked():
+    def writeDefaultGraphicsPlots(self, error_bar_plots_available=True):
+        if not error_bar_plots_available:
             return
 
         self.graphicFile, _ = os.path.splitext(self.csvFilePath)
@@ -6152,7 +6147,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.errBarWin.setLayout(layout)
         drop = self.B - self.yValues[selectedPoint]
         pw, falsePositive, probability, *_ = self.falsePositiveReport(
-            event_duration=1, num_trials=50000, observation_size=self.right - self.left + 1,
+            event_duration=1, num_trials=100000, observation_size=self.right - self.left + 1,
             observed_drop=drop,
             posCoefs=self.corCoefs, sigma=self.sigmaB)
         layout.addWidget(pw, 0, 0)
@@ -6778,7 +6773,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.magdropReport(numSigmas)
 
-        self.showMsg('dnr: %0.2f' % self.snrB)
+        self.showMsg('DNR: %0.2f' % self.snrB)
 
         if self.eventType == 'Donly':
             self.Dreport(deltaDhi, deltaDlo)
@@ -6809,7 +6804,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.magdropReport(numSigmas)
 
-        self.showMsg('dnr: %0.2f' % self.snrB)
+        self.showMsg('DNR: %0.2f' % self.snrB)
 
         if self.eventType == 'Donly':
             self.Dreport(deltaDhi, deltaDlo)
@@ -6954,7 +6949,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.xlsxDict['Comment'] = self.magDropReportStr
         self.showMsg(self.magDropReportStr)
 
-        self.showMsg('dnr: %0.2f' % self.snrB)
+        self.showMsg('DNR: %0.2f' % self.snrB)
 
         self.doDtimeReport()
         self.doRtimeReport()
@@ -6973,7 +6968,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.showMsg(f'fit metrics for {self.targetKey}', blankLine=False, bold=True)
 
         time_uncertainty = (self.deltaDhi95 - self.deltaDlo95) / 2.0 * self.timeDelta
-        stats_msg = f'\nfit metrics === dnr: {self.snrB:0.2f}  edge uncertainty (0.95 ci): +/- {time_uncertainty:0.4f} seconds'
+        stats_msg = f'\nfit metrics === DNR: {self.snrB:0.2f}  edge uncertainty (0.95 ci): +/- {time_uncertainty:0.4f} seconds'
         self.showMsg(stats_msg, blankLine=False, bold=True)
 
         stats_msg = f'fit metrics === B: {self.B:0.2f}  A: {self.A:0.2f} sigmaB: {self.sigmaB:0.2f}  sigmaA: {self.sigmaA:0.2f}'
@@ -7013,10 +7008,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.updateFitMetricTxtFile()
 
 
-    def finalReport(self, false_positive, false_probability):
+    def finalReport(self, false_positive, false_probability, error_bar_plots_available=True):
 
         self.xlsxDict = {}
-        self.writeDefaultGraphicsPlots()
+        self.writeDefaultGraphicsPlots(error_bar_plots_available=error_bar_plots_available)
 
         # Grab the D and R values found and apply our timing convention
         D, R = self.solution
@@ -7115,7 +7110,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.showMsg(self.magDropReportStr)
 
         # noinspection PyStringFormat
-        self.showMsg('dnr: %0.2f' % self.snrB)
+        self.showMsg('DNR: %0.2f' % self.snrB)
 
         self.doDtimeReport()
         self.doRtimeReport()
@@ -7133,8 +7128,15 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.showMsg(f'fit metrics for {self.targetKey}', blankLine=False, bold=True)
 
+        # Calculate false-positive ratio
+        margin = self.observedDrop - self.maxNoiseInducedDrop
+        false_positive_ratio = margin / self.maxNoiseInducedDrop
+
         time_uncertainty = (self.deltaDhi95 - self.deltaDlo95) / 2.0 * self.timeDelta
-        stats_msg = f'\nfit metrics === dnr: {self.snrB:0.2f}  edge uncertainty (0.95 ci): +/- {time_uncertainty:0.4f} seconds'
+
+        stats_msg = f'\nfit metrics === false-positive ratio: {false_positive_ratio:0.3f} ' \
+                    f'time error bar: +/- {time_uncertainty:0.4f} seconds' \
+                    f'   DNR: {self.snrB:0.2f}  '
         self.showMsg(stats_msg, blankLine=False, bold=True)
 
         stats_msg = f'fit metrics === B: {self.B:0.2f}  A: {self.A:0.2f} sigmaB: {self.sigmaB:0.2f}  sigmaA: {self.sigmaA:0.2f}'
@@ -7160,6 +7162,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             stats_msg = f'\nfit metrics === R frame number: {self.Rframe:0.4f}'
             self.showMsg(stats_msg, blankLine=False, bold=True)
 
+        if self.eventType == 'DandR':
+            duration = (self.Rframe - self.Dframe) * (self.timeDelta / self.blockSize)
+            stats_msg = f'\nfit metrics === duration: {duration:0.4f} seconds'
+            self.showMsg(stats_msg, blankLine=False, bold=True)
+
         if self.eventType == 'Donly' or self.eventType == 'DandR':
             stats_msg = f'\nfit metrics === D time: {self.Dtimestring}'
             self.showMsg(stats_msg, blankLine=False, bold=True)
@@ -7172,7 +7179,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.updateFitMetricTxtFile()
 
-        if not self.suppressErrBarPlotsCheckbox.isChecked():
+        if error_bar_plots_available:
             self.showHelp(self.helpLabelForFalsePositive)
 
     def updateFitMetricTxtFile(self):
@@ -7185,44 +7192,38 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         else:
             # self.showInfo('We fill create a new fit_metric.csv file')
             with open(metric_file_path, 'w') as fileObject:
-                fileObject.writelines('aperture name,dnr,edge time 0.95 ci,B,A,sigmaB,sigmaA,'
-                                      'observed drop,false positive drop,false positive margin,magDrop,'
-                                      'percent drop,D reading num,R reading num,D time,R time\n')
+                fileObject.writelines('aperture name,false positive ratio,time err +/-secs,DNR,magDrop,'
+                                      'percent drop,duration (secs),D time,'
+                                      'R time,D frame,R frame,B,A,sigmaB,sigmaA,'
+                                      'observed drop,false positive drop,false positive margin\n')
 
         with open(metric_file_path, 'a') as fileObject:
+            # Start with the aperture name
             if self.targetKey == '':
                 self.targetKey = self.lightcurveTitles[0].text()
             new_data = self.targetKey
 
+            margin = self.observedDrop - self.maxNoiseInducedDrop
+            false_positive_ratio = margin / self.maxNoiseInducedDrop
+
+            new_data += f',{false_positive_ratio:0.3f}'  # add false positive ratio
+
             # This works even for an Ronly event
             time_uncertainty = (self.deltaDhi95 - self.deltaDlo95) / 2.0 * self.timeDelta
-            new_data += f',{self.snrB:0.2f}'
-            new_data += f',{time_uncertainty:0.4f}'
+            new_data += f',{time_uncertainty:0.4f}'    # add time error bar
+            new_data += f',{self.snrB:0.2f}'           # add DNR
 
-            new_data += f',{self.B:0.2f}'
-            new_data += f',{self.A:0.2f}'
-            new_data += f',{self.sigmaB:0.2f}'
-            new_data += f',{self.sigmaA:0.2f}'
-
-            margin = self.observedDrop - self.maxNoiseInducedDrop
-
-            new_data += f',{self.observedDrop:0.1f}'
-            new_data += f',{self.maxNoiseInducedDrop:0.1f}'
-            new_data += f',{margin:0.1f}'
-
+            # add magDrop data
             new_data += f',{self.unvettedMagDrop:0.4f}'  # This gets displayed even if magDrop report would have suppressed it.
             new_data += f',{self.percentMagDrop:0.1f}'
 
-            if self.eventType == 'Donly' or self.eventType == 'DandR':
-                new_data += f',{self.solution[0]:0.4f}'
+            if self.eventType == 'DandR':
+                duration = (self.Rframe - self.Dframe) * (self.timeDelta / self.blockSize)
             else:
-                new_data += f',0'
+                duration = 0.0
+            new_data += f',{duration:0.4f}'            # add duration
 
-            if self.eventType == 'Ronly' or self.eventType == 'DandR':
-                new_data += f',{self.solution[1]:0.4f}'
-            else:
-                new_data += f',0'
-
+            # add D and R timestamps
             if self.eventType == 'Donly' or self.eventType == 'DandR':
                 new_data += f',{self.Dtimestring}'
             else:
@@ -7232,6 +7233,28 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 new_data += f',{self.Rtimestring}'
             else:
                 new_data += f',[00:00:0.0000]'
+
+            # add D and R frame values
+            if self.eventType == 'Donly' or self.eventType == 'DandR':
+                new_data += f',{self.Dframe:0.4f}'
+            else:
+                new_data += f',0'
+
+            if self.eventType == 'Ronly' or self.eventType == 'DandR':
+                new_data += f',{self.Rframe:0.4f}'
+            else:
+                new_data += f',0'
+
+            # add B then A then sigmaB then sigmaA
+            new_data += f',{self.B:0.2f}'
+            new_data += f',{self.A:0.2f}'
+            new_data += f',{self.sigmaB:0.2f}'
+            new_data += f',{self.sigmaA:0.2f}'
+
+            # add false positive data details
+            new_data += f',{self.observedDrop:0.1f}'
+            new_data += f',{self.maxNoiseInducedDrop:0.1f}'
+            new_data += f',{margin:0.1f}'
 
             self.showMsg("")
 
@@ -7415,7 +7438,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         peakIndex = np.where(y == np.max(y))
         self.showMsg(f'peakIndex: {peakIndex[0][0]} xPeak: {x[peakIndex[0][0]]:0.2f}')
 
-    def computeErrorBars(self):
+    def computeErrorBars(self, plots_wanted=True):
 
         x1 = x2 = 0
         pw = None
@@ -7520,7 +7543,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         _, false_positive, false_probability, self.observedDrop, self.maxNoiseInducedDrop = self.doFalsePositiveReport(posCoefs)  # noqa
 
-        if not self.suppressErrBarPlotsCheckbox.isChecked():
+        if plots_wanted:
             self.errBarWin = pg.GraphicsWindow(
                 title='Solution distributions with containment intervals marked --- false positive distribution')
             self.errBarWin.resize(1200, 1000)
@@ -7573,14 +7596,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         x1 = self.loDbar95 - D
         x2 = self.hiDbar95 - D
 
-        if not self.suppressErrBarPlotsCheckbox.isChecked():
+        if plots_wanted:
             pw.plot(x=[x1, x1], y=[0, yp], pen=pen)
             pw.plot(x=[x2, x2], y=[0, yp], pen=pen)
 
         self.showMsg('loDbar   @ .95 ci: %8.4f' % (x1 * self.framesPerEntry()), blankLine=False)
         self.showMsg('hiDbar   @ .95 ci: %8.4f' % (x2 * self.framesPerEntry()), blankLine=False)
 
-        if not self.suppressErrBarPlotsCheckbox.isChecked():
+        if plots_wanted:
             legend95 = '[%0.2f,%0.2f] @ 0.95' % (x1, x2)
             pw.plot(name=legend95)
 
@@ -7588,14 +7611,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         x1 = self.loDbar99 - D
         x2 = self.hiDbar99 - D
 
-        if not self.suppressErrBarPlotsCheckbox.isChecked():
+        if plots_wanted:
             pw.plot(x=[x1, x1], y=[0, yp], pen=pen)
             pw.plot(x=[x2, x2], y=[0, yp], pen=pen)
 
         self.showMsg('loDbar   @ .9973 ci: %8.4f' % (x1 * self.framesPerEntry()), blankLine=False)
         self.showMsg('hiDbar   @ .9973 ci: %8.4f' % (x2 * self.framesPerEntry()), blankLine=True)
 
-        if not self.suppressErrBarPlotsCheckbox.isChecked():
+        if plots_wanted:
             legend99 = '[%0.2f,%0.2f] @ 0.9973' % (x1, x2)
             pw.plot(name=legend99)
 
@@ -7609,7 +7632,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         x1 = self.loDurbar68
         x2 = self.hiDurbar68
 
-        if not self.suppressErrBarPlotsCheckbox.isChecked():
+        if plots_wanted:
             pw2.plot(x=[x1, x1], y=[0, yp], pen=pen)
             pw2.plot(x=[x2, x2], y=[0, yp], pen=pen)
 
@@ -7624,14 +7647,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         x1 = self.loDurbar95
         x2 = self.hiDurbar95
 
-        if not self.suppressErrBarPlotsCheckbox.isChecked():
+        if plots_wanted:
             pw2.plot(x=[x1, x1], y=[0, yp], pen=pen)
             pw2.plot(x=[x2, x2], y=[0, yp], pen=pen)
 
         self.showMsg('loDurBar @ .95 ci: %8.4f' % (x1 * self.framesPerEntry()), blankLine=False)
         self.showMsg('hiDurBar @ .95 ci: %8.4f' % (x2 * self.framesPerEntry()), blankLine=False)
 
-        if not self.suppressErrBarPlotsCheckbox.isChecked():
+        if plots_wanted:
             legend95 = '[%0.2f,%0.2f] @ 0.95' % (x1, x2)
             pw2.plot(name=legend95)
 
@@ -7639,14 +7662,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         x1 = self.loDurbar99
         x2 = self.hiDurbar99
 
-        if not self.suppressErrBarPlotsCheckbox.isChecked():
+        if plots_wanted:
             pw2.plot(x=[x1, x1], y=[0, yp], pen=pen)
             pw2.plot(x=[x2, x2], y=[0, yp], pen=pen)
 
         self.showMsg('loDurBar @ .9973 ci: %8.4f' % (x1 * self.framesPerEntry()), blankLine=False)
         self.showMsg('hiDurBar @ .9973 ci: %8.4f' % (x2 * self.framesPerEntry()), blankLine=True)
 
-        if not self.suppressErrBarPlotsCheckbox.isChecked():
+        if plots_wanted:
             legend99 = '[%0.2f,%0.2f] @ 0.9973' % (x1, x2)
             pw2.plot(name=legend99)
 
@@ -7657,7 +7680,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         if self.timestampListIsEmpty(self.yTimes):
             self.showMsg('Cannot produce final report because timestamps are missing.', bold=True, color='red')
         else:
-            self.finalReport(false_positive, false_probability)
+            self.finalReport(false_positive, false_probability, error_bar_plots_available=plots_wanted)
             self.fillExcelReportButton.setEnabled(True)
 
         self.newRedrawMainPlot()  # To add envelope to solution
@@ -7740,7 +7763,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         ratio = 10 ** (event_magDrop / 2.5)
         self.A = self.B / ratio
         observed_drop = self.B - self.A
-        num_trials = 50_000
+        num_trials = 100_000
 
         self.minDetectableDurationRdgs = None
         self.minDetectableDurationSecs = None
@@ -7922,7 +7945,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         observation_size = self.right - self.left + 1
         sigma = max(self.sigmaA, self.sigmaB)
         observed_drop = self.B - self.A
-        num_trials = 50_000
+        num_trials = 100_000
 
         return self.falsePositiveReport(event_duration, num_trials, observation_size, observed_drop, posCoefs, sigma)
 
@@ -8168,7 +8191,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         return B, Bnoise, numBpts, A, Anoise, numApts
 
-    def findEvent(self):
+    def findEventWithPlots(self):
+        self.findEvent(plots_wanted=True)
+
+    def findEventNoPlots(self):
+        self.findEvent(plots_wanted=False)
+
+    def findEvent(self, plots_wanted=False):
 
         self.squareWaveRadioButton.setChecked(True)
 
@@ -8267,7 +8296,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 ' (using D/R region selections)')
 
         self.runSolver = True
-        self.calcErrBars.setEnabled(False)
         self.fillExcelReportButton.setEnabled(False)
 
         if self.runSolver:
@@ -8471,9 +8499,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.newRedrawMainPlot()
 
-        self.calcErrBars.setEnabled(True)
         if not self.suppressReport:
-            self.computeErrorBars()
+            self.computeErrorBars(plots_wanted=plots_wanted)
         self.suppressReport = False
 
         if need_to_invite_user_to_verify_timestamps:
@@ -9358,14 +9385,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.doBlockIntegration.setEnabled(False)
         self.blockSizeEdit.setEnabled(False)
         self.locateEvent.setEnabled(False)
-        self.calcErrBars.setEnabled(False)
         self.fillExcelReportButton.setEnabled(False)
         self.startOver.setEnabled(False)
         self.markDzone.setEnabled(False)
         self.markRzone.setEnabled(False)
         self.singlePointDropButton.setEnabled(False)
         self.markEzone.setEnabled(False)
-        # self.numSmoothPointsEdit.setEnabled(False)
         self.minEventEdit.setEnabled(False)
         self.maxEventEdit.setEnabled(False)
         self.magDropSqwaveEdit.setEnabled(False)

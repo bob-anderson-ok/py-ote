@@ -200,7 +200,7 @@
                   </size>
                  </property>
                  <property name="toolTip">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This is a duplicate (does the same thing) as the button labelled &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Find event, then ...&lt;/span&gt; on the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;SqWave model&lt;/span&gt; tab.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This is a duplicate (does the same thing) as the button labelled &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Find event &lt;/span&gt;on the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;SqWave model&lt;/span&gt; tab except that no error bar plots are produced..&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                  </property>
                  <property name="text">
                   <string>Find event</string>
@@ -2700,7 +2700,7 @@
                <item row="14" column="1">
                 <widget class="QLabel" name="findEventLabel">
                  <property name="text">
-                  <string>Finally, click on 'Find event' and, if event found, click '... write report'</string>
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;Finally, click on &lt;/span&gt;&lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Find event&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                  </property>
                  <property name="alignment">
                   <set>Qt::AlignCenter</set>
@@ -2723,59 +2723,40 @@
                <item row="15" column="1">
                 <layout class="QHBoxLayout" name="horizontalLayout_4">
                  <item>
+                  <spacer name="horizontalSpacer_69">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
                   <widget class="QPushButton" name="locateEvent">
                    <property name="enabled">
                     <bool>false</bool>
                    </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>130</width>
-                     <height>16777215</height>
-                    </size>
-                   </property>
-                   <property name="text">
-                    <string>Find event, then ...</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="calcErrBars">
-                   <property name="enabled">
-                    <bool>false</bool>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>130</width>
-                     <height>16777215</height>
-                    </size>
-                   </property>
-                   <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;To get a 'Final Report', error bars are required. Clicking this button will start the computation of those error bars and, when complete, trigger the preparation of a 'Final Report'&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                   </property>
-                   <property name="text">
-                    <string>... write report</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QCheckBox" name="suppressErrBarPlotsCheckbox">
                    <property name="minimumSize">
                     <size>
-                     <width>50</width>
+                     <width>180</width>
                      <height>0</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>130</width>
+                     <width>180</width>
                      <height>16777215</height>
                     </size>
                    </property>
                    <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;It is sometimes useful to &lt;span style=&quot; font-weight:700;&quot;&gt;not&lt;/span&gt; show the error bar and false-positive plots during a find event/write report sequence. For example, if one is comparing the 'solution' for extractions from a set of apertures, it gets tiresome closing these plots because one is only interested in the fit metrics associated with each aperture until a choice is made as to which aperture contains the most reliable lightcurve. At that point, one would uncheck this box and repeat the find event sequence for the chosen aperture in order to add the plots as final report documentation.&lt;/p&gt;&lt;p&gt;If this box is checked, all of the normal calculations and reports are printed, but the plots do not appear and are not written out either.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clicking this button will locate the event and, if found, produce error bar plots. The similarly named button on the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Lightcurves&lt;/span&gt; tab does the same thing but without showing the plots.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="text">
-                    <string>Disable err bar plots</string>
+                    <string>Find event</string>
                    </property>
                   </widget>
                  </item>
@@ -2800,6 +2781,19 @@
                     <string/>
                    </property>
                   </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_18">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
                  </item>
                  <item>
                   <widget class="QPushButton" name="clearFitMetricCsvButton">
@@ -2911,7 +2905,7 @@
                <item row="11" column="1">
                 <widget class="QLabel" name="minMaxLabel">
                  <property name="text">
-                  <string>... otherwise use the entries below to place bounds on the event size.</string>
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;... otherwise use the entries below to place bounds on the event size.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                  </property>
                  <property name="alignment">
                   <set>Qt::AlignCenter</set>
@@ -3290,7 +3284,7 @@
                <item row="9" column="1">
                 <widget class="QLabel" name="markRegionsLabel">
                  <property name="text">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When edges are clearly visible, mark points to specify region and click ...&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;When edges are clearly visible, mark points to specify region and click ...&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                  </property>
                  <property name="alignment">
                   <set>Qt::AlignCenter</set>
@@ -8098,7 +8092,6 @@ Setting this value to zero will force Miss distance optimization to be skipped.<
   <tabstop>acceptBlockIntegration</tabstop>
   <tabstop>setDataLimits</tabstop>
   <tabstop>locateEvent</tabstop>
-  <tabstop>calcErrBars</tabstop>
   <tabstop>cancelButton</tabstop>
   <tabstop>writePlot</tabstop>
   <tabstop>writeBarPlots</tabstop>
