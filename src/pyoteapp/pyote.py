@@ -1192,7 +1192,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.initializeModelLightcurvesPanel()
 
         self.showMsg(f'Home directory: {self.homeDir}', color='black', bold=True)
-        self.copy_modelExamples_to_Documents()
+        try:
+            self.copy_modelExamples_to_Documents()
+        except FileNotFoundError as e:
+            self.showInfo(f'{e}')
 
 
         if self.allowNewVersionPopupCheckbox.isChecked():
@@ -7193,10 +7196,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         else:
             # self.showInfo('We fill create a new fit_metric.csv file')
             with open(metric_file_path, 'w') as fileObject:
-                fileObject.writelines('aperture name,false positive metric,time err +/-secs,DNR,magDrop,'
+                fileObject.writelines('aperture name,time err +/-secs,DNR,magDrop,'
                                       'percent drop,duration (secs),D time,'
                                       'R time,D frame,R frame,B,A,sigmaB,sigmaA,'
-                                      'observed drop,false positive drop,false positive margin\n')
+                                      'observed drop,false positive drop,false positive margin,false positive metric\n')
 
         with open(metric_file_path, 'a') as fileObject:
             # Start with the aperture name
@@ -7205,10 +7208,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             new_data = self.targetKey
 
             margin = self.observedDrop - self.maxNoiseInducedDrop
-            # false_positive_ratio = margin / self.maxNoiseInducedDrop
             false_positive_metric = self.observedDrop / self.maxNoiseInducedDrop - 1.0
 
-            new_data += f',{false_positive_metric:0.3f}'  # add false positive metric
 
             # This works even for an Ronly event
             time_uncertainty = (self.deltaDhi95 - self.deltaDlo95) / 2.0 * self.timeDelta
@@ -7257,6 +7258,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             new_data += f',{self.observedDrop:0.1f}'
             new_data += f',{self.maxNoiseInducedDrop:0.1f}'
             new_data += f',{margin:0.1f}'
+            new_data += f',{false_positive_metric:0.3f}'  # add false positive metric
 
             self.showMsg("")
 
@@ -8965,9 +8967,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.droppedFrames = []
                 self.cadenceViolation = []
                 self.fullDataDictionary = {}
-                frame, time, value, self.secondary, self.ref2, self.ref3, self.extra, \
-                    self.aperture_names, self.headers = \
-                    readLightCurve(self.csvFilePath, pymovieColumnType=columnPrefix, pymovieDict=self.fullDataDictionary)
+                try:
+                    frame, time, value, self.secondary, self.ref2, self.ref3, self.extra, \
+                        self.aperture_names, self.headers = \
+                        readLightCurve(self.csvFilePath, pymovieColumnType=columnPrefix, pymovieDict=self.fullDataDictionary)
+                except ValueError as e:
+                    self.showInfo(f'{e}')
+                    return
                 # self.showMsg(f'If the csv file came from PyMovie - columns with prefix: {columnPrefix} will be read.')
                 values = [float(item) for item in value]
                 self.yValues = np.array(values)  # yValues = curve to analyze

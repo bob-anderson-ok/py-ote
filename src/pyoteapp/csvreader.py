@@ -40,10 +40,10 @@ def readLightCurve(filepath, pymovieColumnType='signal', pymovieDict={}):  # noq
         if readOk:
             return frame, time, value, ref1, ref2, ref3, extra, aperture_names, headers
         else:
-            raise Exception(errMsg)
+            raise ValueError(errMsg)
             
     else:
-        raise Exception('File could not be opened')
+        raise ValueError('File could not be opened')
 
 
 def fileCanBeOpened(file):
@@ -266,7 +266,8 @@ def readAs(file):
         colHeaderKey = 'RAW'
         parser = rawParser
     else:
-        return False, 'invalid file "kind"', frame, time, value, ref1, ref2, ref3, extra, aperture_names, headers
+        return False, 'invalid file - not a known light-curve csv file type', \
+            frame, time, value, ref1, ref2, ref3, extra, aperture_names, headers
 
     with fileobject:
         while True:
@@ -293,6 +294,13 @@ def readAs(file):
                         pymovieDataColumns = []
                         columnIndex = 0
                         for part in parts:
+                            # A PyMovie csv file has the possibilty of having duplicated column names (because
+                            # the user has freedom to name columns. PyMovie version 3.7.7 does not allow this,
+                            # but older versions did not check, so we also check here.
+                            if part in pymovieColumnNames:
+                                return (False, part + ' is a duplicated column name - please edit names to resolve',
+                                        [], [], [], [], [], [], [], aperture_names, headers)
+
                             pymovieColumnNames.append(part)
                             if part.startswith(pymovieColumnNamePrefix):
                                 pymovieSignalColumnCount += 1
