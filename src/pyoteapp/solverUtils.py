@@ -6,6 +6,7 @@ Created on Mon May 29 07:00:33 2017
 @author: Bob Anderson
 """
 MIN_SIGMA = 0.1
+MAX_PLINE = 0.1
 
 from math import exp
 import numpy as np
@@ -629,7 +630,7 @@ def solver(*, eventType=None, yValues=None,
         pLine = exp(-(aiccLine - aiccSol)/2)
     else:
         pLine = 1.00
-    if pLine > 0.001:
+    if pLine > MAX_PLINE:
         yield 'no event present', counter/numCandidates
 
     yield subFrameAdjusted(eventType=eventType, cand=bestCand, 

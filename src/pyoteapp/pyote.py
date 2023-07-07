@@ -1214,7 +1214,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         leftLimit, done = QtWidgets.QInputDialog.getInt(self, ' ', 'Lefthand reading number of data to be used for metric:', min=0)
         if done:
             rightLimit, done = QtWidgets.QInputDialog.getInt(self, ' ',
-                                                            'Righthand reading number of data to be used for metric:', min=0)
+                                                             'Righthand reading number of data to be used for metric:', min=0)
             if done:
                 if 0 <= leftLimit < rightLimit:
                     self.metricLimitLeft = leftLimit
@@ -1423,7 +1423,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 ax1.legend(loc='best', fontsize=8)
 
                 # Compute model comparison stats
-                numTrials=10000
+                numTrials=50000
                 cum_aic_weights = None
 
                 for j in range(numTrials):
@@ -1516,6 +1516,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.targetCheckBoxes[0].setChecked(True)
         self.referenceCheckBoxes[0].setChecked(False)
         self.showCheckBoxes[0].setChecked(True)
+
+        self.userDataSetAdditions = ['ClearAll']
+        self.initializeTableView()
 
         self.newRedrawMainPlot()
 
@@ -1798,10 +1801,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                               f'The correct form is: xxx-xxxxxx')
                 return
             elif len(parts[0]) > 3 or len(parts[1]) > 6:
-                    self.showInfo(f'UCAC4 star designation has incorrect format.\n\n'
-                                  f'The correct form is: xxx-xxxxxx\n\n'
-                                  f'There are too many digits in one of the fields.')
-                    return
+                self.showInfo(f'UCAC4 star designation has incorrect format.\n\n'
+                              f'The correct form is: xxx-xxxxxx\n\n'
+                              f'There are too many digits in one of the fields.')
+                return
             else:
                 if not (self.isValidInput(parts[0],'UCAC4') and self.isValidInput(parts[1],'UCAC4')):
                     return
@@ -6150,7 +6153,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.errBarWin.setLayout(layout)
         drop = self.B - self.yValues[selectedPoint]
         pw, falsePositive, probability, *_ = self.falsePositiveReport(
-            event_duration=1, num_trials=100000, observation_size=self.right - self.left + 1,
+            event_duration=1, num_trials=50000, observation_size=self.right - self.left + 1,
             observed_drop=drop,
             posCoefs=self.corCoefs, sigma=self.sigmaB)
         layout.addWidget(pw, 0, 0)
@@ -6432,13 +6435,18 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             colLabels = ['FrameNum', 'timeInfo']
             dataColumnNames = self.fullDataDictionary.keys()
 
-            if not self.userDataSetAdditions:
-                columnsToDisplay = [name for name in dataColumnNames if name.startswith('signal')]
-            else:
-                # columnsToDisplay = [columnsToDisplay[0]]
-                # columnsToDisplay += self.userDataSetAdditions
+            if len(self.userDataSetAdditions) == 1 and self.userDataSetAdditions[0] == 'ClearAll':
                 columnsToDisplay = [self.lightcurveTitle_1.text()]
-                columnsToDisplay += self.userDataSetAdditions
+                self.userDataSetAdditions = []
+            else:
+                if not self.userDataSetAdditions:
+                    columnsToDisplay = [name for name in dataColumnNames if name.startswith('signal')]
+                    # Only accept up to 10 columns because that is the max that can be in the light curves panel
+                    if len(columnsToDisplay) > 10:
+                        columnsToDisplay = columnsToDisplay[0:10]
+                else:
+                    columnsToDisplay = [self.lightcurveTitle_1.text()]
+                    columnsToDisplay += self.userDataSetAdditions
 
             self.table.setColumnCount(2 + len(columnsToDisplay))
 
@@ -6971,6 +6979,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.showMsg(f'fit metrics for {self.targetKey}', blankLine=False, bold=True)
 
         time_uncertainty = (self.deltaDhi95 - self.deltaDlo95) / 2.0 * self.timeDelta
+        time_uncertainty = max(abs(self.deltaDhi95), abs(self.deltaDlo95)) * self.timeDelta
+
         stats_msg = f'\nfit metrics === DNR: {self.snrB:0.2f}  edge uncertainty (0.95 ci): +/- {time_uncertainty:0.4f} seconds'
         self.showMsg(stats_msg, blankLine=False, bold=True)
 
@@ -7137,6 +7147,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         false_positive_metric = self.observedDrop / self.maxNoiseInducedDrop - 1.0
 
         time_uncertainty = (self.deltaDhi95 - self.deltaDlo95) / 2.0 * self.timeDelta
+        time_uncertainty = max(abs(self.deltaDhi95), abs(self.deltaDlo95)) * self.timeDelta
 
         stats_msg = f'\nfit metrics === false-positive metric: {false_positive_metric:0.3f} ' \
                     f'time error bar: +/- {time_uncertainty:0.4f} seconds' \
@@ -7474,7 +7485,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         # noinspection PyTypeChecker
         distGen = edgeDistributionGenerator(
-            ntrials=100000, numPts=numPts, D=D, acfcoeffs=posCoefs,
+            ntrials=50000, numPts=numPts, D=D, acfcoeffs=posCoefs,
             B=self.B, A=self.A, sigmaB=self.sigmaB, sigmaA=self.sigmaA)
 
         dist = None
@@ -7545,7 +7556,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         if self.errBarWin is not None:
             self.errBarWin.close()
 
-        _, false_positive, false_probability, self.observedDrop, self.maxNoiseInducedDrop = self.doFalsePositiveReport(posCoefs)  # noqa
+        _, false_positive, false_probability, self.observedDrop, self.maxNoiseInducedDrop = \
+            self.doFalsePositiveReport(posCoefs, plots_wanted=False)  # noqa
 
         if plots_wanted:
             self.errBarWin = pg.GraphicsWindow(
@@ -7591,7 +7603,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             legend68 = '[%0.2f,%0.2f] @ 0.6827' % (x1, x2)
             pw.plot(name=legend68)
 
-        self.showMsg("Error bar report based on 100,000 simulations (units are readings)...")
+        self.showMsg("Error bar report based on 50,000 simulations (units are readings)...")
 
         self.showMsg('loDbar   @ .68 ci: %8.4f' % (x1 * self.framesPerEntry()), blankLine=False)
         self.showMsg('hiDbar   @ .68 ci: %8.4f' % (x2 * self.framesPerEntry()), blankLine=False)
@@ -7767,7 +7779,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         ratio = 10 ** (event_magDrop / 2.5)
         self.A = self.B / ratio
         observed_drop = self.B - self.A
-        num_trials = 100_000
+        num_trials = 50000
 
         self.minDetectableDurationRdgs = None
         self.minDetectableDurationSecs = None
@@ -7937,7 +7949,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         return
 
-    def doFalsePositiveReport(self, posCoefs):
+    def doFalsePositiveReport(self, posCoefs, plots_wanted=True):
         d, r = self.solution
         if self.eventType == 'Donly':
             event_duration = self.right - int(np.trunc(d))
@@ -7949,28 +7961,35 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         observation_size = self.right - self.left + 1
         sigma = max(self.sigmaA, self.sigmaB)
         observed_drop = self.B - self.A
-        num_trials = 100_000
+        num_trials = 50000
 
-        return self.falsePositiveReport(event_duration, num_trials, observation_size, observed_drop, posCoefs, sigma)
+        return self.falsePositiveReport(event_duration, num_trials, observation_size, observed_drop,
+                                        posCoefs, sigma, plots_wanted=plots_wanted)
 
     @staticmethod
-    def falsePositiveReport(event_duration, num_trials, observation_size, observed_drop, posCoefs, sigma):
+    def falsePositiveReport(event_duration, num_trials, observation_size, observed_drop, posCoefs, sigma, plots_wanted=True):
         drops = compute_drops(event_duration=event_duration, observation_size=observation_size,
                               noise_sigma=sigma, corr_array=np.array(posCoefs), num_trials=num_trials)
-        pw = PlotWidget(viewBox=CustomViewBox(border=(0, 0, 0)),
-                        enableMenu=False,
-                        title=f'Distribution of drops found in correlated noise for event duration: {event_duration}',
-                        labels={'bottom': 'drop size', 'left': 'number of times noise produced drop'})
-        pw.hideButtons()
-        y, x = np.histogram(drops, bins=50)
-        y[0] = y[1] / 2.0
-        pw.plot(x, y, stepMode=True, fillLevel=0, brush=(0, 0, 255, 150))
-        pw.plot(x=[observed_drop, observed_drop], y=[0, 1.5 * np.max(y)], pen=pg.mkPen([255, 0, 0], width=6))
-        pw.plot(x=[np.max(x), np.max(x)], y=[0, 0.25 * np.max(y)], pen=pg.mkPen([0, 0, 0], width=6))
-        pw.addLegend()
-        pw.plot(name='red line: the drop (B - A) extracted from lightcurve')
-        pw.plot(name=f'black line: max drop found in {num_trials} trials against pure noise')
-        pw.plot(name='If the red line is to the right of the black line, false positive prob = 0')
+        if plots_wanted:
+            pw = PlotWidget(viewBox=CustomViewBox(border=(0, 0, 0)),
+                            enableMenu=False,
+                            title=f'Distribution of drops found in correlated noise for event duration: {event_duration}',
+                            labels={'bottom': 'drop size', 'left': 'number of times noise produced drop'})
+            pw.hideButtons()
+            y, x = np.histogram(drops, bins=50)
+            y[0] = y[1] / 2.0
+            pw.plot(x, y, stepMode=True, fillLevel=0, brush=(0, 0, 255, 150))
+            pw.plot(x=[observed_drop, observed_drop], y=[0, 1.5 * np.max(y)], pen=pg.mkPen([255, 0, 0], width=6))
+            pw.plot(x=[np.max(x), np.max(x)], y=[0, 0.25 * np.max(y)], pen=pg.mkPen([0, 0, 0], width=6))
+            pw.addLegend()
+            pw.plot(name='red line: the drop (B - A) extracted from lightcurve')
+            pw.plot(name=f'black line: max drop found in {num_trials} trials against pure noise')
+            pw.plot(name='If the red line is to the right of the black line, false positive prob = 0')
+        else:
+            pw = None
+            y, x = np.histogram(drops, bins=50)
+            y[0] = y[1] / 2.0
+
         sorted_drops = np.sort(drops)
         index_of_observed_drop_inside_sorted_drops = None
         for i, value in enumerate(sorted_drops):
@@ -7983,6 +8002,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         else:
             false_probability = 1.0 - index_of_observed_drop_inside_sorted_drops / drops.size
             false_positive = True
+
+        del sorted_drops
+        del drops
+
         return pw, false_positive, false_probability, observed_drop, np.max(x)
 
     def displaySolution(self, subframe=True):
@@ -9368,6 +9391,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         if not self.userDeterminedBaselineStats:
             self.newCorCoefs, self.numNApts, sigB = getCorCoefs(self.baselineXvals,
                                                                 self.baselineYvals)
+            if sigB is None:
+                sigB = self.sigmaB
 
             if len(self.corCoefs) == 0:
                 self.corCoefs = np.ndarray(shape=(len(self.newCorCoefs),))

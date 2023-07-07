@@ -98,10 +98,10 @@ def max_drop_in_simulated_observation(
     cumA = np.sum(obs[0:numA])
     cumB = np.sum(obs[numA:])
 
-    A = cumA / numA
-    B = cumB / numB
+    # A = cumA / numA
+    # B = cumB / numB
 
-    drop = B - A
+    # drop = B - A
 
     # Use negative values returned by this routine as an indicator that no positive drop could be found
     # best_drop_so_far = drop if drop >= 0.0 else 0.0
@@ -122,6 +122,7 @@ def max_drop_in_simulated_observation(
         if drop > best_drop_so_far:
             best_drop_so_far = drop
 
+    obs = None
     return best_drop_so_far
 
 

@@ -18,6 +18,7 @@ from pyoteapp.likelihood_calculations import cum_loglikelihood, aicc
 from numba import njit, jit
 
 MIN_FLOAT: float = sys.float_info.min
+MAX_PLINE = 0.1
 
 
 @jit
@@ -524,8 +525,6 @@ def locate_event_from_d_and_r_ranges(
         r = r_start
 
         if d > left:
-            # TODO Validate thos change
-            # b_sl, b_s2l, b_nl, b_varl = calc_metric_numpy(y[left+1:d])
             b_sl, b_s2l, b_nl, b_varl = calc_metric_numpy(y[left:d])
             # Lefthand wing
         else:
@@ -681,7 +680,7 @@ def solution_is_better_than_straight_line(y, left=-1, right=-1, d=-1, r=-1, b=0.
         pLine = exp(-(aiccLine - aiccSol) / 2)
     else:
         pLine = 1.00
-    if pLine > 0.001:
+    if pLine > MAX_PLINE:
         return False
     else:
         return True
