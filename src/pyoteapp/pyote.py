@@ -1501,6 +1501,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             else:
                 self.extra = []
 
+        self.lightcurveTitles[0].clear()
+        self.LC1 = np.array([])
+
         for i in range(1, 10):
             self.targetCheckBoxes[i].setChecked(False)
             self.targetCheckBoxes[i].setEnabled(False)
@@ -4472,7 +4475,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         if self.targetCheckBoxes[i].isChecked():
             self.targetKey = self.lightcurveTitles[i].text()
-            self.showMsg(f'{self.targetKey} is the target curve.')
+            if not self.targetKey == '':
+                self.showMsg(f'{self.targetKey} is the target curve.')
             self.clearTargetSelections()
             self.targetCheckBoxes[i].setChecked(True)
             self.showCheckBoxes[i].setChecked(True)
@@ -6395,6 +6399,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
     def initializeTableView(self):
         self.table.clear()
         self.table.setRowCount(3)
+        columnsToDisplay = []
         if not self.aperture_names:
             # Handle non-PyMovie csv file
             colLabels = ['FrameNum', 'timeInfo', 'LC1', 'LC2', 'LC3', 'LC4']
@@ -6436,7 +6441,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             dataColumnNames = self.fullDataDictionary.keys()
 
             if len(self.userDataSetAdditions) == 1 and self.userDataSetAdditions[0] == 'ClearAll':
-                columnsToDisplay = [self.lightcurveTitle_1.text()]
+                columnsToDisplay = [self.lightcurveTitle_1.text()]  # This will be ['']
                 self.userDataSetAdditions = []
             else:
                 if not self.userDataSetAdditions:
@@ -6445,10 +6450,18 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     if len(columnsToDisplay) > 10:
                         columnsToDisplay = columnsToDisplay[0:10]
                 else:
-                    columnsToDisplay = [self.lightcurveTitle_1.text()]
-                    columnsToDisplay += self.userDataSetAdditions
+                    columnsToDisplay = self.userDataSetAdditions
+                    if len(self.userDataSetAdditions) == 1:
+                        self.LC1 = np.array(self.fullDataDictionary[columnsToDisplay[0]])
+                        # Trigger a display of the first light curve
+                        self.processTargetSelection(0, redraw=True)
+                        if not columnsToDisplay[0] == '':
+                            self.showMsg(f'{columnsToDisplay[0]} is the target curve')
 
-            self.table.setColumnCount(2 + len(columnsToDisplay))
+            if not columnsToDisplay[0] == '':
+                self.table.setColumnCount(2 + len(columnsToDisplay))
+            else:
+                self.table.setColumnCount(2)
 
             self.additionalDataSetNames = [name for name in dataColumnNames if name.startswith('signal')]
             self.additionalDataSetNames += [name for name in dataColumnNames if name.startswith('appsum')]
@@ -6463,38 +6476,43 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
             self.yFrame = self.fullDataDictionary['FrameNum']
             self.yTimes = self.fullDataDictionary['timeInfo']
-            k = 0
-            if k < len(columnsToDisplay):
-                self.LC1 = np.array(self.fullDataDictionary[columnsToDisplay[k]])
-                k += 1
-            if k < len(columnsToDisplay):
-                self.LC2 = np.array(self.fullDataDictionary[columnsToDisplay[k]])
-                k += 1
-            if k < len(columnsToDisplay):
-                self.LC3 = np.array(self.fullDataDictionary[columnsToDisplay[k]])
-                k += 1
-            if k < len(columnsToDisplay):
-                self.LC4 = np.array(self.fullDataDictionary[columnsToDisplay[k]])
-                k += 1
-            if k < len(columnsToDisplay):
-                self.extra = []
-                self.extra.append(np.array(self.fullDataDictionary[columnsToDisplay[k]]))
-                k += 1
-            if k < len(columnsToDisplay):
-                self.extra.append(np.array(self.fullDataDictionary[columnsToDisplay[k]]))
-                k += 1
-            if k < len(columnsToDisplay):
-                self.extra.append(np.array(self.fullDataDictionary[columnsToDisplay[k]]))
-                k += 1
-            if k < len(columnsToDisplay):
-                self.extra.append(np.array(self.fullDataDictionary[columnsToDisplay[k]]))
-                k += 1
-            if k < len(columnsToDisplay):
-                self.extra.append(np.array(self.fullDataDictionary[columnsToDisplay[k]]))
-                k += 1
-            if k < len(columnsToDisplay):
-                self.extra.append(np.array(self.fullDataDictionary[columnsToDisplay[k]]))
-                k += 1
+            if not columnsToDisplay[0] == '':
+                k = 0
+                if k < len(columnsToDisplay):
+                    self.LC1 = np.array(self.fullDataDictionary[columnsToDisplay[k]])
+                    k += 1
+                if k < len(columnsToDisplay):
+                    self.LC2 = np.array(self.fullDataDictionary[columnsToDisplay[k]])
+                    k += 1
+                if k < len(columnsToDisplay):
+                    self.LC3 = np.array(self.fullDataDictionary[columnsToDisplay[k]])
+                    k += 1
+                if k < len(columnsToDisplay):
+                    self.LC4 = np.array(self.fullDataDictionary[columnsToDisplay[k]])
+                    k += 1
+                if k < len(columnsToDisplay):
+                    self.extra = []
+                    self.extra.append(np.array(self.fullDataDictionary[columnsToDisplay[k]]))
+                    k += 1
+                if k < len(columnsToDisplay):
+                    self.extra.append(np.array(self.fullDataDictionary[columnsToDisplay[k]]))
+                    k += 1
+                if k < len(columnsToDisplay):
+                    self.extra.append(np.array(self.fullDataDictionary[columnsToDisplay[k]]))
+                    k += 1
+                if k < len(columnsToDisplay):
+                    self.extra.append(np.array(self.fullDataDictionary[columnsToDisplay[k]]))
+                    k += 1
+                if k < len(columnsToDisplay):
+                    self.extra.append(np.array(self.fullDataDictionary[columnsToDisplay[k]]))
+                    k += 1
+                if k < len(columnsToDisplay):
+                    self.extra.append(np.array(self.fullDataDictionary[columnsToDisplay[k]]))
+                    k += 1
+            else:
+                self.LC1 = np.array([])
+                columnsToDisplay = []
+                # self.yValues = None
 
             # print(f'{sequentialLightcurveList}')
             k = 0
@@ -6533,12 +6551,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                               f' to add additional curves to the display.'
             self.showInfo(lightCurveInfo)
 
-    # def findDataSetsCurrentlyDisplayed(self):
-    #     ans = []
-    #     for title in self.lightcurveTitles:
-    #         if not title.text() == '':
-    #             ans.append(title.text())
-    #     return ans
+        if columnsToDisplay == []:
+            self.yValues = None
 
     def closeEvent(self, event):
         # Open (or create) file for holding 'sticky' stuff
