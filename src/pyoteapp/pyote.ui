@@ -175,7 +175,7 @@
            <item>
             <widget class="QTabWidget" name="tabWidget">
              <property name="currentIndex">
-              <number>1</number>
+              <number>0</number>
              </property>
              <property name="movable">
               <bool>true</bool>
@@ -185,50 +185,48 @@
                <string>Lightcurves</string>
               </attribute>
               <layout class="QGridLayout" name="gridLayout_8">
-               <item row="10" column="0">
-                <widget class="QPushButton" name="locateEventFromLightcurves">
-                 <property name="minimumSize">
+               <item row="13" column="1">
+                <spacer name="verticalSpacer_13">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
                   <size>
-                   <width>250</width>
-                   <height>0</height>
+                   <width>20</width>
+                   <height>40</height>
                   </size>
                  </property>
-                 <property name="maximumSize">
-                  <size>
-                   <width>250</width>
-                   <height>16777215</height>
-                  </size>
-                 </property>
-                 <property name="toolTip">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This is a duplicate (does the same thing) as the button labelled &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Find event &lt;/span&gt;on the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;SqWave model&lt;/span&gt; tab except that no error bar plots are produced..&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                 </property>
-                 <property name="text">
-                  <string>Find event</string>
-                 </property>
-                </widget>
+                </spacer>
                </item>
-               <item row="12" column="0">
-                <widget class="Line" name="line_8">
-                 <property name="minimumSize">
-                  <size>
-                   <width>250</width>
-                   <height>0</height>
-                  </size>
-                 </property>
-                 <property name="maximumSize">
-                  <size>
-                   <width>250</width>
-                   <height>16777215</height>
-                  </size>
-                 </property>
-                 <property name="frameShadow">
-                  <enum>QFrame::Plain</enum>
-                 </property>
-                 <property name="lineWidth">
-                  <number>4</number>
-                 </property>
+               <item row="5" column="4">
+                <spacer name="horizontalSpacer_29">
                  <property name="orientation">
                   <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>133</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="11" column="0">
+                <widget class="QProgressBar" name="progressBarLightcurves">
+                 <property name="minimumSize">
+                  <size>
+                   <width>250</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>250</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="value">
+                  <number>0</number>
                  </property>
                 </widget>
                </item>
@@ -254,462 +252,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="4" column="0" colspan="4">
-                <layout class="QHBoxLayout" name="horizontalLayout_9">
-                 <item>
-                  <widget class="QLabel" name="availableCurvesLabel">
-                   <property name="minimumSize">
-                    <size>
-                     <width>110</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>100</width>
-                     <height>16777215</height>
-                    </size>
-                   </property>
-                   <property name="font">
-                    <font>
-                     <bold>true</bold>
-                    </font>
-                   </property>
-                   <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this drop-down list to add lightcurves/data sets to the display list above. Entries can only be added in empty slots - if all slots are filled, click the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Remove all added data sets&lt;/span&gt; button - this will erase all the entries and clear the plot display.&lt;/p&gt;&lt;p&gt;Dataset (lightcurve) names have the form: &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;&amp;lt;prefix&amp;gt;-&amp;lt;aperture name&amp;gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;&amp;lt;aperture name&amp;gt;&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; comes from the name provided by the user when the aperture was placed on the image.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;&amp;lt;prefix&amp;gt;&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; refers to the the type of data extracted from the aperture with the following meanings:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;signal&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; is the background subtracted sum of the pixel values found within the mask.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;appsum&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; is the sum (no background subtraction) of the pixel values found within the mask.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;avgbkg&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; is the average background value for a single pixel. It is computed by a robust algorithm that uses selected pixels within an aperture by identifying those pixels that are legitimately in the background.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;stdbkg&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; is the standard deviation of the background pixel values - that is, the per-pixel noise (sqrt(variance)) - where the pixels considered to be in the background have been determined by a robust algorithm that avoids any pixels that are from the star image or any hidden companion stars.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;nmaskpx&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; is the number of pixels in the mask. If positive, the mask was computed dynamically from the star image. If negative, it gives the number of pixels in the fixed circular mask selected by the user&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                   </property>
-                   <property name="text">
-                    <string>Add data set</string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QComboBox" name="curveSelectionComboBox">
-                   <property name="minimumSize">
-                    <size>
-                     <width>490</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>900</width>
-                     <height>16777215</height>
-                    </size>
-                   </property>
-                   <property name="contextMenuPolicy">
-                    <enum>Qt::NoContextMenu</enum>
-                   </property>
-                   <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this drop-down list to add lightcurves/data sets to the display list above. Entries can only be added in empty slots - if all slots are filled, click the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Remove all added data sets&lt;/span&gt; button - this will erase all entries and clear the plot display.&lt;/p&gt;&lt;p&gt;Dataset (lightcurve) names have the form: &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;&amp;lt;prefix&amp;gt;-&amp;lt;aperture name&amp;gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;&amp;lt;aperture name&amp;gt;&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; comes from the name provided by the user when the aperture was placed on the image.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;&amp;lt;prefix&amp;gt;&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; refers to the the type of data extracted from the aperture with the following meanings:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;signal&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; is the background subtracted sum of the pixel values found within the mask.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;appsum&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; is the sum (no background subtraction) of the pixel values found within the mask.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;avgbkg&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; is the average background value for a single pixel. It is computed by a robust algorithm that uses selected pixels within an aperture by identifying those pixels that are legitimately in the background.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;stdbkg&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; is the standard deviation of the background pixel values - that is, the per-pixel noise (sqrt(variance)) - where the pixels considered to be in the background have been determined by a robust algorithm that avoids any pixels that are from the star image or any hidden companion stars.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;nmaskpx&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; is the number of pixels in the mask. If positive, the mask was computed dynamically from the star image. If negative, it gives the number of pixels in the fixed circular mask selected by the user&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                   </property>
-                   <property name="inputMethodHints">
-                    <set>Qt::ImhMultiLine</set>
-                   </property>
-                   <property name="maxVisibleItems">
-                    <number>30</number>
-                   </property>
-                   <property name="modelColumn">
-                    <number>0</number>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="removeAddedDataSetsButton">
-                   <property name="minimumSize">
-                    <size>
-                     <width>180</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                   <property name="font">
-                    <font>
-                     <bold>true</bold>
-                    </font>
-                   </property>
-                   <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If there are more than 10 lightcurves to be examined, click this button to clear all the entries. Then use the drop-down list immediately to the left to add lightcurves in the now empty slots.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                   </property>
-                   <property name="text">
-                    <string>Remove all added data sets</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <spacer name="horizontalSpacer_16">
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>40</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                </layout>
-               </item>
-               <item row="7" column="0">
-                <widget class="QPushButton" name="markBaselineRegionLightcurvesButton">
-                 <property name="minimumSize">
-                  <size>
-                   <width>250</width>
-                   <height>0</height>
-                  </size>
-                 </property>
-                 <property name="maximumSize">
-                  <size>
-                   <width>250</width>
-                   <height>16777215</height>
-                  </size>
-                 </property>
-                 <property name="toolTip">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Click on a pair of points that enclose points from the 'target' that are valid to use for baseline noise (and mean value) calculations. Then click on &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Mark baseline region&lt;/span&gt;. &lt;/p&gt;&lt;p&gt;The procedure above can be repeated to select additional sets points. You would do it this way to avoid including a region where the data is not representative of baseline information.&lt;/p&gt;&lt;p&gt;By selecting pairs of points on the light curve being analyzed (target) and clicking the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Mark baseline region&lt;/span&gt; button, all of the regions of 'reliable baseline data' will be designated. They will be shown as orangish points instead of the normal blue color.&lt;/p&gt;&lt;p&gt;After you have selected all the points you consider to be baseline points, click on the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Calc baseline mean/sigma/corr coeffs&lt;/span&gt; button to actually perform the calculation. The results will appear in the text box in the lower right.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;NOTE:&lt;/span&gt; Regions marked on one curve are automatically applied to all curves. A common 'trick' is to leave the baseline points selected (by &lt;span style=&quot; font-weight:700;&quot;&gt;NOT&lt;/span&gt; clicking on the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Clear baseline regions&lt;/span&gt; button) and change the light curve that is designated 'target'. Then clicking on &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Calc baseline mean/sigma/corr coeffs&lt;/span&gt; will get the 'stats' for the newly designated 'target'.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;CRITICAL NOTE:&lt;/span&gt; Once this calculation has been performed, the baseline noise and mean will be used during a subsequent 'event' detection. This can be a useful feature when deliberately used in conjunction with 'event' detection, but one should not perform a 'detectability' test and &lt;span style=&quot; font-weight:700;&quot;&gt;then&lt;/span&gt; an 'event' detection as it is possible in that way to use improper values for baseline mean and noise during the subsequent 'event' finding. If you accidentally get into this state, start over from scratch by re-reading the csv file.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                 </property>
-                 <property name="text">
-                  <string>Mark baseline region</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="9" column="0">
-                <widget class="QPushButton" name="clearBaselineRegionsLightcurvesButton">
-                 <property name="minimumSize">
-                  <size>
-                   <width>250</width>
-                   <height>0</height>
-                  </size>
-                 </property>
-                 <property name="maximumSize">
-                  <size>
-                   <width>250</width>
-                   <height>16777215</height>
-                  </size>
-                 </property>
-                 <property name="toolTip">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clear all marked regions used in the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Calc baseline mean/sigma/corr coeffs&lt;/span&gt; process by clicking on this button.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Note:&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; you may wish to leave the marked regions in place so that noise and mean value stats can be calculated for other available light curves. See the 'tip' in the context help for the &lt;/span&gt;&lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Mark baseline region&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; button.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                 </property>
-                 <property name="text">
-                  <string>Clear baseline regions</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="11" column="0">
-                <widget class="QProgressBar" name="progressBarLightcurves">
-                 <property name="minimumSize">
-                  <size>
-                   <width>250</width>
-                   <height>0</height>
-                  </size>
-                 </property>
-                 <property name="maximumSize">
-                  <size>
-                   <width>250</width>
-                   <height>16777215</height>
-                  </size>
-                 </property>
-                 <property name="value">
-                  <number>0</number>
-                 </property>
-                </widget>
-               </item>
-               <item row="0" column="0">
-                <spacer name="horizontalSpacer_27">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>378</width>
-                   <height>20</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item row="3" column="4">
-                <spacer name="horizontalSpacer_53">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>143</width>
-                   <height>20</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item row="6" column="0">
-                <widget class="Line" name="line_7">
-                 <property name="minimumSize">
-                  <size>
-                   <width>250</width>
-                   <height>0</height>
-                  </size>
-                 </property>
-                 <property name="maximumSize">
-                  <size>
-                   <width>250</width>
-                   <height>16777215</height>
-                  </size>
-                 </property>
-                 <property name="frameShadow">
-                  <enum>QFrame::Plain</enum>
-                 </property>
-                 <property name="lineWidth">
-                  <number>4</number>
-                 </property>
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                </widget>
-               </item>
-               <item row="1" column="2">
-                <spacer name="verticalSpacer_15">
-                 <property name="orientation">
-                  <enum>Qt::Vertical</enum>
-                 </property>
-                 <property name="sizeType">
-                  <enum>QSizePolicy::Fixed</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>20</width>
-                   <height>25</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item row="13" column="1">
-                <spacer name="verticalSpacer_13">
-                 <property name="orientation">
-                  <enum>Qt::Vertical</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>20</width>
-                   <height>40</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item row="0" column="3">
-                <spacer name="horizontalSpacer_28">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>296</width>
-                   <height>20</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item row="8" column="0">
-                <widget class="QPushButton" name="calcStatsFromBaselineRegionsLightcurvesButton">
-                 <property name="minimumSize">
-                  <size>
-                   <width>250</width>
-                   <height>0</height>
-                  </size>
-                 </property>
-                 <property name="maximumSize">
-                  <size>
-                   <width>250</width>
-                   <height>16777215</height>
-                  </size>
-                 </property>
-                 <property name="toolTip">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When this button is clicked, all the points included in the marked regions will be collected and used to calculate the baseline/event mean, noise-sigma, and the noise-correlation coefficients. Unless a 'trim' is performed, these values will be used during error bar estimations and 'false-positive' estimation.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;NOTE:&lt;/span&gt; If a 'trim' is performed, &lt;span style=&quot; font-weight:600;&quot;&gt;the baseline mean will be determined from the 'fit' to the trimmed data,&lt;/span&gt; but the noise-sigma and noise-correlation coefficients extracted from the marked 'background' regions will continue to override those obtained from the trimmed light-curve.&lt;/p&gt;&lt;p&gt;This is done so that if the mean baseline level on either side of the event appears to be a little different than the overall baseline, one can get improved baseline noise stats by using points from the entire light-curve, yet trim the light-curve around the event and allow the 'finder/fitter' to calculate a baseline mean from the immediately adjacent points.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                 </property>
-                 <property name="text">
-                  <string>Calc baseline mean/sigma/corr coeffs</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="5" column="0" colspan="3">
-                <layout class="QHBoxLayout" name="horizontalLayout_2">
-                 <item>
-                  <widget class="QLabel" name="smoothingLabel">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="minimumSize">
-                    <size>
-                     <width>0</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>16777215</width>
-                     <height>16777215</height>
-                    </size>
-                   </property>
-                   <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This spinBox sets the number of points to be used for the &amp;quot;smoothing&amp;quot; window when normalizing the target light curve to a comparison star light curve. Larger numbers give a flatter curve.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Note:&lt;/span&gt; minimize the metric that is computed after every change in this count to achieve the optimum normalization.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                   </property>
-                   <property name="text">
-                    <string>smoothing readings</string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QSpinBox" name="smoothingIntervalSpinBox">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="minimumSize">
-                    <size>
-                     <width>60</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>16777215</width>
-                     <height>16777215</height>
-                    </size>
-                   </property>
-                   <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This spinBox sets the number of points to be used for the &amp;quot;smoothing&amp;quot; window when normalizing the target light curve to a comparison star light curve. Larger numbers give a flatter curve.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Note:&lt;/span&gt; minimize the metric that is computed after every change in this count to achieve the optimum normalization.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                   </property>
-                   <property name="maximum">
-                    <number>9999</number>
-                   </property>
-                   <property name="singleStep">
-                    <number>2</number>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="label_32">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="minimumSize">
-                    <size>
-                     <width>100</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>16777215</width>
-                     <height>16777215</height>
-                    </size>
-                   </property>
-                   <property name="layoutDirection">
-                    <enum>Qt::LeftToRight</enum>
-                   </property>
-                   <property name="text">
-                    <string>Set step:</string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QRadioButton" name="stepBy2radioButton">
-                   <property name="text">
-                    <string>2</string>
-                   </property>
-                   <property name="checked">
-                    <bool>true</bool>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QRadioButton" name="stepBy10radioButton">
-                   <property name="text">
-                    <string>10</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QRadioButton" name="stepBy100radioButton">
-                   <property name="text">
-                    <string>100</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <spacer name="horizontalSpacer_55">
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>40</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="normMarkBaselineRegionButton">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>16777215</width>
-                     <height>16777215</height>
-                    </size>
-                   </property>
-                   <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This button is used to select the points in the normalized target lightcurve to be used in calculating the metric that, when minimized, results in the flattest and most level target lightcurve.&lt;/p&gt;&lt;p&gt;It is sometimes useful to only include some regions of the target lightcurve. To do this, click on two points that enclose the points to be included, then click this button. The included points will change color.&lt;/p&gt;&lt;p&gt;Multiple regions can be selected. Just repeat the above procedure.&lt;/p&gt;&lt;p&gt;The selected regions can be cleared by clicking on the button (&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Clear metric points&lt;/span&gt;) to the right of this button.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                   </property>
-                   <property name="text">
-                    <string>Mark metric points</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="clearMetricPointsButton">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>16777215</width>
-                     <height>16777215</height>
-                    </size>
-                   </property>
-                   <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Click this button to erase any previously selected regions of metric points.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                   </property>
-                   <property name="text">
-                    <string>Clear metric points</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item row="2" column="0" colspan="4">
+               <item row="2" column="0" colspan="3">
                 <layout class="QHBoxLayout" name="horizontalLayout">
                  <item>
                   <widget class="QLabel" name="label_30">
@@ -813,7 +356,200 @@
                  </item>
                 </layout>
                </item>
-               <item row="3" column="0" colspan="4">
+               <item row="1" column="2">
+                <spacer name="verticalSpacer_15">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeType">
+                  <enum>QSizePolicy::Fixed</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>25</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="10" column="0">
+                <widget class="QPushButton" name="locateEventFromLightcurves">
+                 <property name="minimumSize">
+                  <size>
+                   <width>250</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>250</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="toolTip">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This is a duplicate (does the same thing) as the button labelled &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Find event &lt;/span&gt;on the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;SqWave model&lt;/span&gt; tab except that no error bar plots are produced..&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <property name="text">
+                  <string>Find event</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="8" column="0">
+                <widget class="QPushButton" name="calcStatsFromBaselineRegionsLightcurvesButton">
+                 <property name="minimumSize">
+                  <size>
+                   <width>250</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>250</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="toolTip">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When this button is clicked, all the points included in the marked regions will be collected and used to calculate the baseline/event mean, noise-sigma, and the noise-correlation coefficients. Unless a 'trim' is performed, these values will be used during error bar estimations and 'false-positive' estimation.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;NOTE:&lt;/span&gt; If a 'trim' is performed, &lt;span style=&quot; font-weight:600;&quot;&gt;the baseline mean will be determined from the 'fit' to the trimmed data,&lt;/span&gt; but the noise-sigma and noise-correlation coefficients extracted from the marked 'background' regions will continue to override those obtained from the trimmed light-curve.&lt;/p&gt;&lt;p&gt;This is done so that if the mean baseline level on either side of the event appears to be a little different than the overall baseline, one can get improved baseline noise stats by using points from the entire light-curve, yet trim the light-curve around the event and allow the 'finder/fitter' to calculate a baseline mean from the immediately adjacent points.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <property name="text">
+                  <string>Calc baseline mean/sigma/corr coeffs</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="9" column="0">
+                <widget class="QPushButton" name="clearBaselineRegionsLightcurvesButton">
+                 <property name="minimumSize">
+                  <size>
+                   <width>250</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>250</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="toolTip">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clear all marked regions used in the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Calc baseline mean/sigma/corr coeffs&lt;/span&gt; process by clicking on this button.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Note:&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; you may wish to leave the marked regions in place so that noise and mean value stats can be calculated for other available light curves. See the 'tip' in the context help for the &lt;/span&gt;&lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Mark baseline region&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; button.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <property name="text">
+                  <string>Clear baseline regions</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="7" column="0">
+                <widget class="QPushButton" name="markBaselineRegionLightcurvesButton">
+                 <property name="minimumSize">
+                  <size>
+                   <width>250</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>250</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="toolTip">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Click on a pair of points that enclose points from the 'target' that are valid to use for baseline noise (and mean value) calculations. Then click on &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Mark baseline region&lt;/span&gt;. &lt;/p&gt;&lt;p&gt;The procedure above can be repeated to select additional sets points. You would do it this way to avoid including a region where the data is not representative of baseline information.&lt;/p&gt;&lt;p&gt;By selecting pairs of points on the light curve being analyzed (target) and clicking the &lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Mark baseline region&lt;/span&gt; button, all of the regions of 'reliable baseline data' will be designated. They will be shown as orangish points instead of the normal blue color.&lt;/p&gt;&lt;p&gt;After you have selected all the points you consider to be baseline points, click on the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Calc baseline mean/sigma/corr coeffs&lt;/span&gt; button to actually perform the calculation. The results will appear in the text box in the lower right.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;NOTE:&lt;/span&gt; Regions marked on one curve are automatically applied to all curves. A common 'trick' is to leave the baseline points selected (by &lt;span style=&quot; font-weight:700;&quot;&gt;NOT&lt;/span&gt; clicking on the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Clear baseline regions&lt;/span&gt; button) and change the light curve that is designated 'target'. Then clicking on &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Calc baseline mean/sigma/corr coeffs&lt;/span&gt; will get the 'stats' for the newly designated 'target'.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;CRITICAL NOTE:&lt;/span&gt; Once this calculation has been performed, the baseline noise and mean will be used during a subsequent 'event' detection. This can be a useful feature when deliberately used in conjunction with 'event' detection, but one should not perform a 'detectability' test and &lt;span style=&quot; font-weight:700;&quot;&gt;then&lt;/span&gt; an 'event' detection as it is possible in that way to use improper values for baseline mean and noise during the subsequent 'event' finding. If you accidentally get into this state, start over from scratch by re-reading the csv file.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <property name="text">
+                  <string>Mark baseline region</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="4">
+                <spacer name="horizontalSpacer_53">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>143</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="6" column="0">
+                <widget class="Line" name="line_7">
+                 <property name="minimumSize">
+                  <size>
+                   <width>250</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>250</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="frameShadow">
+                  <enum>QFrame::Plain</enum>
+                 </property>
+                 <property name="lineWidth">
+                  <number>4</number>
+                 </property>
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                </widget>
+               </item>
+               <item row="12" column="0">
+                <widget class="Line" name="line_8">
+                 <property name="minimumSize">
+                  <size>
+                   <width>250</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>250</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="frameShadow">
+                  <enum>QFrame::Plain</enum>
+                 </property>
+                 <property name="lineWidth">
+                  <number>4</number>
+                 </property>
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="3">
+                <spacer name="horizontalSpacer_28">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>296</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="0" column="0">
+                <spacer name="horizontalSpacer_27">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>378</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="3" column="0" colspan="3">
                 <layout class="QVBoxLayout" name="verticalLayout_8">
                  <item>
                   <layout class="QHBoxLayout" name="horizontalLayout_28">
@@ -898,6 +634,12 @@
                    </item>
                    <item>
                     <widget class="QLineEdit" name="lightcurveTitle_1">
+                     <property name="maximumSize">
+                      <size>
+                       <width>16777215</width>
+                       <height>16777215</height>
+                      </size>
+                     </property>
                      <property name="readOnly">
                       <bool>true</bool>
                      </property>
@@ -2553,18 +2295,282 @@
                  </item>
                 </layout>
                </item>
-               <item row="5" column="4">
-                <spacer name="horizontalSpacer_29">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>133</width>
-                   <height>20</height>
-                  </size>
-                 </property>
-                </spacer>
+               <item row="5" column="0" colspan="3">
+                <layout class="QHBoxLayout" name="horizontalLayout_2">
+                 <item>
+                  <widget class="QLabel" name="smoothingLabel">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This spinBox sets the number of points to be used for the &amp;quot;smoothing&amp;quot; window when normalizing the target light curve to a comparison star light curve. Larger numbers give a flatter curve.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Note:&lt;/span&gt; minimize the metric that is computed after every change in this count to achieve the optimum normalization.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>smoothing readings</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QSpinBox" name="smoothingIntervalSpinBox">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>60</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This spinBox sets the number of points to be used for the &amp;quot;smoothing&amp;quot; window when normalizing the target light curve to a comparison star light curve. Larger numbers give a flatter curve.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Note:&lt;/span&gt; minimize the metric that is computed after every change in this count to achieve the optimum normalization.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="maximum">
+                    <number>9999</number>
+                   </property>
+                   <property name="singleStep">
+                    <number>2</number>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="label_32">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>100</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="layoutDirection">
+                    <enum>Qt::LeftToRight</enum>
+                   </property>
+                   <property name="text">
+                    <string>Set step:</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QRadioButton" name="stepBy2radioButton">
+                   <property name="text">
+                    <string>2</string>
+                   </property>
+                   <property name="checked">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QRadioButton" name="stepBy10radioButton">
+                   <property name="text">
+                    <string>10</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QRadioButton" name="stepBy100radioButton">
+                   <property name="text">
+                    <string>100</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_55">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="normMarkBaselineRegionButton">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This button is used to select the points in the normalized target lightcurve to be used in calculating the metric that, when minimized, results in the flattest and most level target lightcurve.&lt;/p&gt;&lt;p&gt;It is sometimes useful to only include some regions of the target lightcurve. To do this, click on two points that enclose the points to be included, then click this button. The included points will change color.&lt;/p&gt;&lt;p&gt;Multiple regions can be selected. Just repeat the above procedure.&lt;/p&gt;&lt;p&gt;The selected regions can be cleared by clicking on the button (&lt;span style=&quot; font-weight:600; color:#0000ff;&quot;&gt;Clear metric points&lt;/span&gt;) to the right of this button.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>Mark metric points</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="clearMetricPointsButton">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Click this button to erase any previously selected regions of metric points.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>Clear metric points</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item row="4" column="0" colspan="4">
+                <layout class="QHBoxLayout" name="horizontalLayout_9">
+                 <item>
+                  <widget class="QLabel" name="availableCurvesLabel">
+                   <property name="minimumSize">
+                    <size>
+                     <width>110</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>100</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <bold>true</bold>
+                    </font>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this drop-down list to add lightcurves/data sets to the display list above. Entries can only be added in empty slots - if all slots are filled, click the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Remove all added data sets&lt;/span&gt; button - this will erase all the entries and clear the plot display.&lt;/p&gt;&lt;p&gt;Dataset (lightcurve) names have the form: &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;&amp;lt;prefix&amp;gt;-&amp;lt;aperture name&amp;gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;&amp;lt;aperture name&amp;gt;&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; comes from the name provided by the user when the aperture was placed on the image.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;&amp;lt;prefix&amp;gt;&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; refers to the the type of data extracted from the aperture with the following meanings:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;signal&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; is the background subtracted sum of the pixel values found within the mask.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;appsum&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; is the sum (no background subtraction) of the pixel values found within the mask.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;avgbkg&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; is the average background value for a single pixel. It is computed by a robust algorithm that uses selected pixels within an aperture by identifying those pixels that are legitimately in the background.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;stdbkg&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; is the standard deviation of the background pixel values - that is, the per-pixel noise (sqrt(variance)) - where the pixels considered to be in the background have been determined by a robust algorithm that avoids any pixels that are from the star image or any hidden companion stars.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;nmaskpx&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; is the number of pixels in the mask. If positive, the mask was computed dynamically from the star image. If negative, it gives the number of pixels in the fixed circular mask selected by the user&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>Add data set</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QComboBox" name="curveSelectionComboBox">
+                   <property name="minimumSize">
+                    <size>
+                     <width>300</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>900</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="contextMenuPolicy">
+                    <enum>Qt::NoContextMenu</enum>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this drop-down list to add lightcurves/data sets to the display list above. Entries can only be added in empty slots - if all slots are filled, click the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Remove all added data sets&lt;/span&gt; button - this will erase all entries and clear the plot display.&lt;/p&gt;&lt;p&gt;Dataset (lightcurve) names have the form: &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;&amp;lt;prefix&amp;gt;-&amp;lt;aperture name&amp;gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;&amp;lt;aperture name&amp;gt;&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; comes from the name provided by the user when the aperture was placed on the image.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;&amp;lt;prefix&amp;gt;&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; refers to the the type of data extracted from the aperture with the following meanings:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;signal&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; is the background subtracted sum of the pixel values found within the mask.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;appsum&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; is the sum (no background subtraction) of the pixel values found within the mask.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;avgbkg&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; is the average background value for a single pixel. It is computed by a robust algorithm that uses selected pixels within an aperture by identifying those pixels that are legitimately in the background.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;stdbkg&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; is the standard deviation of the background pixel values - that is, the per-pixel noise (sqrt(variance)) - where the pixels considered to be in the background have been determined by a robust algorithm that avoids any pixels that are from the star image or any hidden companion stars.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;nmaskpx&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; is the number of pixels in the mask. If positive, the mask was computed dynamically from the star image. If negative, it gives the number of pixels in the fixed circular mask selected by the user&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="inputMethodHints">
+                    <set>Qt::ImhMultiLine</set>
+                   </property>
+                   <property name="maxVisibleItems">
+                    <number>30</number>
+                   </property>
+                   <property name="modelColumn">
+                    <number>0</number>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="removeAddedDataSetsButton">
+                   <property name="minimumSize">
+                    <size>
+                     <width>180</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <bold>true</bold>
+                    </font>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If there are more than 10 lightcurves to be examined, click this button to clear all the entries. Then use the drop-down list immediately to the left to add lightcurves in the now empty slots.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>Remove all added data sets</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_16">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
                </item>
               </layout>
              </widget>
