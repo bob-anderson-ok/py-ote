@@ -5526,7 +5526,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         if not error_bar_plots_available:
             return
 
-        self.graphicFile, _ = os.path.splitext(self.csvFilePath)
+        lightCurveDir = os.path.dirname(self.csvFilePath)  # This gets the folder where the light-curve.csv is located
+        self.graphicFile = os.path.join(lightCurveDir, 'FP-plots')
+        if not os.path.exists(self.graphicFile):
+            os.mkdir(self.graphicFile)
+        head, tail = os.path.split(self.csvFilePath)
+        name_to_use, _ = os.path.splitext(tail)
+
+        self.graphicFile = os.path.join(self.graphicFile, name_to_use)
 
         exporter = FixedImageExporter(self.dBarPlotItem)
         exporter.makeWidthHeightInts()
@@ -7156,11 +7163,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.showMsg(f'fit metrics for {self.targetKey}', blankLine=False, bold=True)
 
         # Calculate false-positive ratio
-        margin = self.observedDrop - self.maxNoiseInducedDrop
+        # margin = self.observedDrop - self.maxNoiseInducedDrop
         # false_positive_ratio = margin / self.maxNoiseInducedDrop
+
         false_positive_metric = self.observedDrop / self.maxNoiseInducedDrop - 1.0
 
-        time_uncertainty = (self.deltaDhi95 - self.deltaDlo95) / 2.0 * self.timeDelta
         time_uncertainty = max(abs(self.deltaDhi95), abs(self.deltaDlo95)) * self.timeDelta
 
         stats_msg = f'\nfit metrics === false-positive metric: {false_positive_metric:0.3f} ' \
@@ -7192,7 +7199,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.showMsg(stats_msg, blankLine=False, bold=True)
 
         if self.eventType == 'DandR':
-            duration = (self.Rframe - self.Dframe) * (self.timeDelta / self.blockSize)
+            time_at_R = convertTimeStringToTime(self.Rtimestring)
+            time_at_D = convertTimeStringToTime(self.Dtimestring)
+            duration = time_at_R - time_at_D
+            # duration = (self.Rframe - self.Dframe) * (self.timeDelta / self.blockSize)
             stats_msg = f'\nfit metrics === duration: {duration:0.4f} seconds'
             self.showMsg(stats_msg, blankLine=False, bold=True)
 
@@ -7952,10 +7962,34 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
             pw.plot(obs)
             pw.plot(obs, pen=None, symbol='o', symbolBrush=(0, 0, 255), symbolSize=6)
-            left_marker = pg.InfiniteLine(pos=eventStart, pen='r')
-            pw.addItem(left_marker)
-            right_marker = pg.InfiniteLine(pos=eventStart + event_duration, pen='g')
-            pw.addItem(right_marker)
+
+            # left_marker = pg.InfiniteLine(pos=eventStart, pen='r')
+            # pw.addItem(left_marker)
+            # right_marker = pg.InfiniteLine(pos=eventStart + event_duration, pen='g')
+            # pw.addItem(right_marker)
+
+            # Plot the square wave
+            x_vals = []
+            y_vals = []
+            x_vals.append(0)
+            y_vals.append(self.B)
+
+            x_vals.append(eventStart - 1)
+            y_vals.append(self.B)
+
+            x_vals.append(eventStart)
+            y_vals.append(self.A)
+
+            x_vals.append(eventStart+event_duration)
+            y_vals.append(self.A)
+
+            x_vals.append(eventStart+event_duration + 1)
+            y_vals.append(self.B)
+
+            x_vals.append(len(obs)-1)
+            y_vals.append(self.B)
+
+            pw.plot(x_vals, y_vals, pen=pg.mkPen([255, 0, 0], width=4))
 
             if self.writeExampleLightcurveCheckBox.isChecked():
                 # Write the example lightcurve (obs) to a csv file
@@ -8971,10 +9005,29 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.logFile, _ = os.path.splitext(self.csvFilePath)
             self.logFile = self.logFile + '.pyote_log.txt'
 
-            self.detectabilityLogFile, _ = os.path.splitext(self.csvFilePath)
+            # self.detectabilityLogFile, _ = os.path.splitext(self.csvFilePath)
+            # self.detectabilityLogFile = self.detectabilityLogFile + '.pyote_detectability.txt'
+
+            lightCurveDir = os.path.dirname(self.csvFilePath)  # This gets the folder where the light-curve.csv is located
+            self.detectabilityLogFile = os.path.join(lightCurveDir, 'Detectability')
+            if not os.path.exists(self.detectabilityLogFile):
+                os.mkdir(self.detectabilityLogFile)
+            head, tail = os.path.split(self.csvFilePath)
+            name_to_use, _ = os.path.splitext(tail)
+            self.detectabilityLogFile = os.path.join(self.detectabilityLogFile, name_to_use)
             self.detectabilityLogFile = self.detectabilityLogFile + '.pyote_detectability.txt'
 
-            self.normalizationLogFile, _ = os.path.splitext(self.csvFilePath)
+            # self.normalizationLogFile, _ = os.path.splitext(self.csvFilePath)
+            # self.normalizationLogFile = self.normalizationLogFile + '.pyote_normalization.txt'
+
+            lightCurveDir = os.path.dirname(
+                self.csvFilePath)  # This gets the folder where the light-curve.csv is located
+            self.normalizationLogFile = os.path.join(lightCurveDir, 'Normalization')
+            if not os.path.exists(self.normalizationLogFile):
+                os.mkdir(self.normalizationLogFile)
+            head, tail = os.path.split(self.csvFilePath)
+            name_to_use, _ = os.path.splitext(tail)
+            self.normalizationLogFile = os.path.join(self.normalizationLogFile, name_to_use)
             self.normalizationLogFile = self.normalizationLogFile + '.pyote_normalization.txt'
 
             curDateTime = datetime.datetime.today().ctime()

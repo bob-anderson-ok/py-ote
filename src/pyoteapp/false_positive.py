@@ -122,7 +122,6 @@ def max_drop_in_simulated_observation(
         if drop > best_drop_so_far:
             best_drop_so_far = drop
 
-    obs = None
     return best_drop_so_far
 
 
