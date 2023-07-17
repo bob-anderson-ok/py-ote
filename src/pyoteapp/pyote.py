@@ -7231,10 +7231,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         else:
             # self.showInfo('We fill create a new fit_metric.csv file')
             with open(metric_file_path, 'w') as fileObject:
-                fileObject.writelines('aperture name,time err +/-secs,DNR,magDrop,'
+                fileObject.writelines('aperture name,time err +/-secs,DNR,FP metric,magDrop,'
                                       'percent drop,duration (secs),D time,'
                                       'R time,D frame,R frame,B,A,sigmaB,sigmaA,'
-                                      'observed drop,false positive drop,false positive margin,false positive metric\n')
+                                      'observed drop,FP drop,FP margin\n')
 
         with open(metric_file_path, 'a') as fileObject:
             # Start with the aperture name
@@ -7248,15 +7248,19 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
             # This works even for an Ronly event
             time_uncertainty = (self.deltaDhi95 - self.deltaDlo95) / 2.0 * self.timeDelta
-            new_data += f',{time_uncertainty:0.4f}'    # add time error bar
-            new_data += f',{self.snrB:0.2f}'           # add DNR
+            new_data += f',{time_uncertainty:0.4f}'       # add time error bar
+            new_data += f',{self.snrB:0.2f}'              # add DNR
+            new_data += f',{false_positive_metric:0.3f}'  # add false positive metric
+
 
             # add magDrop data
             new_data += f',{self.unvettedMagDrop:0.4f}'  # This gets displayed even if magDrop report would have suppressed it.
             new_data += f',{self.percentMagDrop:0.1f}'
 
             if self.eventType == 'DandR':
-                duration = (self.Rframe - self.Dframe) * (self.timeDelta / self.blockSize)
+                time_at_R = convertTimeStringToTime(self.Rtimestring)
+                time_at_D = convertTimeStringToTime(self.Dtimestring)
+                duration = time_at_R - time_at_D
             else:
                 duration = 0.0
             new_data += f',{duration:0.4f}'            # add duration
@@ -7293,7 +7297,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             new_data += f',{self.observedDrop:0.1f}'
             new_data += f',{self.maxNoiseInducedDrop:0.1f}'
             new_data += f',{margin:0.1f}'
-            new_data += f',{false_positive_metric:0.3f}'  # add false positive metric
+            # new_data += f',{false_positive_metric:0.3f}'  # add false positive metric
 
             self.showMsg("")
 
