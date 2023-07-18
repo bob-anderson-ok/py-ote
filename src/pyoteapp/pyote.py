@@ -4884,6 +4884,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         inp.setWindowTitle('Rename fit metrics')
         inp.setLabelText('Enter name to be used for the .xlsx file: ')
 
+        lightCurveDir = os.path.dirname(self.csvFilePath)
+        head, tail = os.path.split(lightCurveDir)
+
+        inp.setTextValue(tail)
+
         if inp.exec_() == QtWidgets.QDialog.DialogCode.Accepted:
             # This gets the folder where the light-curve.csv is located
             lightCurveDir = os.path.dirname(self.csvFilePath)
@@ -4893,9 +4898,43 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 new_metric_filepath = lightCurveDir + f'\\{name_given}'
             else:
                 new_metric_filepath = lightCurveDir + f'\\{name_given}.xlsx'
-            pd.read_csv(current_metric_filepath, index_col=0).to_excel(new_metric_filepath)
-            # os.rename(current_metric_filepath, new_metric_filepath)
-            # print(f'{new_metric_filepath}')
+
+            # Make a Pandas data frame from the csv file
+            df = pd.read_csv(current_metric_filepath)
+
+            # Create a Pandas Excel writer using xlswriter as the engine
+            writer = pd.ExcelWriter(new_metric_filepath, engine='xlsxwriter')
+
+            # Convert the dataframe to an Xlsxwriter Excel object
+            df.to_excel(writer, sheet_name='Sheet1', index=False)
+
+            # Get the xlsxwriter workbook and workbook objects
+            workbook = writer.book
+            worksheet = writer.sheets['Sheet1']
+
+            # Create some cell formats
+            formatNum4 = workbook.add_format({"num_format": "0.0000"})
+            formatNum3 = workbook.add_format({"num_format": "0.000"})
+            formatNum2 = workbook.add_format({"num_format": "0.00"})
+            formatNum1 = workbook.add_format({"num_format": "0.0"})
+
+            # Set column widths and formats
+            # worksheet.set_column(first_col, last_col, width, format)  width can be None and format can be missing
+            worksheet.set_column( 0,  0, 30)                  # aperture name
+            worksheet.set_column( 1,  1, 15, formatNum4)      # time err
+            worksheet.set_column( 2,  2, None, formatNum2)    # DNR
+            worksheet.set_column( 3,  3, None, formatNum2)    # FP metric
+            worksheet.set_column( 4,  4, None, formatNum2)    # magDrop
+            worksheet.set_column( 5,  5, 13, formatNum1)      # percent drop
+            worksheet.set_column( 6,  6, 15, formatNum4)      # duration
+            worksheet.set_column( 7,  8, 13)                  # D time  and R time
+            worksheet.set_column( 9, 10, None, formatNum2)    # D frame  and R frame
+            worksheet.set_column(11, 12, 13, formatNum2)      # D and A
+            worksheet.set_column(13, 14, 13, formatNum2)      # sigmaB and sigmaA
+            worksheet.set_column(15, 15, 15, formatNum1)      # observed drop
+            worksheet.set_column(16, 16, None, formatNum1)    # observed drop
+            worksheet.set_column(17, 17, None, formatNum1)    # FP margin
+            writer.close()
 
         inp.deleteLater()
 
