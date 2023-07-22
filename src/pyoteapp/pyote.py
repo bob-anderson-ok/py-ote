@@ -4857,7 +4857,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             return
 
         lightCurveDir = os.path.dirname(self.csvFilePath)  # This gets the folder where the light-curve.csv is located
-        metric_file_path = lightCurveDir + r'\fit_metrics.txt'
+        metric_file_path = os.path.join(lightCurveDir, 'fit_metrics.txt')
         if os.path.exists(metric_file_path):
             os.remove(metric_file_path)
             self.showInfo(f'The fit metrics file has been cleared.')
@@ -4869,7 +4869,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             return
 
         lightCurveDir = os.path.dirname(self.csvFilePath)
-        current_metric_filepath = lightCurveDir + '\\fit_metrics.txt'
+        current_metric_filepath = os.path.join(lightCurveDir, 'fit_metrics.txt')
 
         if not os.path.exists(current_metric_filepath):
             self.showInfo(f'There is no metrics file yet.')
@@ -4892,12 +4892,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         if inp.exec_() == QtWidgets.QDialog.DialogCode.Accepted:
             # This gets the folder where the light-curve.csv is located
             lightCurveDir = os.path.dirname(self.csvFilePath)
-            current_metric_filepath = lightCurveDir + '\\fit_metrics.txt'
+            current_metric_filepath = os.path.join(lightCurveDir, 'fit_metrics.txt')
             name_given = inp.textValue()
             if '.xlsx' in name_given:
-                new_metric_filepath = lightCurveDir + f'\\{name_given}'
+                new_metric_filepath = os.path.join(lightCurveDir, f'{name_given}')
             else:
-                new_metric_filepath = lightCurveDir + f'\\{name_given}.xlsx'
+                # new_metric_filepath = lightCurveDir + f'\\{name_given}.xlsx'
+                new_metric_filepath = os.path.join(lightCurveDir, f'{name_given}.xlsx' )
 
             # Make a Pandas data frame from the csv file
             df = pd.read_csv(current_metric_filepath)
@@ -7262,7 +7263,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     def updateFitMetricTxtFile(self):
         lightCurveDir = os.path.dirname(self.csvFilePath)  # This gets the folder where the light-curve.csv is located
-        metric_file_path = lightCurveDir + r'\fit_metrics.txt'
+        metric_file_path = os.path.join(lightCurveDir, 'fit_metrics.txt')
 
         if os.path.exists(metric_file_path):
             # self.showInfo('We will append to an existing fit_metric.csv file')

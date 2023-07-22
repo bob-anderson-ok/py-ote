@@ -42,7 +42,7 @@ INSTALL_REQUIRES = ['pyqtgraph==0.12.4', 'opencv-python', 'astroquery', 'resourc
                     'PyQt5', 'pandas',
                     'winshell;platform_system=="Windows"',
                     'pypiwin32;platform_system=="Windows"', 'matplotlib', 'numpy<=1.22', 'astropy', 'scikit-image',
-                    'scipy', 'numba>=0.41.0', 'Adv2>=1.2.0', 'PyQt5', 'openpyxl', 'xlrd']
+                    'scipy', 'numba>=0.41.0', 'Adv2>=1.2.0', 'PyQt5', 'openpyxl', 'xlrd', 'xlsxwriter']
 
 ###################################################################
 
