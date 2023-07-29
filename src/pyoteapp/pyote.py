@@ -7053,10 +7053,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         if margin > 0:
             stats_msg = f'fit metrics === from passed false-positive test: observed drop: ' \
                         f'{self.observedDrop:0.1f}  max drop from noise: {self.maxNoiseInducedDrop:0.1f}  margin: {margin:0.1f}'
+            self.showMsg(stats_msg, blankLine=False, bold=True)
         else:
             stats_msg = f'fit metrics === from FAILED false-positive test: observed drop: ' \
                         f'{self.observedDrop:0.1f}  max drop from noise: {self.maxNoiseInducedDrop:0.1f}  margin: {margin:0.1f}'
-        self.showMsg(stats_msg, blankLine=False, bold=True)
+            self.showMsg(stats_msg, blankLine=False, bold=True, color='red')
 
         stats_msg = f'fit metrics === {self.magDropReportStr}'
         self.showMsg(stats_msg, blankLine=False, bold=True)
@@ -7222,10 +7223,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         if margin > 0:
             stats_msg = f'fit metrics === from passed false-positive test: observed drop: ' \
                         f'{self.observedDrop:0.1f}  max drop from noise: {self.maxNoiseInducedDrop:0.1f}  margin: {margin:0.1f}'
+            self.showMsg(stats_msg, blankLine=False, bold=True)
         else:
             stats_msg = f'fit metrics === from FAILED false-positive test: observed drop: ' \
                         f'{self.observedDrop:0.1f}  max drop from noise: {self.maxNoiseInducedDrop:0.1f}  margin: {margin:0.1f}'
-        self.showMsg(stats_msg, blankLine=False, bold=True)
+            self.showMsg(stats_msg, blankLine=False, bold=True, color='red')
 
         stats_msg = f'fit metrics === {self.magDropReportStr}'
         self.showMsg(stats_msg, blankLine=False, bold=True)
@@ -9351,7 +9353,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             outStr = outStr + fp.to_precision(posCoefs[i], 3) + ', '
         outStr = outStr + fp.to_precision(posCoefs[-1], 3)
         outStr = outStr + ']  (based on ' + str(self.numPtsInCorCoefs) + ' points)'
-        outStr = outStr + '  sigmaB: ' + f'{self.sigmaB:.2f}'
+        outStr = outStr + '  sigmaB: ' + f'{self.sigmaB:0.2f}'
         self.showMsg(outStr)
 
     def processEventNoise(self, secondPass=False):
