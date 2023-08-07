@@ -4860,8 +4860,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         metric_file_path = os.path.join(lightCurveDir, 'fit_metrics.txt')
         if os.path.exists(metric_file_path):
             os.remove(metric_file_path)
-            self.showInfo(f'The fit metrics file has been cleared.')
-        return
+            self.showInfo(f'The fit metrics file has been restarted.')
+            self.addSourceFileToFitMetricTxtFile()
 
     def renameFitMetricFile(self):
         if self.csvFilePath is None:
@@ -7263,6 +7263,26 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         if error_bar_plots_available:
             self.showHelp(self.helpLabelForFalsePositive)
 
+    def addSourceFileToFitMetricTxtFile(self):
+        lightCurveDir = os.path.dirname(self.csvFilePath)  # This gets the folder where the light-curve.csv is located
+        metric_file_path = os.path.join(lightCurveDir, 'fit_metrics.txt')
+
+        if os.path.exists(metric_file_path):
+            # We will append the new metric_file_path to an existing fit_metric.csv file
+            pass
+        else:
+            # Here we will create a new fit_metric.csv file' with a header line
+            with open(metric_file_path, 'w') as fileObject:
+                fileObject.writelines('aperture name,time err +/-secs,DNR,FP metric,magDrop,'
+                                      'percent drop,duration (secs),D time,'
+                                      'R time,D frame,R frame,B,A,sigmaB,sigmaA,'
+                                      'observed drop,FP drop,FP margin\n')
+
+        with open(metric_file_path, 'a') as fileObject:
+            fileObject.writelines(f'\n')
+            fileObject.writelines(f'Source file is {metric_file_path}\n')
+            fileObject.writelines(f'\n')
+
     def updateFitMetricTxtFile(self):
         lightCurveDir = os.path.dirname(self.csvFilePath)  # This gets the folder where the light-curve.csv is located
         metric_file_path = os.path.join(lightCurveDir, 'fit_metrics.txt')
@@ -9014,7 +9034,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         if self.csvFilePath:
             self.targetKey = ''
-            # self.clearFitMetricTxtFile()
+            self.addSourceFileToFitMetricTxtFile()
             self.firstLightCurveDisplayed = False
             self.availableLightCurvesForDisplay = []
             self.curveSelectionComboBox.clear()
