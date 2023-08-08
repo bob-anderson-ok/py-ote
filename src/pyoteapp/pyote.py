@@ -7280,7 +7280,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         with open(metric_file_path, 'a') as fileObject:
             fileObject.writelines(f'\n')
-            fileObject.writelines(f'Source file is {metric_file_path}\n')
+            fileObject.writelines(f'Source file is {self.csvFilePath}\n')
             fileObject.writelines(f'\n')
 
     def updateFitMetricTxtFile(self):
