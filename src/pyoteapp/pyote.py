@@ -123,12 +123,14 @@ SELECTED = 3  # (255, 000, 000) red
 BASELINE = 2  # (255, 150, 100) salmon
 INCLUDED = 1  # (000, 032, 255) blue with touch of green
 EXCLUDED = 0  # no dot
+DEFECT_HIT = 6  # Add circle or something blindingly obvious
 
 MISSING_COLOR = (211, 211, 211)  # light gray
 EVENT_COLOR = (155, 150, 100)    # sick yellowish green
 SELECTED_COLOR = (255, 0, 0)     # red
 BASELINE_COLOR = (255, 150,100)  # salmon
 INCLUDED_COLOR = (0, 32, 255)    # blue + green tinge
+DEFECT_HIT_COLOR = (255, 0, 0)   # red
 
 LINESIZE = 2
 
@@ -521,6 +523,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.vizierExportButton.installEventFilter(self)
         self.vizierExportButton.clicked.connect(self.exportVizieRtextFile)
+
+        # Special analysis widgets
+
+        self.processDeepVtestButton.clicked.connect(self.processDeepVtest)
+        self.processDeepVtestButton.installEventFilter(self)
+
+        self.processSteppedLevelsTestButton.clicked.connect(self.processSteppedLevelsTest)
+        self.processSteppedLevelsTestButton.installEventFilter(self)
 
         # Model lightcurves widgets
 
@@ -1210,6 +1220,165 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     # ====  New method entry point ===
 
+    def processDeepVtest(self):
+
+        if not len(self.yValues) == 1500:
+            self.showInfo("The target light curve is NOT a deep V light curve!")
+            return
+
+        baseline_left = self.yValues[0:501]        # 0...500
+        baseline_right = self.yValues[1000:1500]   # 1000...1499
+        baseline_points = np.concatenate((baseline_left, baseline_right))
+        baseline_mean = np.mean(baseline_points)
+
+
+        # Calculate the v points
+
+        segment = 250
+        npts = 1500
+        model = np.ndarray(npts)  # noqa
+        for i in range(npts):
+            if i < 2 * segment:  # 0 to 500 are baseline values (model[500] is set at the else: calculation)
+                model[i] = 1.0
+            elif i > 4 * segment:  # 1000 to 1499 are baseline values
+                model[i] = 1.0
+            else:
+                model[i] = abs(
+                    1 - (i - 2 * segment) / segment)  # 0 at 750  500 to 750 = left slope  750 to 1000 = right slope
+        model *= baseline_mean
+
+        v_model = model[501:1000]
+        v_values = self.yValues[501:1000]
+        v_deltas = v_values - v_model
+        v_noise = np.std(v_deltas)
+        v_delta_mean = np.mean(v_deltas)
+
+        plt.figure(figsize=(12,12))
+        ax1 = plt.subplot(2,1,1)
+        ax2 = plt.subplot(2,1,2)
+
+        if self.targetKey == '':
+            light_curve_target = self.lightcurveTitles[0].text()
+        else:
+            light_curve_target = self.targetKey
+        ax1.set_title(f'Light curve with V occultation fit ({light_curve_target})')
+
+        ax1.set_ylabel('ADU')
+        ax1.set_xlabel('reading number')
+        ax1.plot(self.yValues, marker='.', markersize=4, linestyle='None')
+
+        baseline_noise = np.std(baseline_points)
+        if baseline_noise > 0.0:
+            snr = baseline_mean / baseline_noise
+        else:
+            snr = 0.0
+
+        s = f'baseline noise: {baseline_noise:0.2f}  snr: {snr:0.2f}\n'
+        s += f'noise during V: {v_noise:0.2f}\n'
+        s += f'avg difference from model during V: {v_delta_mean:0.2f}'
+
+        ax1.plot(model, marker='.', markersize=1)
+        ax1.text(0.01, 0.4, s, transform=ax1.transAxes, bbox=dict(facecolor='white', alpha=1), fontsize=10)
+
+        ax2.set_title("Deviations from model")
+        ax2.set_ylabel('ADU')
+        ax2.set_xlabel('reading number')
+        flattened_data = self.yValues - model
+        ymin = np.min(flattened_data)
+        ymax = np.max(flattened_data)
+        ax2.plot(flattened_data, marker='.', markersize=3, linestyle='None')
+        ax2.vlines(501, ymin=ymin, ymax=ymax, color='red', label='V start/end')
+        ax2.vlines(999, ymin=ymin, ymax=ymax, color='red')
+        ax2.vlines([750], ymin=ymin, ymax=ymax, color='green', label='V center')
+        ax2.hlines(0, xmin=501, xmax=999, color='black')
+        ax2.hlines(v_delta_mean, xmin=501, xmax=999, color='orange', label='avg diff from model during V')
+        ax2.legend(loc='upper left')
+        plt.show()
+
+    def processSteppedLevelsTest(self):
+
+        if not len(self.yValues) == 6000:
+            self.showInfo("The target light curve is NOT a stepped levels light curve!")
+            return
+
+        level1_mean = np.mean(self.yValues[0:1000])
+        level1_sigma = np.std(self.yValues[0:1000])
+
+        level2_mean = np.mean(self.yValues[1000:2000])
+        level2_sigma = np.std(self.yValues[1000:2000])
+
+        level3_mean = np.mean(self.yValues[2000:3000])
+        level3_sigma = np.std(self.yValues[2000:3000])
+
+        level4_mean = np.mean(self.yValues[3000:4000])
+        level4_sigma = np.std(self.yValues[3000:4000])
+
+        level5_mean = np.mean(self.yValues[4000:5000])
+        level5_sigma = np.std(self.yValues[4000:5000])
+
+        level6_mean = np.mean(self.yValues[5000:6000])
+        level6_sigma = np.std(self.yValues[5000:6000])
+
+        Bvalues = [level1_mean, level2_mean, level3_mean, level4_mean, level5_mean, level6_mean]
+        sigmaB = [level1_sigma, level2_sigma, level3_sigma, level4_sigma, level5_sigma, level6_sigma]
+
+        if self.targetKey == '':
+            curve_title = self.lightcurveTitles[0].text()
+        else:
+            curve_title = self.targetKey
+
+        self.plotLinearFitAndResiduals(Bvalues, sigmaB, curve_title)
+
+    @staticmethod
+    def plotLinearFitAndResiduals(Bvalues, sigmaB, curve_title):
+
+        # Compute weights to use in fit
+        snr = []
+        for i in range(len(Bvalues)):
+            snr.append(Bvalues[i] / sigmaB[i])  # Weight by snr
+
+        x = [1.0, 0.7, 0.3, 0.2, 0.1, 0.05]
+
+        z = np.polyfit(x, Bvalues, 1, w=snr, full=True)
+        f = np.poly1d(z[0])
+
+        # calculate new x's and y's
+        x_new = np.linspace(x[0], x[-1], 50)
+        y_new = f(x_new)
+
+        plt.figure(figsize=(14, 6))
+        ax1 = plt.subplot(1, 2, 1)
+        ax2 = plt.subplot(1, 2, 2)
+
+        ax1.plot(x, Bvalues, 'o', x_new, y_new)
+        ax1.set_title(f'{curve_title} linear fit')
+        ax1.set_ylabel('ADU')
+        ax1.set_xlabel('ratio expected')
+        ax1.set_xlim([x[0] - 1, x[-1] + 1])
+        ax1.grid()
+
+        variance = 0.0
+        deltas = []
+        for i in range(len(x)):
+            y_new = f(x[i])
+            delta = y_new - Bvalues[i]
+            deltas.append(delta)
+            variance += delta ** 2
+
+        ax2.plot(x, deltas, 'o')
+        ax2.set_title(f'{curve_title} residuals')
+        ax2.plot([0, 1], [0, 0], '-')
+        ax2.set_xlim([x[0] - 1, x[-1] + 1])
+        big_limit = max(max(deltas), abs(min(deltas))) + 2
+        ax2.set_ylim(-big_limit, big_limit)
+        ax2.set_ylabel('ADU')
+        ax2.set_xlabel('ratio expected')
+        s = f'standard deviation of residuals: {np.sqrt(variance / len(x)):0.2f}'
+        ax2.text(0.2, 0.93, s, transform=ax2.transAxes, bbox=dict(facecolor='white', alpha=1), fontsize=12)
+
+        ax2.grid()
+
+        plt.show()
     def setMetricLimits(self):
         leftLimit, done = QtWidgets.QInputDialog.getInt(self, ' ', 'Lefthand reading number of data to be used for metric:', min=0)
         if done:
@@ -4915,7 +5084,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
             # Create some cell formats
             formatNum4 = workbook.add_format({"num_format": "0.0000"})
-            formatNum3 = workbook.add_format({"num_format": "0.000"})
+            # formatNum3 = workbook.add_format({"num_format": "0.000"})
             formatNum2 = workbook.add_format({"num_format": "0.00"})
             formatNum1 = workbook.add_format({"num_format": "0.0"})
 
@@ -6515,6 +6684,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.additionalDataSetNames += [name for name in dataColumnNames if name.startswith('avgbkg')]
             self.additionalDataSetNames += [name for name in dataColumnNames if name.startswith('stdbkg')]
             self.additionalDataSetNames += [name for name in dataColumnNames if name.startswith('nmask')]
+            self.additionalDataSetNames += [name for name in dataColumnNames if name.startswith('hit-defect')]
             self.curveSelectionComboBox.clear()
             self.availableLightCurvesForDisplay = []
             for dataSetName in self.additionalDataSetNames:
@@ -6598,7 +6768,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                               f' to add additional curves to the display.'
             self.showInfo(lightCurveInfo)
 
-        if columnsToDisplay == []:
+        if not columnsToDisplay:
             self.yValues = None
 
     def closeEvent(self, event):
@@ -7039,7 +7209,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.showMsg(f'fit metrics for {self.targetKey}', blankLine=False, bold=True)
 
-        time_uncertainty = (self.deltaDhi95 - self.deltaDlo95) / 2.0 * self.timeDelta
+        # time_uncertainty = (self.deltaDhi95 - self.deltaDlo95) / 2.0 * self.timeDelta
         time_uncertainty = max(abs(self.deltaDhi95), abs(self.deltaDlo95)) * self.timeDelta
 
         stats_msg = f'\nfit metrics === DNR: {self.snrB:0.2f}  edge uncertainty (0.95 ci): +/- {time_uncertainty:0.4f} seconds'
@@ -10072,13 +10242,32 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         maxY = np.max(self.yValues + self.yOffsetSpinBoxes[self.targetIndex].value())
 
         try:
+            # TODO New code to deal with hit-defect
+            if self.targetKey == '':
+                self.targetKey = self.lightcurveTitles[0].text()
+
+            hit_name = ''
+            if self.targetKey.startswith('signal') or self.targetKey.startswith('appsum'):
+                parts = self.targetKey.split('-', 1)
+                hit_name = 'hit-defect-' + parts[1]
+            if hit_name:
+                hit_defect_flags = self.fullDataDictionary[hit_name]
+                pass
+
             # Plot the 'target' lightcurve
             x = [i for i in range(self.dataLen) if self.yStatus[i] == INCLUDED]
             y = [self.yValues[i] for i in range(self.dataLen) if self.yStatus[i] == INCLUDED]
+            if hit_name:
+                y_hit = [self.yValues[i] for i in range(self.dataLen) if hit_defect_flags[i] > 0.0]
+                x_hit = [i for i in range(self.dataLen) if hit_defect_flags[i] > 0.0]
             y = np.array(y) + self.yOffsetSpinBoxes[self.targetIndex].value()
             self.mainPlot.plot(x, y, pen=None, symbol='o',
                                symbolBrush=INCLUDED_COLOR, symbolSize=dotSize)
-
+            if hit_name:
+                self.mainPlot.plot(x_hit, y_hit, pen=None, symbol='o',
+                                   symbolBrush=SELECTED_COLOR, symbolSize=dotSize*2)
+                self.mainPlot.plot(x_hit, y_hit, pen=None, symbol='o',
+                                   symbolBrush=INCLUDED_COLOR, symbolSize=dotSize)
             x = [i for i in range(self.dataLen) if self.yStatus[i] == BASELINE]
             y = [self.yValues[i] for i in range(self.dataLen) if self.yStatus[i] == BASELINE]
             y = np.array(y) + self.yOffsetSpinBoxes[self.targetIndex].value()
