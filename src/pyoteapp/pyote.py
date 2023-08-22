@@ -7474,6 +7474,23 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.targetKey = self.lightcurveTitles[0].text()
             new_data = self.targetKey
 
+            hit_name = ''
+            if self.targetKey.startswith('signal') or self.targetKey.startswith('appsum'):
+                parts = self.targetKey.split('-', 1)
+                hit_name = 'hit-defect-' + parts[1]
+            if hit_name:
+                if hit_name in self.fullDataDictionary.keys():
+                    hit_defect_flags = self.fullDataDictionary[hit_name]
+                    # Count number of points that involved defect pixels in the sampline mask
+                    num_no_defect_hits = hit_defect_flags.count(0.0)
+                    num_defect_hits = len(hit_defect_flags) - num_no_defect_hits
+                    if not num_defect_hits == 0:
+                        msg = f'light curve: {self.targetKey} had {num_defect_hits} points that had defect ' \
+                              f'pixels included in the sample mask.'
+                        # self.showInfo(msg)
+                        self.showMsg(msg, color='red', bold=True)
+                    pass
+
             margin = self.observedDrop - self.maxNoiseInducedDrop
             false_positive_metric = self.observedDrop / self.maxNoiseInducedDrop - 1.0
 
@@ -10245,25 +10262,20 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             # TODO New code to deal with hit-defect
             if self.targetKey == '':
                 self.targetKey = self.lightcurveTitles[0].text()
-
-            hit_name = ''
-            if self.targetKey.startswith('signal') or self.targetKey.startswith('appsum'):
-                parts = self.targetKey.split('-', 1)
-                hit_name = 'hit-defect-' + parts[1]
-            if hit_name:
-                hit_defect_flags = self.fullDataDictionary[hit_name]
-                pass
+            hit_defect_flags = self.getHitDefectFlags(self.targetKey)
 
             # Plot the 'target' lightcurve
             x = [i for i in range(self.dataLen) if self.yStatus[i] == INCLUDED]
             y = [self.yValues[i] for i in range(self.dataLen) if self.yStatus[i] == INCLUDED]
-            if hit_name:
+            y = np.array(y) + self.yOffsetSpinBoxes[self.targetIndex].value()
+            if hit_defect_flags:
                 y_hit = [self.yValues[i] for i in range(self.dataLen) if hit_defect_flags[i] > 0.0]
                 x_hit = [i for i in range(self.dataLen) if hit_defect_flags[i] > 0.0]
-            y = np.array(y) + self.yOffsetSpinBoxes[self.targetIndex].value()
+                y_hit = np.array(y_hit) + self.yOffsetSpinBoxes[self.targetIndex].value()
+
             self.mainPlot.plot(x, y, pen=None, symbol='o',
                                symbolBrush=INCLUDED_COLOR, symbolSize=dotSize)
-            if hit_name:
+            if hit_defect_flags:
                 self.mainPlot.plot(x_hit, y_hit, pen=None, symbol='o',
                                    symbolBrush=SELECTED_COLOR, symbolSize=dotSize*2)
                 self.mainPlot.plot(x_hit, y_hit, pen=None, symbol='o',
@@ -10363,50 +10375,96 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 if self.referenceCheckBoxes[i].isChecked():
                     continue
                 if i == 0:
-                    self.mainPlot.plot(self.LC1 + self.yOffsetSpinBoxes[0].value())
-                    minY = min(minY, np.min(self.LC1) + self.yOffsetSpinBoxes[0].value())
-                    maxY = max(maxY, np.max(self.LC1) + self.yOffsetSpinBoxes[0].value())
-                    x = [i for i in range(left, right)]
-                    y = [self.LC1[i] for i in range(left, right)]
+                    hit_defect_flags = self.getHitDefectFlags(self.lightcurveTitles[i].text())
+                    self.mainPlot.plot(self.LC1 + self.yOffsetSpinBoxes[i].value())
+                    minY = min(minY, np.min(self.LC1) + self.yOffsetSpinBoxes[i].value())
+                    maxY = max(maxY, np.max(self.LC1) + self.yOffsetSpinBoxes[i].value())
+
+                    x = [j for j in range(left, right)]
+                    y = [self.LC1[j] for j in range(left, right)]
                     y = np.array(y) + self.yOffsetSpinBoxes[0].value()
                     self.mainPlot.plot(x, y, pen=None, symbol='o',
                                        symbolBrush=dotColors[i], symbolSize=dotSize)
+                    if hit_defect_flags:
+                        y_hit = [self.LC1[j] for j in range(self.dataLen) if hit_defect_flags[j] > 0.0]
+                        x_hit = [j for j in range(self.dataLen) if hit_defect_flags[j] > 0.0]
+                        y_hit = np.array(y_hit) + self.yOffsetSpinBoxes[i].value()
+                        self.mainPlot.plot(x_hit, y_hit, pen=None, symbol='o',
+                                           symbolBrush=SELECTED_COLOR, symbolSize=dotSize * 2)
+                        self.mainPlot.plot(x_hit, y_hit, pen=None, symbol='o',
+                                           symbolBrush=dotColors[i], symbolSize=dotSize)
                 elif i == 1:
-                    self.mainPlot.plot(self.LC2 + self.yOffsetSpinBoxes[1].value())
-                    minY = min(minY, np.min(self.LC2) + self.yOffsetSpinBoxes[1].value())
-                    maxY = max(maxY, np.max(self.LC2) + self.yOffsetSpinBoxes[1].value())
-                    x = [i for i in range(left, right)]
-                    y = [self.LC2[i] for i in range(left, right)]
+                    hit_defect_flags = self.getHitDefectFlags(self.lightcurveTitles[i].text())
+                    self.mainPlot.plot(self.LC2 + self.yOffsetSpinBoxes[i].value())
+                    minY = min(minY, np.min(self.LC2) + self.yOffsetSpinBoxes[i].value())
+                    maxY = max(maxY, np.max(self.LC2) + self.yOffsetSpinBoxes[i].value())
+                    x = [j for j in range(left, right)]
+                    y = [self.LC2[j] for j in range(left, right)]
                     y = np.array(y) + self.yOffsetSpinBoxes[1].value()
                     self.mainPlot.plot(x, y, pen=None, symbol='o',
                                        symbolBrush=dotColors[i], symbolSize=dotSize)
+                    if hit_defect_flags:
+                        y_hit = [self.LC2[j] for j in range(self.dataLen) if hit_defect_flags[j] > 0.0]
+                        x_hit = [j for j in range(self.dataLen) if hit_defect_flags[j] > 0.0]
+                        y_hit = np.array(y_hit) + self.yOffsetSpinBoxes[i].value()
+                        self.mainPlot.plot(x_hit, y_hit, pen=None, symbol='o',
+                                           symbolBrush=SELECTED_COLOR, symbolSize=dotSize * 2)
+                        self.mainPlot.plot(x_hit, y_hit, pen=None, symbol='o',
+                                           symbolBrush=dotColors[i], symbolSize=dotSize)
                 elif i == 2:
-                    self.mainPlot.plot(self.LC3 + self.yOffsetSpinBoxes[2].value())
-                    minY = min(minY, np.min(self.LC3) + self.yOffsetSpinBoxes[2].value())
-                    maxY = max(maxY, np.max(self.LC3) + self.yOffsetSpinBoxes[2].value())
-                    x = [i for i in range(left, right)]
+                    hit_defect_flags = self.getHitDefectFlags(self.lightcurveTitles[i].text())
+                    self.mainPlot.plot(self.LC3 + self.yOffsetSpinBoxes[i].value())
+                    minY = min(minY, np.min(self.LC3) + self.yOffsetSpinBoxes[i].value())
+                    maxY = max(maxY, np.max(self.LC3) + self.yOffsetSpinBoxes[i].value())
+                    x = [j for j in range(left, right)]
                     y = [self.LC3[i] for i in range(left, right)]
-                    y = np.array(y) + self.yOffsetSpinBoxes[2].value()
+                    y = np.array(y) + self.yOffsetSpinBoxes[i].value()
                     self.mainPlot.plot(x, y, pen=None, symbol='o',
                                        symbolBrush=dotColors[i], symbolSize=dotSize)
+                    if hit_defect_flags:
+                        y_hit = [self.LC3[j] for j in range(self.dataLen) if hit_defect_flags[j] > 0.0]
+                        x_hit = [j for j in range(self.dataLen) if hit_defect_flags[j] > 0.0]
+                        y_hit = np.array(y_hit) + self.yOffsetSpinBoxes[i].value()
+                        self.mainPlot.plot(x_hit, y_hit, pen=None, symbol='o',
+                                           symbolBrush=SELECTED_COLOR, symbolSize=dotSize * 2)
+                        self.mainPlot.plot(x_hit, y_hit, pen=None, symbol='o',
+                                           symbolBrush=dotColors[i], symbolSize=dotSize)
                 elif i == 3:
-                    self.mainPlot.plot(self.LC4 + self.yOffsetSpinBoxes[3].value())
-                    minY = min(minY, np.min(self.LC4) + self.yOffsetSpinBoxes[3].value())
-                    maxY = max(maxY, np.max(self.LC4) + self.yOffsetSpinBoxes[3].value())
-                    x = [i for i in range(left, right)]
-                    y = [self.LC4[i] for i in range(left, right)]
+                    hit_defect_flags = self.getHitDefectFlags(self.lightcurveTitles[i].text())
+                    self.mainPlot.plot(self.LC4 + self.yOffsetSpinBoxes[i].value())
+                    minY = min(minY, np.min(self.LC4) + self.yOffsetSpinBoxes[i].value())
+                    maxY = max(maxY, np.max(self.LC4) + self.yOffsetSpinBoxes[i].value())
+                    x = [j for j in range(left, right)]
+                    y = [self.LC4[j] for j in range(left, right)]
                     y = np.array(y) + self.yOffsetSpinBoxes[3].value()
                     self.mainPlot.plot(x, y, pen=None, symbol='o',
                                        symbolBrush=dotColors[i], symbolSize=dotSize)
+                    if hit_defect_flags:
+                        y_hit = [self.LC4[j] for j in range(self.dataLen) if hit_defect_flags[j] > 0.0]
+                        x_hit = [j for j in range(self.dataLen) if hit_defect_flags[j] > 0.0]
+                        y_hit = np.array(y_hit) + self.yOffsetSpinBoxes[i].value()
+                        self.mainPlot.plot(x_hit, y_hit, pen=None, symbol='o',
+                                           symbolBrush=SELECTED_COLOR, symbolSize=dotSize * 2)
+                        self.mainPlot.plot(x_hit, y_hit, pen=None, symbol='o',
+                                           symbolBrush=dotColors[i], symbolSize=dotSize)
                 else:
+                    hit_defect_flags = self.getHitDefectFlags(self.lightcurveTitles[i].text())
                     self.mainPlot.plot(self.extra[i - 4] + self.yOffsetSpinBoxes[i].value())
                     minY = min(minY, np.min(self.extra[i - 4] + self.yOffsetSpinBoxes[i].value()))
                     maxY = max(maxY, np.max(self.extra[i - 4] + self.yOffsetSpinBoxes[i].value()))
-                    x = [i for i in range(left, right)]
+                    x = [j for j in range(left, right)]
                     y = [self.extra[i - 4][j] for j in range(left, right)]
                     y = np.array(y) + self.yOffsetSpinBoxes[i].value()
                     self.mainPlot.plot(x, y, pen=None, symbol='o',
                                        symbolBrush=dotColors[i], symbolSize=dotSize)
+                    if hit_defect_flags:
+                        y_hit = [self.extra[i-4][j] for j in range(self.dataLen) if hit_defect_flags[j] > 0.0]
+                        x_hit = [j for j in range(self.dataLen) if hit_defect_flags[j] > 0.0]
+                        y_hit = np.array(y_hit) + self.yOffsetSpinBoxes[i].value()
+                        self.mainPlot.plot(x_hit, y_hit, pen=None, symbol='o',
+                                           symbolBrush=SELECTED_COLOR, symbolSize=dotSize * 2)
+                        self.mainPlot.plot(x_hit, y_hit, pen=None, symbol='o',
+                                           symbolBrush=dotColors[i], symbolSize=dotSize)
 
         self.mainPlot.setYRange(minY, maxY)
 
@@ -10428,6 +10486,18 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         if self.minusD is not None or self.minusR is not None:
             # We have data for drawing an envelope
             self.drawEnvelope()
+
+    def getHitDefectFlags(self, light_curve_name):
+
+        hit_name = ''
+        hit_defect_flags = []
+        if light_curve_name.startswith('signal') or light_curve_name.startswith('appsum'):
+            parts = light_curve_name.split('-', 1)
+            hit_name = 'hit-defect-' + parts[1]
+        if hit_name:
+            if hit_name in self.fullDataDictionary.keys():
+                hit_defect_flags = self.fullDataDictionary[hit_name]
+        return hit_defect_flags
 
     def showSelectedPoints(self, header):
         selPts = list(self.selectedPoints.keys())
