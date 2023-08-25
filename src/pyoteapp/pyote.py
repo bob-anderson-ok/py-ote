@@ -9072,6 +9072,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.table.setVerticalHeaderLabels([str(i) for i in range(self.dataLen)])
         self.table.setFont(QtGui.QFont('Arial', 10))
 
+        if not self.yFrame:
+            self.showInfo(f'yFrame is empty.  A problem with block integration?. Try specifying block size.')
+            return
+
         min_frame = int(trunc(float(self.yFrame[0])))
         max_frame = int(trunc(float(self.yFrame[-1])))
         if self.frameNumSpinBox.isEnabled():
