@@ -5756,7 +5756,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         exporter = FixedImageExporter(self.falsePositivePlotItem)
         exporter.makeWidthHeightInts()
-        targetFileDur = self.graphicFile + '.false-positive_pyote.png'
+        targetFileDur = self.graphicFile + '.noise_induce_event_pyote.png'
         exporter.export(targetFileDur)
 
         exporter = FixedImageExporter(self.mainPlot.getPlotItem())
@@ -5798,7 +5798,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
             exporter = FixedImageExporter(self.falsePositivePlotItem)
             exporter.makeWidthHeightInts()
-            targetFileDur = self.graphicFile + '.false-positive_pyote.png'
+            targetFileDur = self.graphicFile + '.noise_induced_event_pyote.png'
             exporter.export(targetFileDur)
 
             self.showInfo('Wrote to: \r\r' + targetFileD + ' \r\r' + targetFileDur)
@@ -7221,11 +7221,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         margin = self.observedDrop - self.threeSigmaLine
         if margin > 0:
-            stats_msg = f'fit metrics === from passed false-positive test: observed drop: ' \
+            stats_msg = f'fit metrics === from passed noise-induced-event test: observed drop: ' \
                         f'{self.observedDrop:0.1f}  three sigma drop from noise: {self.threeSigmaLine:0.1f}  margin: {margin:0.1f}'
             self.showMsg(stats_msg, blankLine=False, bold=True)
         else:
-            stats_msg = f'fit metrics === from FAILED false-positive test: observed drop: ' \
+            stats_msg = f'fit metrics === from FAILED noise-induced-event test: observed drop: ' \
                         f'{self.observedDrop:0.1f}  three sigma drop from noise: {self.threeSigmaLine:0.1f}  margin: {margin:0.1f}'
             self.showMsg(stats_msg, blankLine=False, bold=True, color='red')
 
@@ -7373,7 +7373,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.showMsg(f'fit metrics for {self.targetKey}', blankLine=False, bold=True)
 
-        # Calculate false-positive ratio
+        # Calculate noise-induced-event ratio
         # margin = self.observedDrop - self.maxNoiseInducedDrop
         # false_positive_ratio = margin / self.maxNoiseInducedDrop
 
@@ -7381,7 +7381,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         time_uncertainty = max(abs(self.deltaDhi95), abs(self.deltaDlo95)) * self.timeDelta
 
-        stats_msg = f'\nfit metrics === false-positive metric: {false_positive_metric:0.3f} ' \
+        stats_msg = f'\nfit metrics === noise-induced-event metric: {false_positive_metric:0.3f} ' \
                     f'time error bar: +/- {time_uncertainty:0.4f} seconds' \
                     f'   DNR: {self.snrB:0.2f}  '
         self.showMsg(stats_msg, blankLine=False, bold=True)
@@ -7391,11 +7391,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         margin = self.observedDrop - self.threeSigmaLine
         if margin > 0:
-            stats_msg = f'fit metrics === from passed false-positive test: observed drop: ' \
+            stats_msg = f'fit metrics === from passed noise-induced-event test: observed drop: ' \
                         f'{self.observedDrop:0.1f}  three sigma drop from noise: {self.threeSigmaLine:0.1f}  margin: {margin:0.1f}'
             self.showMsg(stats_msg, blankLine=False, bold=True)
         else:
-            stats_msg = f'fit metrics === from FAILED false-positive test: observed drop: ' \
+            stats_msg = f'fit metrics === from FAILED noise-induced-event test: observed drop: ' \
                         f'{self.observedDrop:0.1f}  three sigma drop from noise: {self.threeSigmaLine:0.1f}  margin: {margin:0.1f}'
             self.showMsg(stats_msg, blankLine=False, bold=True, color='red')
 
@@ -8076,7 +8076,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             drops = compute_drops(event_duration=event_duration, observation_size=obs_duration,
                                   noise_sigma=sigma, corr_array=np.array(posCoefs), num_trials=num_trials)
 
-            title = (f'Distribution of drops found in correlated noise --- '
+            title = (f'Noise Induced Event (brightness drops) found in correlated noise --- '
                      f'Event duration: {event_duration} readings ------ '
                      f'Event duration: {event_duration_secs:0.2f} seconds')
 
@@ -8283,8 +8283,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         if plots_wanted:
             pw = PlotWidget(viewBox=CustomViewBox(border=(0, 0, 0)),
                             enableMenu=False,
-                            title=f'Distribution of drops found in correlated noise for event duration: {event_duration}',
-                            labels={'bottom': 'drop size', 'left': 'number of times noise produced drop'})
+                            title=f'Noise Induced Events (brightness drops) found in correlated noise for event duration: {event_duration}',
+                            labels={'bottom': 'brightness drop', 'left': 'number of times noise produced drop'})
             pw.hideButtons()
             y, x = np.histogram(drops, bins='auto')
 
@@ -8308,11 +8308,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             pw.plot(x=[0, right_edge], y=[0, 0], pen=pg.mkPen([180, 180, 180], width=2))
 
             pw.addLegend()
-            pw.plot(name='red line: the drop (B - A) extracted from lightcurve')
-            pw.plot(name=f'black line: max drop found in {num_trials} trials against pure noise')
-            pw.plot(name=f'green line: three_sigma_line (99.7% of drops are to the left).')
-            pw.plot(name=f'Test is passed if red line is further to the right of the three_sigma_line.')
-            pw.plot(name=f'If the red line is also to the right of the black line, false positive prob = 0')
+            pw.plot(name='red line: the brightness drop (B - A) extracted from lightcurve')
+            pw.plot(name=f'black line: max brightness drop found in {num_trials} trials against pure noise')
+            pw.plot(name=f'green three_sigma_line: 99.7% of noise induced brightness drops are to the left.')
+            pw.plot(name=f'PyOTE reports a "pass" if red line is to the right of the three_sigma_line,')
+            pw.plot(name=f'BUT !!! If red line is left of black line but right of green line - refer to regional coordinator.')
         else:
             pw = None
             y, x = np.histogram(drops, bins=50)
@@ -8328,7 +8328,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             false_positive = False
         else:
             false_probability = 1.0 - index_of_observed_drop_inside_sorted_drops / drops.size
-            # TODO Changed to criteria for false-positive fail
+            # TODO Changed to criteria for noise-induced-event fail
             if observed_drop <= three_sigma_line:
                 false_positive = True
             else:
@@ -8337,7 +8337,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         del sorted_drops
         del drops
 
-        # TODO Changed criteria for false-positive fail
+        # TODO Changed criteria for noise-induced-event fail
         # return pw, false_positive, false_probability, observed_drop, np.max(x)
         return pw, false_positive, false_probability, observed_drop, three_sigma_line
 
