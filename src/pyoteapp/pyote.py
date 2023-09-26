@@ -544,6 +544,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.saveCurrentEventButton.installEventFilter(self)
         self.saveCurrentEventButton.clicked.connect(self.saveCurrentEvent)
 
+        self.clearEventDataButton.clicked.connect(self.clearEventDataEntries)
+        self.clearEventDataButton.installEventFilter(self)
+
         self.pastEventsLabel.installEventFilter(self)
         self.pastEventsComboBox.installEventFilter(self)
         self.pastEventsComboBox.activated.connect(self.handlePastEventSelection)
@@ -561,7 +564,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.baselineADUbutton.clicked.connect(self.modelMarkBaselineRegion)
 
         self.calcBaselineADUbutton.clicked.connect(self.calcBaselineADU)
+        self.calcBaselineADUbutton.installEventFilter(self)
+
         self.clearBaselineADUselectionButton.clicked.connect(self.clearBaselineRegions)
+        self.clearBaselineADUselectionButton.installEventFilter(self)
 
         self.baselineADUedit.editingFinished.connect(self.processModelLightcurveCoreEdit)
 
@@ -657,7 +663,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.plotFamilyButton.clicked.connect(self.plotFamilyOfLightcurves)
         self.plotFamilyButton.installEventFilter(self)
 
-        self.setMetricLimitsButton.clicked.connect(self.setMetricLimits)
+        self.setMetricLimitsButton.clicked.connect(self.markMetricRegion)
         self.setMetricLimitsButton.installEventFilter(self)
 
         self.askAdviceButton.clicked.connect(self.showModelChoiceAdvice)
@@ -1379,20 +1385,20 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         ax2.grid()
 
         plt.show()
-    def setMetricLimits(self):
-        leftLimit, done = QtWidgets.QInputDialog.getInt(self, ' ', 'Lefthand reading number of data to be used for metric:', min=0)
-        if done:
-            rightLimit, done = QtWidgets.QInputDialog.getInt(self, ' ',
-                                                             'Righthand reading number of data to be used for metric:', min=0)
-            if done:
-                if 0 <= leftLimit < rightLimit:
-                    self.metricLimitLeft = leftLimit
-                    self.metricLimitRight = rightLimit
-                    self.Lcp.metricLimitLeft = leftLimit
-                    self.Lcp.metricLimitRight = rightLimit
-                    self.showInfo(f'Metric will be calculated using data points from {leftLimit} to {rightLimit} inclusive.')
-                else:
-                    self.showInfo(f'The reading numbers supplied are invalid.')
+    # def setMetricLimits(self):
+    #     leftLimit, done = QtWidgets.QInputDialog.getInt(self, ' ', 'Lefthand reading number of data to be used for metric:', min=0)
+    #     if done:
+    #         rightLimit, done = QtWidgets.QInputDialog.getInt(self, ' ',
+    #                                                          'Righthand reading number of data to be used for metric:', min=0)
+    #         if done:
+    #             if 0 <= leftLimit < rightLimit:
+    #                 self.metricLimitLeft = leftLimit
+    #                 self.metricLimitRight = rightLimit
+    #                 self.Lcp.metricLimitLeft = leftLimit
+    #                 self.Lcp.metricLimitRight = rightLimit
+    #                 self.showInfo(f'Metric will be calculated using data points from {leftLimit} to {rightLimit} inclusive.')
+    #             else:
+    #                 self.showInfo(f'The reading numbers supplied are invalid.')
 
     def plotFamilyOfLightcurves(self):
         def move_figure(f, x, y):  # noqa
@@ -2173,33 +2179,32 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     def deletePastEvent(self):
         currentSelection = self.pastEventsComboBox.currentText()
-        if not currentSelection == '<clear event data>':
-            title = self.tr("Please confirm ...")
-            query = self.tr(
-                f"Are you sure you want to delete {currentSelection} ?"
-            )
-            reply = QMessageBox.question(
-                self,
-                title,
-                query,
-                QMessageBox.Yes,
-                QMessageBox.No
-            )
+        title = self.tr("Please confirm ...")
+        query = self.tr(
+            f"Are you sure you want to delete {currentSelection} ?"
+        )
+        reply = QMessageBox.question(
+            self,
+            title,
+            query,
+            QMessageBox.Yes,
+            QMessageBox.No
+        )
 
-            if reply == QMessageBox.Yes:
-                LCPdir = os.path.dirname(self.csvFilePath)
-                if sys.platform == 'darwin' or sys.platform == 'linux':
-                    filepath = f'{LCPdir}/LCP_{currentSelection}.p'
-                else:
-                    filepath = f'{LCPdir}\\LCP_{currentSelection}.p'
-                if os.path.exists(filepath):
-                    os.remove(filepath)
-                    self.showInfo(f'Deleted: {currentSelection}')
-                    # Refill the combo list to show deletion effect
-                    self.pastEventsComboBox.clear()
-                    self.fillPastEventsComboBox()
-                else:
-                    self.showInfo(f"{filepath} does not exist")
+        if reply == QMessageBox.Yes:
+            LCPdir = os.path.dirname(self.csvFilePath)
+            if sys.platform == 'darwin' or sys.platform == 'linux':
+                filepath = f'{LCPdir}/LCP_{currentSelection}.p'
+            else:
+                filepath = f'{LCPdir}\\LCP_{currentSelection}.p'
+            if os.path.exists(filepath):
+                os.remove(filepath)
+                self.showInfo(f'Deleted: {currentSelection}')
+                # Refill the combo list to show deletion effect
+                self.pastEventsComboBox.clear()
+                self.fillPastEventsComboBox()
+            else:
+                self.showInfo(f"{filepath} does not exist")
 
     def printEventParameters(self):
         self.printFinalReport(onlyLcpValuesWanted = True)
@@ -3733,10 +3738,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             return
 
         file_selected = self.pastEventsComboBox.currentText()
-        if file_selected == '<clear event data>':
-            self.initializeModelLightcurvesPanel()
-            self.handleModelSelectionRadioButtonClick()
-            return
 
         self.fitLightcurveButton.setStyleSheet("background-color: yellow")
         self.fitLightcurveButton.setText("Fit model to observation points")
@@ -3771,14 +3772,34 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                               f'the current source file: {currentSourceFile}\n\n'
                               f'This may be deliberate, in which case doing an eventual\n'
                               f'"save Event" will force a match.')
+                # Set metric limits to each end of the data (so that they are valid, if not the best)
+                self.Lcp.set('metricLimitLeft', self.left)
+                self.Lcp.set('metricLimitRight', self.right)
                 self.promptForBaselineADUentry()
             else:
                 # self.showInfo(f'event source file: {eventSourceFile}')
-                pass
+                # Show the current metric region points
+                # self.showInfo(f'left metric: {self.Lcp.metricLimitLeft}    right metric: {self.Lcp.metricLimitRight}')
+                showInfo = False
+                if self.Lcp.metricLimitLeft is not None and self.Lcp.metricLimitLeft >= 0:    # Test for legacy settings
+                    self.togglePointSelected(self.Lcp.metricLimitLeft)
+                    showInfo = True
+                if self.Lcp.metricLimitRight is not None and self.Lcp.metricLimitRight >= 0:  # Test for legacy settings
+                    self.togglePointSelected(self.Lcp.metricLimitRight)
+                    showInfo = True
+                self.redrawMainPlot()
+                if showInfo:
+                    self.showInfo(f'The current metric region selection points are displayed.\n\n'
+                                  f'They are at reading {self.Lcp.metricLimitLeft} and {self.Lcp.metricLimitRight}')
+
             self.currentEventEdit.setEnabled(True)
             self.allCoreElementsEntered = True
         except FileNotFoundError:
             self.showInfo(f'{full_name} could not be found.')
+
+    def clearEventDataEntries(self):
+        self.initializeModelLightcurvesPanel()
+        self.handleModelSelectionRadioButtonClick()
 
     def handleSiteCoordSelection(self):
         file_selected = self.vzCoordsComboBox.currentText()
@@ -3985,6 +4006,20 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.DdegreesEdit.setText(f'{self.Lcp.D_limb_angle_degrees:0.0f}')
                 self.RdegreesEdit.setText(f'{self.Lcp.R_limb_angle_degrees:0.0f}')
 
+                msg = QMessageBox()
+                msg.setIcon(QMessageBox.Question)
+                msg.setText(f'Do you wish to save the event data entered so far?\n\n'
+                            f'Note that the metric data region is currently defaulted to include\n'
+                            f'all of the data points. You may wish to click on the \n\n'
+                            f'      Set limits for metric calculation\n\n'
+                            f'button before saving the event data.')
+                msg.setWindowTitle('Save event data')
+                msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+                retval = msg.exec_()
+                if retval == QMessageBox.Yes:
+                    self.saveCurrentEvent()
+                    return
+
                 self.newRedrawMainPlot()
 
         except ValueError as e:  # noqc
@@ -4016,6 +4051,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     self.showInfo(f'asteroid diameter (km): {e}')
                     return
                 self.asteroidDiameterMasEdit.setEnabled(False)
+
+                # Fill in defaults for ellipse parameters
+                self.majorAxisEdit.setText(self.asteroidDiameterKmEdit.text())
+                self.minorAxisEdit.setText(self.asteroidDiameterKmEdit.text())
+                self.ellipseAngleEdit.setText('0.0')
+
 
             asteroidDiameterMasEntered = not self.asteroidDiameterMasEdit.text() == empty
             if asteroidDiameterMasEntered:
@@ -4159,6 +4200,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 else:
                     self.Lcp.set('asteroid_diameter_mas', float(self.asteroidDiameterMasEdit.text()))
                     self.asteroidDiameterKmEdit.setText(f'{self.Lcp.asteroid_diameter_km:0.5f}')
+                    # Fill in defaults for ellipse parameters
+                    self.majorAxisEdit.setText(self.asteroidDiameterKmEdit.text())
+                    self.minorAxisEdit.setText(self.asteroidDiameterKmEdit.text())
+                    self.ellipseAngleEdit.setText('0.0')
 
                 self.asteroidSpeedSkyEdit.setText(f'{self.Lcp.sky_motion_mas_per_sec:0.5f}')
 
@@ -4199,6 +4244,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     self.asteroidDiameterKmEdit.setText(f'{self.Lcp.asteroid_diameter_km:0.5f}')
 
                 self.asteroidSpeedShadowEdit.setText(f'{self.Lcp.shadow_speed:0.5f}')
+
+            # Fill in defaults for ellipse parameters
+            self.Lcp.set('asteroid_major_axis', float(self.asteroidDiameterKmEdit.text()))
+            self.Lcp.set('asteroid_minor_axis', float(self.asteroidDiameterKmEdit.text()))
+            self.Lcp.set('ellipse_angle_degrees', float(self.ellipseAngleEdit.text()))
+            self.Lcp.set('metricLimitLeft', self.left)
+            self.Lcp.set('metricLimitRight', self.right)
 
             self.disablePrimaryEntryEditBoxes()
 
@@ -4272,7 +4324,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.enableSecondaryEditBoxes()
 
     def fillPastEventsComboBox(self):
-        self.pastEventsComboBox.addItem('<clear event data>')
+        # self.pastEventsComboBox.addItem('<clear event data>')
         LCPdir = os.path.dirname(self.csvFilePath)
         if sys.platform == 'darwin' or sys.platform == 'linux':
             file_list = glob.glob(f'{LCPdir}/LCP_*.p')
@@ -4750,7 +4802,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.magDropEdit.setEnabled(True)
         self.magDropEdit.setFocus()
-        self.showInfo(f'Enter Predicted magDrop')
+        if self.magDropEdit.text() == '':
+            self.showInfo(f'Enter Predicted magDrop')
 
         self.clearBaselineDotsFromPlot()
 
@@ -4805,6 +4858,34 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.calcEventStatisticsFromMarkedRegion()
 
         self.newRedrawMainPlot()
+
+    def markMetricRegion(self):
+        # If the user has not selected any points, we ignore the request
+        if len(self.selectedPoints) == 0:
+            self.showInfo('No points were selected. Exactly two are required')
+            return
+
+        if len(self.selectedPoints) != 2:
+            self.showInfo('Exactly two points must be selected for this operation.')
+            return
+
+        selIndices = [key for key, _ in self.selectedPoints.items()]
+        selIndices.sort()
+
+        if self.Lcp is not None:
+            self.Lcp.set('metricLimitLeft', int(min(selIndices)))
+            self.Lcp.set('metricLimitRight', int(max(selIndices)))
+            self.showInfo(f'Fit metrics will be calculated using data values from readings\n\n'
+                          f'{self.Lcp.metricLimitLeft} to {self.Lcp.metricLimitRight} inclusive.\n\n'
+                          f'NOTE: You may want to save the event with this updated information.')
+        else:
+            self.showInfo('There is no event data structure defined yet.')
+
+        # The following code removes the 2 red points by overwriting with the INCLUDED color
+        self.selectedPoints = {}
+        for i in range(self.left, self.right + 1):
+            self.yStatus[i] = INCLUDED
+        self.redrawMainPlot()
 
     def markBaselineRegion(self):
         # If the user has not selected any points, we ignore the request
@@ -5542,10 +5623,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     readingTime += timeDelta
 
     def copy_modelExamples_to_Documents(self):
-        # Added in 5.0.3
-        if not self.allowNewVersionPopupCheckbox.isChecked():
-            return
+        # Added in 5.0.3  Removed in 5.4.3
+        # if not self.allowNewVersionPopupCheckbox.isChecked():
+        #     return
 
+        # The model-examples folder is part of the distribution and should be in the home directory
         source_dir = os.path.join(self.homeDir, 'model-examples')
         if os.path.exists(source_dir):
             if sys.platform == 'darwin' or sys.platform == 'linux':
@@ -5576,7 +5658,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                              f'into {dest_dir} (useful for training purposes).',
                              color='black', bold=True)
         else:
-            self.showMsg(f'We could not find model-examples folder', color='red', bold=True)
+            self.showMsg(f'We could not find model-examples folder in the distribution', color='red', bold=True)
 
     @staticmethod
     def copy_desktop_icon_file_to_home_directory():
@@ -10304,14 +10386,18 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             x = [i for i in range(self.dataLen) if self.yStatus[i] == INCLUDED]
             y = [self.yValues[i] for i in range(self.dataLen) if self.yStatus[i] == INCLUDED]
             y = np.array(y) + self.yOffsetSpinBoxes[self.targetIndex].value()
-            if hit_defect_flags:
-                y_hit = [self.yValues[i] for i in range(self.dataLen) if hit_defect_flags[i] > 0.0]
-                x_hit = [i for i in range(self.dataLen) if hit_defect_flags[i] > 0.0]
-                y_hit = np.array(y_hit) + self.yOffsetSpinBoxes[self.targetIndex].value()
+
+            # if hit_defect_flags:
+            #     y_hit = [self.yValues[i] for i in range(self.dataLen) if hit_defect_flags[i] > 0.0]
+            #     x_hit = [i for i in range(self.dataLen) if hit_defect_flags[i] > 0.0]
+            #     y_hit = np.array(y_hit) + self.yOffsetSpinBoxes[self.targetIndex].value()
 
             self.mainPlot.plot(x, y, pen=None, symbol='o',
                                symbolBrush=INCLUDED_COLOR, symbolSize=dotSize)
             if hit_defect_flags:
+                y_hit = [self.yValues[i] for i in range(self.dataLen) if hit_defect_flags[i] > 0.0]
+                x_hit = [i for i in range(self.dataLen) if hit_defect_flags[i] > 0.0]
+                y_hit = np.array(y_hit) + self.yOffsetSpinBoxes[self.targetIndex].value()
                 self.mainPlot.plot(x_hit, y_hit, pen=None, symbol='o',
                                    symbolBrush=SELECTED_COLOR, symbolSize=dotSize*2)
                 self.mainPlot.plot(x_hit, y_hit, pen=None, symbol='o',

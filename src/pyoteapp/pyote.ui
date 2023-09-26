@@ -5536,6 +5536,19 @@
                </property>
                <layout class="QHBoxLayout" name="horizontalLayout_141">
                 <item>
+                 <widget class="QPushButton" name="clearEventDataButton">
+                  <property name="maximumSize">
+                   <size>
+                    <width>40</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>Clear</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
                  <widget class="QLineEdit" name="currentEventEdit">
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -5564,7 +5577,7 @@
                   </property>
                   <property name="maximumSize">
                    <size>
-                    <width>80</width>
+                    <width>60</width>
                     <height>16777215</height>
                    </size>
                   </property>
@@ -5591,7 +5604,7 @@
                    </size>
                   </property>
                   <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This box contains a list of previous event data sets that have been saved by clicking on the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Save event &lt;/span&gt;button to the left.&lt;/p&gt;&lt;p&gt;The first entry in this list is always titled &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;&amp;lt;clear event data&amp;gt;&lt;/span&gt; and, if selected (by clicking on it), will clear all of the edit boxes between the three black bars. Clicking any other entry will restore the saved data and fill in all the edit boxes between the three black bars.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Note:&lt;/span&gt; when you select a data set, there is the possibility that you will receive a &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;'file mismatch' &lt;/span&gt;warning. This means that the data set was first created and saved in conjunction with a different csv file than the one in use at the moment. This is usually a mistake and usually due to selecting the wrong data set. But sometimes this can be deliberate, in which case the warning can be simply ignored - or, you can click on the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Save event&lt;/span&gt; button to change the file association to the one currently in use.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This box contains a list of previous event data sets that have been saved by clicking on the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Save event &lt;/span&gt;button to the left.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Note:&lt;/span&gt; when you select a data set, there is the possibility that you will receive a &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;'file mismatch' &lt;/span&gt;warning. This means that the data set was first created and saved in conjunction with a different csv file than the one in use at the moment. This is usually a mistake and usually due to selecting the wrong data set. But sometimes this can be deliberate, in which case the warning can be simply ignored - or, you can click on the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Save event&lt;/span&gt; button to change the file association to the one currently in use. The metric region will be set to include all points - this is not usually desirable, so be alert to change the metric region to more appropriate values before saving.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="maxVisibleItems">
                    <number>20</number>
@@ -5913,7 +5926,7 @@
                 <rect>
                  <x>21</x>
                  <y>221</y>
-                 <width>252</width>
+                 <width>151</width>
                  <height>80</height>
                 </rect>
                </property>
@@ -5958,7 +5971,7 @@
                   <item>
                    <widget class="QPushButton" name="calcBaselineADUbutton">
                     <property name="toolTip">
-                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Click this button once the baseline points that are useful in determing the baseline intensity and variance have been selected.&lt;/p&gt;&lt;p&gt;This will cause the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Baseline ADU&lt;/span&gt; edit box to be filled in and, if a &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;MagDrop&lt;/span&gt; value is available, the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Bottom ADU&lt;/span&gt; value as well.&lt;/p&gt;&lt;p&gt;It automatically clears the selected points, puts the edit cursor into the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Predicted magDrop&lt;/span&gt; box, and pops up a message reminging you to enter the predicted magDrop.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Click this button once the baseline points that are useful in determing the baseline intensity and variance have been selected.&lt;/p&gt;&lt;p&gt;This will cause the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Baseline ADU&lt;/span&gt; edit box to be filled in and, if a &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;MagDrop&lt;/span&gt; value is available, the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Bottom ADU&lt;/span&gt; value as well.&lt;/p&gt;&lt;p&gt;It automatically clears the selected points, puts the edit cursor into the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Predicted magDrop&lt;/span&gt; box, and pops up a message reminding you to enter the predicted magDrop.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                     </property>
                     <property name="text">
                      <string>Calc</string>
@@ -6776,7 +6789,7 @@ Setting this value to zero will force Miss distance optimization to be skipped.<
                <item row="1" column="1">
                 <widget class="QCheckBox" name="allowNewVersionPopupCheckbox">
                  <property name="toolTip">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This splash screen can be disabled on the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Settings/Misc.&lt;/span&gt; tab.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;What's new with this version:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;We have changed the initial test used by the 'event finder' that can result in ‘no event found’ . It will now accept more event candidates – this test was extremely conservative and was a hold-over from a time when there was no False-positive test. Now we can rely on the FP test to weed out events that might be due to noise and so we can loosen up the initial test.&lt;/p&gt;&lt;p&gt;There are some improvements in the light curve list manipulations - the entire list can now be cleared.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Last version:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'Arial','sans-serif';&quot;&gt;Changed order of buttons on Noise analysis/Detectability tab to better reflect work flow&lt;br/&gt;&lt;br/&gt;If a minEvent of 1 is entered for the min/max search, it is automatically changed to 2 (with an advisory message to this effect) to ease work flow.&lt;br/&gt;&lt;br/&gt;Added buttons to &lt;/span&gt;&lt;span style=&quot; font-family:'Arial','sans-serif'; font-weight:700; color:#00b0f0;&quot;&gt;Lightcurves&lt;/span&gt;&lt;span style=&quot; font-family:'Arial','sans-serif';&quot;&gt; tab to make it more convenient to calculate and recalculate baseline statistics for multiple light curves.&lt;br/&gt;&lt;br/&gt;Added a block of the most useful metrics for comparing light curve extractions from multiple apertures at the end of the text report window and also in the &lt;/span&gt;&lt;span style=&quot; font-family:'Arial','sans-serif'; font-weight:700; color:#00b0f0;&quot;&gt;.log.txt&lt;/span&gt;&lt;span style=&quot; font-family:'Arial','sans-serif';&quot;&gt; report.&lt;br/&gt;&lt;br/&gt;The metrics for each ‘solution’ are added to a text file (fit_metrics.txt) – this text file can be converted to a .xlsx file which can be used to support the choice of ‘solution’ submitted in a report.&lt;br/&gt;&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-family:'Arial','sans-serif'; font-size:11pt; font-weight:700; color:#ff0000;&quot;&gt;Changed snr to dnr (drop to noise ratio) in the places where that is the actual calculation being performed.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This splash screen can be disabled on the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Settings/Misc.&lt;/span&gt; tab.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;What's new with this version:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;We have changed the initial test used by the 'event finder' that can result in ‘no event found’ . It will now accept more event candidates – this test was extremely conservative and was a hold-over from a time when there was no False-positive test. Now we can rely on the FP test to weed out events that might be due to noise and so we can loosen up the initial test.&lt;/p&gt;&lt;p&gt;There are some improvements in the light curve list manipulations - the entire list can now be cleared.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Previously:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'Arial','sans-serif';&quot;&gt;Changed order of buttons on Noise analysis/Detectability tab to better reflect work flow&lt;br/&gt;&lt;br/&gt;If a minEvent of 1 is entered for the min/max search, it is automatically changed to 2 (with an advisory message to this effect) to ease work flow.&lt;br/&gt;&lt;br/&gt;Added buttons to &lt;/span&gt;&lt;span style=&quot; font-family:'Arial','sans-serif'; font-weight:700; color:#00b0f0;&quot;&gt;Lightcurves&lt;/span&gt;&lt;span style=&quot; font-family:'Arial','sans-serif';&quot;&gt; tab to make it more convenient to calculate and recalculate baseline statistics for multiple light curves.&lt;br/&gt;&lt;br/&gt;Added a block of the most useful metrics for comparing light curve extractions from multiple apertures at the end of the text report window and also in the &lt;/span&gt;&lt;span style=&quot; font-family:'Arial','sans-serif'; font-weight:700; color:#00b0f0;&quot;&gt;.log.txt&lt;/span&gt;&lt;span style=&quot; font-family:'Arial','sans-serif';&quot;&gt; report.&lt;br/&gt;&lt;br/&gt;The metrics for each ‘solution’ are added to a text file (fit_metrics.txt) – this text file can be converted to a .xlsx file which can be used to support the choice of ‘solution’ submitted in a report.&lt;br/&gt;&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-family:'Arial','sans-serif'; font-size:11pt; font-weight:700; color:#ff0000;&quot;&gt;Changed snr to dnr (drop to noise ratio) in the places where that is the actual calculation being performed.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                  </property>
                  <property name="text">
                   <string>allow 'new version' information pop-up</string>
