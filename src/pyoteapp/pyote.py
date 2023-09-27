@@ -2219,12 +2219,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.showMsg(line, color='black', bold=True, blankLine=False)
             self.showMsg('', blankLine=False)
 
-            if self.diffractionRadioButton.isChecked():
-                self.showMsg('Model used: diffraction', color='black', bold=True)
-            elif self.edgeOnDiskRadioButton.isChecked():
-                self.showMsg('Model used: edge on disk', color='black', bold=True)
-            elif self.diskOnDiskRadioButton.isChecked():
-                self.showMsg('Model used: disk on disk', color='black', bold=True)
+            # if self.diffractionRadioButton.isChecked():
+            #     self.showMsg('Model used: diffraction', color='black', bold=True)
+            # elif self.edgeOnDiskRadioButton.isChecked():
+            #     self.showMsg('Model used: edge on disk', color='black', bold=True)
+            # elif self.diskOnDiskRadioButton.isChecked():
+            #     self.showMsg('Model used: disk on disk', color='black', bold=True)
 
             if self.modelDedgeSecs is not None and not onlyLcpValuesWanted:
                 self.showMsg('', blankLine=False)
@@ -3664,6 +3664,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.DdegreesEdit.setText(f'{self.Lcp.D_limb_angle_degrees:0.1f}')
                 self.RdegreesEdit.setText(f'{self.Lcp.R_limb_angle_degrees:0.1f}')
 
+        if self.Lcp is not None:
+            self.setModelToUseFromRadioButtons()
+
     def fillLightcurvePanelEditBoxes(self):
         # If no frame time is present, use the one from the ved Lcp
         if self.frameTimeEdit.text() == '':
@@ -3751,6 +3754,20 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             pickle_file = open(full_name, "rb")
             lcp_item = pickle.load(pickle_file)
             self.Lcp = lcp_item
+            if 'modelToUse' in self.Lcp.name_list:
+                modelToUse = self.Lcp.modelToUse
+                if modelToUse == 'diffraction':
+                    self.diffractionRadioButton.setChecked(True)
+                elif modelToUse == 'edge on disk':
+                    self.edgeOnDiskRadioButton.setChecked(True)
+                elif modelToUse == 'disk on disk':
+                    self.diskOnDiskRadioButton.setChecked(True)
+                elif modelToUse == 'square wave':
+                    self.squareWaveRadioButton.setChecked(True)
+                else:
+                    self.showInfo(f'Found invalid modelToUse: {modelToUse}')
+
+
             try:
                 self.useUpperEllipseChord.setChecked(self.Lcp.use_upper_chord)
             except Exception:  # noqa
@@ -3907,7 +3924,19 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.showInfo(f'The event name contains a character that is invalid in a filename.')
             return
 
+        # This allows us to change the name for a set of lightcurve data
         if self.Lcp is not None:
+            return
+
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Question)
+        msg.setText(f'It is best to select the "Model to use" before entering new parameter data.\n\n'
+                    f'Do you need to do that now?')
+        msg.setWindowTitle('Exit to allow "Model to use" radio button selection')
+        msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        retval = msg.exec_()
+        if retval == QMessageBox.Yes:
+            self.currentEventEdit.setText("")
             return
 
         self.handleModelSelectionRadioButtonClick()
@@ -4003,8 +4032,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             if not anUnsetParameterFound:
                 self.enableLightcurveButtons()
                 self.fitLightcurveButton.setStyleSheet("background-color: yellow")
-                self.DdegreesEdit.setText(f'{self.Lcp.D_limb_angle_degrees:0.0f}')
-                self.RdegreesEdit.setText(f'{self.Lcp.R_limb_angle_degrees:0.0f}')
+                if self.edgeOnDiskRadioButton.isChecked():
+                    self.DdegreesEdit.setText(f'{self.Lcp.D_limb_angle_degrees:0.0f}')
+                    self.RdegreesEdit.setText(f'{self.Lcp.R_limb_angle_degrees:0.0f}')
 
                 msg = QMessageBox()
                 msg.setIcon(QMessageBox.Question)
@@ -4163,8 +4193,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             baselineADU = 100.0
             bottomADU = 0.0
 
-            self.DdegreesEdit.setText('45')
-            self.RdegreesEdit.setText('45')
+            if self.edgeOnDiskRadioButton.isChecked():
+                self.DdegreesEdit.setText('45')
+                self.RdegreesEdit.setText('45')
+            else:
+                self.DdegreesEdit.setEnabled(False)
+                self.RdegreesEdit.setEnabled(False)
 
             if asteroidShadowSpeedEntered:
                 # noinspection PyTypeChecker
@@ -4245,6 +4279,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
                 self.asteroidSpeedShadowEdit.setText(f'{self.Lcp.shadow_speed:0.5f}')
 
+            self.setModelToUseFromRadioButtons()
+
             # Fill in defaults for ellipse parameters
             self.Lcp.set('asteroid_major_axis', float(self.asteroidDiameterKmEdit.text()))
             self.Lcp.set('asteroid_minor_axis', float(self.asteroidDiameterKmEdit.text()))
@@ -4277,6 +4313,24 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         except ValueError as e:  # noqc
             self.showInfo(f'general error in CoreEdit(): {e}')
 
+    def setModelToUseFromRadioButtons(self):
+
+        # Check for legacy Lcp that does not have a modelToUse field
+        if not 'modelToUse' in self.Lcp.name_list:
+            return
+
+        if self.diffractionRadioButton.isChecked():
+            self.Lcp.set('modelToUse', 'diffraction')
+        elif self.edgeOnDiskRadioButton.isChecked():
+            self.Lcp.set('modelToUse', 'edge on disk')
+        elif self.diskOnDiskRadioButton.isChecked():
+            self.Lcp.set('modelToUse', 'disk on disk')
+        elif self.squareWaveRadioButton.isChecked():
+            self.Lcp.set('modelToUse', 'square wave')
+        else:
+            self.Lcp.set('modelToUse', None)
+            self.showInfo(f'Invalid model radio button state')
+
     def promptForBaselineADUentry(self):
         self.showInfo(f'Set baselineADU by selecting points to be\n'
                       f'included in the calculation - multiple regions can be\n'
@@ -4290,8 +4344,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.baselineADUbutton.setStyleSheet("background-color: lightblue")
 
     def enableSecondaryEditBoxes(self):
-        self.DdegreesEdit.setEnabled(True)
-        self.RdegreesEdit.setEnabled(True)
+        if self.edgeOnDiskRadioButton.isChecked():
+            self.DdegreesEdit.setEnabled(True)
+            self.RdegreesEdit.setEnabled(True)
         self.chordSizeKmEdit.setEnabled(True)
         self.chordSizeSecondsEdit.setEnabled(True)
         self.magDropEdit.setEnabled(True)
@@ -4433,9 +4488,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.demoModelButton.setEnabled(False)
         self.printEventParametersButton.setEnabled(False)
 
-        self.diffractionRadioButton.setEnabled(False)
-        self.edgeOnDiskRadioButton.setEnabled(False)
-        self.diskOnDiskRadioButton.setEnabled(False)
+        # self.diffractionRadioButton.setEnabled(False)
+        # self.edgeOnDiskRadioButton.setEnabled(False)
+        # self.diskOnDiskRadioButton.setEnabled(False)
 
         self.modelXkm = None
         self.modelY = None
@@ -4446,9 +4501,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     def enableLightcurveButtons(self):
 
-        self.diffractionRadioButton.setEnabled(True)
-        self.edgeOnDiskRadioButton.setEnabled(True)
-        self.diskOnDiskRadioButton.setEnabled(True)
+        # self.diffractionRadioButton.setEnabled(True)
+        # self.edgeOnDiskRadioButton.setEnabled(True)
+        # self.diskOnDiskRadioButton.setEnabled(True)
 
         self.fitLightcurveButton.setEnabled(True)
         self.askAdviceButton.setEnabled(True)

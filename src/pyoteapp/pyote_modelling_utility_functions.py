@@ -441,6 +441,8 @@ class LightcurveParameters:
     metricLimitLeft: int = None
     metricLimitRight: int = None
 
+    modelToUse: str = None  # Possibilities: ['diffraction', 'edge on disk', 'disk on disk', 'square wave']
+
     sigmaB: float = None  # standard deviation of baseline points (needed for metric)
 
     magDrop: float = None
@@ -592,8 +594,11 @@ class LightcurveParameters:
 
     def check_for_none(self):
         for name in self.name_list:
-            if self.__dict__[name] is None:
-                return True, name
+            try:
+                if self.__dict__[name] is None:
+                    return True, name
+            except KeyError:  # This allows legacy Lcp without modelToUse to pass this test
+                pass
         return False, 'all needed parameters are set'
 
     def document(self, suppressLimbAngles=False):
@@ -602,6 +607,11 @@ class LightcurveParameters:
             output_str = [f'\n!!!! {name} remains to be set !!!!\n']
         else:
             output_str = []
+
+        # Handle legacy Lcp that does not contain a modelToUse field
+        if 'modelToUse' in self.__dict__.keys():
+            if self.modelToUse is not None:
+                output_str.append(f"model in use: {self.modelToUse}")
 
         output_str.append(f"baseline intensity: {self.baseline_ADU:0.2f} ADU")
         output_str.append(f"baseline noise    : {self.sigmaB:0.2f} ADU")
