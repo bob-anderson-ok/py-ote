@@ -50,6 +50,8 @@ from pyoteapp.pyote_modelling_utility_functions import LightcurveParameters, gen
 from pyoteapp.pyote_modelling_utility_functions import decide_model_to_use
 from pyoteapp.pyote_modelling_utility_functions import demo_event
 from pyoteapp.pyote_modelling_utility_functions import demo_diffraction_field
+from pyoteapp.pyote_modelling_utility_functions import plot_diffraction
+from pyoteapp.pyote_modelling_utility_functions import illustrateDiskOnDiskEvent, illustrateEdgeOnDiskEvent
 
 from math import trunc, floor
 import matplotlib.pyplot as plt
@@ -678,6 +680,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.demoModelButton.installEventFilter(self)
         self.demoModelButton.clicked.connect(self.demoModel)
 
+        self.demoGeometryButton.installEventFilter(self)
+        self.demoGeometryButton.clicked.connect(self.demoGeometry)
+
         self.printEventParametersButton.installEventFilter(self)
         self.printEventParametersButton.clicked.connect(self.printEventParameters)
 
@@ -1225,6 +1230,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                           f'that have not been zipped and sent!')
 
     # ====  New method entry point ===
+
+    def TBD(self):
+        self.showInfo(f'TBD')
 
     def processDeepVtest(self):
 
@@ -2343,6 +2351,44 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     return
                 self.computeModelLightcurve(demo=True)
 
+    def demoGeometry(self):
+        if self.Lcp is None:
+            self.showInfo(f'There is no model lightcurve defined.')
+        else:
+            if self.Lcp is None:
+                self.showInfo(f'Model data has not been loaded.')
+                return
+            else:
+                a_none_value_was_found, missing = self.Lcp.check_for_none()
+                if a_none_value_was_found:
+                    self.showInfo(f'{missing} has not been set.\n\nThere may be others.')
+                    return
+
+            if self.diskOnDiskRadioButton.isChecked():
+                fig = plt.figure(constrained_layout=False, figsize=(6, 6))
+                fig.canvas.manager.set_window_title('Disk on disk geometry')
+                axes = fig.add_subplot(1, 1, 1)
+                illustrateDiskOnDiskEvent(LCP=self.Lcp, showLegend=True, showNotes=True, axes=axes)
+                plt.show()
+            elif self.edgeOnDiskRadioButton.isChecked():
+                fig = plt.figure(constrained_layout=False, figsize=(6, 6))
+                fig.canvas.manager.set_window_title('Disk on disk geometry')
+                axes = fig.add_subplot(1, 1, 1)
+                illustrateDiskOnDiskEvent(LCP=self.Lcp, showLegend=True, showNotes=True, axes=axes)
+                plt.show()
+            elif self.diffractionRadioButton.isChecked():
+                majorAxis = self.Lcp.asteroid_major_axis
+                minorAxis = self.Lcp.asteroid_minor_axis
+                thetaDegrees = self.Lcp.ellipse_angle_degrees
+                upperChordWanted = self.Lcp.use_upper_chord
+                plot_diffraction(x=None, y=None, first_wavelength=self.Lcp.wavelength_nm,
+                                 last_wavelength=self.Lcp.wavelength_nm, LCP=self.Lcp, title='Diffraction geometry',
+                                 showLegend=True, showNotes=True, plot_versus_time=True, zoom=1,
+                                 majorAxis=majorAxis, minorAxis=minorAxis, thetaDegrees=thetaDegrees,
+                                 upperChordWanted=upperChordWanted)
+            else:
+                self.showInfo(f'Invalid model button selection in demoGeometry()')
+
     def convertDandRrdgValueToTimestamp(self):
         tObsStart = convertTimeStringToTime(self.yTimes[0])
         tDedge = tObsStart + self.modelDedgeRdgValue * self.timeDelta
@@ -3455,12 +3501,15 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             return
 
         if demo and not len(self.selectedPoints) == 1:
-            self.showInfo(f'Select a single point to guide the \n'
-                          f'placement for the model lightcurve')
+            self.showInfo(f'Select a single point as close as possible to the\n'
+                          f'center of the event to guide the\n'
+                          f'initial placement of the model lightcurve')
             return
+
         if not len(self.selectedPoints) == 1 and self.modelTimeOffset is None:
-            self.showInfo(f'Select a single point to give a good initial\n'
-                          f'placement for the model lightcurve')
+            self.showInfo(f'Select a single point as close as possible to the\n'
+                          f'center of the event to guide the\n'
+                          f'initial placement of the model lightcurve')
             return
 
         showLegend = self.showLegendsCheckBox.isChecked()
@@ -3667,6 +3716,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         if self.Lcp is not None:
             self.setModelToUseFromRadioButtons()
 
+        self.enableDisableEllipseEditBoxes(state=self.diffractionRadioButton.isChecked())
+
     def fillLightcurvePanelEditBoxes(self):
         # If no frame time is present, use the one from the ved Lcp
         if self.frameTimeEdit.text() == '':
@@ -3808,6 +3859,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 if showInfo:
                     self.showInfo(f'The current metric region selection points are displayed.\n\n'
                                   f'They are at reading {self.Lcp.metricLimitLeft} and {self.Lcp.metricLimitRight}')
+                    self.togglePointSelected(self.Lcp.metricLimitLeft)
+                    self.togglePointSelected(self.Lcp.metricLimitRight)
+
 
             self.currentEventEdit.setEnabled(True)
             self.allCoreElementsEntered = True
@@ -4038,11 +4092,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
                 msg = QMessageBox()
                 msg.setIcon(QMessageBox.Question)
-                msg.setText(f'Do you wish to save the event data entered so far?\n\n'
-                            f'Note that the metric data region is currently defaulted to include\n'
+                msg.setText(f'NOTE: the metric data region is currently defaulted to include\n'
                             f'all of the data points. You may wish to click on the \n\n'
-                            f'      Set limits for metric calculation\n\n'
-                            f'button before saving the event data.')
+                            f'      Set limits for metric calculation button\n\n'
+                            f'to set limits that better enclose only the points that are affected by the event.\n\n'
+                            f'Do you wish to save the event data entered so far?\n\n')
                 msg.setWindowTitle('Save event data')
                 msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
                 retval = msg.exec_()
@@ -4293,20 +4347,25 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.fresnelSizeKmEdit.setText(f'{self.Lcp.fresnel_length_km:0.3f}')
             self.fresnelSizeSecondsEdit.setText(f'{self.Lcp.fresnel_length_sec:0.3f}')
 
-            msg = QMessageBox()
-            msg.setIcon(QMessageBox.Question)
-            msg.setText(f'Do you wish to save the event data entered so far?\n\n'
-                        f'Answer Yes IF you are going to analyze multiple chords from the same event and wish'
-                        f' to create a "template" to be inserted manually into the folder for each lightcurve.\n\n'
-                        f'For other than this specialty use, this question should answered with No\n\n'
-                        f'For normal use, finish entering the rest of the data and then click the Save Event '
-                        f'button!')
-            msg.setWindowTitle('Save core data')
-            msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-            retval = msg.exec_()
-            if retval == QMessageBox.Yes:
-                self.saveCurrentEvent()
-                return
+            # The following code has been commented out. The normal answer is NO, so I feel that the
+            # question should not be asked. IF someone is doing a multi-chord analysis, they will also
+            # know enough to save the data set at this point. And worst case is that they would have to
+            # enter the basic parameters set repeatedly for each chord - not so burdensome.
+
+            # msg = QMessageBox()
+            # msg.setIcon(QMessageBox.Question)
+            # msg.setText(f'Do you wish to save the event data entered so far?\n\n'
+            #             f'Answer Yes IF you are going to analyze multiple chords from the same event and wish'
+            #             f' to create a "template" to be inserted manually into the folder for each lightcurve.\n\n'
+            #             f'For other than this specialty use, this question should answered with No\n\n'
+            #             f'For normal use, finish entering the rest of the data and then click the Save Event '
+            #             f'button!')
+            # msg.setWindowTitle('Save core data')
+            # msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+            # retval = msg.exec_()
+            # if retval == QMessageBox.Yes:
+            #     self.saveCurrentEvent()
+            #     return
 
             self.promptForBaselineADUentry()
 
@@ -4321,6 +4380,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         if self.diffractionRadioButton.isChecked():
             self.Lcp.set('modelToUse', 'diffraction')
+            self.enableDisableEllipseEditBoxes(state=True)
         elif self.edgeOnDiskRadioButton.isChecked():
             self.Lcp.set('modelToUse', 'edge on disk')
         elif self.diskOnDiskRadioButton.isChecked():
@@ -4479,18 +4539,18 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.starSizeKmEdit.setEnabled(False)
         self.starSizeKmEdit.clear()
 
+        self.enableDisableEllipseEditBoxes()
+
         self.fitLightcurveButton.setEnabled(False)
         self.plotFamilyButton.setEnabled(False)
         self.setMetricLimitsButton.setEnabled(False)
         self.pauseFitButton.setEnabled(False)
         self.askAdviceButton.setEnabled(False)
         self.showDiffractionButton.setEnabled(False)
+        self.plotFamilyButton.setEnabled(False)
         self.demoModelButton.setEnabled(False)
+        self.demoGeometryButton.setEnabled(False)
         self.printEventParametersButton.setEnabled(False)
-
-        # self.diffractionRadioButton.setEnabled(False)
-        # self.edgeOnDiskRadioButton.setEnabled(False)
-        # self.diskOnDiskRadioButton.setEnabled(False)
 
         self.modelXkm = None
         self.modelY = None
@@ -4499,16 +4559,20 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.newRedrawMainPlot()
 
-    def enableLightcurveButtons(self):
+    def enableDisableEllipseEditBoxes(self, state=False):
+        self.majorAxisEdit.setEnabled(state)
+        self.minorAxisEdit.setEnabled(state)
+        self.ellipseAngleEdit.setEnabled(state)
+        self.useUpperEllipseChord.setEnabled(state)
 
-        # self.diffractionRadioButton.setEnabled(True)
-        # self.edgeOnDiskRadioButton.setEnabled(True)
-        # self.diskOnDiskRadioButton.setEnabled(True)
+    def enableLightcurveButtons(self):
 
         self.fitLightcurveButton.setEnabled(True)
         self.askAdviceButton.setEnabled(True)
         self.showDiffractionButton.setEnabled(self.diffractionRadioButton.isChecked())
+        self.plotFamilyButton.setEnabled(self.diffractionRadioButton.isChecked())
         self.demoModelButton.setEnabled(True)
+        self.demoGeometryButton.setEnabled(True)
         self.plotFamilyButton.setEnabled(True)
         self.setMetricLimitsButton.setEnabled(True)
         self.printEventParametersButton.setEnabled(True)

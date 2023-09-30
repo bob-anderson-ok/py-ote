@@ -773,11 +773,15 @@ def plot_diffraction(x, y, first_wavelength, last_wavelength, LCP, figsize=(14, 
     if not upperChordWanted:
         graze_offset_km = - graze_offset_km
 
-    fig = plt.figure(constrained_layout=False, figsize=figsize)
-    fig.canvas.manager.set_window_title(title)
-
-    ax2 = fig.add_subplot(1, 2, 1)  # lightcurve axes
-    ax1 = fig.add_subplot(1, 2, 2)  # event illustration axes
+    if x is None:
+        fig = plt.figure(constrained_layout=False, figsize=(6, 6))
+        fig.canvas.manager.set_window_title('Diffraction geometry')
+        ax1 = fig.add_subplot(1, 1, 1)  # event illustration axes
+    else:
+        fig = plt.figure(constrained_layout=False, figsize=figsize)
+        fig.canvas.manager.set_window_title(title)
+        ax2 = fig.add_subplot(1, 2, 1)  # lightcurve axes
+        ax1 = fig.add_subplot(1, 2, 2)  # event illustration axes
 
     if majorAxis is None:
         asteroid_shape = patches.Circle((0, 0), radius=asteroid_radius_km, facecolor="None", edgecolor='red')
@@ -814,114 +818,116 @@ def plot_diffraction(x, y, first_wavelength, last_wavelength, LCP, figsize=(14, 
         ax1.hlines(graze_offset_km, xmin=x1, xmax=x2, ls='-', color='blue')
 
 
-    # Get star disk chords
-    star_disk_y = None
-    camera_y = None
-    if not LCP.star_diameter_km == 0.0:
-        d_chords, d_chords_alone, *_ = get_star_chord_samples(x=x, plot_margin=20, LCP=LCP)
-        if d_chords is not None:
-            star_disk_y = lightcurve_convolve(sample=d_chords_alone,
-                                              lightcurve=y,
-                                              shift_needed=len(d_chords_alone) - 1)
+    if x is not None:
+        # Get star disk chords
+        star_disk_y = None
+        camera_y = None
+        if not LCP.star_diameter_km == 0.0:
+            d_chords, d_chords_alone, *_ = get_star_chord_samples(x=x, plot_margin=20, LCP=LCP)
+            if d_chords is not None:
+                star_disk_y = lightcurve_convolve(sample=d_chords_alone,
+                                                  lightcurve=y,
+                                                  shift_needed=len(d_chords_alone) - 1)
 
-            # Block integrate star_disk_y by frame_time to get camera_y
+                # Block integrate star_disk_y by frame_time to get camera_y
+                span_km = x[-1] - x[0]
+                resolution_km = span_km / LCP.npoints
+                n_sample_points = round(LCP.frame_time * LCP.shadow_speed / resolution_km)
+                if n_sample_points > 1:
+                    sample = np.repeat(1.0 / n_sample_points, n_sample_points)
+                    camera_y = lightcurve_convolve(sample=sample, lightcurve=star_disk_y,
+                                                   shift_needed=len(sample) - 1)
+            else:
+                camera_y = y
+        else:
+            # Block integrate y by frame_time to get camera_y
             span_km = x[-1] - x[0]
             resolution_km = span_km / LCP.npoints
             n_sample_points = round(LCP.frame_time * LCP.shadow_speed / resolution_km)
-            if n_sample_points > 1:
-                sample = np.repeat(1.0 / n_sample_points, n_sample_points)
-                camera_y = lightcurve_convolve(sample=sample, lightcurve=star_disk_y,
-                                               shift_needed=len(sample) - 1)
-        else:
-            camera_y = y
-    else:
-        # Block integrate y by frame_time to get camera_y
-        span_km = x[-1] - x[0]
-        resolution_km = span_km / LCP.npoints
-        n_sample_points = round(LCP.frame_time * LCP.shadow_speed / resolution_km)
-        sample = np.repeat(1.0 / n_sample_points, n_sample_points)
-        camera_y = lightcurve_convolve(sample=sample, lightcurve=y,
-                                       shift_needed=len(sample) - 1)
+            sample = np.repeat(1.0 / n_sample_points, n_sample_points)
+            camera_y = lightcurve_convolve(sample=sample, lightcurve=y,
+                                           shift_needed=len(sample) - 1)
 
-    ax2.set_ylim(-0.1 * LCP.baseline_ADU, 1.5 * LCP.baseline_ADU)
+        ax2.set_ylim(-0.1 * LCP.baseline_ADU, 1.5 * LCP.baseline_ADU)
 
-    if plot_versus_time:
-        ax2.plot(x / LCP.shadow_speed, y, '-', color='black', label='Underlying')
-        ax2.plot(x / LCP.shadow_speed, camera_y, '-', color='red', label='Camera response')
-        if not LCP.star_diameter_km == 0.0 and star_disk_y is not None:
-            ax2.plot(x / LCP.shadow_speed, star_disk_y, '-', color='blue', label="Star disk response")
-        ax2.set_xlabel('Seconds')
-        ax2.set_ylabel('ADU')
-    else:
-        ax2.plot(x, y, '-', color='black', label='Underlying')
-        ax2.plot(x, camera_y, '-', color='red', label='Camera response')
-        if not LCP.star_diameter_km == 0.0:
-            ax2.plot(x, star_disk_y, '-', color='blue', label="Star disk response")
-        ax2.set_xlabel('Kilometers')
-        ax2.set_ylabel('ADU')
-
-    left_edge, right_edge = getChordEdges(LCP, asteroid_radius_km, graze_offset_km, majorAxis, minorAxis, thetaDegrees)
-
-    if left_edge is not None:
         if plot_versus_time:
-            ax2.vlines([left_edge / LCP.shadow_speed, right_edge / LCP.shadow_speed], color='red', ymin=0,
-                       ymax=1.2 * LCP.baseline_ADU, ls='--', label='Geometric edge')
-
+            ax2.plot(x / LCP.shadow_speed, y, '-', color='black', label='Underlying')
+            ax2.plot(x / LCP.shadow_speed, camera_y, '-', color='red', label='Camera response')
+            if not LCP.star_diameter_km == 0.0 and star_disk_y is not None:
+                ax2.plot(x / LCP.shadow_speed, star_disk_y, '-', color='blue', label="Star disk response")
+            ax2.set_xlabel('Seconds')
+            ax2.set_ylabel('ADU')
         else:
-            ax2.vlines([left_edge, right_edge], color='red', ymin=0, ymax=1.2 * LCP.baseline_ADU, ls='--',
-                       label='Geometric edge')
-    else:
-        ax2.vlines([-graze_offset_km, graze_offset_km], color='gray', ymin=0, ymax=1.4, ls='--', label='graze position')
-        if asteroid_radius_km is not None:
-            ax2.vlines([-asteroid_radius_km, asteroid_radius_km], color='black',
-                       ymin=0, ymax=1.4, ls='--', label='asteroid radius')
+            ax2.plot(x, y, '-', color='black', label='Underlying')
+            ax2.plot(x, camera_y, '-', color='red', label='Camera response')
+            if not LCP.star_diameter_km == 0.0:
+                ax2.plot(x, star_disk_y, '-', color='blue', label="Star disk response")
+            ax2.set_xlabel('Kilometers')
+            ax2.set_ylabel('ADU')
 
-    if showLegend:
-        ax2.legend(loc='best', fontsize=8)
+        left_edge, right_edge = getChordEdges(LCP, asteroid_radius_km, graze_offset_km, majorAxis, minorAxis, thetaDegrees)
 
-    rho_adder = ''
-    if rho > 32:
-        rho_adder = f'(central spot not computed)'
+        if left_edge is not None:
+            if plot_versus_time:
+                ax2.vlines([left_edge / LCP.shadow_speed, right_edge / LCP.shadow_speed], color='red', ymin=0,
+                           ymax=1.2 * LCP.baseline_ADU, ls='--', label='Geometric edge')
 
-    rho_wavelength = first_wavelength
-    if first_wavelength == last_wavelength:
-        ax2.set_title(f'Single wavelength diffraction ({first_wavelength} nm) {rho_adder}')
-    else:
-        rho_wavelength = (first_wavelength + last_wavelength) // 2
-        ax2.set_title(f'Integrated diffraction (wavelength range: \n{first_wavelength}nm to '
-                      f'{last_wavelength}nm in 10 nm steps)\n{rho_adder}')
+            else:
+                ax2.vlines([left_edge, right_edge], color='red', ymin=0, ymax=1.2 * LCP.baseline_ADU, ls='--',
+                           label='Geometric edge')
+        else:
+            ax2.vlines([-graze_offset_km, graze_offset_km], color='gray', ymin=0, ymax=1.4, ls='--', label='graze position')
+            if asteroid_radius_km is not None:
+                ax2.vlines([-asteroid_radius_km, asteroid_radius_km], color='black',
+                           ymin=0, ymax=1.4, ls='--', label='asteroid radius')
 
-    if majorAxis is None:
-        size = asteroid_radius_km
-    else:
-        size = max(majorAxis, minorAxis)
+        if showLegend:
+            ax2.legend(loc='best', fontsize=8)
 
-    if plot_versus_time:
-        ax2.set_xlim(-3 * size / zoom_factor / LCP.shadow_speed,
-                     3 * size / zoom_factor / LCP.shadow_speed)
-    else:
-        ax2.set_xlim(-3 * size / zoom_factor, 3 * size / zoom_factor)
+        rho_adder = ''
+        if rho > 32:
+            rho_adder = f'(central spot not computed)'
 
-    ax2.grid()
+        rho_wavelength = first_wavelength
+        if first_wavelength == last_wavelength:
+            ax2.set_title(f'Single wavelength diffraction ({first_wavelength} nm) {rho_adder}')
+        else:
+            rho_wavelength = (first_wavelength + last_wavelength) // 2
+            ax2.set_title(f'Integrated diffraction (wavelength range: \n{first_wavelength}nm to '
+                          f'{last_wavelength}nm in 10 nm steps)\n{rho_adder}')
 
-    # Add text annotation to plot for asteroid diameter, distance, etc
-    if majorAxis is None:  # Do legend for round asteroid
-        s = f'asteroid diameter: {LCP.asteroid_diameter_km:0.2f} km'
-        s = s + f'\nasteroid distance: {LCP.asteroid_distance_AU:0.2f} AU'
-        s = s + f'\nframe time: {LCP.frame_time:0.3f} sec'
-        s = s + f'\ngraze offset: {graze_offset_km:0.2f} km'
-        s = s + f'\nrho: {rho:0.2f} @ {rho_wavelength} nm'
-    else:
-        s = f'asteroid majorAxis: {majorAxis:0.2f} km'
-        s = s + f'\nasteroid minorAxis: {minorAxis:0.2f} km'
-        s = s + f'\nasteroid angle: {thetaDegrees:0.2f} degrees'
-        s = s + f'\nframe time: {LCP.frame_time:0.3f} sec'
-        s = s + f'\ngraze offset: {graze_offset_km:0.2f} km'
-        s = s + f'\nrho: {rho:0.2f} @ {rho_wavelength} nm'
+        if majorAxis is None:
+            size = asteroid_radius_km
+        else:
+            size = max(majorAxis, minorAxis)
 
-    if showNotes:
-        ax2.text(0.01, 0.03, s, transform=ax2.transAxes,
-                 bbox=dict(facecolor='white', alpha=1), fontsize=10)
+        if plot_versus_time:
+            ax2.set_xlim(-3 * size / zoom_factor / LCP.shadow_speed,
+                         3 * size / zoom_factor / LCP.shadow_speed)
+        else:
+            ax2.set_xlim(-3 * size / zoom_factor, 3 * size / zoom_factor)
+
+        ax2.grid()
+
+        # Add text annotation to plot for asteroid diameter, distance, etc
+        if majorAxis is None:  # Do legend for round asteroid
+            s = f'asteroid diameter: {LCP.asteroid_diameter_km:0.2f} km'
+            s = s + f'\nasteroid distance: {LCP.asteroid_distance_AU:0.2f} AU'
+            s = s + f'\nframe time: {LCP.frame_time:0.3f} sec'
+            s = s + f'\ngraze offset: {graze_offset_km:0.2f} km'
+            s = s + f'\nrho: {rho:0.2f} @ {rho_wavelength} nm'
+        else:
+            s = f'asteroid majorAxis: {majorAxis:0.2f} km'
+            s = s + f'\nasteroid minorAxis: {minorAxis:0.2f} km'
+            s = s + f'\nasteroid angle: {thetaDegrees:0.2f} degrees'
+            s = s + f'\nframe time: {LCP.frame_time:0.3f} sec'
+            s = s + f'\ngraze offset: {graze_offset_km:0.2f} km'
+            s = s + f'\nrho: {rho:0.2f} @ {rho_wavelength} nm'
+
+        if showNotes:
+            ax2.text(0.01, 0.03, s, transform=ax2.transAxes,
+                     bbox=dict(facecolor='white', alpha=1), fontsize=10)
+
     plt.show()
 
 def ellipseChord(y, major_axis_km, minor_axis_km, theta_degrees):

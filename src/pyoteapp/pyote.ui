@@ -5004,7 +5004,7 @@
                    </font>
                   </property>
                   <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&amp;quot;Chord&amp;quot; is defined as the distance or time from the D event (the star &lt;span style=&quot; text-decoration: underline;&quot;&gt;center &lt;/span&gt;first intersects the asteroid edge) to the R event (the star &lt;span style=&quot; text-decoration: underline;&quot;&gt;center&lt;/span&gt; exits the asteroid).&lt;/p&gt;&lt;p&gt;Note: the case where a star disk is occulted by the asteroid but the star center does &lt;span style=&quot; text-decoration: underline;&quot;&gt;not&lt;/span&gt; intersect the asteroid is called a miss. This is indicated by a non-zero entry in the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Miss distance (km)&lt;/span&gt; edit box and 0.00000 values in the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Chord estimate&lt;/span&gt; edit boxes (automatically enforced whenever a non-zero entry is made in the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Miss distance (km)&lt;/span&gt; edit box).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The usual chord estimate will be in seconds and should be chosen (estimated) from the actual light curve.&lt;/p&gt;&lt;p&gt;&amp;quot;Chord&amp;quot; is defined as the distance or time from the D event (the star &lt;span style=&quot; text-decoration: underline;&quot;&gt;center &lt;/span&gt;first intersects the asteroid edge) to the R event (the star &lt;span style=&quot; text-decoration: underline;&quot;&gt;center&lt;/span&gt; exits the asteroid).&lt;/p&gt;&lt;p&gt;Note: the case where a star disk is occulted by the asteroid but the star center does &lt;span style=&quot; text-decoration: underline;&quot;&gt;not&lt;/span&gt; intersect the asteroid is called a miss. This is indicated by a non-zero entry in the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Miss distance (km)&lt;/span&gt; edit box and 0.00000 values in the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Chord estimate&lt;/span&gt; edit boxes (automatically enforced whenever a non-zero entry is made in the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Miss distance (km)&lt;/span&gt; edit box).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="text">
                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Chord estimate&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -5217,7 +5217,7 @@
               <widget class="QPushButton" name="helpPdfButton">
                <property name="geometry">
                 <rect>
-                 <x>320</x>
+                 <x>610</x>
                  <y>10</y>
                  <width>180</width>
                  <height>21</height>
@@ -5271,10 +5271,10 @@
               <widget class="QLabel" name="currentEventLabel">
                <property name="geometry">
                 <rect>
-                 <x>190</x>
+                 <x>70</x>
                  <y>30</y>
-                 <width>121</width>
-                 <height>16</height>
+                 <width>271</width>
+                 <height>20</height>
                 </rect>
                </property>
                <property name="font">
@@ -5286,16 +5286,16 @@
                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Provide a name for this set of asteroid event data for future reference. After a successful &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Save event&lt;/span&gt;, the data set can be restored by using the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Past events&lt;/span&gt; dropdown selector available at the right.&lt;/p&gt;&lt;p&gt;This makes the entries that define this occultation (asteroid size, distance, speed, etc.) 'sticky' in the sense that the data unique to this occultation event can be recovered later.&lt;/p&gt;&lt;p&gt;A &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Save event&lt;/span&gt; attempt will only work if a complete set of data has been filled in. That means that all the edit boxes enclosed in the three black bars must be filled in.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Note: &lt;/span&gt;Until some text has been entered in this edit box, all the edit boxes between the three black bars will be disabled, so this is the starting point for a new event. The expected workflow is: read a csv file, name the event, fill in the edit boxes, and click &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Save event&lt;/span&gt;. The name of the csv file currently in use is added to the saved data during this process so event data is tied to a specific file.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
                <property name="text">
-                <string>Current event</string>
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Name of/for current event data set&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
               </widget>
               <widget class="QLabel" name="pastEventsLabel">
                <property name="geometry">
                 <rect>
-                 <x>570</x>
+                 <x>410</x>
                  <y>30</y>
-                 <width>111</width>
-                 <height>16</height>
+                 <width>191</width>
+                 <height>20</height>
                 </rect>
                </property>
                <property name="font">
@@ -5307,7 +5307,7 @@
                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This box contains a list of previous event data sets that have been saved by clicking on the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Save event &lt;/span&gt;button to the left.&lt;/p&gt;&lt;p&gt;The first entry in this list is always titled &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;&amp;lt;clear event data&amp;gt;&lt;/span&gt; and, if selected (by clicking on it), will clear all of the edit boxes between the three black bars. Clicking any other entry will restore the saved data and fill in all the edit boxes between the three black bars.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Note:&lt;/span&gt; when you select a data set, there is the possibility that you will receive a &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;'file mismatch' &lt;/span&gt;warning. This means that the data set was first created and saved in conjunction with a different csv file than the one in use at the moment. This is usually a mistake and usually due to selecting the wrong data set. But sometimes this can be deliberate, in which case the warning can be simply ignored - or, you can click on the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Save event&lt;/span&gt; button to change the file association to the one currently in use.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
                <property name="text">
-                <string>Past events</string>
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Saved event data sets&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
               </widget>
               <widget class="QWidget" name="layoutWidget">
@@ -5374,30 +5374,10 @@
                  <x>130</x>
                  <y>330</y>
                  <width>198</width>
-                 <height>176</height>
+                 <height>196</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_49">
-                <item>
-                 <widget class="QPushButton" name="fitLightcurveButton">
-                  <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clicking this button activates the automated fit optimization process.&lt;/p&gt;&lt;p&gt;The title and color of this button will change to show what process is currently being performed.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                  </property>
-                  <property name="text">
-                   <string>Fit model to observation points</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="pauseFitButton">
-                  <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clicking this button will set a flag to request that the fitting process stop at the next change of &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Parameter being optimized&lt;/span&gt;.&lt;/p&gt;&lt;p&gt;The response may be slow if a low rho diffraction model calculation is in process at the time this request is posted - be patient.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Note:&lt;/span&gt; rho is ratio of the asteroid radius to the Fresnel length. For rho values less than 32, a full diffraction calculation must be utilized. Even though DFFT (Discrete Fast Fourier Transform) methods are employed, this takes approximately 20 times the compute time compared to a high rho event where the standard analytical expression for diffraction at an edge can be used.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                  </property>
-                  <property name="text">
-                   <string>Pause fit in progress</string>
-                  </property>
-                 </widget>
-                </item>
                 <item>
                  <widget class="QPushButton" name="askAdviceButton">
                   <property name="toolTip">
@@ -5405,39 +5385,6 @@
                   </property>
                   <property name="text">
                    <string>Ask advice on model to use</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="showDiffractionButton">
-                  <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When a diffraction model is in use, clicking this button will show a single-wavelength diffraction light pattern projected on the ground. The wavelength used is taken from the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Wavelength (nm)&lt;/span&gt; edit box.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Note:&lt;/span&gt; There is no real value to this display other than educational. It may help demonstrate the fact that, particularly for low rho events (rho = asteroid_radius / Fresnel_length), your observation point may be outside the geometric edge of the asteroid shadow (i.e., a miss), yet the observed lightcurve can show the effect of the asteroid passage, often with an &lt;span style=&quot; text-decoration: underline;&quot;&gt;increase&lt;/span&gt; in light!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                  </property>
-                  <property name="text">
-                   <string>Show diffraction pattern on ground</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="demoModelButton">
-                  <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clicking this button will calculate and display a model ligtcurve superimposed on the event lightcurve, using the current set of parameters. It will be positioned around a point selected by the User where it appears the center of the 'event' is located.&lt;/p&gt;&lt;p&gt;An error message will appear if exactly one point is not selected.&lt;/p&gt;&lt;p&gt;The selected point will remain shown so that if a new position is clearly needed, an easy assessment of where a better selection point should be placed will be eased. Just be sure to remove the old point so that only a single point is left selected.&lt;/p&gt;&lt;p&gt;In any case, once a fit process is started, the selected point will be erased.&lt;/p&gt;&lt;p&gt;If the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Enable plot ---:&lt;/span&gt; box is checked, a theoretical model based on the input parameters will be shown, along with a graphic (cartoon?) portrayal of the relative path of the asteroid past the star.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                  </property>
-                  <property name="text">
-                   <string>Demo model lightcurve</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="plotFamilyButton">
-                  <property name="enabled">
-                   <bool>false</bool>
-                  </property>
-                  <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this button to get a simultaneous display of model lightcurves where only a single parameter is changed in a set pattern around a central value. It is intended for use in dealing with diffraction models, particularly if the asteroid is to be modelled as an ellipse. Elliptical light patterns are complex when the asteroid has dimensions that are comparable to the Fresnel length. In conjuction with the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Show diffraction pattern on ground&lt;/span&gt; button, this display of a set of model lightcurves can aid in setting reasonable initial values for the event parameters.&lt;/p&gt;&lt;p&gt;After the family plot is produced, an option to perform a noise analysis is offered. If selected, this procedure uses AIC (Akiake Information Criteria) model comparision to compute the relative probability of the curves in the family using the provided noise values and a Monte Carlo simulation at each noise value with 10,000 trials. In this process, the center lightcurve is 'noised' by adding Gaussian noise with a mean of 0 and a standard deviation of the noise value(s) provided - this is the simulated 'observation'. We are attempting to recreate that observation 10,000 times in order to estimate the distribution of 'solutions' as a function of the parameter value. This can be used to estimate the uncertainty limits of a parameter by selecting a step size that gives the center curve a desired relative probability (such as 0.95 ). In this approach, the 'family' is treated as a group of competing candidates for 'explaining' the observation. If the 'separation' of the parameter (its step size) is too small, adjacent curves will sometimes be a better fit to the simulated observation. If the step size is too large, the center value will always 'win' and give a relative probabilty of 1.00 --- a smaller step size is required in such a case. (The AIC value is computed from the RSS fit metric, a valid calculation because the models have the same number of degrees of freedom, the same number of points, and the same noise distribution.)&lt;/p&gt;&lt;p&gt;Before starting a noise analysis, you should determine what the baseline noise (ADU) of the actual observation is. That can be obtained by clicking the button &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Print event parameters&lt;/span&gt; and noting the value for &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;baseline noise&lt;/span&gt; that is reported.&lt;/p&gt;&lt;p&gt;The value for baseline noise for the actual observation would normally always be given as a noise value. However, it is possible to provide hypothetical noise values as a way to estimate what noise level would have to be present to give a desired uncertainty in the parameter value, i.e. a way to answer the question 'how low would the noise level have to be so that one can determine a particular parameter value to a desired resolution?'.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                  </property>
-                  <property name="text">
-                   <string>Plot family of lightcurves</string>
                   </property>
                  </widget>
                 </item>
@@ -5455,12 +5402,75 @@
                  </widget>
                 </item>
                 <item>
+                 <widget class="QPushButton" name="demoModelButton">
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clicking this button will calculate and display a model ligtcurve superimposed on the event lightcurve, using the current set of parameters. It will be positioned around a point selected by the User where it appears the center of the 'event' is located.&lt;/p&gt;&lt;p&gt;An error message will appear if exactly one point is not selected.&lt;/p&gt;&lt;p&gt;The selected point will remain shown so that if a new position is clearly needed, an easy assessment of where a better selection point should be placed will be eased. Just be sure to remove the old point so that only a single point is left selected.&lt;/p&gt;&lt;p&gt;In any case, once a fit process is started, the selected point will be erased.&lt;/p&gt;&lt;p&gt;If the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Enable plot ---:&lt;/span&gt; box is checked, a theoretical model based on the input parameters will be shown, along with a graphic (cartoon?) portrayal of the relative path of the asteroid past the star.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                  <property name="text">
+                   <string>Demo model lightcurve</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="demoGeometryButton">
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clicking this button will cause a plot to appear that shows the geometry of the event with the star center and diameter and path relative to the asteroid shape.&lt;/p&gt;&lt;p&gt;This is particularly useful when dealing with diffraction models where the asteroid can be modelled as an ellipse and the orientation of the ellipse is hard to visualize.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                  <property name="text">
+                   <string>Demo geometry</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="fitLightcurveButton">
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clicking this button activates the automated fit optimization process.&lt;/p&gt;&lt;p&gt;The title and color of this button will change to show what process is currently being performed.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                  <property name="text">
+                   <string>Fit model to observation points</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="plotFamilyButton">
+                  <property name="enabled">
+                   <bool>false</bool>
+                  </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this button to get a simultaneous display of model lightcurves where only a single parameter is changed in a set pattern around a central value. It is intended for use in dealing with diffraction models, particularly if the asteroid is to be modelled as an ellipse. Elliptical light patterns are complex when the asteroid has dimensions that are comparable to the Fresnel length. In conjuction with the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Show diffraction pattern on ground&lt;/span&gt; button, this display of a set of model lightcurves can aid in setting reasonable initial values for the event parameters.&lt;/p&gt;&lt;p&gt;After the family plot is produced, an option to perform a noise analysis is offered. If selected, this procedure uses AIC (Akiake Information Criteria) model comparision to compute the relative probability of the curves in the family using the provided noise values and a Monte Carlo simulation at each noise value with 10,000 trials. In this process, the center lightcurve is 'noised' by adding Gaussian noise with a mean of 0 and a standard deviation of the noise value(s) provided - this is the simulated 'observation'. We are attempting to recreate that observation 10,000 times in order to estimate the distribution of 'solutions' as a function of the parameter value. This can be used to estimate the uncertainty limits of a parameter by selecting a step size that gives the center curve a desired relative probability (such as 0.95 ). In this approach, the 'family' is treated as a group of competing candidates for 'explaining' the observation. If the 'separation' of the parameter (its step size) is too small, adjacent curves will sometimes be a better fit to the simulated observation. If the step size is too large, the center value will always 'win' and give a relative probabilty of 1.00 --- a smaller step size is required in such a case. (The AIC value is computed from the RSS fit metric, a valid calculation because the models have the same number of degrees of freedom, the same number of points, and the same noise distribution.)&lt;/p&gt;&lt;p&gt;Before starting a noise analysis, you should determine what the baseline noise (ADU) of the actual observation is. That can be obtained by clicking the button &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Print event parameters&lt;/span&gt; and noting the value for &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;baseline noise&lt;/span&gt; that is reported.&lt;/p&gt;&lt;p&gt;The value for baseline noise for the actual observation would normally always be given as a noise value. However, it is possible to provide hypothetical noise values as a way to estimate what noise level would have to be present to give a desired uncertainty in the parameter value, i.e. a way to answer the question 'how low would the noise level have to be so that one can determine a particular parameter value to a desired resolution?'.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                  <property name="text">
+                   <string>Plot family of lightcurves</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="showDiffractionButton">
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When a diffraction model is in use, clicking this button will show a single-wavelength diffraction light pattern projected on the ground. The wavelength used is taken from the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Wavelength (nm)&lt;/span&gt; edit box.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Note:&lt;/span&gt; There is no real value to this display other than educational. It may help demonstrate the fact that, particularly for low rho events (rho = asteroid_radius / Fresnel_length), your observation point may be outside the geometric edge of the asteroid shadow (i.e., a miss), yet the observed lightcurve can show the effect of the asteroid passage, often with an &lt;span style=&quot; text-decoration: underline;&quot;&gt;increase&lt;/span&gt; in light!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                  <property name="text">
+                   <string>Show diffraction pattern on ground</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
                  <widget class="QPushButton" name="printEventParametersButton">
                   <property name="toolTip">
                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clicking this button causes a listing of all the current lightcurve parameters to be shown in the log panel.&lt;/p&gt;&lt;p&gt;This is the same action that is automatically called at the end of a successful fit to provide a completed final report, so normally one would have no need to use this button.&lt;/p&gt;&lt;p&gt;One possible time to use this button is if &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Pause fit in progress&lt;/span&gt; was clicked and you wish the current fit achieved to be treated as the best fit and want to add the current lightcurve settings to the final report.&lt;/p&gt;&lt;p&gt;Another possible use is to get the baseline noise value for use in noise analysis of elliptical asteroid events.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="text">
                    <string>Print event parameters</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="pauseFitButton">
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clicking this button will set a flag to request that the fitting process stop at the next change of &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Parameter being optimized&lt;/span&gt;.&lt;/p&gt;&lt;p&gt;The response may be slow if a low rho diffraction model calculation is in process at the time this request is posted - be patient.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Note:&lt;/span&gt; rho is ratio of the asteroid radius to the Fresnel length. For rho values less than 32, a full diffraction calculation must be utilized. Even though DFFT (Discrete Fast Fourier Transform) methods are employed, this takes approximately 20 times the compute time compared to a high rho event where the standard analytical expression for diffraction at an edge can be used.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                  <property name="text">
+                   <string>Pause fit in progress</string>
                   </property>
                  </widget>
                 </item>
@@ -6439,7 +6449,7 @@ Setting this value to zero will force Miss distance optimization to be skipped.<
                <property name="geometry">
                 <rect>
                  <x>25</x>
-                 <y>520</y>
+                 <y>530</y>
                  <width>801</width>
                  <height>24</height>
                 </rect>
@@ -8264,7 +8274,6 @@ Setting this value to zero will force Miss distance optimization to be skipped.<
   <tabstop>edgeOnDiskRadioButton</tabstop>
   <tabstop>diskOnDiskRadioButton</tabstop>
   <tabstop>fitLightcurveButton</tabstop>
-  <tabstop>askAdviceButton</tabstop>
   <tabstop>showDiffractionButton</tabstop>
   <tabstop>fitMetricEdit</tabstop>
   <tabstop>fitMetricChangeEdit</tabstop>
@@ -8322,8 +8331,6 @@ Setting this value to zero will force Miss distance optimization to be skipped.<
   <tabstop>blockSizeEdit</tabstop>
   <tabstop>singlePointDropButton</tabstop>
   <tabstop>magDropSqwaveEdit</tabstop>
-  <tabstop>pauseFitButton</tabstop>
-  <tabstop>demoModelButton</tabstop>
   <tabstop>printEventParametersButton</tabstop>
   <tabstop>deleteEventButton</tabstop>
   <tabstop>edgeTimePrecisionEdit</tabstop>
