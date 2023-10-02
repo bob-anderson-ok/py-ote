@@ -3,6 +3,7 @@ from numpy import random, convolve
 from numba import prange, njit, int64, float64
 # import time
 import matplotlib
+from scipy.integrate import quad
 # import matplotlib.pyplot as plt
 # from pyoteapp.autocorrtools import *
 matplotlib.use('Qt5Agg')
@@ -43,10 +44,8 @@ def simple_convolve2(x, c):
         i += 1
     return out
 
-
 def noise_gen_numpy(num_points: int, noise_sigma: float) -> np.ndarray:
     return random.normal(size=num_points, scale=noise_sigma)
-
 
 # @jit(float64[:](int64, float64, float64[:]))
 def simulated_observation(observation_size: int, noise_sigma: float, corr_array: np.ndarray) -> np.ndarray:
@@ -124,6 +123,20 @@ def max_drop_in_simulated_observation(
 
     return best_drop_so_far
 
+# Locate the index of the righthand bin edge of the bin that includes the value drop
+def index_of_drop(drop, bin_edges):
+    for i in range(1, bin_edges.size):
+        if bin_edges[i-1] < drop <= bin_edges[i]:
+            return i
+    return None
+
+def tail_count_fraction(x, slope, y0):
+    arg = np.polyval((slope, y0), x)
+    exp1 = np.exp(arg)
+    return np.exp(-exp1)
+
+def tail_area(x0, slope, y0):
+    return quad(lambda x: tail_count_fraction(x,slope,y0), x0, np.inf)[0]
 
 @njit(parallel=True)
 def compute_drops(event_duration: int,
@@ -149,6 +162,87 @@ def compute_drops(event_duration: int,
 
     return drops
 
+
+def calc_sigma_lines(three_sigma_guess, slope, y0, bin_delta, debug=False):
+    five_sig = 0.999_999_427
+    four_sig = 0.999_936_658
+    three_sig = 0.997_300_204
+    two_sig = 0.954_499_736
+    # one_sig = 0.682_689_492
+
+    three_sigma_line = three_sigma_guess
+    area_fraction = tail_area(three_sigma_guess, slope, y0) / bin_delta
+    p = 1 - area_fraction
+
+    if p < three_sig:
+        delta = 0.05
+        while True:
+            area_fraction = tail_area(three_sigma_line, slope, y0) / bin_delta
+            p = 1 - area_fraction
+            if p < three_sig:
+                three_sigma_line += delta
+            else:
+                three_sig_area = area_fraction
+                break
+    else:
+        delta = -0.05
+        while True:
+            area_fraction = tail_area(three_sigma_line, slope, y0) / bin_delta
+            p = 1 - area_fraction
+            if p > three_sig:
+                three_sigma_line += delta
+            else:
+                three_sig_area = area_fraction
+                break
+
+    five_sigma_line = three_sigma_line
+    delta = 0.05
+    while True:
+        area_fraction = tail_area(five_sigma_line, slope, y0) / bin_delta
+        p = 1 - area_fraction
+        if p < five_sig:
+            five_sigma_line += delta
+        else:
+            five_sig_area = area_fraction
+            break
+
+    four_sigma_line = three_sigma_line
+    delta = 0.05
+    while True:
+        area_fraction = tail_area(four_sigma_line, slope, y0) / bin_delta
+        p = 1 - area_fraction
+        if p < four_sig:
+            four_sigma_line += delta
+        else:
+            four_sig_area = area_fraction
+            break
+
+    two_sigma_line = three_sigma_line
+    delta = -0.05
+    while True:
+        area_fraction = tail_area(two_sigma_line, slope, y0) / bin_delta
+        p = 1 - area_fraction
+        if p > two_sig:
+            two_sigma_line += delta
+        else:
+            two_sig_area = area_fraction
+            break
+
+    # one_sigma_line = sorted_drops[int(.682689 * drops.size)]
+
+    if debug:
+        # print(f'  one_sigma_line probability: 0.682689492')
+        print(f'  two_sigma_line probability: {1 - two_sig_area:0.9f}')
+        print(f'three_sigma_line probability: {1 - three_sig_area:0.9f}')
+        print(f' four_sigma_line probability: {1 - four_sig_area:0.9f}')
+        print(f' five_sigma_line probability: {1 - five_sig_area:0.9f}')
+        # print(f'\n  one_sigma_line: {one_sigma_line:0.1f}')
+        print(f'  two_sigma_line: {two_sigma_line:0.1f}')
+        print(f'three_sigma_line: {three_sigma_line:0.1f}  three_sigma_guess: {three_sigma_guess:0.1f}')
+        print(f' four_sigma_line: {four_sigma_line:0.1f}')
+        print(f' five_sigma_line: {five_sigma_line:0.1f}')
+
+    return two_sigma_line, three_sigma_line, four_sigma_line, five_sigma_line
 
 # def excercise():
 #     noise_gen_jit(1, 1.0)

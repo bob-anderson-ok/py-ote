@@ -64,7 +64,7 @@ from pyoteapp.showVideoFrames import readSerFile
 from pyoteapp.showVideoFrames import readFitsFile
 from pyoteapp.showVideoFrames import readAavFile
 
-from pyoteapp.false_positive import compute_drops, noise_gen_jit, simple_convolve
+from pyoteapp.false_positive import compute_drops, noise_gen_jit, simple_convolve, calc_sigma_lines, tail_count_fraction
 import numpy as np
 import pyqtgraph as pg
 import pyqtgraph.exporters as pex
@@ -2374,7 +2374,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 fig = plt.figure(constrained_layout=False, figsize=(6, 6))
                 fig.canvas.manager.set_window_title('Disk on disk geometry')
                 axes = fig.add_subplot(1, 1, 1)
-                illustrateDiskOnDiskEvent(LCP=self.Lcp, showLegend=True, showNotes=True, axes=axes)
+                illustrateEdgeOnDiskEvent(LCP=self.Lcp, showLegend=True, showNotes=True, axes=axes)
                 plt.show()
             elif self.diffractionRadioButton.isChecked():
                 majorAxis = self.Lcp.asteroid_major_axis
@@ -8479,7 +8479,43 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                               noise_sigma=sigma, corr_array=np.array(posCoefs), num_trials=num_trials)
         sorted_drops = np.sort(drops)
         max_drop = sorted_drops[-1]
-        three_sigma_line = sorted_drops[int(.997 * drops.size)]
+        # three_sigma_line = sorted_drops[int(.997 * drops.size)]
+
+        # TODO Add new sigma line call
+
+        counts, bins = np.histogram(drops, bins='auto')
+
+        counts[0] = counts[1] / 2
+
+        # Calculate the tail start drop as the drop that encloses tail_start_fraction of the counts
+        tail_start_fraction = 0.85
+        tail_start_index = np.where(np.cumsum(counts) > tail_start_fraction * num_trials)[0][0]
+
+        # Find all of the non-zero counts and their locations in the tail
+        debug = False
+        x_tail = []
+        y = []
+        zero_count = 0
+        bin_delta = bins[1] - bins[0]
+        if debug: print(f'bin_delta: {bin_delta:0.3f}')
+        for i in range(tail_start_index, counts.size):
+            if counts[i] > 0:
+                new_x = bins[i] + bin_delta / 2
+                x_tail.append(new_x)
+                y.append(counts[i] / num_trials)
+                if debug: print(f'x_tail: {new_x:6.3f}  count: {counts[i]:0.6f}')
+            else:
+                zero_count += 1
+                if debug: print(f'zero')
+
+        loglogy = np.log(-np.log(y))
+        slope, y0, *_ = np.polyfit(x_tail, loglogy, 1)
+
+        three_sigma_estimate = sorted_drops[int(.997 * drops.size)]
+
+        two_sigma_line, three_sigma_line, four_sigma_line, five_sigma_line = \
+            calc_sigma_lines(three_sigma_guess=three_sigma_estimate, slope=slope, y0=y0, bin_delta=bin_delta,
+                             debug=debug)
 
         if plots_wanted:
             pw = PlotWidget(viewBox=CustomViewBox(border=(0, 0, 0)),
@@ -8487,25 +8523,28 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                             title=f'Noise Induced Events (brightness drops) found in correlated noise for event duration: {event_duration}',
                             labels={'bottom': 'brightness drop', 'left': 'number of times noise produced drop'})
             pw.hideButtons()
-            y, x = np.histogram(drops, bins='auto')
+            # y, x = np.histogram(drops, bins='auto')
 
-
-
-            y[0] = y[1] / 2.0
+            # y[0] = y[1] / 2.0
             # Plot drops histogram
-            pw.plot(x, y, stepMode=True, fillLevel=0, brush=(0, 0, 255, 150))
+            pw.plot(bins, counts, stepMode=True, fillLevel=0, brush=(0, 0, 255, 150))
 
             # Plot red observed drop line
-            pw.plot(x=[observed_drop, observed_drop], y=[0, 1.5 * np.max(y)], pen=pg.mkPen([255, 0, 0], width=2))
+            pw.plot(x=[observed_drop, observed_drop], y=[0, 1.5 * np.max(counts)], pen=pg.mkPen([255, 0, 0], width=2))
 
             # Plot black max drop line
-            pw.plot(x=[max_drop, max_drop], y=[0, 0.1 * np.max(y)], pen=pg.mkPen([0, 0, 0], width=2))
+            # pw.plot(x=[max_drop, max_drop], y=[0, 0.1 * np.max(counts)], pen=pg.mkPen([0, 0, 0], width=2))
 
             # Plot green three_sigma_line
-            pw.plot(x=[three_sigma_line, three_sigma_line], y=[0, 0.5 * np.max(y)], pen=pg.mkPen([0, 255, 0], width=3))
+            pw.plot(x=[three_sigma_line, three_sigma_line], y=[0, 0.5 * np.max(counts)], pen=pg.mkPen([0, 255, 0], width=3))
+            pw.plot(x=[four_sigma_line, four_sigma_line], y=[0, 0.3 * np.max(counts)], pen=pg.mkPen([0, 255, 0], width=3))
+            pw.plot(x=[five_sigma_line, five_sigma_line], y=[0, 0.2 * np.max(counts)], pen=pg.mkPen([0, 255, 0], width=3))
+
+            pw.plot(x_tail, tail_count_fraction(x_tail, slope, y0) * num_trials, pen=pg.mkPen([0, 0, 0], width=3),
+                     label='fit to tail')
 
             # Plot a nice 0 line
-            right_edge = max(observed_drop * 1.1, np.max(x) * 1.1)
+            right_edge = max(observed_drop * 1.1, np.max(bins) * 1.1)
             pw.plot(x=[0, right_edge], y=[0, 0], pen=pg.mkPen([180, 180, 180], width=2))
 
             pw.addLegend()
