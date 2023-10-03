@@ -162,8 +162,7 @@ def compute_drops(event_duration: int,
 
     return drops
 
-
-def calc_sigma_lines(three_sigma_guess, slope, y0, bin_delta, debug=False):
+def calc_sigma_lines(observed_drop, three_sigma_guess, slope, y0, bin_delta, debug=False):
     five_sig = 0.999_999_427
     four_sig = 0.999_936_658
     three_sig = 0.997_300_204
@@ -172,7 +171,13 @@ def calc_sigma_lines(three_sigma_guess, slope, y0, bin_delta, debug=False):
 
     three_sigma_line = three_sigma_guess
     area_fraction = tail_area(three_sigma_guess, slope, y0) / bin_delta
-    p = 1 - area_fraction
+    if observed_drop > three_sigma_line:
+        drop_fraction = tail_area(observed_drop, slope, y0) / bin_delta
+        drop_nie_probability = drop_fraction
+    else:
+        drop_nie_probability = 1.0
+    # print(f'drop_nie_probability: {drop_nie_probability:0.6f}')
+    p = 1.0 - area_fraction
 
     if p < three_sig:
         delta = 0.05
@@ -242,7 +247,7 @@ def calc_sigma_lines(three_sigma_guess, slope, y0, bin_delta, debug=False):
         print(f' four_sigma_line: {four_sigma_line:0.1f}')
         print(f' five_sigma_line: {five_sigma_line:0.1f}')
 
-    return two_sigma_line, three_sigma_line, four_sigma_line, five_sigma_line
+    return two_sigma_line, three_sigma_line, four_sigma_line, five_sigma_line, drop_nie_probability
 
 # def excercise():
 #     noise_gen_jit(1, 1.0)

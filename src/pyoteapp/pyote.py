@@ -6416,6 +6416,16 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         msgBox.setDefaultButton(QMessageBox.Yes)
         self.queryRetVal = msgBox.exec_()
 
+    def showInfoNonModal(self, stuffToSay, title=''):
+        msgBox = QMessageBox(self)
+        msgBox.setIcon(QMessageBox.Information)
+        msgBox.setText(stuffToSay)
+        msgBox.setWindowTitle(title)
+        msgBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        msgBox.setDefaultButton(QMessageBox.Yes)
+        # self.queryRetVal = msgBox.show()
+        return msgBox
+
     def fillPrimaryAndRef(self):
         # Load self.yValues and sel.yRefStar with proper light curves as
         # indicated by the spinner values
@@ -7430,6 +7440,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                         f'{self.observedDrop:0.1f}  three sigma drop from noise: {self.threeSigmaLine:0.1f}  margin: {margin:0.1f}'
             self.showMsg(stats_msg, blankLine=False, bold=True, color='red')
 
+        stats_msg = f'fit metrics === observed drop has probability {self.drop_nie_probability:0.6f} of being a noise-induced-event'
+        self.showMsg(stats_msg, blankLine=False, bold=True)
+
         stats_msg = f'fit metrics === {self.magDropReportStr}'
         self.showMsg(stats_msg, blankLine=False, bold=True)
 
@@ -7454,7 +7467,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.updateFitMetricTxtFile()
 
 
-    def finalReport(self, false_positive, false_probability, error_bar_plots_available=True):
+    def finalReport(self, error_bar_plots_available=True):
 
         self.xlsxDict = {}
         self.writeDefaultGraphicsPlots(error_bar_plots_available=error_bar_plots_available)
@@ -7511,19 +7524,24 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.reportSpecialProcedureUsed()  # This includes use of asteroid distance/speed and star diameter
 
-        if false_positive:
-            self.showMsg(f"This 'drop' has a {false_probability:0.5f} probability of being an artifact of noise.",
-                         bold=True, color='red', blankLine=False)
-        else:
-            self.showMsg(f"This 'drop' has a zero probability of being an artifact of noise.",
-                         bold=True, color='green', blankLine=False)
+        # TODO New nie report
+        # if false_positive:
+        #     self.showMsg(f"This 'drop' has a {false_probability:0.5f} probability of being an artifact of noise.",
+        #                  bold=True, color='red', blankLine=False)
+        # else:
+        #     self.showMsg(f"This 'drop' has a zero probability of being an artifact of noise.",
+        #                  bold=True, color='green', blankLine=False)
 
-        self.showMsg(f">>>> probability > 0.0000 indicates the 'drop' may be spurious (a noise artifact)."
-                     f" Consult with an IOTA Regional Coordinator.", color='blue', blankLine=False)
-        self.showMsg(f">>>> probability = 0.0000 indicates the 'drop' is unlikely to be a noise artifact, but"
-                     f" does not prove that the 'drop' is due to an occultation", color='blue', blankLine=False)
-        self.showMsg(f">>>> Consider 'drop' shape, timing, mag drop, duration and other positive observer"
-                     f" chords before reporting the 'drop' as a positive.", color='blue')
+        self.showMsg(f'The observed drop has a probability of {self.drop_nie_probability:0.6f} of being a noise-induced-event',
+                     bold=True, color='blue', blankLine=True)
+
+        # self.showMsg(f">>>> probability > 0.0000 indicates the 'drop' may be spurious (a noise artifact)."
+        #              f" Consult with an IOTA Regional Coordinator.", color='blue', blankLine=False)
+        # self.showMsg(f">>>> probability = 0.0000 indicates the 'drop' is unlikely to be a noise artifact, but"
+        #              f" does not prove that the 'drop' is due to an occultation", color='blue', blankLine=False)
+        # self.showMsg(f">>>> Consider 'drop' shape, timing, mag drop, duration and other positive observer"
+        #              f" chords before reporting the 'drop' as a positive.", color='blue')
+        # TODO End new nie report
 
         self.showMsg("All times are calculated/reported based on the assumption that timestamps are "
                      "start-of-exposure times.",
@@ -7599,6 +7617,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             stats_msg = f'fit metrics === from FAILED noise-induced-event test: observed drop: ' \
                         f'{self.observedDrop:0.1f}  three sigma drop from noise: {self.threeSigmaLine:0.1f}  margin: {margin:0.1f}'
             self.showMsg(stats_msg, blankLine=False, bold=True, color='red')
+
+        stats_msg = f'fit metrics === observed drop has probability {self.drop_nie_probability:0.6f} of being a noise-induced-event'
+        self.showMsg(stats_msg, blankLine=False, bold=True)
 
         stats_msg = f'fit metrics === {self.magDropReportStr}'
         self.showMsg(stats_msg, blankLine=False, bold=True)
@@ -8034,8 +8055,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         if self.errBarWin is not None:
             self.errBarWin.close()
 
-        _, false_positive, false_probability, self.observedDrop, self.threeSigmaLine = \
-            self.doFalsePositiveReport(posCoefs, plots_wanted=False)  # noqa
+        # _, false_positive, false_probability, self.observedDrop, self.threeSigmaLine, self.fourSigmaLine, \
+        #     self.fiveSigmaLine =  self.doFalsePositiveReport(posCoefs, plots_wanted=False)  # noqa
+
+        fp_plot, false_positive, false_probability, self.observedDrop, self.threeSigmaLine, \
+            self.fourSigmaLine, fiveSigmaLine = self.doFalsePositiveReport(posCoefs)  # noqa
 
         if plots_wanted:
             self.errBarWin = pg.GraphicsWindow(
@@ -8056,7 +8080,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.durBarPlotItem = pw2.getPlotItem()
             pw2.hideButtons()
 
-            pw3, false_positive, false_probability, self.observedDrop, self.threeSigmaLine = self.doFalsePositiveReport(posCoefs)  # noqa
+            pw3 = fp_plot
+            # pw3, false_positive, false_probability, self.observedDrop, self.threeSigmaLine, \
+            #     self.fourSigmaLine, fiveSigmaLine = self.doFalsePositiveReport(posCoefs)  # noqa
 
             # Suppress this print statement
             # print(f'observed drop: {self.observedDrop:0.2f}  max noise-induced drop: {self.maxNoiseInducedDrop:0.2f}')
@@ -8174,7 +8200,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         if self.timestampListIsEmpty(self.yTimes):
             self.showMsg('Cannot produce final report because timestamps are missing.', bold=True, color='red')
         else:
-            self.finalReport(false_positive, false_probability, error_bar_plots_available=plots_wanted)
+            # self.finalReport(false_positive, false_probability, error_bar_plots_available=plots_wanted)
+            self.finalReport(error_bar_plots_available=plots_wanted)
             self.fillExcelReportButton.setEnabled(True)
 
         self.newRedrawMainPlot()  # To add envelope to solution
@@ -8473,12 +8500,22 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         return self.falsePositiveReport(event_duration, num_trials, observation_size, observed_drop,
                                         posCoefs, sigma, plots_wanted=plots_wanted)
 
-    @staticmethod
-    def falsePositiveReport(event_duration, num_trials, observation_size, observed_drop, posCoefs, sigma, plots_wanted=True):
+    def falsePositiveReport(self, event_duration, num_trials, observation_size, observed_drop, posCoefs, sigma, plots_wanted=True):
+        # print('we are computing error bars')
+        # QtWidgets.QApplication.processEvents()
+        # msgBox = self.showInfoNonModal('Computing error bars')
+        # msgBox.show()
+
         drops = compute_drops(event_duration=event_duration, observation_size=observation_size,
                               noise_sigma=sigma, corr_array=np.array(posCoefs), num_trials=num_trials)
+
+        # QtWidgets.QApplication.processEvents()
+        # msgBox.close()
+        # del msgBox
+        # QtWidgets.QApplication.processEvents()
+
         sorted_drops = np.sort(drops)
-        max_drop = sorted_drops[-1]
+        # max_drop = sorted_drops[-1]
         # three_sigma_line = sorted_drops[int(.997 * drops.size)]
 
         # TODO Add new sigma line call
@@ -8513,9 +8550,16 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         three_sigma_estimate = sorted_drops[int(.997 * drops.size)]
 
-        two_sigma_line, three_sigma_line, four_sigma_line, five_sigma_line = \
-            calc_sigma_lines(three_sigma_guess=three_sigma_estimate, slope=slope, y0=y0, bin_delta=bin_delta,
+        two_sigma_line, three_sigma_line, four_sigma_line, five_sigma_line, self.drop_nie_probability = \
+            calc_sigma_lines(observed_drop=observed_drop, three_sigma_guess=three_sigma_estimate,
+                             slope=slope, y0=y0, bin_delta=bin_delta,
                              debug=debug)
+
+        if self.drop_nie_probability == 1.0:
+            indices = np.where(sorted_drops > observed_drop)
+            if indices:
+                index_at_observed_drop = indices[0][0]
+                self.drop_nie_probability = index_at_observed_drop / num_trials
 
         if plots_wanted:
             pw = PlotWidget(viewBox=CustomViewBox(border=(0, 0, 0)),
@@ -8548,11 +8592,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             pw.plot(x=[0, right_edge], y=[0, 0], pen=pg.mkPen([180, 180, 180], width=2))
 
             pw.addLegend()
-            pw.plot(name='red line: the brightness drop (B - A) extracted from lightcurve')
-            pw.plot(name=f'black line: max brightness drop found in {num_trials} trials against pure noise')
-            pw.plot(name=f'green three_sigma_line: 99.7% of noise induced brightness drops are to the left.')
+            pw.plot(name=f'red line: the observed drop (B - A) extracted from lightcurve has '
+                         f'probability {self.drop_nie_probability:0.6f} of being noise induced')
+            pw.plot(name=f'black curve is LSQ fit to drop data using the Gumbel Extreme Value distribution')
+            pw.plot(name=f'green lines are at 3 sigma (99.7%), 4 sigma (99.9938%), and 5 sigma (99.99994%)')
             pw.plot(name=f'PyOTE reports a "pass" if red line is to the right of the three_sigma_line,')
-            pw.plot(name=f'BUT !!! If red line is left of black line but right of green line - refer to regional coordinator.')
+            pw.plot(name=f'BUT !!! If red line is left of the 5 sigma line - refer to regional coordinator.')
         else:
             pw = None
             y, x = np.histogram(drops, bins=50)
@@ -8579,7 +8624,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         # TODO Changed criteria for noise-induced-event fail
         # return pw, false_positive, false_probability, observed_drop, np.max(x)
-        return pw, false_positive, false_probability, observed_drop, three_sigma_line
+        return pw, false_positive, false_probability, observed_drop, three_sigma_line, four_sigma_line, five_sigma_line
 
     def displaySolution(self, subframe=True):
         D, R = self.solution
@@ -9100,7 +9145,15 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.newRedrawMainPlot()
 
         if not self.suppressReport:
+            # print('we are computing error bars')
+            QtWidgets.QApplication.processEvents()
+            # msgBox = self.showInfoNonModal('Computing error bars')
+            # msgBox.show()
             self.computeErrorBars(plots_wanted=plots_wanted)
+            QtWidgets.QApplication.processEvents()
+            # msgBox.close()
+            QtWidgets.QApplication.processEvents()
+
         self.suppressReport = False
 
         if need_to_invite_user_to_verify_timestamps:
