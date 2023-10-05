@@ -6590,13 +6590,17 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         layout.addWidget(pw, 0, 0)
 
         self.showMsg(f"Reading number {selectedPoint} with drop {drop:0.2f} was selected for validation", color='blue',
-                     bold=True, blankLine=False)
-        if falsePositive:
-            self.showMsg(f'==== The single point event is NOT valid - it has non-zero chance of being due to noise',
-                         color='red', bold=True)
-        else:
-            self.showMsg(f'==== The single point event is valid - it is unlikely to stem from noise',
-                         color='blue', bold=True)
+                     bold=True, blankLine=True)
+
+        self.showMsg(f'\n==== That single point event has a probability of {1.0 - self.drop_nie_probability:0.6f} of being due to noise',
+                     color='blue', bold=True)
+
+        # if falsePositive:
+        #     self.showMsg(f'==== The single point event is NOT valid - it has non-zero chance of being due to noise',
+        #                  color='red', bold=True)
+        # else:
+        #     self.showMsg(f'==== The single point event is valid - it is unlikely to stem from noise',
+        #                  color='blue', bold=True)
 
     def applyIntegration(self):
         if self.bint_left is None:
