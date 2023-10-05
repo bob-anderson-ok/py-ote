@@ -105,7 +105,9 @@ def getTimeStepAndOutliers(timestamps, yValues, yStatus, VizieRdict=None):
             timeChange = deltaTime[index]
             if improvedTimeStep == 0:
                 print(f'Found timestep of zero')
-            droppedReadings = round(timeChange / improvedTimeStep) - 1
+                droppedReadings = 0
+            else:
+                droppedReadings = round(timeChange / improvedTimeStep) - 1
             if droppedReadings > 0:
                 cumDroppedReadings += droppedReadings
                 timingReport.append(f'At reading {index:05}: time delta to next reading = {timeChange:0.4f} : likely {droppedReadings} dropped readings')

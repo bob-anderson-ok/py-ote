@@ -9828,9 +9828,16 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     getTimeStepAndOutliers(self.yTimes, self.yValues, self.yStatus, VizieRdict=self.VizieRdict)
 
                 # added in 5.0.1
+
                 if not timingReport == []:
-                    for line in timingReport:
-                        self.showMsg(line, blankLine=False, bold=True, color='red')
+                    if len(timingReport) > 100:
+                        self.showInfo(f'{len(timingReport)} timing errors were found. Only the first 100 are printed.\n\n'
+                                      f'All will be shown on the plot.')
+                        for line in timingReport[0:99]:
+                            self.showMsg(line, blankLine=False, bold=True, color='red')
+                    else:
+                        for line in timingReport:
+                            self.showMsg(line, blankLine=False, bold=True, color='red')
                 else:
                     self.showMsg('No time step irregularities found.')
 
