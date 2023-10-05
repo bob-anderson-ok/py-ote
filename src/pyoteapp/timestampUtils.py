@@ -229,7 +229,7 @@ def saveAllDialogEntries(dialog):
 
 
 # noinspection PyBroadException,PyUnusedLocal
-def manualTimeStampEntry(frame, dialog, flashFrames=None):
+def manualTimeStampEntry(frame, dialog, flashFrames=None, timeDelta=None):
     time = []  # Output --- to be computed from timestamp data entered in dialog
     dataEntered = 'error in data entry'
 
@@ -256,7 +256,13 @@ def manualTimeStampEntry(frame, dialog, flashFrames=None):
     if savedCustomButton:
         dialog.radioButtonCustom.setChecked(savedCustomButton)
 
-    dialog.frameDeltaTime.setText(savedCustomText)
+
+    # TODO Remember this change if complaints about manual timestamp occur
+    if timeDelta is not None:
+        dialog.radioButtonCustom.setChecked(True)
+        dialog.frameDeltaTime.setText(f'{timeDelta:0.6f}')
+    else:
+        dialog.frameDeltaTime.setText(savedCustomText)
 
     result = dialog.exec_()
 

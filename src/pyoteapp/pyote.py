@@ -6233,12 +6233,15 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         selIndices = [key for key, _ in self.selectedPoints.items()]
         selIndices.sort()
 
+        # We save self.left and self.right because we need to manipulate them for doing
+        # a trim to make the flasj edge look like a valid R-ony event
         savedLeft = self.left
         savedRight = self.right
 
         leftEdge = int(min(selIndices))
         rightEdge = int(max(selIndices))
 
+        # This effects the 'trim'
         self.left = leftEdge
         self.right = rightEdge
 
@@ -6281,6 +6284,21 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         # We need to suppress the automatic report run
         self.suppressReport = True
+
+        # TODO Get user to input frame time
+        if self.timeDelta == 0.0:
+            self.timeDelta, gotTimeDelta = QtWidgets.QInputDialog.getDouble(
+                self, ' ', 'Enter frame time (seconds):', decimals=6)
+            if not gotTimeDelta or self.timeDelta == 0.0:
+                self.left = savedLeft
+                self.right = savedRight
+                self.dRegion = None
+                self.rRegion = None
+                self.removePointSelections()
+                self.newRedrawMainPlot()
+                return
+
+        self.newRedrawMainPlot()
         self.findEvent()
 
         self.left = savedLeft
@@ -8554,6 +8572,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         three_sigma_estimate = sorted_drops[int(.997 * drops.size)]
 
+        self.showInfo(f'Calculating the noise-induced-drop probability - this can take many seconds!\n\n'
+                      f'Be patient if/while the hourglass is showing.')
+
+        self.showMsg(f'Calculating the noise-induced-drop probability - this can take many seconds!  ' 
+                     f'Be patient if/while the hourglass is showing.', color='red', bold=True)
+        QtGui.QGuiApplication.processEvents()
+
         two_sigma_line, three_sigma_line, four_sigma_line, five_sigma_line, self.drop_nie_probability = \
             calc_sigma_lines(observed_drop=observed_drop, three_sigma_guess=three_sigma_estimate,
                              slope=slope, y0=y0, bin_delta=bin_delta,
@@ -9463,11 +9488,16 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.writeCSVButton.setEnabled(True)
 
     def doManualTimestampEntry(self):
+
+        self.solution = None
+        self.newRedrawMainPlot()
+        QtGui.QGuiApplication.processEvents()
+
         errmsg = ''
         while errmsg != 'ok':
             try:
                 errmsg, manualTime, dataEntered, actualFrameCount, expectedFrameCount = \
-                    manualTimeStampEntry(self.yFrame, TSdialog(), self.flashEdges)
+                    manualTimeStampEntry(self.yFrame, TSdialog(), flashFrames=self.flashEdges, timeDelta=self.timeDelta)
             except AttributeError:
                 self.showInfo('There is no csv data available yet.')
                 return
