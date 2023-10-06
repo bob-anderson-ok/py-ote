@@ -7454,15 +7454,15 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         margin = self.observedDrop - self.threeSigmaLine
         if margin > 0:
-            stats_msg = f'fit metrics === from passed noise-induced-event test: observed drop: ' \
+            stats_msg = f'fit metrics === from noise-induced-event test: observed drop: ' \
                         f'{self.observedDrop:0.1f}  three sigma drop from noise: {self.threeSigmaLine:0.1f}  margin: {margin:0.1f}'
             self.showMsg(stats_msg, blankLine=False, bold=True)
         else:
-            stats_msg = f'fit metrics === from FAILED noise-induced-event test: observed drop: ' \
+            stats_msg = f'fit metrics === from noise-induced-event test: observed drop: ' \
                         f'{self.observedDrop:0.1f}  three sigma drop from noise: {self.threeSigmaLine:0.1f}  margin: {margin:0.1f}'
             self.showMsg(stats_msg, blankLine=False, bold=True, color='red')
 
-        stats_msg = f'fit metrics === observed drop has probability {self.drop_nie_probability:0.6f} of being a noise-induced-event'
+        stats_msg = f'fit metrics === observed drop has probability {self.drop_nie_probability:0.6e} of being a noise-induced-event'
         self.showMsg(stats_msg, blankLine=False, bold=True)
 
         stats_msg = f'fit metrics === {self.magDropReportStr}'
@@ -7554,7 +7554,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         #     self.showMsg(f"This 'drop' has a zero probability of being an artifact of noise.",
         #                  bold=True, color='green', blankLine=False)
 
-        self.showMsg(f'The observed drop has a probability of {self.drop_nie_probability:0.6f} of being a noise-induced-event',
+        self.showMsg(f'The observed drop has a probability of {self.drop_nie_probability:0.6e} of being a noise-induced-event',
                      bold=True, color='blue', blankLine=True)
 
         # self.showMsg(f">>>> probability > 0.0000 indicates the 'drop' may be spurious (a noise artifact)."
@@ -7632,15 +7632,15 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         margin = self.observedDrop - self.threeSigmaLine
         if margin > 0:
-            stats_msg = f'fit metrics === from passed noise-induced-event test: observed drop: ' \
+            stats_msg = f'fit metrics === from noise-induced-event test: observed drop: ' \
                         f'{self.observedDrop:0.1f}  three sigma drop from noise: {self.threeSigmaLine:0.1f}  margin: {margin:0.1f}'
             self.showMsg(stats_msg, blankLine=False, bold=True)
         else:
-            stats_msg = f'fit metrics === from FAILED noise-induced-event test: observed drop: ' \
+            stats_msg = f'fit metrics === from noise-induced-event test: observed drop: ' \
                         f'{self.observedDrop:0.1f}  three sigma drop from noise: {self.threeSigmaLine:0.1f}  margin: {margin:0.1f}'
             self.showMsg(stats_msg, blankLine=False, bold=True, color='red')
 
-        stats_msg = f'fit metrics === observed drop has probability {self.drop_nie_probability:0.6f} of being a noise-induced-event'
+        stats_msg = f'fit metrics === observed drop has probability {self.drop_nie_probability:0.6e} of being a noise-induced-event'
         self.showMsg(stats_msg, blankLine=False, bold=True)
 
         stats_msg = f'fit metrics === {self.magDropReportStr}'
@@ -8622,11 +8622,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
             pw.addLegend()
             pw.plot(name=f'red line: the observed drop (B - A) extracted from lightcurve has '
-                         f'probability {self.drop_nie_probability:0.6f} of being noise induced')
+                         f'probability {self.drop_nie_probability:0.6e} of being noise induced')
             pw.plot(name=f'black curve is LSQ fit to drop data using the Gumbel Extreme Value distribution')
             pw.plot(name=f'green lines are at 3 sigma (99.7%), 4 sigma (99.9938%), and 5 sigma (99.99994%)')
-            pw.plot(name=f'PyOTE reports a "pass" if red line is to the right of the three_sigma_line,')
-            pw.plot(name=f'BUT !!! If red line is left of the 5 sigma line - refer to regional coordinator.')
+            # pw.plot(name=f'PyOTE reports a "pass" if red line is to the right of the three_sigma_line,')
+            # pw.plot(name=f'BUT !!! If red line is left of the 5 sigma line - refer to regional coordinator.')
+            pw.plot(name=f'If the red line is left of the 5 sigma line - refer to regional coordinator.')
         else:
             pw = None
             y, x = np.histogram(drops, bins=50)
