@@ -7462,7 +7462,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                         f'{self.observedDrop:0.1f}  three sigma drop from noise: {self.threeSigmaLine:0.1f}  margin: {margin:0.1f}'
             self.showMsg(stats_msg, blankLine=False, bold=True, color='red')
 
-        stats_msg = f'fit metrics === observed drop has probability {self.drop_nie_probability:0.6e} of being a noise-induced-event'
+        stats_msg = f'fit metrics === observed drop has {self.reportDropProbability()} of being a noise-induced-event'
         self.showMsg(stats_msg, blankLine=False, bold=True)
 
         stats_msg = f'fit metrics === {self.magDropReportStr}'
@@ -7554,7 +7554,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         #     self.showMsg(f"This 'drop' has a zero probability of being an artifact of noise.",
         #                  bold=True, color='green', blankLine=False)
 
-        self.showMsg(f'The observed drop has a probability of {self.drop_nie_probability:0.6e} of being a noise-induced-event',
+        self.showMsg(f'The observed drop has {self.reportDropProbability()} of being a noise-induced-event',
                      bold=True, color='blue', blankLine=True)
 
         # self.showMsg(f">>>> probability > 0.0000 indicates the 'drop' may be spurious (a noise artifact)."
@@ -7640,7 +7640,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                         f'{self.observedDrop:0.1f}  three sigma drop from noise: {self.threeSigmaLine:0.1f}  margin: {margin:0.1f}'
             self.showMsg(stats_msg, blankLine=False, bold=True, color='red')
 
-        stats_msg = f'fit metrics === observed drop has probability {self.drop_nie_probability:0.6e} of being a noise-induced-event'
+
+        stats_msg = f'fit metrics === observed drop has {self.reportDropProbability()} of being a noise-induced-event'
         self.showMsg(stats_msg, blankLine=False, bold=True)
 
         stats_msg = f'fit metrics === {self.magDropReportStr}'
@@ -7675,7 +7676,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.updateFitMetricTxtFile()
 
         if error_bar_plots_available:
-            self.showHelp(self.helpLabelForFalsePositive)
+            self.showHelp(self.helpLabelForFalsePositive)  # Hidden label on SqWave model tab
 
     def addSourceFileToFitMetricTxtFile(self):
         lightCurveDir = os.path.dirname(self.csvFilePath)  # This gets the folder where the light-curve.csv is located
@@ -8081,7 +8082,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         #     self.fiveSigmaLine =  self.doFalsePositiveReport(posCoefs, plots_wanted=False)  # noqa
 
         fp_plot, false_positive, false_probability, self.observedDrop, self.threeSigmaLine, \
-            self.fourSigmaLine, fiveSigmaLine = self.doFalsePositiveReport(posCoefs)  # noqa
+            self.fourSigmaLine, self.fiveSigmaLine = self.doFalsePositiveReport(posCoefs)  # noqa
+
 
         if plots_wanted:
             self.errBarWin = pg.GraphicsWindow(
@@ -8227,6 +8229,22 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.fillExcelReportButton.setEnabled(True)
 
         self.newRedrawMainPlot()  # To add envelope to solution
+
+    def reportDropProbability(self):
+        # TODO Remove these print statements
+        # print(f'3 sigma drop: {self.threeSigmaLine:0.3f}')
+        # print(f'4 sigma drop: {self.fourSigmaLine:0.3f}')
+        # print(f'5 sigma drop: {self.fiveSigmaLine:0.3f}')
+        # print(f'observed drop: {self.observedDrop:0.3f}')
+
+        # Expected usage: observed drop has <one of strings below> of being induced by noise
+        if self.observedDrop < self.threeSigmaLine:
+            return f'a less than 3 sigma probability level'
+        elif self.observedDrop < self.fiveSigmaLine:
+            return f'a probability of {self.drop_nie_probability:0.1e}'
+        else:
+            self.dropSigmaEstimate = (self.observedDrop - self.fiveSigmaLine) / (self.fiveSigmaLine - self.fourSigmaLine)
+            return f'an estimated {self.dropSigmaEstimate:0.1f} sigma level'
 
     def calcDetectability(self):
         if self.timeDelta == 0:
@@ -8572,11 +8590,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         three_sigma_estimate = sorted_drops[int(.997 * drops.size)]
 
-        self.showInfo(f'Calculating the noise-induced-drop probability - this can take many seconds!\n\n'
-                      f'Be patient if/while the hourglass is showing.')
+        # self.showInfo(f'Calculating the noise-induced-drop probability - this can take many seconds!\n\n'
+        #               f'Be patient if/while the hourglass is showing.')
 
         self.showMsg(f'Calculating the noise-induced-drop probability - this can take many seconds!  ' 
-                     f'Be patient if/while the hourglass is showing.', color='red', bold=True)
+                     f'Be patient.', color='red', bold=True)
         QtGui.QGuiApplication.processEvents()
 
         two_sigma_line, three_sigma_line, four_sigma_line, five_sigma_line, self.drop_nie_probability = \
@@ -8596,9 +8614,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                             title=f'Noise Induced Events (brightness drops) found in correlated noise for event duration: {event_duration}',
                             labels={'bottom': 'brightness drop', 'left': 'number of times noise produced drop'})
             pw.hideButtons()
-            # y, x = np.histogram(drops, bins='auto')
 
-            # y[0] = y[1] / 2.0
             # Plot drops histogram
             pw.plot(bins, counts, stepMode=True, fillLevel=0, brush=(0, 0, 255, 150))
 
@@ -8622,7 +8638,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
             pw.addLegend()
             pw.plot(name=f'red line: the observed drop (B - A) extracted from lightcurve has '
-                         f'probability {self.drop_nie_probability:0.6e} of being noise induced')
+                         f'a probability {self.drop_nie_probability:0.1e} of being noise induced')
             pw.plot(name=f'black curve is LSQ fit to drop data using the Gumbel Extreme Value distribution')
             pw.plot(name=f'green lines are at 3 sigma (99.7%), 4 sigma (99.9938%), and 5 sigma (99.99994%)')
             # pw.plot(name=f'PyOTE reports a "pass" if red line is to the right of the three_sigma_line,')

@@ -180,7 +180,7 @@
              <property name="movable">
               <bool>true</bool>
              </property>
-             <widget class="QWidget" name="tab_2">
+             <widget class="QWidget" name="Lightcurves">
               <attribute name="title">
                <string>Lightcurves</string>
               </attribute>
@@ -2574,7 +2574,7 @@
                </item>
               </layout>
              </widget>
-             <widget class="QWidget" name="analysisTab">
+             <widget class="QWidget" name="SqWaveModel">
               <attribute name="title">
                <string>SqWave model</string>
               </attribute>
@@ -2781,7 +2781,7 @@
                     </size>
                    </property>
                    <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Advisory =========== for Noise Induced Event (NIE) distribution&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Assuming that you have been diligent in removing common lightcurve artifacts (dips caused by something other than an occultation,  like clouds, or a contrail, or ...) using the normalization function (when appropriate), please be aware that ...&lt;/p&gt;&lt;p&gt;... finding the &lt;span style=&quot; color:#ff0000;&quot;&gt;red&lt;/span&gt; bar (positioned at the observed brightness drop value) to the left of the &lt;span style=&quot; color:#00aa00;&quot;&gt;green&lt;/span&gt; bar (this &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;three_sigma_line&lt;/span&gt; shows where 99.7% of brightness drops due to noise are located) is usually sufficient reason to report a 'miss' (but see note below).&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt; But&lt;/span&gt;, before reporting a 'miss', you should use the Event Detectability calculator to determine if the event was 'detectable'. If the event was 'detectable' and yet a 'miss', the observation has value in constraining one edge of the asteroid. If the 'miss' was of an 'undetectable' event, its value as a constraint on the asteroid edge is greatly diminished.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;However&lt;/span&gt;,  a &lt;span style=&quot; color:#ff0000;&quot;&gt;red&lt;/span&gt; bar to the right of the black bar should &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;NEVER&lt;/span&gt; be the sole reason to report a 'positive'.&lt;/p&gt;&lt;p&gt;If you get a red bar to the right of the black bar, &lt;span style=&quot; font-weight:600; text-decoration: underline;&quot;&gt;and this is the only available chord&lt;/span&gt;, look at the Noise Induced Event distribution plot and only consider reporting a 'positive' if the measured brightness drop is well to the right of the black bar (which shows the biggest brightness drop found during the simulation run). 'Well to the right' is rather vague, so consult with your area coordinator whenever you are uncertain.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Note:&lt;/span&gt; if your observed 'brightness drop' (&lt;span style=&quot; color:#ff0000;&quot;&gt;red&lt;/span&gt; bar) is to the right of the &lt;span style=&quot; color:#00aa7f;&quot;&gt;green&lt;/span&gt; bar AND there are nearby chords reporting 'positives', there may be value in your observation in spite of a non-zero NIE probability calculation result; your observation may increase confidence in the event recorded by the nearby chords.&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Advisory =========== for Noise Induced Event (NIE) distribution&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Assuming that you have been diligent in removing common lightcurve artifacts (dips caused by something other than an occultation,  like clouds, or a contrail, or ...) using the normalization function (when appropriate), please be aware that ...&lt;/p&gt;&lt;p&gt;... finding the &lt;span style=&quot; color:#ff0000;&quot;&gt;red&lt;/span&gt; bar (positioned at the observed brightness drop value) to the left of the three &lt;span style=&quot; color:#00aa00;&quot;&gt;green&lt;/span&gt; bars (the leftmost bar is the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;three_sigma_line&lt;/span&gt; and shows where 99.7% of brightness drops due to noise are located) is usually sufficient reason to report a 'miss' (but see &lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Note&lt;/span&gt; below).&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt; But&lt;/span&gt;, before reporting a 'miss', you should use the Event Detectability calculator to determine if the event was 'detectable'. If the event was 'detectable' and yet a 'miss', the observation has value in constraining one edge of the asteroid. If the 'miss' was of an 'undetectable' event, its value as a constraint on the asteroid edge is greatly diminished.&lt;/p&gt;&lt;p&gt;(The green bars are at the 3 sigma, 4 sigma, and 5 sigma positions. Any event with a drop that is greater than 5 sigma has a vanishingly small probability of being induced by noise alone.)&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;However&lt;/span&gt;,  a &lt;span style=&quot; color:#ff0000;&quot;&gt;red&lt;/span&gt; bar to the right of the three green bars should &lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;NEVER&lt;/span&gt; be the sole reason to report a 'positive'.&lt;/p&gt;&lt;p&gt;If you get a red bar to the right of all the green bars, &lt;span style=&quot; font-weight:600; text-decoration: underline;&quot;&gt;and this is the only available chord&lt;/span&gt;,  consult with your area coordinator as to whether the observation can be reported as a positive.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#fc0107;&quot;&gt;Note:&lt;/span&gt; if your observed 'brightness drop' (&lt;span style=&quot; color:#ff0000;&quot;&gt;red&lt;/span&gt; bar) is to the right of at least the first &lt;span style=&quot; color:#00aa7f;&quot;&gt;green&lt;/span&gt; bar but not to the right of the last green bar AND there are nearby chords reporting 'positives', there may be value in your observation in spite of the drop falling in the three sigma to five sigma probability 'gray zone'; your observation may increase confidence in the event recorded by the nearby chords.&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="text">
                     <string/>
@@ -3312,7 +3312,7 @@
                </item>
               </layout>
              </widget>
-             <widget class="QWidget" name="tab_4">
+             <widget class="QWidget" name="VizierExport">
               <attribute name="title">
                <string>VizieR export</string>
               </attribute>
@@ -4846,7 +4846,7 @@
                </property>
               </widget>
              </widget>
-             <widget class="QWidget" name="tab_3">
+             <widget class="QWidget" name="OtherModels">
               <attribute name="title">
                <string>Other models</string>
               </attribute>
@@ -6543,7 +6543,7 @@ Setting this value to zero will force Miss distance optimization to be skipped.<
                </layout>
               </widget>
              </widget>
-             <widget class="QWidget" name="tab_9">
+             <widget class="QWidget" name="ManualTimestamps">
               <attribute name="title">
                <string>Manual timestamps</string>
               </attribute>
@@ -7087,7 +7087,7 @@ Setting this value to zero will force Miss distance optimization to be skipped.<
                </item>
               </layout>
              </widget>
-             <widget class="QWidget" name="tab_8">
+             <widget class="QWidget" name="NoiseDetectability">
               <attribute name="title">
                <string>Noise analysis/Detectability</string>
               </attribute>
@@ -7452,7 +7452,7 @@ Setting this value to zero will force Miss distance optimization to be skipped.<
                </item>
               </layout>
              </widget>
-             <widget class="QWidget" name="tab">
+             <widget class="QWidget" name="NightEagle3">
               <attribute name="title">
                <string>Night Eagle 3</string>
               </attribute>
