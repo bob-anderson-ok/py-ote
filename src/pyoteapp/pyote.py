@@ -8243,7 +8243,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         elif self.observedDrop < self.fiveSigmaLine:
             return f'a probability of {self.drop_nie_probability:0.1e}'
         else:
-            self.dropSigmaEstimate = (self.observedDrop - self.fiveSigmaLine) / (self.fiveSigmaLine - self.fourSigmaLine)
+            self.dropSigmaEstimate = 5.0 + (self.observedDrop - self.fiveSigmaLine) / (self.fiveSigmaLine - self.fourSigmaLine)
             return f'an estimated {self.dropSigmaEstimate:0.1f} sigma level'
 
     def calcDetectability(self):
