@@ -179,8 +179,9 @@ def calc_sigma_lines(observed_drop, three_sigma_guess, slope, y0, bin_delta, deb
     # print(f'drop_nie_probability: {drop_nie_probability:0.6f}')
     p = 1.0 - area_fraction
 
+    delta = three_sigma_guess / 100
     if p < three_sig:
-        delta = 0.05
+        # delta = 0.05
         while True:
             area_fraction = tail_area(three_sigma_line, slope, y0) / bin_delta
             p = 1 - area_fraction
@@ -190,7 +191,7 @@ def calc_sigma_lines(observed_drop, three_sigma_guess, slope, y0, bin_delta, deb
                 three_sig_area = area_fraction
                 break
     else:
-        delta = -0.05
+        # delta = -0.05
         while True:
             area_fraction = tail_area(three_sigma_line, slope, y0) / bin_delta
             p = 1 - area_fraction
@@ -201,7 +202,7 @@ def calc_sigma_lines(observed_drop, three_sigma_guess, slope, y0, bin_delta, deb
                 break
 
     five_sigma_line = three_sigma_line
-    delta = 0.05
+    # delta = 0.05
     while True:
         area_fraction = tail_area(five_sigma_line, slope, y0) / bin_delta
         p = 1 - area_fraction
@@ -212,7 +213,7 @@ def calc_sigma_lines(observed_drop, three_sigma_guess, slope, y0, bin_delta, deb
             break
 
     four_sigma_line = three_sigma_line
-    delta = 0.05
+    # delta = 0.05
     while True:
         area_fraction = tail_area(four_sigma_line, slope, y0) / bin_delta
         p = 1 - area_fraction
@@ -223,7 +224,7 @@ def calc_sigma_lines(observed_drop, three_sigma_guess, slope, y0, bin_delta, deb
             break
 
     two_sigma_line = three_sigma_line
-    delta = -0.05
+    delta = -delta
     while True:
         area_fraction = tail_area(two_sigma_line, slope, y0) / bin_delta
         p = 1 - area_fraction

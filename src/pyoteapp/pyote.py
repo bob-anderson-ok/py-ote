@@ -6610,7 +6610,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.showMsg(f"Reading number {selectedPoint} with drop {drop:0.2f} was selected for validation", color='blue',
                      bold=True, blankLine=True)
 
-        self.showMsg(f'\n==== That single point event has a probability of {1.0 - self.drop_nie_probability:0.6f} of being due to noise',
+        self.showMsg(f'\n==== That single point event has a probability of {self.drop_nie_probability:0.6f} of being due to noise',
                      color='blue', bold=True)
 
         # if falsePositive:
@@ -8231,11 +8231,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.newRedrawMainPlot()  # To add envelope to solution
 
     def reportDropProbability(self):
-        # TODO Remove these print statements
-        # print(f'3 sigma drop: {self.threeSigmaLine:0.3f}')
-        # print(f'4 sigma drop: {self.fourSigmaLine:0.3f}')
-        # print(f'5 sigma drop: {self.fiveSigmaLine:0.3f}')
-        # print(f'observed drop: {self.observedDrop:0.3f}')
 
         # Expected usage: observed drop has <one of strings below> of being induced by noise
         if self.observedDrop < self.threeSigmaLine:
@@ -8541,24 +8536,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                                         posCoefs, sigma, plots_wanted=plots_wanted)
 
     def falsePositiveReport(self, event_duration, num_trials, observation_size, observed_drop, posCoefs, sigma, plots_wanted=True):
-        # print('we are computing error bars')
-        # QtWidgets.QApplication.processEvents()
-        # msgBox = self.showInfoNonModal('Computing error bars')
-        # msgBox.show()
 
         drops = compute_drops(event_duration=event_duration, observation_size=observation_size,
                               noise_sigma=sigma, corr_array=np.array(posCoefs), num_trials=num_trials)
 
-        # QtWidgets.QApplication.processEvents()
-        # msgBox.close()
-        # del msgBox
-        # QtWidgets.QApplication.processEvents()
-
         sorted_drops = np.sort(drops)
-        # max_drop = sorted_drops[-1]
-        # three_sigma_line = sorted_drops[int(.997 * drops.size)]
-
-        # TODO Add new sigma line call
 
         counts, bins = np.histogram(drops, bins='auto')
 
