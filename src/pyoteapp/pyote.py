@@ -6610,7 +6610,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.showMsg(f"Reading number {selectedPoint} with drop {drop:0.2f} was selected for validation", color='blue',
                      bold=True, blankLine=True)
 
-        self.showMsg(f'\n==== That single point event has a probability of {self.drop_nie_probability:0.6f} of being due to noise',
+        self.showMsg(f'\n==== That single point event has a probability of {1.0 - self.drop_nie_probability:0.6f} of being due to noise',
                      color='blue', bold=True)
 
         # if falsePositive:
@@ -7454,8 +7454,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         margin = self.observedDrop - self.threeSigmaLine
         if margin > 0:
-            stats_msg = f'fit metrics === from noise-induced-event test: observed drop: ' \
-                        f'{self.observedDrop:0.1f}  three sigma drop from noise: {self.threeSigmaLine:0.1f}  margin: {margin:0.1f}'
+            stats_msg = f'fit metrics === from noise-induced-event test (observed drop: ' \
+                        f'{self.observedDrop:0.1f})  (three sigma drop from noise: {self.threeSigmaLine:0.1f}) gives margin: {margin:0.1f}'
             self.showMsg(stats_msg, blankLine=False, bold=True)
         else:
             stats_msg = f'fit metrics === from noise-induced-event test: observed drop: ' \
@@ -7632,8 +7632,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         margin = self.observedDrop - self.threeSigmaLine
         if margin > 0:
-            stats_msg = f'fit metrics === from noise-induced-event test: observed drop: ' \
-                        f'{self.observedDrop:0.1f}  three sigma drop from noise: {self.threeSigmaLine:0.1f}  margin: {margin:0.1f}'
+            stats_msg = f'fit metrics === from noise-induced-event test (observed drop: ' \
+                        f'{self.observedDrop:0.1f})  (three sigma drop from noise: {self.threeSigmaLine:0.1f}) gives margin: {margin:0.1f}'
             self.showMsg(stats_msg, blankLine=False, bold=True)
         else:
             stats_msg = f'fit metrics === from noise-induced-event test: observed drop: ' \
@@ -8087,7 +8087,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         if plots_wanted:
             self.errBarWin = pg.GraphicsWindow(
-                title='Solution distributions with containment intervals marked --- false positive distribution')
+                title='Solution distributions with containment intervals marked --- Noise Induced Events distribution')
             self.errBarWin.resize(1200, 1000)
             layout = QtWidgets.QGridLayout()
             self.errBarWin.setLayout(layout)
