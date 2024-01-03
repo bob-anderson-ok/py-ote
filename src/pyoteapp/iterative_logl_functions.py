@@ -221,10 +221,12 @@ def find_best_r_only_from_min_max_size(
     # Use numpy version of metric calculator to initialize iteration variables
 
     # B excludes y[r] and the extra point at right - but this is meaningless because r is incorrect at this point
-    b_s, b_s2, b_n, b_var = calc_metric_numpy(y[r + 1:right])
+    # b_s, b_s2, b_n, b_var = calc_metric_numpy(y[r + 1:right]) #Graem need to add a 1 so it includes final point
+    b_s, b_s2, b_n, b_var = calc_metric_numpy(y[r + 1:right + 1])
 
     # A always excludes y[r]) - but this is meaningless because r is incorrect at this point
-    a_s, a_s2, a_n, a_var = calc_metric_numpy(y[left + 1:r])
+    # a_s, a_s2, a_n, a_var = calc_metric_numpy(y[left + 1:r]) Graem delete the shift over right
+    a_s, a_s2, a_n, a_var = calc_metric_numpy(y[left:r])  # Graem This only does 1 point as we want!
 
     b = b_s / b_n
     a = a_s / a_n
@@ -233,7 +235,10 @@ def find_best_r_only_from_min_max_size(
     metric = calc_metric()
     update_best_solution()
 
-    r_final = left + max_event - 1
+    # yield 0.0, 1.0, -1, r_best, b_best, a_best, sigma_b, sigma_a, max_metric #Graem temporarily added this for print
+
+    # r_final = left + max_event - 1  Graem delete the shift over left
+    r_final = left + max_event
 
     while r < r_final:
         # calc metric for next r position from current position
@@ -315,10 +320,11 @@ def find_best_d_only_from_min_max_size(
     # Use numpy version of metric calculator to initialize iteration variables
 
     # Excludes d from B - this is meaningless because d is incorrect at this point
-    b_s, b_s2, b_n, b_var = calc_metric_numpy(y[left:d])
+    b_s, b_s2, b_n, b_var = calc_metric_numpy(y[left:d])  #Graem This only does 1 point as we want! (no change here)
 
     # Excludes d from A - this is meaningless because d is incorrect at this point
-    a_s, a_s2, a_n, a_var = calc_metric_numpy(y[d+1:right])
+    # a_s, a_s2, a_n, a_var = calc_metric_numpy(y[d+1:right])
+    a_s, a_s2, a_n, a_var = calc_metric_numpy(y[d + 1:right + 1])  # Graem need to add a 1 so it includes final point
 
     b = b_s / b_n
     a = a_s / a_n
@@ -327,9 +333,12 @@ def find_best_d_only_from_min_max_size(
     metric = calc_metric()
     update_best_solution()
 
+    # yield 0.0, 1.0, d_best, -1, b_best, a_best, sigma_b, sigma_a, max_metric #Graem temporarily added this for print
+
     # d_final = right - min_event
     # changed in 4.4.7
-    d_final = right - min_event + 1
+    # d_final = right - min_event + 1  Graem remove the "+1" to prevent it going to far
+    d_final = right - min_event
 
     while d < d_final:
         # calc metric for next d position from current position

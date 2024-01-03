@@ -52,6 +52,7 @@ from pyoteapp.pyote_modelling_utility_functions import demo_event
 from pyoteapp.pyote_modelling_utility_functions import demo_diffraction_field
 from pyoteapp.pyote_modelling_utility_functions import plot_diffraction
 from pyoteapp.pyote_modelling_utility_functions import illustrateDiskOnDiskEvent, illustrateEdgeOnDiskEvent
+from pyoteapp.pyote_modelling_utility_functions import asteroid_km_from_mas, asteroid_mas_from_km
 
 from math import trunc, floor
 import matplotlib.pyplot as plt
@@ -261,6 +262,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         super(SimplePlot, self).__init__()
 
         self.getListOfVizieRlightcurves()
+
+        self.camCorrection = 0.0  # pcs
+
+        self.consistentLcpPresent = False
 
         self.metricLimitLeft = None
         self.metricLimitRight = None
@@ -1914,8 +1919,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         finalTimestamp = self.VizieRdict["timestamps"][vizierRight]
         deltaTime = convertTimeStringToTime(finalTimestamp) - convertTimeStringToTime(initialTimestamp)
         time = convertTimeStringToTime(initialTimestamp)
+
+        # pcs adjust for camera and VTI time correction
+        time += self.camCorrection
+
         roundedTimeStr = round(time * 100) / 100
         vizierTimestamp = convertTimeToTimeString(float(roundedTimeStr))[1:-3]
+
 
         year = self.vzDateYearSpinner.value()
 
@@ -1923,7 +1933,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         day = self.vzDateDaySpinner.value()
 
-        numReadings = vizierRight - vizierLeft
+        # pcs added "+1" to next line to correct number of points in the file
+        # numReadings = vizierRight - vizierLeft
+        numReadings = vizierRight - vizierLeft + 1
 
         dateText = f'Date: {year}-{month}-{day} {vizierTimestamp}: {deltaTime:0.2f}: {numReadings}'
 
@@ -2412,12 +2424,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.showInfo(f'asteroidDiameterKmEdit: {e}')
             return
 
-        if self.Lcp is not None:
+        if self.Lcp is not None:  # We are in edit mode after a full Lcp has been created
             self.Lcp.set("asteroid_diameter_km", None)
             self.Lcp.set("asteroid_diameter_mas", None)
             self.Lcp.set("asteroid_diameter_km", value)
+            self.asteroidDiameterMasEdit.setText(f"{self.Lcp.asteroid_diameter_mas:0.4f}")
+            return
 
-        self.processModelLightcurveCoreEdit()
+        self.processModelLightcurveCoreEdit()  # No Lcp yet, so check for done with core entries
 
     def processAsteroidDiameterMasFinish(self):
         try:
@@ -2430,6 +2444,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 return
         except ValueError as e:
             self.showInfo(f'asteroidDiameterMasEdit: {e}')
+            return
+
+        if self.Lcp is not None:  # We are in edit mode after a full Lcp has been created
+            self.Lcp.set("asteroid_diameter_km", None)
+            self.Lcp.set("asteroid_diameter_mas", None)
+            self.Lcp.set("asteroid_diameter_mas", value)
+            self.asteroidDiameterKmEdit.setText(f"{self.Lcp.asteroid_diameter_km:0.4f}")
             return
 
         self.processModelLightcurveCoreEdit()
@@ -2447,6 +2468,18 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.showInfo(f'asteroidSpeedShadowEdit: {e}')
             return
 
+        if self.Lcp is not None:  # We are in edit mode after a full Lcp has been created
+            # self.Lcp.set("shadow_speed", None)
+            # self.Lcp.set("sky_motion_mas_per_sec", None)
+            self.Lcp.set("shadow_speed", value)
+
+            sky_motion_mas_per_sec = asteroid_mas_from_km(self.Lcp.shadow_speed, self.Lcp.asteroid_distance_AU)
+
+            self.Lcp.set("sky_motion_mas_per_sec", sky_motion_mas_per_sec)
+
+            self.asteroidSpeedSkyEdit.setText(f"{sky_motion_mas_per_sec:0.4f}")
+            return
+
         self.processModelLightcurveCoreEdit()
 
     def processAsteroidSpeedSkyFinish(self):
@@ -2460,6 +2493,18 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 return
         except ValueError as e:
             self.showInfo(f'asteroidSpeedSkyEdit: {e}')
+            return
+
+        if self.Lcp is not None:  # We are in edit mode after a full Lcp has been created
+            # self.Lcp.set("shadow_speed", None)
+            # self.Lcp.set("sky_motion_mas_per_sec", None)
+            self.Lcp.set("sky_motion_mas_per_sec", value)
+
+            shadow_speed = asteroid_km_from_mas(self.Lcp.sky_motion_mas_per_sec, self.Lcp.asteroid_distance_AU)
+
+            self.asteroidSpeedSkyEdit.setText(f"{self.Lcp.sky_motion_mas_per_sec:0.4f}")
+            self.Lcp.set("shadow_speed", shadow_speed)
+            self.asteroidSpeedShadowEdit.setText(f"{shadow_speed:0.4f}")
             return
 
         self.processModelLightcurveCoreEdit()
@@ -3716,7 +3761,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         if self.Lcp is not None:
             self.setModelToUseFromRadioButtons()
 
-        self.enableDisableEllipseEditBoxes(state=self.diffractionRadioButton.isChecked())
+        self.enableDisableEllipseEditBoxes(state=self.diffractionRadioButton.isChecked() or
+                                                 self.diskOnDiskRadioButton.isChecked())
 
     def fillLightcurvePanelEditBoxes(self):
         # If no frame time is present, use the one from the ved Lcp
@@ -4085,6 +4131,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
             if not anUnsetParameterFound:
                 self.enableLightcurveButtons()
+                self.consistentLcpPresent = True
+                # TODO Refine these enables
+                self.enablePrimaryEntryEditBoxes()
+                self.enableSecondaryEditBoxes()
+
                 self.fitLightcurveButton.setStyleSheet("background-color: yellow")
                 if self.edgeOnDiskRadioButton.isChecked():
                     self.DdegreesEdit.setText(f'{self.Lcp.D_limb_angle_degrees:0.0f}')
@@ -4294,6 +4345,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     self.ellipseAngleEdit.setText('0.0')
 
                 self.asteroidSpeedSkyEdit.setText(f'{self.Lcp.sky_motion_mas_per_sec:0.5f}')
+                self.consistentLcpPresent = True
 
             else:
                 # noinspection PyTypeChecker
@@ -4332,6 +4384,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     self.asteroidDiameterKmEdit.setText(f'{self.Lcp.asteroid_diameter_km:0.5f}')
 
                 self.asteroidSpeedShadowEdit.setText(f'{self.Lcp.shadow_speed:0.5f}')
+                self.consistentLcpPresent = True
 
             self.setModelToUseFromRadioButtons()
 
@@ -4418,8 +4471,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.missDistanceKmEdit.setEnabled(True)
         self.asteroidDiameterKmEdit.setEnabled(True)
         self.asteroidDiameterMasEdit.setEnabled(True)
-        self.asteroidSpeedShadowEdit.setEnabled(False)
-        self.asteroidSpeedSkyEdit.setEnabled(False)
+        self.asteroidSpeedShadowEdit.setEnabled(True)
+        self.asteroidSpeedSkyEdit.setEnabled(True)
         self.asteroidDistAUedit.setEnabled(False)
         self.asteroidDistArcsecEdit.setEnabled(False)
         self.wavelengthEdit.setEnabled(True)
@@ -4429,9 +4482,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.missDistanceKmEdit.setEnabled(True)
         self.asteroidDiameterKmEdit.setEnabled(True)
         self.magDropEdit.setEnabled(True)
-        self.asteroidDiameterMasEdit.setEnabled(False)
-        self.asteroidSpeedShadowEdit.setEnabled(False)
-        self.asteroidSpeedSkyEdit.setEnabled(False)
+        self.asteroidDiameterMasEdit.setEnabled(True)
+        self.asteroidSpeedShadowEdit.setEnabled(True)
+        self.asteroidSpeedSkyEdit.setEnabled(True)
         self.asteroidDistAUedit.setEnabled(False)
         self.asteroidDistArcsecEdit.setEnabled(False)
         self.wavelengthEdit.setEnabled(False)
@@ -5113,9 +5166,20 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         if xlsxfilepath:
             # noinspection PyBroadException
-            wb = load_workbook(xlsxfilepath)
+
+            # pcs added "data_only=True" to next line so it reads values, not equations
+            # pcs this is required for the camera and VTI offset since it's a calculated
+            # pcs quantity in the spreadsheet.  it does not appear pyote ever uses the
+            # pcs equations, anyway.
+
+            # wb = load_workbook(xlsxfilepath)
+            wb = load_workbook(xlsxfilepath, data_only=True)
+
             try:
                 sheet = wb['DATA']
+
+                # pcs added next line so the camera and VTI correction can be read directly
+                calcsheet = wb['Corrections Calculations']
 
                 # Validate that a proper Asteroid Occultation Report Form was selected by reading the report header
                 if not sheet['G1'].value == 'Asteroid Occultation Report Form':
@@ -5181,7 +5245,15 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 if altitudeUnits == 'm':
                     self.vzSiteAltitudeEdit.setText(f'{altitude}')
                 else:
-                    self.vzSiteAltitudeEdit.setText(f'{altitude * 0.3048}')
+                    # pcs modified the next line to round to nearest integer in meters.  this is
+                    # pcs needed because the code tries to convert the resulting altitude from a
+                    # pcs string to an int and this fails if the string contains a decimal.  that
+                    # pcs line also uses "int" which would truncate instead of rounding.  so this
+                    # pcs fixes that, too.
+
+                    # self.vzSiteAltitudeEdit.setText(f'{altitude * 0.3048}')
+                    self.vzSiteAltitudeEdit.setText(f'{round(altitude * 0.3048)}') # pcs
+
                 # print(f'Altitude: {altitude} {altitudeUnits}')
 
                 Observer = 'D9'
@@ -5195,11 +5267,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 starNumber = sheet[StarNumber].internal_value
                 if type(starNumber) is int:
                     starNumber = f'{starNumber}'
-                if starType == 'TYC':
+                if starType.startswith('TYC'):      # pcs
                     self.vzStarTycho2Edit.setText(starNumber)
-                elif starType == 'HIP':
+                elif starType.startswith('HIP'):    # pcs
                     self.vzStarHipparcosEdit.setText(starNumber)
-                elif starType == 'UCAC4':
+                elif starType.startswith('UCAC4'):  # pcs
                     self.vzStarUCAC4Edit.setText(starNumber)
 
                 # print(f'Star id: {starType} {starNumber}')
@@ -5211,6 +5283,54 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.vzAsteroidNameEdit.setText(asteroidName)
                 self.vzAsteroidNumberEdit.setText(f'{asteroidNumber}')
                 # print(f'{asteroidName}({asteroidNumber})')
+
+                # pcs added next block to calculate camera and VTI correction.  for a camera
+                # pcs with a global shutter, the D and R corrections are the same so the
+                # pcs average will match either one.  for a camera with a rolling shutter,
+                # pcs though, the two corrections can be different.  if this is a drift scan,
+                # pcs the difference will vary linearly thoughout the entire video so, in that
+                # pcs case, it would be more correct to linearly interpolate the correction to
+                # pcs each time point.  essentially, that will amount to a slightly different
+                # pcs event duration than what's calculated the normal way.  whether the event
+                # pcs is from a drift scan could be read from the spreadsheet as well.  if this
+                # pcs is a rolling shutter on a tracked scope, there should be no motion so the
+                # pcs the D and R corrections would match and the average would be adequate.
+                # pcs there could be some motion, though, from things like periodic error.  for
+                # pcs short events, linear interpolation could be used as for drift scans but
+                # pcs it's probably safer to simply use the average D and R correction.  if it
+                # pcs was a long event and the motion was large, the target star could oscillate
+                # pcs back and forth.  to accurately correct for that, the adjusted timesteps
+                # pcs wouldn't be constant and thus couldn't be represented by the required
+                # pcs output format.  so taking the average is probably the only alternative
+                # pcs as linear would be incorrect in this case.  for a tracked scope, the errors
+                # pcs due to ignoring the small motion across a few rows would be tiny and not
+                # pcs worth trying to mmmodel so averaging the D and R corrections is all that
+                # pcs really makes sense.  in fact, using the average for a drift scan is
+                # pcs possibly the safest option there as well.  if an event is very short,
+                # pcs scintillation or wind shake could cause the two rows to be quite
+                # pcs different leading to "large", nonphysical corrections.  for the short
+                # pcs subsets of the events used for the vizier files, the row correction is
+                # pcs probably insignificant, even for the drift scan case.  thus the average
+                # pcs is used in these mods for all cases.
+                # pcs note that this does not check to see if there is both a D and R specified
+                # pcs in the spreadsheet.  if one is missing, both corrections will still be
+                # pcs calculated correctly for a camera with a global shutter.  if the camera
+                # pcs has a rolling shutter, however, and thus the row number is not specified
+                # pcs for for the D or R, a zero will be used in the calculated of either L45
+                # pcs or L47.  thus, averaging the two corrections will result in a somewhat
+                # pcs wrong value.  so this should really include a check for valid D and R
+                # pcs values and ignore the other correction.
+
+                DCamCorrection = 'L45'
+                dCamCorrection = calcsheet[DCamCorrection].internal_value
+                RCamCorrection = 'L47'
+                rCamCorrection = calcsheet[RCamCorrection].internal_value
+                self.camCorrection = 0.5 * (dCamCorrection + rCamCorrection)
+
+                self.showMsg(
+                    f'{self.camCorrection} second camera and VTI correction will be added to the output timestamp')
+
+            # pcs end of the added block
 
             except Exception as e:
                 self.showMsg(repr(e))
@@ -5383,18 +5503,18 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     sheet[Rerr99].value = self.xlsxDict["Rerr99"]
 
                 if 'Dhour' in self.xlsxDict:
-                    sheet[Dhour] = int(self.xlsxDict['Dhour'])
+                    sheet[Dhour] = int(self.xlsxDict['Dhour'])  # noqa  expected str
                 if 'Dmin' in self.xlsxDict:
-                    sheet[Dmin] = int(self.xlsxDict['Dmin'])
+                    sheet[Dmin] = int(self.xlsxDict['Dmin'])    # noqa  expected str
                 if 'Dsec' in self.xlsxDict:
-                    sheet[Dsec] = float(self.xlsxDict['Dsec'])
+                    sheet[Dsec] = float(self.xlsxDict['Dsec'])  # noqa  expected str
 
                 if 'Rhour' in self.xlsxDict:
-                    sheet[Rhour] = int(self.xlsxDict['Rhour'])
+                    sheet[Rhour] = int(self.xlsxDict['Rhour'])  # noqa  expected str
                 if 'Rmin' in self.xlsxDict:
-                    sheet[Rmin] = int(self.xlsxDict['Rmin'])
+                    sheet[Rmin] = int(self.xlsxDict['Rmin'])    # noqa  expected str
                 if 'Rsec' in self.xlsxDict:
-                    sheet[Rsec] = float(self.xlsxDict['Rsec'])
+                    sheet[Rsec] = float(self.xlsxDict['Rsec'])  # noqa  expected str
 
                 # Overwriting the original file !!!
                 wb.save(xlsxfilepath)
@@ -7458,8 +7578,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                         f'{self.observedDrop:0.1f})  (three sigma drop from noise: {self.threeSigmaLine:0.1f}) gives margin: {margin:0.1f}'
             self.showMsg(stats_msg, blankLine=False, bold=True)
         else:
-            stats_msg = f'fit metrics === from noise-induced-event test: observed drop: ' \
-                        f'{self.observedDrop:0.1f}  three sigma drop from noise: {self.threeSigmaLine:0.1f}  margin: {margin:0.1f}'
+            stats_msg = f'fit metrics === from noise-induced-event test (observed drop: ' \
+                        f'{self.observedDrop:0.1f})  (three sigma drop from noise: {self.threeSigmaLine:0.1f}) gives margin: {margin:0.1f}'
             self.showMsg(stats_msg, blankLine=False, bold=True, color='red')
 
         stats_msg = f'fit metrics === observed drop has {self.reportDropProbability()} of being a noise-induced-event'
@@ -7636,8 +7756,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                         f'{self.observedDrop:0.1f})  (three sigma drop from noise: {self.threeSigmaLine:0.1f}) gives margin: {margin:0.1f}'
             self.showMsg(stats_msg, blankLine=False, bold=True)
         else:
-            stats_msg = f'fit metrics === from noise-induced-event test: observed drop: ' \
-                        f'{self.observedDrop:0.1f}  three sigma drop from noise: {self.threeSigmaLine:0.1f}  margin: {margin:0.1f}'
+            stats_msg = f'fit metrics === from noise-induced-event test (observed drop: ' \
+                        f'{self.observedDrop:0.1f})  (three sigma drop from noise: {self.threeSigmaLine:0.1f}) gives  margin: {margin:0.1f}'
             self.showMsg(stats_msg, blankLine=False, bold=True, color='red')
 
 
@@ -8521,7 +8641,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
     def doFalsePositiveReport(self, posCoefs, plots_wanted=True):
         d, r = self.solution
         if self.eventType == 'Donly':
-            event_duration = self.right - int(np.trunc(d))
+            event_duration = self.right - int(np.trunc(d))  # noqa
         elif self.eventType == 'Ronly':
             event_duration = int(np.ceil(r)) - self.left
         else:
@@ -8548,7 +8668,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         # Calculate the tail start drop as the drop that encloses tail_start_fraction of the counts
         tail_start_fraction = 0.85
-        tail_start_index = np.where(np.cumsum(counts) > tail_start_fraction * num_trials)[0][0]
+        num_valid_trials = np.cumsum(counts)[-1]
+        # tail_start_index = np.where(np.cumsum(counts) > tail_start_fraction * num_trials)[0][0]
+        tail_start_index = np.where(np.cumsum(counts) > tail_start_fraction * num_valid_trials)[0][0]
 
         # Find all of the non-zero counts and their locations in the tail
         debug = False
@@ -8990,8 +9112,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     pass
                 else:
                     self.minEvent = self.rLimits[0] - self.left
-                    self.minEvent = max(self.minEvent, 2)
+                    #self.minEvent = max(self.minEvent, 2)      Graem Remove
                     self.maxEvent = self.rLimits[1] - self.left
+
+                # Graem temporary print message
+                # self.showMsg('left, right, minevent, maxevent: %.2f %.2f %.2f %.2f ' %(self.left, self.right, self.minEvent, self.maxEvent))
                 solverGen = find_best_r_only_from_min_max_size(
                     self.yValues, self.left, self.right, self.minEvent,
                     self.maxEvent
@@ -9003,9 +9128,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     pass
                 else:
                     self.minEvent = self.right - self.dLimits[1]
-                    self.minEvent = max(self.minEvent, 2)
-                    self.maxEvent = self.right - self.dLimits[0] - 1
+                    # self.minEvent = max(self.minEvent, 2)  Graem remove
+                    # self.maxEvent = self.right - self.dLimits[0] - 1  Graem remove the "-1"
+                    self.maxEvent = self.right - self.dLimits[0]
 
+                # Graem temporary print message
+                # self.showMsg('left, right, minevent, maxevent: %.2f %.2f %.2f %.2f ' %(self.left, self.right, self.minEvent, self.maxEvent))
                 solverGen = find_best_d_only_from_min_max_size(
                     self.yValues, self.left, self.right, self.minEvent,
                     self.maxEvent
@@ -9046,6 +9174,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                         d = None
                     if r == -1.0:
                         r = None
+                    #self.showMsg('sigB:%.2f  sigA:%.2f B:%.2f A:%.2f' %(sigmaB, sigmaA, b, a),blankLine=False)  #graem temporary print message
                     self.solution = [d, r]
                     self.progressBar.setValue(0)
                     self.progressBarLightcurves.setValue(0)
@@ -9442,7 +9571,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             newitem = QtWidgets.QTableWidgetItem(str(self.yTimes[i]))  # Add timestamps
             self.table.setItem(i, 1, newitem)  # Put timestamps in column 1
             frameNum = float(self.yFrame[i])
-            if not np.ceil(frameNum) == np.floor(frameNum):
+            if not np.ceil(frameNum) == np.floor(frameNum):  # noqa
                 self.fieldMode = True
             newitem = QtWidgets.QTableWidgetItem(str(self.yFrame[i]))
             self.table.setItem(i, 0, newitem)  # Put frame numbers in column 0

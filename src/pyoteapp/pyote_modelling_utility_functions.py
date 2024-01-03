@@ -247,6 +247,7 @@ def areaOfIntersection(Rast, Rstar, d):
     assert d >= 0
     assert d <= Rast + Rstar
     t1 = np.sqrt((-d + Rstar - Rast) * (-d - Rstar + Rast) * (-d + Rstar + Rast) * (d + Rstar + Rast))
+    t_bob = np.sqrt((-d+Rstar+Rast)*(d+Rstar-Rast)*(d-Rstar+Rast)*(d+Rstar+Rast))
     t2 = (d ** 2 + Rstar ** 2 - Rast ** 2) / (2 * d * Rstar)
     t3 = (d ** 2 - Rstar ** 2 + Rast ** 2) / (2 * d * Rast)
     area = Rstar ** 2 * np.arccos(t2) + Rast ** 2 * np.arccos(t3) - t1 / 2
@@ -254,7 +255,7 @@ def areaOfIntersection(Rast, Rstar, d):
 
 
 # Used for disk-on-disk model
-def Istar(Rast, Rstar, d):
+def Istar(Rast, Rstar, d):  # radius of asteroid   radius of star
     assert d >= 0
     starArea = np.pi * Rstar * Rstar
     asteroidArea = np.pi * Rast * Rast
@@ -432,7 +433,7 @@ class LightcurveParameters:
     bottom_ADU: float
 
     frame_time: float
-    shadow_speed: float
+    shadow_speed: float  # Units are km/second
 
     wavelength_nm: float
 
@@ -484,7 +485,7 @@ class LightcurveParameters:
     def __post_init__(self):
         for name in dir(self):
             exclude_list = ['set', 'check_for_none', 'document', 'asteroid_rho', 'star_rho',
-                            'shadow_speed', 'fresnel_length_km', 'name_list', 'wavelength_nm']
+                            'fresnel_length_km', 'name_list', 'wavelength_nm']
             if not (name.startswith('__') or name in exclude_list):
                 self.name_list.append(name)
 
@@ -504,6 +505,7 @@ class LightcurveParameters:
                     self.sky_motion_mas_per_sec = asteroid_mas_from_km(self.shadow_speed, value)
                 else:
                     self.shadow_speed = asteroid_km_from_mas(self.sky_motion_mas_per_sec, value)
+
                 self.fresnel_length_km = fresnelLength(self.wavelength_nm, value)
                 self.fresnel_length_sec = self.fresnel_length_km / self.shadow_speed
                 self.asteroid_distance_arcsec = distance_parallax_from_AU(value)
@@ -1410,7 +1412,7 @@ def dodModel(margin, LCP):
 
     Itemp = []
     for d in dvalues:
-        Itemp.append(Istar(asteroid_radius, star_radius, d))
+        Itemp.append(Istar(asteroid_radius, star_radius, d))  # overlap of asteroid and star at separation d
 
     y_ADU = scaleToADU(np.array(Itemp), LCP=LCP)
 
