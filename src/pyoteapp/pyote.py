@@ -139,8 +139,6 @@ LINESIZE = 2
 
 acfCoefThreshold = 0.05  # To match what is being done in R-OTE 4.5.4+
 
-
-
 @dataclass
 class BestFit:
     thisPassMetric: float = None
@@ -322,6 +320,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.modelY = None             # model y values (ADU)
         self.modelDedgeKm = None       # model D edge location (in km)
         self.modelRedgeKm = None       # model R edge location (in km)
+
+        self.firstContactKm = None
+        self.firstContactSecs = None
+        self.lastContactKm = None
+        self.lastContactSecs = None
+
+        self.firstContactRdgValue = None
+        self.lastContactRdgValue = None
 
         self.modelDedgeSecs = None     # timestamp of D edge in observation
         self.modelRedgeSecs = None     # timestamp of R edge in observation
@@ -2239,6 +2245,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.showMsg(line, color='black', bold=True, blankLine=False)
             self.showMsg('', blankLine=False)
 
+            if onlyLcpValuesWanted:
+                if self.firstContactRdgValue is not None:
+                    self.showMsg(f"first contact rdg num: {self.firstContactRdgValue:0.3f}", color='black', bold=True, blankLine=False)
+
             # if self.diffractionRadioButton.isChecked():
             #     self.showMsg('Model used: diffraction', color='black', bold=True)
             # elif self.edgeOnDiskRadioButton.isChecked():
@@ -2263,6 +2273,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                               f'Consider trying a fit with a different asteroid diameter.')
 
     def processDangleEditFinish(self):
+        if self.DdegreesEdit.text() == '':
+            return
+
         try:
             Dangle = float(self.DdegreesEdit.text())
             if 0 <= Dangle <= 90:
@@ -2570,8 +2583,18 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             value = float(self.missDistanceKmEdit.text())
             if value < 0:
                 self.showInfo(f'Miss distance cannot be negative.')
-                self.missDistanceKmEdit.clear()
+                if self.Lcp is None:
+                    self.missDistanceKmEdit.clear()
+                else:
+                    self.missDistanceKmEdit.setText(f"{self.Lcp.miss_distance_km:0.3f}")
                 return
+            if value > 0.0:
+                self.chordSizeSecondsEdit.setText("0.0")
+                self.chordSizeKmEdit.setText("0.0")
+                if self.Lcp is not None:
+                    self.Lcp.set("chord_length_km", None)
+                    self.Lcp.set("chord_length_sec", None)
+                    self.Lcp.set("chord_length_km", 0.0)
         except ValueError as e:
             self.showInfo(f'missDistanceKmEdit: {e}')
             return
@@ -3301,10 +3324,27 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             Dtimestamp = convertTimeToTimeString(Dtime)
             Rtimestamp = convertTimeToTimeString(Rtime)
 
-            # self.showMsg(f'D: {Dtimestamp}  DrdgNum: {self.modelDedgeRdgValue:0.4f}', color='black', bold=True)
-            # self.showMsg(f'R: {Rtimestamp}  RrdgNum: {self.modelRedgeRdgValue:0.4f}', color='black', bold=True)
             self.showMsg(f'D: {Dtimestamp}', color='black', bold=True)
             self.showMsg(f'R: {Rtimestamp}', color='black', bold=True)
+
+        if self.firstContactRdgValue is not None:
+            fcRdgNum = int(self.firstContactRdgValue)
+            lcRdgNum = int(self.lastContactRdgValue)
+
+            fcFractionalRdgNum = self.firstContactRdgValue - fcRdgNum
+            lcFractionalRdgNum = self.lastContactRdgValue - lcRdgNum
+
+            fcTime = convertTimeStringToTime(self.yTimes[fcRdgNum])
+            lcTime = convertTimeStringToTime(self.yTimes[lcRdgNum])
+
+            fcTime += fcFractionalRdgNum * self.Lcp.frame_time
+            lcTime += lcFractionalRdgNum * self.Lcp.frame_time
+
+            fcTimestamp = convertTimeToTimeString(fcTime)
+            lcTimestamp = convertTimeToTimeString(lcTime)
+
+            self.showMsg(f'first contact: {fcTimestamp}', color='black', bold=True)
+            self.showMsg(f'last  contact: {lcTimestamp}', color='black', bold=True)
 
         else:
             self.showMsg(f'Miss distance: {self.Lcp.miss_distance_km:0.5f} km', color='black', bold=True)
@@ -3574,7 +3614,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
             # majorAxis, minorAxis, thetaDegrees = self.validateEllipseParameters()
             try:
-                self.modelXkm, self.modelY, self.modelDedgeKm, self.modelRedgeKm = \
+                self.modelXkm, self.modelY, self.modelDedgeKm, self.modelRedgeKm, \
+                    self.firstContactKm, self.lastContactKm = \
                     demo_event(LCP=self.Lcp, model='diffraction', showLegend=showLegend,
                                title=self.currentEventEdit.text(),
                                showNotes=showNotes, plot_versus_time=versusTime,
@@ -3624,7 +3665,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.newRedrawMainPlot()
                 QtWidgets.QApplication.processEvents()
 
-            self.modelXkm, self.modelY, self.modelDedgeKm, self.modelRedgeKm = \
+            self.modelXkm, self.modelY, self.modelDedgeKm, self.modelRedgeKm, \
+                self.firstContactKm, self.lastContactKm = \
                 demo_event(LCP=self.Lcp, model='edge-on-disk',
                            title=self.currentEventEdit.text(),
                            showLegend=showLegend, showNotes=showNotes,
@@ -3671,7 +3713,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.newRedrawMainPlot()
                 QtWidgets.QApplication.processEvents()
 
-            self.modelXkm, self.modelY, self.modelDedgeKm, self.modelRedgeKm = \
+            self.modelXkm, self.modelY, self.modelDedgeKm, self.modelRedgeKm,\
+                self.firstContactKm, self.lastContactKm = \
                 demo_event(LCP=self.Lcp, model='disk-on-disk',
                            title=self.currentEventEdit.text(),
                            showLegend=showLegend, showNotes=showNotes,
@@ -3916,6 +3959,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     def clearEventDataEntries(self):
         self.initializeModelLightcurvesPanel()
+        self.fitStatus = None
         self.handleModelSelectionRadioButtonClick()
 
     def handleSiteCoordSelection(self):
@@ -4028,16 +4072,16 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         if self.Lcp is not None:
             return
 
-        msg = QMessageBox()
-        msg.setIcon(QMessageBox.Question)
-        msg.setText(f'It is best to select the "Model to use" before entering new parameter data.\n\n'
-                    f'Do you need to do that now?')
-        msg.setWindowTitle('Exit to allow "Model to use" radio button selection')
-        msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-        retval = msg.exec_()
-        if retval == QMessageBox.Yes:
-            self.currentEventEdit.setText("")
-            return
+        # msg = QMessageBox()
+        # msg.setIcon(QMessageBox.Question)
+        # msg.setText(f'It is best to select the "Model to use" before entering new parameter data.\n\n'
+        #             f'Do you need to do that now?')
+        # msg.setWindowTitle('Exit to allow "Model to use" radio button selection')
+        # msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        # retval = msg.exec_()
+        # if retval == QMessageBox.Yes:
+        #     self.currentEventEdit.setText("")
+        #     return
 
         self.handleModelSelectionRadioButtonClick()
 
@@ -4132,7 +4176,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             if not anUnsetParameterFound:
                 self.enableLightcurveButtons()
                 self.consistentLcpPresent = True
-                # TODO Refine these enables
                 self.enablePrimaryEntryEditBoxes()
                 self.enableSecondaryEditBoxes()
 
@@ -4140,20 +4183,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 if self.edgeOnDiskRadioButton.isChecked():
                     self.DdegreesEdit.setText(f'{self.Lcp.D_limb_angle_degrees:0.0f}')
                     self.RdegreesEdit.setText(f'{self.Lcp.R_limb_angle_degrees:0.0f}')
-
-                msg = QMessageBox()
-                msg.setIcon(QMessageBox.Question)
-                msg.setText(f'NOTE: the metric data region is currently defaulted to include\n'
-                            f'all of the data points. You may wish to click on the \n\n'
-                            f'      Set limits for metric calculation button\n\n'
-                            f'to set limits that better enclose only the points that are affected by the event.\n\n'
-                            f'Do you wish to save the event data entered so far?\n\n')
-                msg.setWindowTitle('Save event data')
-                msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-                retval = msg.exec_()
-                if retval == QMessageBox.Yes:
-                    self.saveCurrentEvent()
-                    return
 
                 self.newRedrawMainPlot()
 
@@ -5113,6 +5142,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         xIndices = [i for i in range(self.dataLen) if self.yStatus[i] == BASELINE]
         y = [self.yValues[i] for i in range(self.dataLen) if self.yStatus[i] == BASELINE]
         mean = np.mean(y)
+
+        raw_sigma = np.std(y)
+
         self.B = mean
         baselineXvals = []
         baselineYvals = []
@@ -5128,9 +5160,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         if self.targetKey == '':
             self.targetKey = self.lightcurveTitles[0].text()
 
-        self.showMsg(f'{self.targetKey} is the light curve undergoing baseline noise analysis.', bold=True)
-        self.showMsg('This baseline noise analysis uses ' + str(self.numNApts) +
-                     ' baseline points')
+        self.showMsg(f'{self.targetKey} is the light curve undergoing "selected points" noise analysis.',
+                     bold=True, blankLine=False)
+        self.showMsg('...This noise analysis uses ' + str(self.numNApts) +
+                     ' points')
         self.corCoefs = np.ndarray(shape=(len(self.newCorCoefs),))
         np.copyto(self.corCoefs, self.newCorCoefs)
         self.numPtsInCorCoefs = self.numNApts
@@ -5142,8 +5175,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.prettyPrintCorCoefs()
 
-        self.showMsg(f'mean baseline = {mean:0.2f}')
-        self.showMsg(f'baseline snr = {mean / sigB:0.2f}')
+        self.showMsg(f'statistics of selected points:', bold=True, blankLine=False)
+        self.showMsg(f'...mean(selected points): {mean:0.2f}', blankLine=False)
+        self.showMsg(f"...std(selected points) : {raw_sigma:0.3f}", blankLine=False)
+        self.showMsg(f"...std(detrended points): {sigB:0.3f}  (Warning: this sets sigmaB for the remainder of this session)", blankLine=False)
+        self.showMsg(f'...baseline snr: {mean / sigB:0.2f}  (using detrended std)')
 
     def getTimestampFromRdgNum(self, rdgNum):
         readingNumber = int(rdgNum)
@@ -6238,6 +6274,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         leftEdge = int(min(selIndices))
         rightEdge = int(max(selIndices))
 
+        # Added Jan 8 2024
+        if rightEdge - leftEdge < 2:
+            if rightEdge < self.right:
+                rightEdge += 1
+            else:
+                if leftEdge > self.left:
+                    leftEdge -= 1
+
         if self.rLimits:
             if rightEdge > self.rLimits[0] - 2:  # Enforce at least 1 'a' point
                 rightEdge = self.rLimits[0] - 2
@@ -6246,13 +6290,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 if leftEdge < self.left:
                     leftEdge = self.left
             else:
-                if leftEdge < self.left + 1:
-                    leftEdge = self.left + 1
+                if leftEdge < self.left + 0:  # Changed from 1 to zero in version 5.5.2
+                    leftEdge = self.left + 0  # Changed from 1 to zero in version 5.5.2
         else:
-            if rightEdge >= self.right - 1:
-                rightEdge = self.right - 1  # Enforce at least 1 'a' point
-            if leftEdge < self.left + 1:
-                leftEdge = self.left + 1  # Enforce at least 1 'b' point
+            if leftEdge < self.left + 0:  # Changed from 1 to zero in version 5.5.2
+                leftEdge = self.left + 0  # Enforce at least 1 'b' point (changed to match above)
+            pass
 
         if rightEdge < self.left or rightEdge <= leftEdge:
             self.removePointSelections()
@@ -6354,7 +6397,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         selIndices.sort()
 
         # We save self.left and self.right because we need to manipulate them for doing
-        # a trim to make the flasj edge look like a valid R-ony event
+        # a trim to make the flash edge look like a valid R-only event
         savedLeft = self.left
         savedRight = self.right
 
@@ -6405,7 +6448,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         # We need to suppress the automatic report run
         self.suppressReport = True
 
-        # TODO Get user to input frame time
         if self.timeDelta == 0.0:
             self.timeDelta, gotTimeDelta = QtWidgets.QInputDialog.getDouble(
                 self, ' ', 'Enter frame time (seconds):', decimals=6)
@@ -6721,16 +6763,22 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         layout = QtWidgets.QGridLayout()
         self.errBarWin.setLayout(layout)
         drop = self.B - self.yValues[selectedPoint]
+
+        # We have to 'normalize' observed_drop and sigma so that the NIE calculations don't have
+        # to deal with numerical problems while doing numerical integrations and curve fitting.
+        observed_drop = drop / self.B
+        sigma = self.sigmaB / self.B
+
         pw, falsePositive, probability, *_ = self.falsePositiveReport(
             event_duration=1, num_trials=50000, observation_size=self.right - self.left + 1,
-            observed_drop=drop,
-            posCoefs=self.corCoefs, sigma=self.sigmaB)
+            observed_drop=observed_drop,
+            posCoefs=self.corCoefs, sigma=sigma)
         layout.addWidget(pw, 0, 0)
 
         self.showMsg(f"Reading number {selectedPoint} with drop {drop:0.2f} was selected for validation", color='blue',
                      bold=True, blankLine=True)
 
-        self.showMsg(f'\n==== That single point event has a probability of {1.0 - self.drop_nie_probability:0.6f} of being due to noise',
+        self.showMsg(f'\n==== That single point event has a probability of {self.drop_nie_probability:0.6f} of being due to noise',
                      color='blue', bold=True)
 
         # if falsePositive:
@@ -7666,7 +7714,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.reportSpecialProcedureUsed()  # This includes use of asteroid distance/speed and star diameter
 
-        # TODO New nie report
+        # New nie report
         # if false_positive:
         #     self.showMsg(f"This 'drop' has a {false_probability:0.5f} probability of being an artifact of noise.",
         #                  bold=True, color='red', blankLine=False)
@@ -7683,7 +7731,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         #              f" does not prove that the 'drop' is due to an occultation", color='blue', blankLine=False)
         # self.showMsg(f">>>> Consider 'drop' shape, timing, mag drop, duration and other positive observer"
         #              f" chords before reporting the 'drop' as a positive.", color='blue')
-        # TODO End new nie report
+        # End new nie report
 
         self.showMsg("All times are calculated/reported based on the assumption that timestamps are "
                      "start-of-exposure times.",
@@ -8648,9 +8696,17 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             event_duration = int(np.ceil(r - d))
 
         observation_size = self.right - self.left + 1
-        sigma = max(self.sigmaA, self.sigmaB)
+
+        # sigma = max(self.sigmaA, self.sigmaB)  # Changed in version 5.5.2
+        sigma = self.sigmaB                      # Changed in version 5.5.2
+
         observed_drop = self.B - self.A
         num_trials = 50000
+
+        # We have to 'normalize' observed_drop and sigma so that the NIE calculations don't have
+        # to deal with numerical problems while doing numerical integrations and curve fitting.
+        observed_drop = observed_drop / self.B
+        sigma = sigma / self.B
 
         return self.falsePositiveReport(event_duration, num_trials, observation_size, observed_drop,
                                         posCoefs, sigma, plots_wanted=plots_wanted)
@@ -8713,6 +8769,16 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.drop_nie_probability = index_at_observed_drop / num_trials
 
         if plots_wanted:
+
+            # We had to normalize observed_drop to avoid numerical instability during the NIE calculations.
+            # That caused the scale of bibs and the sigma lines to be changed. Here we reverse those
+            # changes so that the plot remain unchanged.
+            observed_drop = observed_drop * self.B
+            bins = bins * self.B
+            three_sigma_line = three_sigma_line * self.B
+            four_sigma_line = four_sigma_line * self.B
+            five_sigma_line = five_sigma_line * self.B
+
             pw = PlotWidget(viewBox=CustomViewBox(border=(0, 0, 0)),
                             enableMenu=False,
                             title=f'Noise Induced Events (brightness drops) found in correlated noise for event duration: {event_duration}',
@@ -8733,8 +8799,17 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             pw.plot(x=[four_sigma_line, four_sigma_line], y=[0, 0.3 * np.max(counts)], pen=pg.mkPen([0, 255, 0], width=3))
             pw.plot(x=[five_sigma_line, five_sigma_line], y=[0, 0.2 * np.max(counts)], pen=pg.mkPen([0, 255, 0], width=3))
 
-            pw.plot(x_tail, tail_count_fraction(x_tail, slope, y0) * num_trials, pen=pg.mkPen([0, 0, 0], width=3),
-                     label='fit to tail')
+            # Undo the x axis values affected by the normalization required to keep the
+            # NIE calculations stable.
+            scaled_x_tail = []
+            for value in x_tail:
+                scaled_x_tail.append(value * self.B)
+            pw.plot(scaled_x_tail, tail_count_fraction(x_tail, slope, y0) * num_trials, pen=pg.mkPen([0, 0, 0], width=3),
+                    label='fit to tail')
+            # End undo
+
+            # pw.plot(x_tail, tail_count_fraction(x_tail, slope, y0) * num_trials, pen=pg.mkPen([0, 0, 0], width=3),
+            #          label='fit to tail')
 
             # Plot a nice 0 line
             right_edge = max(observed_drop * 1.1, np.max(bins) * 1.1)
@@ -8763,7 +8838,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             false_positive = False
         else:
             false_probability = 1.0 - index_of_observed_drop_inside_sorted_drops / drops.size
-            # TODO Changed to criteria for noise-induced-event fail
+            # Change to criteria for noise-induced-event fail
             if observed_drop <= three_sigma_line:
                 false_positive = True
             else:
@@ -8772,7 +8847,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         del sorted_drops
         del drops
 
-        # TODO Changed criteria for noise-induced-event fail
+        # Changed criteria for noise-induced-event fail
         # return pw, false_positive, false_probability, observed_drop, np.max(x)
         return pw, false_positive, false_probability, observed_drop, three_sigma_line, four_sigma_line, five_sigma_line
 
@@ -8863,19 +8938,27 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         if not self.userDeterminedBaselineStats:
             self.corCoefs = []
 
-        if D and R:
-            # D - 1 is specified so that the D point is excluded from the noise and B level calculations
-            self.processBaselineNoiseFromIterativeSolution(self.left, D - 1)  # Left side
-            newBleft = self.B  # This is filled in by the above call
+        if D and R:  # This is a funky way to test that neither D or R is None
+            self.baselineXvals = []
+            self.baselineYvals = []
+            for i in range(self.left, D):  # Because of range(), this gets points at index self.left to D-1 inclusive
+                self.baselineXvals.append(i)
+                self.baselineYvals.append(self.yValues[i])
 
-            # R + 1 is specified so that the R point is excluded from the noise and B level calculations
-            self.processBaselineNoiseFromIterativeSolution(R + 1, self.right)  # Right side
-            newBright = self.B
+            if R == self.solution[1]:  # If R is not a transition point
+                self.baselineYvals.append(self.yValues[R])
+                self.baselineXvals.append(R)
 
-            self.B = (newBleft + newBright) / 2
+            for i in range(R + 1, self.right + 1):  # This get points at index R+1 to self.right inclusive
+                self.baselineXvals.append(i)
+                self.baselineYvals.append(self.yValues[i])
 
-            # D + 1 and R -1 are used to excluded the D and R points from noise and A and B values
-            self.processEventNoiseFromIterativeSolution(D + 1, R - 1)
+            self.processBaselineNoiseFromIterativeSolution()
+
+            if D == self.solution[0]:  # if D is not a transition point
+                self.processEventNoiseFromIterativeSolution(D, R - 1)  # This updates self.sigmaA including the point at D
+            else:
+                self.processEventNoiseFromIterativeSolution(D + 1, R - 1)  # This updates self.sigmaA
 
             # Try to warn user about the possible need for block integration by testing the lag 1
             # and lag 2 correlation coefficients.  The tests are just guesses on my part, so only
@@ -8900,10 +8983,20 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             if self.sigmaA is None:
                 self.sigmaA = self.sigmaB
         elif D:
-            self.processBaselineNoiseFromIterativeSolution(self.left, D - 1)
+            self.baselineXvals = []
+            self.baselineYvals = []
+            for i in range(self.left, D):  # Because of range(), this gets points at index self.left to D-1 inclusive
+                self.baselineXvals.append(i)
+                self.baselineYvals.append(self.yValues[i])
+            self.processBaselineNoiseFromIterativeSolution()
             self.processEventNoiseFromIterativeSolution(D+1, self.right)
         else:  # R only
-            self.processBaselineNoiseFromIterativeSolution(R+1, self.right)
+            self.baselineXvals = []
+            self.baselineYvals = []
+            for i in range(R + 1, self.right + 1):  # This get points at index R+1 to self.right inclusive
+                self.baselineXvals.append(i)
+                self.baselineYvals.append(self.yValues[i])
+            self.processBaselineNoiseFromIterativeSolution()
             self.processEventNoiseFromIterativeSolution(self.left, R - 1)
 
         self.prettyPrintCorCoefs()
@@ -9147,7 +9240,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
             d = r = -1
             b = a = 0.0
-            sigmaB = sigmaA = 0.0
+            sigmaB = 0.0
+            # sigmaA = 0.0
 
             for item in solverGen:
                 if item[0] == 1.0:
@@ -9180,14 +9274,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     self.progressBarLightcurves.setValue(0)
 
             self.showMsg('Integer (non-subframe) solution...', blankLine=False)
-            self.showMsg(
-                'sigB:%.2f  sigA:%.2f B:%.2f A:%.2f' %
-                (sigmaB, sigmaA, b, a),
-                blankLine=False)
+            self.showMsg(f"B:{b:0.2f}  A:{a:0.2f}", blankLine=False)
             self.displaySolution(subframe=False)  # First solution
 
             # This fills in self.sigmaB and self.sigmaA and self.B and self.A Also, it is useful
             # because it tests correlation coefficients to warn of the need for block integration
+            # We do this before subFrameAdjusted() is called (a few lines lower) so that the Akaike calculations
+            # for determining transition points has good sigmaA and sigmaB values to work with.
             self.extract_noise_parameters_from_iterative_solution()  # This does proper exclusions at D and R
 
             DfitMetric = RfitMetric = 0.0
@@ -9232,17 +9325,27 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             if self.exponentialDtheoryPts is None and self.exponentialRtheoryPts is None:
                 self.solution = subDandR
 
+            # New code which repeats B, A, sigmaB, and sigmaA calculations after subframe adjustment because
+            # a new D and R may have been determined
+            self.extract_noise_parameters_from_iterative_solution()  # This does proper exclusions at D and R
+            new_b = self.B
+            newSigmaB = self.sigmaB
+            new_a = self.A
+            newSigmaA = self.sigmaA
+
             self.showMsg('Subframe adjusted solution...', blankLine=False)
-            self.showMsg(
-                'sigB:%.2f  sigA:%.2f B:%.2f A:%.2f' %
-                (newSigmaB, newSigmaA, new_b, new_a),
-                blankLine=False)
+            self.showMsg(f"B:{new_b:0.2f}  A:{new_a:0.2f}", blankLine=False)
+            # self.showMsg(
+            #     'sigB:%.2f  sigA:%.2f B:%.2f A:%.2f' %
+            #     (newSigmaB, newSigmaA, new_b, new_a),
+            #     blankLine=False)
 
             need_to_invite_user_to_verify_timestamps = self.displaySolution()  # Adjusted solution
 
             if not self.userDeterminedBaselineStats:
                 self.B = new_b
                 self.sigmaB = newSigmaB
+                pass
             else:
                 self.showInfo(f'You have requested a "find event" afer determining baseline statistics.\n\n'
                               f'This may be what you want because of the need to exclude certain baseline regions '
@@ -10103,15 +10206,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.eventXvals = []
         self.eventYvals = []
+
         for i in range(left, right + 1):
             self.eventXvals.append(i)
             self.eventYvals.append(self.yValues[i])
 
-        # Recalculate A with D and R points excluded
         self.A = np.mean(self.eventYvals)
+        self.sigmaA = np.std(self.eventYvals)
 
-        _, self.numNApts, self.sigmaA = getCorCoefs(self.eventXvals,
-                                                    self.eventYvals)
 
     def processBaselineNoise(self, secondPass=False):
 
@@ -10193,36 +10295,26 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.maxEventEdit.setEnabled(True)
         self.magDropSqwaveEdit.setEnabled(True)
 
-    def processBaselineNoiseFromIterativeSolution(self, left, right):
-        assert left >= self.left
-        assert right <= self.right
-
-        self.baselineXvals = []
-        self.baselineYvals = []
-        for i in range(left, right + 1):
-            self.baselineXvals.append(i)
-            self.baselineYvals.append(self.yValues[i])
-
-        # Recalculate baseline with D and R points excluded
+    # def processBaselineNoiseFromIterativeSolution(self, left, right):
+    def processBaselineNoiseFromIterativeSolution(self):
+        # Calc baseline stats (with D and R points excluded, but only if they are at transition points)
         self.B = np.mean(self.baselineYvals)
+        self.sigmaB = np.std(self.baselineYvals)
 
         if not self.userDeterminedBaselineStats:
             self.newCorCoefs, self.numNApts, sigB = getCorCoefs(self.baselineXvals,
                                                                 self.baselineYvals)
-            if sigB is None:
-                sigB = self.sigmaB
+            # if sigB is None:
+            #     sigB = self.sigmaB
 
             if len(self.corCoefs) == 0:
                 self.corCoefs = np.ndarray(shape=(len(self.newCorCoefs),))
                 np.copyto(self.corCoefs, self.newCorCoefs)
                 self.numPtsInCorCoefs = self.numNApts
-                self.sigmaB = sigB
             else:
                 totalPoints = self.numNApts + self.numPtsInCorCoefs
                 self.corCoefs = (self.corCoefs * self.numPtsInCorCoefs +
                                  self.newCorCoefs * self.numNApts) / totalPoints
-                self.sigmaB = (self.sigmaB * self.numPtsInCorCoefs +
-                               sigB * self.numNApts) / totalPoints
                 self.numPtsInCorCoefs = totalPoints
 
     def removePointSelections(self):
@@ -10375,6 +10467,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 # RedgeKm = modelLengthKm / 2 - self.modelXkm[0]
                 # edgeCenterTime = (DedgeKm + RedgeKm) / 2.0 / self.Lcp.shadow_speed
 
+            if self.firstContactKm is not None:
+                self.firstContactSecs = self.firstContactKm / self.Lcp.shadow_speed
+                self.lastContactSecs = self.lastContactKm / self.Lcp.shadow_speed
+
             # self.modelDedgeSecs += self.modelTimeOffset + edgeCenterTime
             # self.modelRedgeSecs += self.modelTimeOffset + edgeCenterTime
 
@@ -10388,6 +10484,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
             dEdgeRdgNumOffset = (tModelDur / 2 + self.modelDedgeSecs) / self.Lcp.frame_time
             rEdgeRdgNumOffset = dEdgeRdgNumOffset + (self.modelRedgeSecs - self.modelDedgeSecs) / self.Lcp.frame_time
+
+            if self.firstContactSecs is not None:
+                firstContactRdgNumOffset = (tModelDur / 2 + self.firstContactSecs) / self.Lcp.frame_time
+                lastContactRdgNumOffset = firstContactRdgNumOffset + (self.lastContactSecs - self.firstContactSecs) / self.Lcp.frame_time
 
             del modelRdgNum
             del modelXsec
@@ -10408,17 +10508,27 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.modelDedgeRdgValue = self.modelPtsXrdgNum[0] + dEdgeRdgNumOffset
                 self.modelRedgeRdgValue = self.modelPtsXrdgNum[0] + rEdgeRdgNumOffset
 
-                D = self.modelDedgeRdgValue
-                R = self.modelRedgeRdgValue
                 lo_int = self.Lcp.bottom_ADU
                 hi_int = self.Lcp.baseline_ADU
                 span = hi_int - lo_int
-                lo_int -= 0.1 * span
-                hi_int += 0.1 * span
+
+                if self.firstContactKm is not None:
+                    self.firstContactRdgValue = self.modelPtsXrdgNum[0] + firstContactRdgNumOffset  # noqa
+                    self.lastContactRdgValue  = self.modelPtsXrdgNum[0] + lastContactRdgNumOffset   # noqa
+
+                    cPen = pg.mkPen(color=(0, 150, 0), style=QtCore.Qt.PenStyle.DashLine,
+                                    width=self.lineWidthSpinner.value())
+                    fc = self.firstContactRdgValue
+                    self.mainPlot.plot([fc, fc], [hi_int - 0.4 * span, hi_int + 0.4 * span], pen=cPen, symbol=None)
+                    lc = self.lastContactRdgValue
+                    self.mainPlot.plot([lc, lc], [hi_int - 0.4 * span, hi_int + 0.4 * span], pen=cPen, symbol=None)
+
+                D = self.modelDedgeRdgValue
+                R = self.modelRedgeRdgValue
                 if D >= 0:
-                    self.mainPlot.plot([D, D], [lo_int, hi_int], pen=ePen, symbol=None)
+                    self.mainPlot.plot([D, D], [lo_int - 0.1 * span, hi_int + 0.1 * span], pen=ePen, symbol=None)
                 if R <= self.dataLen - 1:
-                    self.mainPlot.plot([R, R], [lo_int, hi_int], pen=ePen, symbol=None)
+                    self.mainPlot.plot([R, R], [lo_int - 0.1 * span, hi_int + 0.1 * span], pen=ePen, symbol=None)
 
             self.modelXvalues = self.modelPtsXrdgNum
             self.modelYvalues = np.array(self.modelY)
@@ -10587,6 +10697,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     plot([R, self.right], [self.B, self.B], pen=underlyingPen)
                 if self.showEdgesCheckBox.isChecked():
                     plot([R, R], [lo_int, hi_int], pen=rPen)
+
 
             return
         elif self.exponentialDtheoryPts is None:
@@ -10757,7 +10868,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         maxY = np.max(self.yValues + self.yOffsetSpinBoxes[self.targetIndex].value())
 
         try:
-            # TODO New code to deal with hit-defect
+            # New code to deal with hit-defect
             if self.targetKey == '':
                 self.targetKey = self.lightcurveTitles[0].text()
             hit_defect_flags = self.getHitDefectFlags(self.targetKey)

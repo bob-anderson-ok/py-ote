@@ -7,7 +7,7 @@ from typing import Tuple
 import math
 
 from numpy import zeros, complex128
-from numba import jit, prange
+from numba import jit, prange, njit
 import matplotlib.pyplot as plt
 from scipy.fftpack import fft2
 from numpy import exp, pi
@@ -247,7 +247,6 @@ def areaOfIntersection(Rast, Rstar, d):
     assert d >= 0
     assert d <= Rast + Rstar
     t1 = np.sqrt((-d + Rstar - Rast) * (-d - Rstar + Rast) * (-d + Rstar + Rast) * (d + Rstar + Rast))
-    t_bob = np.sqrt((-d+Rstar+Rast)*(d+Rstar-Rast)*(d-Rstar+Rast)*(d+Rstar+Rast))
     t2 = (d ** 2 + Rstar ** 2 - Rast ** 2) / (2 * d * Rstar)
     t3 = (d ** 2 - Rstar ** 2 + Rast ** 2) / (2 * d * Rast)
     area = Rstar ** 2 * np.arccos(t2) + Rast ** 2 * np.arccos(t3) - t1 / 2
@@ -255,7 +254,7 @@ def areaOfIntersection(Rast, Rstar, d):
 
 
 # Used for disk-on-disk model
-def Istar(Rast, Rstar, d):  # radius of asteroid   radius of star
+def Istar(Rast, Rstar, d):  # radius of asteroid   radius of star  distance between centers
     assert d >= 0
     starArea = np.pi * Rstar * Rstar
     asteroidArea = np.pi * Rast * Rast
@@ -850,7 +849,8 @@ def plot_diffraction(x, y, first_wavelength, last_wavelength, LCP, figsize=(14, 
             camera_y = lightcurve_convolve(sample=sample, lightcurve=y,
                                            shift_needed=len(sample) - 1)
 
-        ax2.set_ylim(-0.1 * LCP.baseline_ADU, 1.5 * LCP.baseline_ADU)
+        ax2.set_ylim(-0.1 * LCP.baseline_ADU, 1.5 * LCP.baseline_ADU)  # noqa
+
 
         if plot_versus_time:
             ax2.plot(x / LCP.shadow_speed, y, '-', color='black', label='Underlying')
@@ -1207,12 +1207,14 @@ def ellipsePerimeterPoints(major_axis, minor_axis, theta_degrees, num_points=100
     yvals_upper = np.sqrt(b ** 2 * (1 - xvals ** 2 / a ** 2))
     yvals_lower = -yvals_upper
 
-    # Point pairs  to be plotted as:
-    # plt.plot(xrot_lower, yrot_lower, color='k')
-    # plt.plot(xrot_upper, yrot_upper, color='k')
 
     xrot_upper, yrot_upper = np.dot(rot_matrix, [xvals, yvals_upper])
     xrot_lower, yrot_lower = np.dot(rot_matrix, [xvals, yvals_lower])
+
+    # Point pairs  to be plotted as:
+    plt.plot(xrot_lower, yrot_lower, color='k')
+    plt.plot(xrot_upper, yrot_upper, color='k')
+
     return xrot_upper, yrot_upper, xrot_lower, yrot_lower
 
 @jit(nopython=True)
@@ -1384,77 +1386,157 @@ def demo_diffraction_field(LCP, title_adder='', figsize=(11, 5)):
 
     plt.show()
 
-def dodModel(margin, LCP):
-    star_radius = LCP.star_radius_km
-    asteroid_radius = LCP.asteroid_diameter_km / 2
+def getPointsInStar(starX, starY, star_diam, resolution=100):
+    star_radius = star_diam / 2.0
+    x = np.linspace(-star_radius, star_radius, resolution)
+    y = np.linspace(-star_radius, star_radius, resolution)
+    x_coords = []
+    y_coords = []
+    for xp in x:
+        for yp in y:
+            if yp * yp + xp * xp <= star_radius * star_radius:
+                x_coords.append(xp + starX)
+                y_coords.append(yp + starY)
+    ans = np.dstack((x_coords, y_coords))[0]
+    return ans
 
+@njit(cache=True)
+def pointInEllipse(pts, xc, yc, x_diam, y_diam, ccw_angle_degrees):
+    # Counts the number of points from pts (numpy array of x,y coordinate pairs) that are within or on
+    # the boundary defined by the ellipse
+    # with center = [xc,yc],
+    # x axis diameter = x_diam (before rotation),
+    # y axis diameter = y_diam (before rotation),
+    # and rotated ccw angle (in degrees) = ccw_angle_degrees
+
+    # Calculate the fixed parameters needed for the calculation
+    angle = math.radians(ccw_angle_degrees)
+    cosa = math.cos(angle)
+    sina = math.sin(angle)
+    dd = (x_diam / 2) ** 2
+    DD = (y_diam / 2) ** 2
+
+    hits = 0
+
+    for i, pt in enumerate(pts):
+        a = cosa * (pt[0] - xc) + sina * (pt[1] - yc)
+        aa = a * a
+        b = sina * (pt[0] - xc) - cosa * (pt[1] - yc)
+        bb = b * b
+        ellipse_factor = (aa / dd) + (bb / DD)
+        if ellipse_factor <= 1:
+            hits += 1
+
+    return hits
+
+def dodEllipseModel(margin, LCP):
+    # Use the routine called by the plot illustration to get y offset of star and asteroid
+    asteroidX, asteroidY, asteroid_image, min_ellipse_yvalue, starX, starY = getStarAndAsteroidPositions(LCP)
+
+    # Get the bounding box of the ellipse - we will use that to determine the start
+    # and stop points of the model lightcurve. We center it at (0,0) for now - we only want
+    # to get the x extents
+
+    min_ellipse_xvalue = asteroid_image.get_extents().xmin
+    max_ellipse_xvalue = asteroid_image.get_extents().xmax
+    w = max_ellipse_xvalue - min_ellipse_xvalue
+
+    delta = w / 2 + LCP.star_radius_km + margin
+
+    ast_centerx_begin = starX + delta
+    ast_centerx_end = starX - delta
+
+    # TODO Remove these debug prints
+    # print(f"xmin: {min_ellipse_xvalue:0.2f} xmax: {max_ellipse_xvalue:0.2f}")
+    # print(f"w: {w:0.2f}  delta: {delta:0.2f}")
+    # print(f"star center at y: {starY:0.2f}  asteroid center at y: {asteroidY:0.2f}")
+    # print(f"asteroid center x moves from {ast_centerx_begin:0.2f} to {ast_centerx_end:0.2f}")
+
+    pts = getPointsInStar(starX=starX, starY=starY, star_diam=LCP.star_diameter_km, resolution=100)
+    # print(f"num points in star: {len(pts)}")
+
+    asteroidX_positions = np.linspace(ast_centerx_begin, ast_centerx_end, 2048)
+    hits = np.zeros(2048)
+    for i, xpos in enumerate(asteroidX_positions):
+        hits[i] = pointInEllipse(pts, xc=xpos, yc=asteroidY, x_diam=LCP.asteroid_minor_axis, y_diam=LCP.asteroid_major_axis,
+                          ccw_angle_degrees=LCP.ellipse_angle_degrees)
+    fractionCovered = hits / len(pts)
+    span = ast_centerx_begin - ast_centerx_end
+    x = np.linspace(-span / 2, span / 2, 2048)
+    pass
+    return fractionCovered, x
+    # print(f"hits: {hits}")
+    # hits = pointInEllipse(pts, xc=starX, yc=starY, x_diam=LCP.asteroid_minor_axis, y_diam=LCP.asteroid_major_axis,
+    #                       ccw_angle_degrees=LCP.ellipse_angle_degrees)
+    # print(f"hits: {hits}")
+
+def dodCircleModel(margin, LCP):
     assert LCP.asteroid_diameter_km >= LCP.chord_length_km
 
-    half_chord = LCP.chord_length_km / 2
-    if LCP.miss_distance_km == 0:
-        y_offset = np.sqrt(asteroid_radius ** 2 - half_chord ** 2)
-    else:
-        y_offset = asteroid_radius + LCP.miss_distance_km
+    fractionCovered, x = dodEllipseModel(margin, LCP)
 
-    half_width = star_radius + asteroid_radius + margin
-
-    x = np.linspace(-half_width, half_width, 2048)
-    dvalues = np.sqrt(x ** 2 + y_offset ** 2)
+    # star_radius = LCP.star_radius_km
+    # asteroid_radius = LCP.asteroid_diameter_km / 2
 
     EntryContact_x = ExitContact_x = None
-    for i, d in enumerate(dvalues):
-        if EntryContact_x is None:
-            if d <= star_radius + asteroid_radius:
-                EntryContact_x = x[i]
-        elif ExitContact_x is None and x[i] > 0:
-            if d >= asteroid_radius + star_radius:
-                ExitContact_x = x[i]
 
-    Itemp = []
-    for d in dvalues:
-        Itemp.append(Istar(asteroid_radius, star_radius, d))  # overlap of asteroid and star at separation d
+    for i in range(0, fractionCovered.size):
+        if not fractionCovered[i] == 0.0:
+            EntryContact_x = x[i-1]
+            break
 
-    y_ADU = scaleToADU(np.array(Itemp), LCP=LCP)
+    for i in range(fractionCovered.size-1, 0, -1):
+        if not fractionCovered[i] == 0.0:
+            ExitContact_x = x[i+1]
+            break
 
-    return x, y_ADU, dvalues, EntryContact_x, ExitContact_x
+    # half_chord = LCP.chord_length_km / 2
+    # if LCP.miss_distance_km == 0:
+    #     y_offset = np.sqrt(asteroid_radius ** 2 - half_chord ** 2)
+    # else:
+    #     y_offset = asteroid_radius + LCP.miss_distance_km
+    #
+    # half_width = star_radius + asteroid_radius + margin
+
+    # x = np.linspace(-half_width, half_width, 2048)
+    # dvalues = np.sqrt(x ** 2 + y_offset ** 2)
+
+    # EntryContact_x = ExitContact_x = None
+    # for i, d in enumerate(dvalues):
+    #     if EntryContact_x is None:
+    #         if d <= star_radius + asteroid_radius:
+    #             EntryContact_x = x[i]
+    #     elif ExitContact_x is None and x[i] > 0:
+    #         if d >= asteroid_radius + star_radius:
+    #             ExitContact_x = x[i]
+
+    # Itemp = []
+    # for d in dvalues:
+    #     Itemp.append(Istar(asteroid_radius, star_radius, d))  # overlap of asteroid and star at separation d
+
+    # y_ADU = scaleToADU(np.array(Itemp), LCP=LCP)
+
+    y_ADU = scaleToADU(np.array(1.0 - fractionCovered), LCP=LCP)
+
+    # dvalues = None
+
+    return x, y_ADU, EntryContact_x, ExitContact_x
 
 
 def dodLightcurve(LCP):
-    x, y_ADU, _, _, _ = dodModel(margin=10, LCP=LCP)
+    x, y_ADU, first_contact, last_contact = dodCircleModel(margin=10, LCP=LCP)
 
     half_chord = LCP.chord_length_km / 2
     R_edge = half_chord
     D_edge = - R_edge
 
-    return x, y_ADU, D_edge, R_edge
+    return x, y_ADU, D_edge, R_edge, first_contact, last_contact
 
 
 def illustrateDiskOnDiskEvent(LCP: LightcurveParameters, axes,
                               showLegend=False, showNotes=False):
-    half_chord = LCP.chord_length_km / 2
-    asteroid_radius = LCP.asteroid_diameter_km / 2
 
-    if LCP.miss_distance_km > 0:
-        half_chord = 0
-
-    y_offset = np.sqrt(asteroid_radius ** 2 - half_chord ** 2)
-    starY = -LCP.miss_distance_km
-    starX = -half_chord - 0.6 * LCP.star_diameter_km
-
-    asteroidY = y_offset
-    asteroidX = 0.0
-
-    if not LCP.miss_distance_km == 0:
-        if LCP.miss_distance_km <= LCP.star_radius_km:
-            event_type_str = 'partial miss'
-        else:
-            event_type_str = 'miss'
-    elif y_offset <= asteroid_radius - LCP.star_radius_km:
-        event_type_str = 'normal'
-    elif y_offset <= LCP.star_radius_km - asteroid_radius:
-        event_type_str = 'annular'
-    else:
-        event_type_str = 'graze'
+    asteroidX, asteroidY, asteroid_image, min_ellipse_yvalue, starX, starY = getStarAndAsteroidPositions(LCP)
 
     # Create the title for the plot
     title_msg = 'The asteroid is moving from right to left into the star.\n'
@@ -1468,21 +1550,31 @@ def illustrateDiskOnDiskEvent(LCP: LightcurveParameters, axes,
     # Put gray dot in center of star
     axes.plot(starX, starY, marker='o', color='gray')
 
-    # Plot the star path
-    axes.hlines(starY, xmin=starX, xmax=-0.0 * LCP.star_diameter_km, ls='-.',
-                color='blue', label='star path')
-    axes.hlines(starY, xmax=2.5 * LCP.star_diameter_km, xmin=0.0 * LCP.star_diameter_km, ls='-.', color='blue')
+    # Plot the asteroid path
+    half_plot = 2.5 * max(LCP.star_diameter_km, LCP.asteroid_diameter_km)
 
-    # Create and place the asteroid image
-    asteroid_image = patches.Circle((asteroidX, asteroidY), radius=LCP.asteroid_diameter_km / 2, facecolor="lightgray",
-                                    edgecolor='gray')
+    axes.hlines(asteroidY, xmin=-half_plot, xmax=half_plot, ls='-.',
+                color='gray', label='asteroid path')
+
+    if LCP.miss_distance_km > 0.0:
+        # axes.hlines(asteroidY, xmin=-2.5 * LCP.star_diameter_km, xmax=2.5 * LCP.star_diameter_km, ls='-.',
+        #             color='gray', label='asteroid path')
+        axes.plot([-half_plot, half_plot],[min_ellipse_yvalue, min_ellipse_yvalue], color='gray',
+                  ls='dotted', label='miss boundary')
+
+    # Plot the asteroid outline
     axes.add_patch(asteroid_image)
 
     # Put gray dot in center of asteroid
     axes.plot(asteroidX, asteroidY, marker='o', color='gray')
 
-    # Plot chord
-    axes.plot([-half_chord, half_chord], [0, 0], color='black', linewidth=4, label='chord')
+    # TODO New ellipse chord calculation
+    graze_offset_km = asteroidY
+    x1, x2 = ellipseChord(graze_offset_km, major_axis_km=LCP.asteroid_major_axis, minor_axis_km=LCP.asteroid_minor_axis,
+                          theta_degrees=-LCP.ellipse_angle_degrees)
+
+    if LCP.miss_distance_km == 0.0:  # Plot the chord
+        axes.plot([x1, x2], [0,0], ls='-', color='blue')
 
     axes.set_xlabel("Kilometers")
     axes.grid()
@@ -1494,28 +1586,55 @@ def illustrateDiskOnDiskEvent(LCP: LightcurveParameters, axes,
 
     # Add legend to identify the lines
     if showLegend:
-        axes.legend(loc='best', fontsize=10)
+        axes.legend(loc='best', fontsize=10, framealpha=1, facecolor='wheat')
 
     # Add text annotation to plot for asteroid diameter, distance, etc
-    s = f"star diameter: {LCP.star_diameter_km:0.2f} km"
-    s = s + f"\nasteroid diameter: {LCP.asteroid_diameter_km:0.2f} km"
+    s = f"star diameter: {LCP.star_diameter_km:0.2f} km\n"
+    s = s + f"\nasteroid x axis: {LCP.asteroid_minor_axis:0.2f} km"
+    s = s + f"\nasteroid y axis: {LCP.asteroid_major_axis:0.2f} km"
+    s = s + f"\n ccw angle: {LCP.ellipse_angle_degrees:0.2f} deg\n"
     s = s + f"\nasteroid distance: {LCP.asteroid_distance_AU:0.2f} AU"
     s = s + f"\nframe time: {LCP.frame_time:0.3f} sec"
     if LCP.miss_distance_km == 0:
         s = s + f"\nchord length: {LCP.chord_length_km:0.2f} km"
-    s = s + f"\n\nThis is a {event_type_str} event."
-    if event_type_str == 'partial miss' or event_type_str == 'total miss':
+        s = s + f"\n\nChord end points are defined\nas where star center hits edge"
+    else:
         s = s + f"\n  miss distance: {LCP.miss_distance_km:0.2f} km"
-    s = s + f"\n\nChord end points are defined\nas where star center hits edge"
+
+    # s = s + f"\n\nThis is a {event_type_str} event."
+    # if event_type_str == 'partial miss' or event_type_str == 'total miss':
+    #     s = s + f"\n  miss distance: {LCP.miss_distance_km:0.2f} km"
+
     margin = 0.02
     if showNotes:
+        props = dict(boxstyle='round', facecolor='wheat', alpha=1.0)
         axes.text(1.0 - margin, margin, s,
                   horizontalalignment='right',
                   verticalalignment='bottom',
-                  transform=axes.transAxes, bbox=dict(facecolor='white', alpha=1), fontsize=8)
+                  transform=axes.transAxes, bbox=props, fontsize=8)
 
 
-def plot_disk_on_disk(x, y, LCP, figsize=(10, 6),
+def getStarAndAsteroidPositions(LCP):
+    half_chord = LCP.chord_length_km / 2
+    asteroid_radius = LCP.asteroid_diameter_km / 2
+    if LCP.miss_distance_km > 0:
+        half_chord = 0
+    y_offset = np.sqrt(asteroid_radius ** 2 - half_chord ** 2)
+    asteroidY = y_offset
+    asteroidX = 0.0
+    asteroid_image = patches.Ellipse((asteroidX, asteroidY),
+                                     LCP.asteroid_minor_axis, LCP.asteroid_major_axis, LCP.ellipse_angle_degrees,
+                                     facecolor="lightgray", edgecolor='gray', linewidth=1)
+    min_ellipse_yvalue = asteroid_image.get_extents().ymin
+    if LCP.miss_distance_km == 0.0:
+        starY = 0.0
+    else:
+        starY = min_ellipse_yvalue - LCP.miss_distance_km
+    starX = -half_chord - 0.6 * LCP.star_diameter_km
+    return asteroidX, asteroidY, asteroid_image, min_ellipse_yvalue, starX, starY
+
+
+def plot_disk_on_disk(x, y, first_contact, last_contact, LCP, figsize=(10, 6),
                       title='Disk on disk model plot',
                       showLegend=False, showNotes=False, plot_versus_time=False):
     # Block integrate y by frame_time
@@ -1548,10 +1667,13 @@ def plot_disk_on_disk(x, y, LCP, figsize=(10, 6),
     ax1.grid()
     if plot_versus_time:
         half_chord = (LCP.chord_length_km / 2) / LCP.shadow_speed
+        first_contact = first_contact / LCP.shadow_speed
+        last_contact = last_contact / LCP.shadow_speed
     else:
         half_chord = LCP.chord_length_km / 2
     if LCP.miss_distance_km == 0:
         ax1.vlines([-half_chord, half_chord], 0, 1.1 * LCP.baseline_ADU, color='red', ls='--', label='Geometric edges')
+        ax1.vlines([first_contact, last_contact], 0, 1.1 * LCP.baseline_ADU, color='green', ls='--', label='first/last contacts')
 
     if showLegend:
         ax1.legend(loc='best', fontsize=10)
@@ -1815,10 +1937,12 @@ def demo_event(LCP: LightcurveParameters, model, title='Generic model', showLege
     if LCP.R_limb_angle_degrees == 90:
         LCP.set('R_limb_angle_degrees', 89.999)
 
+    first_contact = last_contact = None
+
     if model == 'disk-on-disk':
-        x, y, D_edge, R_edge = dodLightcurve(LCP=LCP)
+        x, y, D_edge, R_edge, first_contact, last_contact = dodLightcurve(LCP=LCP)
         if plots_wanted:
-            plot_disk_on_disk(x=x, y=y, LCP=LCP, title=title,
+            plot_disk_on_disk(x=x, y=y, first_contact=first_contact, last_contact=last_contact, LCP=LCP, title=title,
                               showLegend=showLegend, showNotes=showNotes,
                               plot_versus_time=plot_versus_time)
     elif model == 'edge-on-disk':
@@ -1879,7 +2003,7 @@ def demo_event(LCP: LightcurveParameters, model, title='Generic model', showLege
         model_dict = {'y': camera_y, 't_start': x[0] / LCP.shadow_speed, 't_end': x[-1] / LCP.shadow_speed}
         pickle.dump(model_dict, open("demo-event.p", "wb"))
         # print(f'x[0]: {x[0]/LCP.shadow_speed:0.4f}  x[-1]: {x[-1]/LCP.shadow_speed:0.4f}')
-        return x, camera_y, D_edge, R_edge
+        return x, camera_y, D_edge, R_edge, first_contact, last_contact
     else:
         raise Exception(f"Model '{model}' is unknown.")
 
@@ -1895,7 +2019,7 @@ def demo_event(LCP: LightcurveParameters, model, title='Generic model', showLege
     pickle.dump(model_dict, open("demo-event.p", "wb"))
     # print(f'x[0]: {x[0]/LCP.shadow_speed:0.4f}  x[-1]: {x[-1]/LCP.shadow_speed:0.4f}')
 
-    return x, final_y, D_edge, R_edge
+    return x, final_y, D_edge, R_edge, first_contact, last_contact
 
 
 def timeSampleLightcurve(x_km, y_ADU, D_km, R_km, LCP, start_time=0):

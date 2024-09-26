@@ -430,7 +430,7 @@ def locate_fixed_event_position(
     r_max = r
     # ======= update_best_solution() ========
 
-    # The metric used is the variable part of logL(D,R), droping the constant
+    # The metric used is the variable part of logL(D,R), dropping the constant
     # part and ignoring a factor of 2.  The full logL(D,R) would have been:
     #
     # -0.5 * (b_n*log(b_var) + a_n*log(a_var) + (b_n + a_n) * (1 + log(2*pi))
@@ -492,7 +492,9 @@ def locate_fixed_event_position(
 
     return d_max, r_max, b_max, a_max, sigma_b, sigma_a, max_metric, solution_count
 
-@njit  # cache=True gave pickling error
+
+# TODO Replace njit
+# @njit  # cache=True gave pickling error
 def locate_event_from_d_and_r_ranges(
         y: np.ndarray, left: int, right: int, d_start: int, d_end: int,
         r_start: int,  r_end: int):

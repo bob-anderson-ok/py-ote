@@ -4889,7 +4889,7 @@
                    </font>
                   </property>
                   <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;In an &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;edge on disk&lt;/span&gt; or &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;disk on disk&lt;/span&gt; event, the star center sometimes does not intersect the asteroid, yet the asteroid &lt;span style=&quot; text-decoration: underline;&quot;&gt;does&lt;/span&gt; overlap a portion of the star disk. This is defined as a 'miss' and the distance from the geometric edge of the asteroid to the star center path is defined as the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Miss distance (km)&lt;/span&gt;.&lt;/p&gt;&lt;p&gt;A similar situation can occur when a diffraction model is in use. Because of diffraction, light appears outside the geometric outline of the asteroid and if your observaton point is outside this geometric edge, that will be a 'miss', but there may be observable changes to the light curve that can be utilized to, in conjuction with other observers, put a 'fence' around the asteroid position.&lt;/p&gt;&lt;p&gt;In the diffraction plots, you will not find &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;miss_distance_km&lt;/span&gt; in the plot notes. Instead, you will find the term &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;graze_offset_km&lt;/span&gt;. This is defined as:&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;graze_offset_km = asteroid_radius_km + miss_distance_km&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;In an &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;edge on disk&lt;/span&gt; or &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;disk on disk&lt;/span&gt; event, the star center sometimes does not intersect the asteroid, yet the asteroid &lt;span style=&quot; text-decoration: underline;&quot;&gt;does&lt;/span&gt; overlap a portion of the star disk. This is defined as a 'miss' and the distance from the geometric edge of the asteroid to the star center (at closest approach to the asteroid edge) is defined as the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Miss distance (km)&lt;/span&gt;.&lt;/p&gt;&lt;p&gt;A similar situation can occur when a diffraction model is in use. Because of diffraction, light appears outside the geometric outline of the asteroid and if your observaton point is outside this geometric edge, that will be a 'miss', but there may be observable changes to the light curve that can be utilized to, in conjuction with other observers, put a 'fence' around the asteroid position.&lt;/p&gt;&lt;p&gt;In the diffraction plots, you will not find &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;miss_distance_km&lt;/span&gt; in the plot notes. Instead, you will find the term &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;graze_offset_km&lt;/span&gt;. This is defined as:&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;graze_offset_km = asteroid_radius_km + miss_distance_km&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="text">
                    <string>Miss distance (km)</string>
@@ -5004,7 +5004,7 @@
                    </font>
                   </property>
                   <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The usual chord estimate will be in seconds and should be chosen (estimated) from the actual light curve.&lt;/p&gt;&lt;p&gt;&amp;quot;Chord&amp;quot; is defined as the distance or time from the D event (the star &lt;span style=&quot; text-decoration: underline;&quot;&gt;center &lt;/span&gt;first intersects the asteroid edge) to the R event (the star &lt;span style=&quot; text-decoration: underline;&quot;&gt;center&lt;/span&gt; exits the asteroid).&lt;/p&gt;&lt;p&gt;Note: the case where a star disk is occulted by the asteroid but the star center does &lt;span style=&quot; text-decoration: underline;&quot;&gt;not&lt;/span&gt; intersect the asteroid is called a miss. This is indicated by a non-zero entry in the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Miss distance (km)&lt;/span&gt; edit box and 0.00000 values in the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Chord estimate&lt;/span&gt; edit boxes (automatically enforced whenever a non-zero entry is made in the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Miss distance (km)&lt;/span&gt; edit box).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The usual chord estimate will be in seconds and should be chosen (estimated) from the actual light curve.&lt;/p&gt;&lt;p&gt;&amp;quot;Chord&amp;quot; is defined as the distance or time from the D event (the star &lt;span style=&quot; text-decoration: underline;&quot;&gt;center &lt;/span&gt;first intersects the asteroid edge) to the R event (the star &lt;span style=&quot; text-decoration: underline;&quot;&gt;center&lt;/span&gt; exits the asteroid).&lt;/p&gt;&lt;p&gt;Note: the case where a star disk is occulted by the asteroid but the star center does &lt;span style=&quot; text-decoration: underline;&quot;&gt;not&lt;/span&gt; intersect the asteroid is called a miss. This is indicated by a non-zero entry in the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Miss distance (km)&lt;/span&gt; edit box and 0.00000 values in the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Chord estimate&lt;/span&gt; edit boxes (automatically enforced whenever a non-zero entry is made in the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Miss distance (km)&lt;/span&gt; edit box). Miss distance is measured from the star center to the asteroid edge at closest approach.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="text">
                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Chord estimate&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -5056,7 +5056,7 @@
                 <rect>
                  <x>530</x>
                  <y>100</y>
-                 <width>111</width>
+                 <width>251</width>
                  <height>82</height>
                 </rect>
                </property>
@@ -5079,7 +5079,14 @@
                 <item>
                  <layout class="QHBoxLayout" name="horizontalLayout_135">
                   <item>
-                   <widget class="QLineEdit" name="asteroidDistAUedit"/>
+                   <widget class="QLineEdit" name="asteroidDistAUedit">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                   </widget>
                   </item>
                   <item>
                    <widget class="QLabel" name="asteroidDistAUlabel">
@@ -5098,7 +5105,14 @@
                 <item>
                  <layout class="QHBoxLayout" name="horizontalLayout_136">
                   <item>
-                   <widget class="QLineEdit" name="asteroidDistArcsecEdit"/>
+                   <widget class="QLineEdit" name="asteroidDistArcsecEdit">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                   </widget>
                   </item>
                   <item>
                    <widget class="QLabel" name="asteroidDistArcsecLabel">
@@ -5111,7 +5125,7 @@
                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This is the distance to the asteroid specified as a parallax value (in arc seconds)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                     </property>
                     <property name="text">
-                     <string>arcsec</string>
+                     <string>arcsec (Parallax)</string>
                     </property>
                    </widget>
                   </item>
@@ -5304,7 +5318,7 @@
                 </font>
                </property>
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This box contains a list of previous event data sets that have been saved by clicking on the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Save event &lt;/span&gt;button to the left.&lt;/p&gt;&lt;p&gt;The first entry in this list is always titled &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;&amp;lt;clear event data&amp;gt;&lt;/span&gt; and, if selected (by clicking on it), will clear all of the edit boxes between the three black bars. Clicking any other entry will restore the saved data and fill in all the edit boxes between the three black bars.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Note:&lt;/span&gt; when you select a data set, there is the possibility that you will receive a &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;'file mismatch' &lt;/span&gt;warning. This means that the data set was first created and saved in conjunction with a different csv file than the one in use at the moment. This is usually a mistake and usually due to selecting the wrong data set. But sometimes this can be deliberate, in which case the warning can be simply ignored - or, you can click on the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Save event&lt;/span&gt; button to change the file association to the one currently in use.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This box contains a list of previous event data sets that have been saved by clicking on the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Save event &lt;/span&gt;button to the left.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Note:&lt;/span&gt; when you select a data set, there is the possibility that you will receive a &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;'file mismatch' &lt;/span&gt;warning. This means that the data set was first created and saved in conjunction with a different csv file than the one in use at the moment. This is usually a mistake and usually due to selecting the wrong data set. But sometimes this can be deliberate, in which case the warning can be simply ignored - or, you can click on the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Save event&lt;/span&gt; button to change the file association to the one currently in use.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
                <property name="text">
                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Saved event data sets&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -5414,7 +5428,7 @@
                 <item>
                  <widget class="QPushButton" name="demoGeometryButton">
                   <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clicking this button will cause a plot to appear that shows the geometry of the event with the star center and diameter and path relative to the asteroid shape.&lt;/p&gt;&lt;p&gt;This is particularly useful when dealing with diffraction models where the asteroid can be modelled as an ellipse and the orientation of the ellipse is hard to visualize.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clicking this button will cause a plot to appear that shows the geometry of the event with the star center and diameter and path relative to the asteroid shape.&lt;/p&gt;&lt;p&gt;This is particularly useful when dealing with diffraction and disk-on-disk models where the asteroid can be modelled as an ellipse and the orientation of the ellipse is hard to visualize.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="text">
                    <string>Demo geometry</string>
@@ -5457,7 +5471,7 @@
                 <item>
                  <widget class="QPushButton" name="printEventParametersButton">
                   <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clicking this button causes a listing of all the current lightcurve parameters to be shown in the log panel.&lt;/p&gt;&lt;p&gt;This is the same action that is automatically called at the end of a successful fit to provide a completed final report, so normally one would have no need to use this button.&lt;/p&gt;&lt;p&gt;One possible time to use this button is if &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Pause fit in progress&lt;/span&gt; was clicked and you wish the current fit achieved to be treated as the best fit and want to add the current lightcurve settings to the final report.&lt;/p&gt;&lt;p&gt;Another possible use is to get the baseline noise value for use in noise analysis of elliptical asteroid events.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clicking this button causes a listing of all the current lightcurve parameters to be shown in the log panel.&lt;/p&gt;&lt;p&gt;This is the same action that is automatically called at the end of a successful fit to provide a completed final report, so normally one would have no need to use this button.&lt;/p&gt;&lt;p&gt;One possible time to use this button is if &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Pause fit in progress&lt;/span&gt; was clicked and you wish the current fit achieved to be treated as the best fit and want to add the current lightcurve settings to the final report.&lt;/p&gt;&lt;p&gt;Another possible use is to get the baseline noise value - it is printed at this time and is not available any other way. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="text">
                    <string>Print event parameters</string>
@@ -5971,7 +5985,7 @@
                   <item>
                    <widget class="QPushButton" name="baselineADUbutton">
                     <property name="toolTip">
-                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Click this button once a point pair has been placed on the baseline area that exludes any event data. The points selected will be changed to a salmon color.&lt;/p&gt;&lt;p&gt;This operation may be reated multiple time.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Click this button once a point pair has been placed on the baseline area that exludes any event data. The points selected will be changed to a salmon color.&lt;/p&gt;&lt;p&gt;This operation may be repeated multiple time.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                     </property>
                     <property name="text">
                      <string>Select</string>
@@ -6463,7 +6477,7 @@ Setting this value to zero will force Miss distance optimization to be skipped.<
                    </font>
                   </property>
                   <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If a value is entered in this edit box (and all the others in this row), an elliptical shape for the asteroid will be used during diffraction modelling, automatically overriding the asteroid diameter entry.&lt;/p&gt;&lt;p&gt;The major axis is the vertical axis (y) in plots of the diffraction pattern on the ground&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If a value is entered in this edit box (and all the others in this row), an elliptical shape for the asteroid will be used during diffraction and disk-on-disk modelling, automatically overriding the asteroid diameter entry.&lt;/p&gt;&lt;p&gt;The major axis is the vertical axis (y) in plots of the diffraction pattern on the ground&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="text">
                    <string>Ellipse specs:     major axis(km)(y):</string>
@@ -6481,7 +6495,7 @@ Setting this value to zero will force Miss distance optimization to be skipped.<
                    </font>
                   </property>
                   <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If a value is entered in this edit box (and all the others in this row), an elliptical shape for the asteroid will be used during diffraction modelling, automatically overriding the asteroid diameter entry.&lt;/p&gt;&lt;p&gt;The minor axis is the horizontal axis (x) in plots of the diffraction pattern on the ground&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If a value is entered in this edit box (and all the others in this row), an elliptical shape for the asteroid will be used during diffraction and disk-on-disk  modelling, automatically overriding the asteroid diameter entry.&lt;/p&gt;&lt;p&gt;The minor axis is the horizontal axis (x) in plots of the diffraction pattern on the ground&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="text">
                    <string>   minor axis(km)(x):</string>
@@ -6499,7 +6513,7 @@ Setting this value to zero will force Miss distance optimization to be skipped.<
                    </font>
                   </property>
                   <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If a value is entered in this edit box (and all the others in this row), an elliptical shape for the asteroid will be used during diffraction modelling, automatically overriding the asteroid diameter entry.&lt;/p&gt;&lt;p&gt;The ellipse angle is relative to the observation path with positive values treated as counter-clockwise rotation. The angle units are degrees, not radians&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If a value is entered in this edit box (and all the others in this row), an elliptical shape for the asteroid will be used during diffraction and disk-on-disk modelling, automatically overriding the asteroid diameter entry.&lt;/p&gt;&lt;p&gt;The ellipse angle is relative to the observation path with positive values treated as counter-clockwise rotation. The angle units are degrees, not radians&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="text">
                    <string>    angle(degrees)(ccw):</string>
