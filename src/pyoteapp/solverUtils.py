@@ -10,8 +10,8 @@ MAX_PLINE = 0.1
 
 from math import exp
 import numpy as np
-from pyoteapp.likelihood_calculations import cum_loglikelihood, aicc, logLikelihoodLine
-from pyoteapp.likelihood_calculations import loglikelihood
+from likelihood_calculations import cum_loglikelihood, aicc, logLikelihoodLine
+from likelihood_calculations import loglikelihood
 from numba import njit
 
 

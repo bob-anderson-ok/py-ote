@@ -10,8 +10,8 @@ from numba import njit, float64, int64
 
 from typing import List, Iterator, Union, Tuple
 from scipy.signal import savgol_filter as savgol
-from pyoteapp.solverUtils import model
-from pyoteapp import autocorrtools
+from solverUtils import model
+import autocorrtools
 import numpy as np
 
 # import pyximport
@@ -92,7 +92,7 @@ def edgeDistributionGenerator(*, ntrials: int = 10000, numPts: int = None, D: in
     ma = np.ndarray(shape=(numPts,), dtype=np.double)  # 'model' A value
     mm = np.ndarray(shape=(numPts,), dtype=np.double)  # 'model' intermediate value
 
-    edgePos = np.zeros(shape=ntrials, dtype=np.float)
+    edgePos = np.zeros(shape=ntrials, dtype=np.float64)
 
     m, sigma = model(B=B, A=A, D=D, R=-1, sigmaB=sigmaB, sigmaA=sigmaA, numPts=numPts)
     # m[:D] == B  m[D:] == A  sigma[:D] == sigmaB  sigma[:D] == sigmaA

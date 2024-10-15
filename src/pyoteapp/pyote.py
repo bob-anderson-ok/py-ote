@@ -46,13 +46,13 @@ from openpyxl import load_workbook
 
 import pandas as pd
 
-from pyoteapp.pyote_modelling_utility_functions import LightcurveParameters, generalizedDiffraction
-from pyoteapp.pyote_modelling_utility_functions import decide_model_to_use
-from pyoteapp.pyote_modelling_utility_functions import demo_event
-from pyoteapp.pyote_modelling_utility_functions import demo_diffraction_field
-from pyoteapp.pyote_modelling_utility_functions import plot_diffraction
-from pyoteapp.pyote_modelling_utility_functions import illustrateDiskOnDiskEvent, illustrateEdgeOnDiskEvent
-from pyoteapp.pyote_modelling_utility_functions import asteroid_km_from_mas, asteroid_mas_from_km
+from pyote_modelling_utility_functions import LightcurveParameters, generalizedDiffraction
+from pyote_modelling_utility_functions import decide_model_to_use
+from pyote_modelling_utility_functions import demo_event
+from pyote_modelling_utility_functions import demo_diffraction_field
+from pyote_modelling_utility_functions import plot_diffraction
+from pyote_modelling_utility_functions import illustrateDiskOnDiskEvent, illustrateEdgeOnDiskEvent
+from pyote_modelling_utility_functions import asteroid_km_from_mas, asteroid_mas_from_km
 
 from math import trunc, floor
 import matplotlib.pyplot as plt
@@ -60,12 +60,12 @@ import matplotlib
 
 matplotlib.use('Qt5Agg')
 
-from pyoteapp.showVideoFrames import readAviFile
-from pyoteapp.showVideoFrames import readSerFile
-from pyoteapp.showVideoFrames import readFitsFile
-from pyoteapp.showVideoFrames import readAavFile
+from showVideoFrames import readAviFile
+from showVideoFrames import readSerFile
+from showVideoFrames import readFitsFile
+from showVideoFrames import readAavFile
 
-from pyoteapp.false_positive import compute_drops, noise_gen_jit, simple_convolve, calc_sigma_lines, tail_count_fraction
+from false_positive import compute_drops, noise_gen_jit, simple_convolve, calc_sigma_lines, tail_count_fraction
 import numpy as np
 import pyqtgraph as pg
 import pyqtgraph.exporters as pex
@@ -78,29 +78,30 @@ from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QFileDialog, QMessageBox, QDialog
 from pyqtgraph import PlotWidget
 
-from pyoteapp import version
-from pyoteapp import fixedPrecision as fp
-from pyoteapp import gui
-from pyoteapp import timestampDialog
-from pyoteapp import helpDialog
-from pyoteapp import exponentialEdgeUtilities as ex
-from pyoteapp.checkForNewerVersion import getLatestPackageVersion
+import version
+import fixedPrecision as fp
+import gui
+import timestampDialog
+import helpDialog
+import exponentialEdgeUtilities as ex
+
+from checkForNewerVersion import getLatestPackageVersion
 # from pyoteapp.checkForNewerVersion import upgradePyote
-from pyoteapp.csvreader import readLightCurve
-from pyoteapp.errorBarUtils import ciBars
-from pyoteapp.errorBarUtils import createDurDistribution
-from pyoteapp.errorBarUtils import edgeDistributionGenerator
-from pyoteapp.noiseUtils import getCorCoefs
-from pyoteapp.solverUtils import candidateCounter, solver, subFrameAdjusted
-from pyoteapp.timestampUtils import convertTimeStringToTime
-from pyoteapp.timestampUtils import convertTimeToTimeString
-from pyoteapp.timestampUtils import getTimeStepAndOutliers
-from pyoteapp.timestampUtils import manualTimeStampEntry
-from pyoteapp.blockIntegrateUtils import mean_std_versus_offset
-from pyoteapp.iterative_logl_functions import locate_event_from_d_and_r_ranges
-from pyoteapp.iterative_logl_functions import find_best_event_from_min_max_size
-from pyoteapp.iterative_logl_functions import find_best_r_only_from_min_max_size
-from pyoteapp.iterative_logl_functions import find_best_d_only_from_min_max_size
+from csvreader import readLightCurve
+from errorBarUtils import ciBars
+from errorBarUtils import createDurDistribution
+from errorBarUtils import edgeDistributionGenerator
+from noiseUtils import getCorCoefs
+from solverUtils import candidateCounter, solver, subFrameAdjusted
+from timestampUtils import convertTimeStringToTime
+from timestampUtils import convertTimeToTimeString
+from timestampUtils import getTimeStepAndOutliers
+from timestampUtils import manualTimeStampEntry
+from blockIntegrateUtils import mean_std_versus_offset
+from iterative_logl_functions import locate_event_from_d_and_r_ranges
+from iterative_logl_functions import find_best_event_from_min_max_size
+from iterative_logl_functions import find_best_r_only_from_min_max_size
+from iterative_logl_functions import find_best_d_only_from_min_max_size
 # from pyoteapp.subframe_timing_utilities import generate_underlying_lightcurve_plots, fresnel_length_km
 # from pyoteapp.subframe_timing_utilities import time_correction, intensity_at_time
 

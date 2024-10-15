@@ -2,7 +2,7 @@ import pyqtgraph as pg
 import pyqtgraph.examples
 from PyQt5 import QtGui
 import cv2
-import pyoteapp.SER
+import SER
 import glob
 import astropy.io.fits as pyfits  # Used for reading/writing FITS files
 from Adv2.Adv2File import Adv2reader
@@ -117,7 +117,7 @@ def readSerFile(frame_to_read=0, full_file_path=None):
 
     if full_file_path:
 
-        ser_meta_data, ser_timestamps = pyoteapp.SER.getMetaData(full_file_path)
+        ser_meta_data, ser_timestamps = SER.getMetaData(full_file_path)
 
         # showSerMetaData()
         frame_count = ser_meta_data['FrameCount']
@@ -131,7 +131,7 @@ def readSerFile(frame_to_read=0, full_file_path=None):
             image_height = ser_meta_data['ImageHeight']
             little_endian = ser_meta_data['LittleEndian']
             with open(full_file_path, 'rb') as ser_file_handle:
-                image = pyoteapp.SER.getSerImage(
+                image = SER.getSerImage(
                     ser_file_handle, frame_to_read,
                     bytes_per_pixel, image_width, image_height, little_endian
                 )

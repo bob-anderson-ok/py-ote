@@ -11,10 +11,10 @@ import numpy as np
 import sys
 from math import log, pi, sqrt, exp
 from typing import Tuple
-from pyoteapp.solverUtils import calcNumCandidatesFromEventSize
-from pyoteapp.solverUtils import calcNumCandidatesFromDandRlimits
-from pyoteapp.solverUtils import model, logLikelihoodLine
-from pyoteapp.likelihood_calculations import cum_loglikelihood, aicc
+from solverUtils import calcNumCandidatesFromEventSize
+from solverUtils import calcNumCandidatesFromDandRlimits
+from solverUtils import model, logLikelihoodLine
+from likelihood_calculations import cum_loglikelihood, aicc
 from numba import njit, jit
 
 MIN_FLOAT: float = sys.float_info.min
