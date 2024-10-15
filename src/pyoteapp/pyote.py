@@ -42,6 +42,21 @@ import os
 import sys
 import platform
 
+
+# We add the current working directory to sys.path so that modules referenced by pyote can be found.
+root, tail = os.path.split(__file__)
+sys.path.insert(0, root)
+
+print( "==========================")
+print("modules will be sourced from ...")
+print(root)
+print( "==========================")
+
+# for path in sys.path:
+#     print(path)
+# print( "==========================")
+
+
 from openpyxl import load_workbook
 
 import pandas as pd
