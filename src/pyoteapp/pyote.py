@@ -35,7 +35,7 @@ from dataclasses import dataclass, field
 from scipy import interpolate
 
 # from numba import jit
-MIN_SIGMA = 0.1
+MIN_SIGMA = 0.05
 
 import datetime
 import os
@@ -1122,12 +1122,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         # Use 'sticky' settings to size and position the main screen
         self.resize(self.settings.value('size', QSize(800, 800)))
         self.move(self.settings.value('pos', QPoint(50, 50)))
-        doOCRcheck = self.settings.value('doOCRcheck', 'true') == 'true'
-        self.showOCRcheckFramesCheckBox.setChecked(doOCRcheck)
-        showCameraResponse = self.settings.value('showCameraResponse', 'false') == 'true'
-        self.showCameraResponseCheckBox.setChecked(showCameraResponse)
-        showTimestamps = self.settings.value('showTimestamps', 'true') == 'true'
-        self.showTimestampsCheckBox.setChecked(showTimestamps)
+
+
+        self.showErrBarsCheckBox.setChecked(self.settings.value('showErrorBars', 'true') == 'true')
+        self.showUnderlyingLightcurveCheckBox.setChecked(self.settings.value('showUnderlyingLightCurve', 'true') == 'true')
+        self.showCameraResponseCheckBox.setChecked(self.settings.value('showCameraResponse', 'false') == 'true')
+        self.showEdgesCheckBox.setChecked(self.settings.value('showEdges', 'true') == 'true')
+        self.showOCRcheckFramesCheckBox.setChecked(self.settings.value('doOCRcheck', 'true') == 'true')
+        self.showTimestampsCheckBox.setChecked(self.settings.value('showTimestamps', 'true') == 'true')
 
         self.removeAddedDataSetsButton.clicked.connect(self.removeAddedDataSets)
         self.removeAddedDataSetsButton.installEventFilter(self)
@@ -7206,6 +7208,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         # Capture the close request and update 'sticky' settings
         self.settings.setValue('size', self.size())
         self.settings.setValue('pos', self.pos())
+        self.settings.setValue('showErrorBars', self.showErrBarsCheckBox.isChecked())
+        self.settings.setValue('showUnderlyingLightCurve', self.showUnderlyingLightcurveCheckBox.isChecked())
+        self.settings.setValue('showEdges', self.showEdgesCheckBox.isChecked())
         self.settings.setValue('doOCRcheck', self.showOCRcheckFramesCheckBox.isChecked())
         self.settings.setValue('showTimestamps', self.showTimestampsCheckBox.isChecked())
         self.settings.setValue('showCameraResponse', self.showCameraResponseCheckBox.isChecked())
@@ -8152,7 +8157,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.falsePositivePlotItem = None
 
         if self.sigmaB == 0.0:
-            self.sigmaB = MIN_SIGMA
+            self.sigmaB = MIN_SIGMA * 2
 
         if self.sigmaA == 0.0:
             self.sigmaA = MIN_SIGMA
@@ -9130,7 +9135,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     self.showInfo('minEvent must be greater than 1.\n\nSetting it to 2.')
                     self.minEvent = 2
                     self.minEventEdit.setText('2')
-                    # return
 
         if maxText:
             if not maxText.isnumeric():
@@ -9222,6 +9226,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 else:
                     self.minEvent = self.right - self.dLimits[1]
                     # self.minEvent = max(self.minEvent, 2)  Graem remove
+                    self.minEvent = max(self.minEvent, 1)  # 5.5.3
                     # self.maxEvent = self.right - self.dLimits[0] - 1  Graem remove the "-1"
                     self.maxEvent = self.right - self.dLimits[0]
 
@@ -9299,6 +9304,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                     return
 
             # Here is where we get sigmaB and sigmaA with the transition points excluded
+            if self.sigmaA == 0.0:
+                self.sigmaA = MIN_SIGMA
+            self.sigmaA = 0.05
+            if self.sigmaB == 0.0:
+                self.sigmaB = MIN_SIGMA * 2
             subDandR, new_b, new_a, newSigmaB, newSigmaA = subFrameAdjusted(
                 eventType=self.eventType, cand=(d, r), B=self.B, A=self.A,
                 sigmaB=self.sigmaB, sigmaA=self.sigmaA, yValues=self.yValues,

@@ -269,7 +269,8 @@ def find_best_r_only_from_min_max_size(
 
     # Here we test for the best solution being better than straight line
     if not solution_is_better_than_straight_line(
-            y, left, right, -1, r_best, b, a, sigma_b, sigma_a, k=3):
+            # y, left, right, -1, r_best, b, a, sigma_b, sigma_a, k=3):  # 5.5.3
+            y, left, right, -1, r_best, b_best, a_best, sigma_b, sigma_a, k=3):  # 5.5.3
         # yield 'no event present', 1.0
         yield -1.0, 1.0, -1, -1, 0.0, 0.0, 0.0, 0.0, 0.0
 
@@ -320,7 +321,8 @@ def find_best_d_only_from_min_max_size(
     # Use numpy version of metric calculator to initialize iteration variables
 
     # Excludes d from B - this is meaningless because d is incorrect at this point
-    b_s, b_s2, b_n, b_var = calc_metric_numpy(y[left:d])  #Graem This only does 1 point as we want! (no change here)
+    # b_s, b_s2, b_n, b_var = calc_metric_numpy(y[left:d])  #Graem This only does 1 point as we want! (no change here)
+    b_s, b_s2, b_n, b_var = calc_metric_numpy(y[left:d+1])  # 5.5.3
 
     # Excludes d from A - this is meaningless because d is incorrect at this point
     # a_s, a_s2, a_n, a_var = calc_metric_numpy(y[d+1:right])
@@ -372,7 +374,8 @@ def find_best_d_only_from_min_max_size(
         yield -1.0, 1.0, -1, -1, 0.0, 0.0, 0.0, 0.0, 0.0
 
     if not solution_is_better_than_straight_line(
-            y, left, right, d_best, -1, b, a, sigma_b, sigma_a, k=3):
+            # y, left, right, d_best, -1, b, a, sigma_b, sigma_a, k=3):  # 5.5.3
+            y, left, right, d_best, -1, b_best, a_best, sigma_b, sigma_a, k=3):  # 5.5.3
         # yield 'no event present', 1.0
         yield -1.0, 1.0, -1, -1, 0.0, 0.0, 0.0, 0.0, 0.0
 
@@ -492,10 +495,19 @@ def locate_fixed_event_position(
 
     return d_max, r_max, b_max, a_max, sigma_b, sigma_a, max_metric, solution_count
 
+def locate_event_from_d_and_r_ranges(
+        y: np.ndarray, left: int, right: int, d_start: int, d_end: int,
+        r_start: int,  r_end: int):
+
+    # Convert to a min max
+    max = r_end - d_start
+    min = r_start - d_end
+    return find_best_event_from_min_max_size(
+        y = y, left = left, right = right, min_event = min, max_event = max)
 
 # TODO Replace njit
 # @njit  # cache=True gave pickling error
-def locate_event_from_d_and_r_ranges(
+def old_locate_event_from_d_and_r_ranges(
         y: np.ndarray, left: int, right: int, d_start: int, d_end: int,
         r_start: int,  r_end: int):
     """Finds the best size and location for event specified by d & r  ranges"""
