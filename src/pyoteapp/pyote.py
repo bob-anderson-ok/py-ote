@@ -44,7 +44,7 @@ import platform
 
 
 # We add the current working directory to sys.path so that modules referenced by pyote can be found.
-root, tail = os.path.split(__file__)
+root, _ = os.path.split(__file__)
 sys.path.insert(0, root)
 
 print( "==========================")
@@ -68,6 +68,8 @@ from pyote_modelling_utility_functions import demo_diffraction_field
 from pyote_modelling_utility_functions import plot_diffraction
 from pyote_modelling_utility_functions import illustrateDiskOnDiskEvent, illustrateEdgeOnDiskEvent
 from pyote_modelling_utility_functions import asteroid_km_from_mas, asteroid_mas_from_km
+
+from solverUtils import aicModelValue
 
 from math import trunc, floor
 import matplotlib.pyplot as plt
@@ -9010,15 +9012,39 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.baselineXvals.append(i)
                 self.baselineYvals.append(self.yValues[i])
             self.processBaselineNoiseFromIterativeSolution()
-            self.processEventNoiseFromIterativeSolution(D+1, self.right)
+
+            self.processEventNoiseFromIterativeSolution(D + 1, self.right)
+            obsValue = self.yValues[D]
+            # self.A is correct if if D is a transition value
+            if aicModelValue(
+                    obsValue=obsValue, B=self.B, A=self.A, sigmaB=self.sigmaB, sigmaA=self.sigmaA) == obsValue:
+                pass
+            else:
+                # get a new self.A starting from D
+                self.processEventNoiseFromIterativeSolution(D, self.right)  # 5.5.7 test
+
         else:  # R only
             self.baselineXvals = []
             self.baselineYvals = []
-            for i in range(R + 1, self.right + 1):  # This get points at index R+1 to self.right inclusive
+            self.processEventNoiseFromIterativeSolution(self.left, R - 1)
+
+            for i in range(R, self.right + 1):  # 5.5.7 test This get points at index R to self.right inclusive
                 self.baselineXvals.append(i)
                 self.baselineYvals.append(self.yValues[i])
             self.processBaselineNoiseFromIterativeSolution()
-            self.processEventNoiseFromIterativeSolution(self.left, R - 1)
+            obsValue = self.yValues[R]
+            # self.B is correct if R is a baseline value
+            if aicModelValue(
+                    obsValue=obsValue, B=self.B, A=self.A, sigmaB=self.sigmaB, sigmaA=self.sigmaA) == self.B:
+                pass
+            else:
+                # get a new self.B starting from R + 1 (because R was either a transition value or an event value
+                self.baselineXvals = []
+                self.baselineYvals = []
+                for i in range(R + 1, self.right + 1):  # 5.5.7 test This get points at index R + 1 to self.right inclusive
+                    self.baselineXvals.append(i)
+                    self.baselineYvals.append(self.yValues[i])
+                self.processBaselineNoiseFromIterativeSolution()
 
         self.prettyPrintCorCoefs()
 
@@ -9322,7 +9348,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             # Here is where we get sigmaB and sigmaA with the transition points excluded
             if self.sigmaA == 0.0:
                 self.sigmaA = MIN_SIGMA
-            self.sigmaA = 0.05
             if self.sigmaB == 0.0:
                 self.sigmaB = MIN_SIGMA * 2
             subDandR, new_b, new_a, newSigmaB, newSigmaA = subFrameAdjusted(
@@ -9694,6 +9719,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.frameNumSpinBox.setMaximum(max_frame)
 
         for i in range(self.dataLen):
+            if self.yValues is None:  # Handles a 'cancel' during file select
+                return
             neatStr = fp.to_precision(self.yValues[i], 6)
             newitem = QtWidgets.QTableWidgetItem(str(neatStr))
             self.table.setItem(i, self.targetIndex + 2, newitem)
