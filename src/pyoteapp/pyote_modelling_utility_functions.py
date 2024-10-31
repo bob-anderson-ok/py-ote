@@ -787,7 +787,7 @@ def plot_diffraction(x, y, first_wavelength, last_wavelength, LCP, figsize=(14, 
     if majorAxis is None:
         asteroid_shape = patches.Circle((0, 0), radius=asteroid_radius_km, facecolor="None", edgecolor='red')
     else:
-        asteroid_shape = patches.Ellipse((0, 0), minorAxis, majorAxis, thetaDegrees,
+        asteroid_shape = patches.Ellipse((0, 0), minorAxis, majorAxis, angle=thetaDegrees,
                                   facecolor="None", edgecolor='red', linewidth=1)
 
     if majorAxis is None:
@@ -1623,7 +1623,7 @@ def getStarAndAsteroidPositions(LCP):
     asteroidY = y_offset
     asteroidX = 0.0
     asteroid_image = patches.Ellipse((asteroidX, asteroidY),
-                                     LCP.asteroid_minor_axis, LCP.asteroid_major_axis, LCP.ellipse_angle_degrees,
+                                     LCP.asteroid_minor_axis, LCP.asteroid_major_axis, angle=LCP.ellipse_angle_degrees,
                                      facecolor="lightgray", edgecolor='gray', linewidth=1)
     min_ellipse_yvalue = asteroid_image.get_extents().ymin
     if LCP.miss_distance_km == 0.0:
