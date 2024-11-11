@@ -1345,7 +1345,7 @@ def demo_diffraction_field(LCP, title_adder='', figsize=(11, 5)):
             raise ValueError(
                 f'The asteroid minor axis value of {LCP.asteroid_minor_axis:0.3f} km is too large.')
 
-        ellipse = patches.Ellipse((512,511), pixels_in_minor_axis, pixels_in_major_axis, -LCP.ellipse_angle_degrees,
+        ellipse = patches.Ellipse((512,511), pixels_in_minor_axis, pixels_in_major_axis, angle=-LCP.ellipse_angle_degrees,
                                   facecolor="None", edgecolor='red', linewidth=1)
         ax1.add_patch(ellipse)
 
