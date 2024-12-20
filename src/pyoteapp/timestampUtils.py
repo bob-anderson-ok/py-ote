@@ -152,7 +152,7 @@ def invalidStep(tNow, tNext, timeStep):
     dt = tNext - tNow
     return dt < dropped_reading_low or dt > dropped_reading_high
 
-def insertDroppedReadings(timestamps, yValues, yStatus, timeStep):
+def insertDroppedReadings(timestamps, yValues, yStatus, timeStep):  # noqa  (ySatatus not used
     # print(f'timestamps: {type(timestamps)}  yValues: {type(yValues)}  yStatus: {type(yStatus)}')
 
     tNow = convertTimeStringToTime(timestamps[0])
@@ -176,9 +176,9 @@ def insertDroppedReadings(timestamps, yValues, yStatus, timeStep):
 
             if numDroppedReadings < 0:
                 # This is likely a timestamp reading error. Ignoring it is the best we can do.
-                numDroppedReadings = 0
+                numDroppedReadings = 0  # noqa
             else:
-                tNext = tNow + timeStep
+                tNext = tNow + timeStep  # noqa
                 for i in range(numDroppedReadings):
                     tNext = tNow + timeStep
                     yValuesExpanded.append(MISSING_READING_VALUE)

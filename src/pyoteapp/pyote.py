@@ -33,6 +33,7 @@ from pathlib import Path
 from dataclasses import dataclass, field
 
 from scipy import interpolate
+from scipy.signal import savgol_filter
 
 # from numba import jit
 MIN_SIGMA = 0.05
@@ -82,11 +83,11 @@ from showVideoFrames import readSerFile
 from showVideoFrames import readFitsFile
 from showVideoFrames import readAavFile
 
-from false_positive import compute_drops, noise_gen_jit, simple_convolve, calc_sigma_lines, tail_count_fraction
+from false_positive import compute_drops, noise_gen_jit, simple_convolve, calc_sigma_lines
 import numpy as np
 import pyqtgraph as pg
 import pyqtgraph.exporters as pex
-import scipy
+# import scipy
 import PyQt5
 from PyQt5 import QtCore, QtWidgets
 from PyQt5 import QtGui
@@ -273,13 +274,15 @@ class HelpDialog(QDialog, helpDialog.Ui_Dialog):
 
 
 # class SimplePlot(QtGui.QMainWindow, gui.Ui_MainWindow):
-class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
+class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
     def __init__(self, csv_file):
         super(SimplePlot, self).__init__()
 
         self.getListOfVizieRlightcurves()
 
         self.camCorrection = 0.0  # pcs
+
+        self.noiseSigmaDistance = 0.0
 
         self.consistentLcpPresent = False
 
@@ -4030,7 +4033,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         try:
             filename = f'SiteCoord_{self.vzSiteCoordNameEdit.text()}.p'
             filepath = os.path.join(destDir, filename)
-            pickle.dump(siteCoordDict, open(filepath, 'wb'))
+            pickle.dump(siteCoordDict, open(filepath, 'wb'))  # noqa
         except Exception as e:
             self.showInfo(f'Attempt to write site coordinate data: {e}')
 
@@ -4066,7 +4069,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         try:
             filename = f'LCP_{self.currentEventEdit.text()}.p'
             filepath = os.path.join(LCPdirectory, filename)
-            pickle.dump(self.Lcp, open(filepath, 'wb'))
+            pickle.dump(self.Lcp, open(filepath, 'wb'))  # noqa
 
             self.showInfo(f'The current event data was written to '
                           f'\n\n{filepath}\n\n')
@@ -6585,8 +6588,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
                 self.smoothSecondary = np.array(y)
             else:
                 # We do a double pass with a first order (straight line with slope) savgol filter
-                filteredY = scipy.signal.savgol_filter(np.array(y), window, 1)
-                self.smoothSecondary = scipy.signal.savgol_filter(filteredY, window, 1)
+                filteredY = savgol_filter(np.array(y), window, 1)
+                self.smoothSecondary = savgol_filter(filteredY, window, 1)
 
         except Exception as e:
             self.showMsg(str(e))
@@ -6798,8 +6801,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.showMsg(f"Reading number {selectedPoint} with drop {drop:0.2f} was selected for validation", color='blue',
                      bold=True, blankLine=True)
 
-        self.showMsg(f'\n==== That single point event has a probability of {self.drop_nie_probability:0.6f} of being due to noise',
-                     color='blue', bold=True)
+        self.showMsg(f"noiseSigmaDistance for reading number {selectedPoint} with drop {drop:0.2f} is "
+                     f"{self.noiseSigmaDistance:0.1f}", color='blue',
+                     bold=True, blankLine=True)
+
+        # self.showMsg(f'\n==== That single point event has a probability of {self.drop_nie_probability:0.6f} of being due to noise',
+        #              color='blue', bold=True)
 
         # if falsePositive:
         #     self.showMsg(f'==== The single point event is NOT valid - it has non-zero chance of being due to noise',
@@ -7546,138 +7553,138 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.showMsg(f'magDrop report: {self.magDropString(Bnom, Anom, numSigmas)}')
 
     # noinspection PyStringFormat
-    def finalReportPenumbral(self):
-
-        self.displaySolution(True)
-        self.minusD = self.plusD = self.penumbralDerrBar  # This the 2 sigma (95% ci) value
-        self.minusR = self.plusR = self.penumbralRerrBar
-        self.drawEnvelope()  # Shows error bars at the 95% ci level
-
-        self.deltaDlo68 = self.deltaDhi68 = self.plusD / 2.0
-        self.deltaDlo95 = self.deltaDhi95 = self.plusD
-        self.deltaDlo99 = self.deltaDhi99 = 3.0 * self.plusD / 2.0
-
-        self.deltaRlo68 = self.deltaRhi68 = self.plusR / 2.0
-        self.deltaRlo95 = self.deltaRhi95 = self.plusR
-        self.deltaRlo99 = self.deltaRhi99 = 3.0 * self.plusR / 2.0
-
-        self.deltaDurhi68 = np.sqrt(self.deltaDhi68 ** 2 + self.deltaRhi68 ** 2)
-        self.deltaDurlo68 = - self.deltaDurhi68
-        self.deltaDurhi95 = 2.0 * self.deltaDurhi68
-        self.deltaDurlo95 = - self.deltaDurhi95
-        self.deltaDurhi99 = 3.0 * self.deltaDurhi68
-        self.deltaDurlo99 = - self.deltaDurhi99
-
-        # Grab the D and R values found and apply our timing convention
-        D, R = self.solution
-
-        if self.eventType == 'DandR':
-            self.showMsg('Timestamp validity check ...')
-            self.reportTimeValidity(D, R)
-
-        self.showMsg('================= 0.68 containment interval report =================')
-
-        self.penumbralConfidenceIntervalReport(1, self.deltaDurhi68, self.deltaDurlo68,
-                                               self.deltaDhi68, self.deltaDlo68,
-                                               self.deltaRhi68, self.deltaRlo68)
-
-        self.showMsg('=============== end 0.68 containment interval report ===============')
-
-        self.showMsg('================= 0.95 containment interval report =================')
-
-        self.penumbralConfidenceIntervalReport(2, self.deltaDurhi95, self.deltaDurlo95,
-                                               self.deltaDhi95, self.deltaDlo95,
-                                               self.deltaRhi95, self.deltaRlo95)
-
-        self.showMsg('=============== end 0.95 containment interval report ===============')
-
-        self.showMsg('================= 0.9973 containment interval report ===============')
-
-        self.penumbralConfidenceIntervalReport(3, self.deltaDurhi99, self.deltaDurlo99,
-                                               self.deltaDhi99, self.deltaDlo99,
-                                               self.deltaRhi99, self.deltaRlo99)
-
-        self.showMsg('=============== end 0.9973 containment interval report =============')
-
-        self.doDframeReport()
-        self.doRframeReport()
-        self.doDurFrameReport()
-
-        self.showMsg('=============== Summary report for Excel file =====================')
-
-        self.reportSpecialProcedureUsed()  # This includes use of asteroid distance/speed and star diameter
-
-        if not self.timesAreValid:
-            self.showMsg("Times are invalid due to corrupted timestamps!",
-                         color='red', bold=True)
-
-        self.magDropReportStr = f'magDrop report: {self.magDropString(self.B, self.A, 2)}'
-        self.xlsxDict['Comment'] = self.magDropReportStr
-        self.showMsg(self.magDropReportStr)
-
-        self.showMsg('DNR: %0.2f' % self.snrB)
-
-        self.doDtimeReport()
-        self.doRtimeReport()
-        self.doDurTimeReport()
-
-        self.showMsg(
-            'Enter D and R error bars for each containment interval in Excel spreadsheet without + or - sign (assumed to be +/-)')
-
-        self.showMsg('=========== end Summary report for Excel file =====================')
-
-        self.showMsg("Solution 'envelope' in the main plot drawn using 0.95 containment interval error bars")
-
-        if self.targetKey == '':
-            self.targetKey = self.lightcurveTitles[0].text()
-
-        self.showMsg(f'fit metrics for {self.targetKey}', blankLine=False, bold=True)
-
-        # time_uncertainty = (self.deltaDhi95 - self.deltaDlo95) / 2.0 * self.timeDelta
-        time_uncertainty = max(abs(self.deltaDhi95), abs(self.deltaDlo95)) * self.timeDelta
-
-        stats_msg = f'\nfit metrics === DNR: {self.snrB:0.2f}  edge uncertainty (0.95 ci): +/- {time_uncertainty:0.4f} seconds'
-        self.showMsg(stats_msg, blankLine=False, bold=True)
-
-        stats_msg = f'fit metrics === B: {self.B:0.2f}  A: {self.A:0.2f} sigmaB: {self.sigmaB:0.2f}  sigmaA: {self.sigmaA:0.2f}'
-        self.showMsg(stats_msg, blankLine=False, bold=True)
-
-
-        margin = self.observedDrop - self.threeSigmaLine
-        if margin > 0:
-            stats_msg = f'fit metrics === from noise-induced-event test (observed drop: ' \
-                        f'{self.observedDrop:0.1f})  (three sigma drop from noise: {self.threeSigmaLine:0.1f}) gives margin: {margin:0.1f}'
-            self.showMsg(stats_msg, blankLine=False, bold=True)
-        else:
-            stats_msg = f'fit metrics === from noise-induced-event test (observed drop: ' \
-                        f'{self.observedDrop:0.1f})  (three sigma drop from noise: {self.threeSigmaLine:0.1f}) gives margin: {margin:0.1f}'
-            self.showMsg(stats_msg, blankLine=False, bold=True, color='red')
-
-        stats_msg = f'fit metrics === observed drop has {self.reportDropProbability()} of being a noise-induced-event'
-        self.showMsg(stats_msg, blankLine=False, bold=True)
-
-        stats_msg = f'fit metrics === {self.magDropReportStr}'
-        self.showMsg(stats_msg, blankLine=False, bold=True)
-
-        if self.eventType == 'Donly' or self.eventType == 'DandR':
-            stats_msg = f'\nfit metrics === D frame number: {self.Dframe:0.4f}'
-            self.showMsg(stats_msg, blankLine=False, bold=True)
-
-        if self.eventType == 'Ronly' or self.eventType == 'DandR':
-            stats_msg = f'\nfit metrics === R frame number: {self.Rframe:0.4f}'
-            self.showMsg(stats_msg, blankLine=False, bold=True)
-
-        if self.eventType == 'Donly' or self.eventType == 'DandR':
-            stats_msg = f'\nfit metrics === D time: {self.Dtimestring}'
-            self.showMsg(stats_msg, blankLine=False, bold=True)
-
-        if self.eventType == 'Ronly' or self.eventType == 'DandR':
-            stats_msg = f'\nfit metrics === R time: {self.Rtimestring}'
-            self.showMsg(stats_msg, blankLine=False, bold=True)
-
-        self.showMsg("")
-
-        self.updateFitMetricTxtFile()
+    # def finalReportPenumbral(self):
+    #
+    #     self.displaySolution(True)
+    #     self.minusD = self.plusD = self.penumbralDerrBar  # This the 2 sigma (95% ci) value
+    #     self.minusR = self.plusR = self.penumbralRerrBar
+    #     self.drawEnvelope()  # Shows error bars at the 95% ci level
+    #
+    #     self.deltaDlo68 = self.deltaDhi68 = self.plusD / 2.0
+    #     self.deltaDlo95 = self.deltaDhi95 = self.plusD
+    #     self.deltaDlo99 = self.deltaDhi99 = 3.0 * self.plusD / 2.0
+    #
+    #     self.deltaRlo68 = self.deltaRhi68 = self.plusR / 2.0
+    #     self.deltaRlo95 = self.deltaRhi95 = self.plusR
+    #     self.deltaRlo99 = self.deltaRhi99 = 3.0 * self.plusR / 2.0
+    #
+    #     self.deltaDurhi68 = np.sqrt(self.deltaDhi68 ** 2 + self.deltaRhi68 ** 2)
+    #     self.deltaDurlo68 = - self.deltaDurhi68
+    #     self.deltaDurhi95 = 2.0 * self.deltaDurhi68
+    #     self.deltaDurlo95 = - self.deltaDurhi95
+    #     self.deltaDurhi99 = 3.0 * self.deltaDurhi68
+    #     self.deltaDurlo99 = - self.deltaDurhi99
+    #
+    #     # Grab the D and R values found and apply our timing convention
+    #     D, R = self.solution
+    #
+    #     if self.eventType == 'DandR':
+    #         self.showMsg('Timestamp validity check ...')
+    #         self.reportTimeValidity(D, R)
+    #
+    #     self.showMsg('================= 0.68 containment interval report =================')
+    #
+    #     self.penumbralConfidenceIntervalReport(1, self.deltaDurhi68, self.deltaDurlo68,
+    #                                            self.deltaDhi68, self.deltaDlo68,
+    #                                            self.deltaRhi68, self.deltaRlo68)
+    #
+    #     self.showMsg('=============== end 0.68 containment interval report ===============')
+    #
+    #     self.showMsg('================= 0.95 containment interval report =================')
+    #
+    #     self.penumbralConfidenceIntervalReport(2, self.deltaDurhi95, self.deltaDurlo95,
+    #                                            self.deltaDhi95, self.deltaDlo95,
+    #                                            self.deltaRhi95, self.deltaRlo95)
+    #
+    #     self.showMsg('=============== end 0.95 containment interval report ===============')
+    #
+    #     self.showMsg('================= 0.9973 containment interval report ===============')
+    #
+    #     self.penumbralConfidenceIntervalReport(3, self.deltaDurhi99, self.deltaDurlo99,
+    #                                            self.deltaDhi99, self.deltaDlo99,
+    #                                            self.deltaRhi99, self.deltaRlo99)
+    #
+    #     self.showMsg('=============== end 0.9973 containment interval report =============')
+    #
+    #     self.doDframeReport()
+    #     self.doRframeReport()
+    #     self.doDurFrameReport()
+    #
+    #     self.showMsg('=============== Summary report for Excel file =====================')
+    #
+    #     self.reportSpecialProcedureUsed()  # This includes use of asteroid distance/speed and star diameter
+    #
+    #     if not self.timesAreValid:
+    #         self.showMsg("Times are invalid due to corrupted timestamps!",
+    #                      color='red', bold=True)
+    #
+    #     self.magDropReportStr = f'magDrop report: {self.magDropString(self.B, self.A, 2)}'
+    #     self.xlsxDict['Comment'] = self.magDropReportStr
+    #     self.showMsg(self.magDropReportStr)
+    #
+    #     self.showMsg('DNR: %0.2f' % self.snrB)
+    #
+    #     self.doDtimeReport()
+    #     self.doRtimeReport()
+    #     self.doDurTimeReport()
+    #
+    #     self.showMsg(
+    #         'Enter D and R error bars for each containment interval in Excel spreadsheet without + or - sign (assumed to be +/-)')
+    #
+    #     self.showMsg('=========== end Summary report for Excel file =====================')
+    #
+    #     self.showMsg("Solution 'envelope' in the main plot drawn using 0.95 containment interval error bars")
+    #
+    #     if self.targetKey == '':
+    #         self.targetKey = self.lightcurveTitles[0].text()
+    #
+    #     self.showMsg(f'fit metrics for {self.targetKey}', blankLine=False, bold=True)
+    #
+    #     # time_uncertainty = (self.deltaDhi95 - self.deltaDlo95) / 2.0 * self.timeDelta
+    #     time_uncertainty = max(abs(self.deltaDhi95), abs(self.deltaDlo95)) * self.timeDelta
+    #
+    #     stats_msg = f'\nfit metrics === DNR: {self.snrB:0.2f}  edge uncertainty (0.95 ci): +/- {time_uncertainty:0.4f} seconds'
+    #     self.showMsg(stats_msg, blankLine=False, bold=True)
+    #
+    #     stats_msg = f'fit metrics === B: {self.B:0.2f}  A: {self.A:0.2f} sigmaB: {self.sigmaB:0.2f}  sigmaA: {self.sigmaA:0.2f}'
+    #     self.showMsg(stats_msg, blankLine=False, bold=True)
+    #
+    #
+    #     margin = self.observedDrop - self.threeSigmaLine
+    #     if margin > 0:
+    #         stats_msg = f'fit metrics === from noise-induced-event test (observed drop: ' \
+    #                     f'{self.observedDrop:0.1f})  (three sigma drop from noise: {self.threeSigmaLine:0.1f}) gives margin: {margin:0.1f}'
+    #         self.showMsg(stats_msg, blankLine=False, bold=True)
+    #     else:
+    #         stats_msg = f'fit metrics === from noise-induced-event test (observed drop: ' \
+    #                     f'{self.observedDrop:0.1f})  (three sigma drop from noise: {self.threeSigmaLine:0.1f}) gives margin: {margin:0.1f}'
+    #         self.showMsg(stats_msg, blankLine=False, bold=True, color='red')
+    #
+    #     stats_msg = f'fit metrics === observed drop has {self.reportDropProbability()} of being a noise-induced-event'
+    #     self.showMsg(stats_msg, blankLine=False, bold=True)
+    #
+    #     stats_msg = f'fit metrics === {self.magDropReportStr}'
+    #     self.showMsg(stats_msg, blankLine=False, bold=True)
+    #
+    #     if self.eventType == 'Donly' or self.eventType == 'DandR':
+    #         stats_msg = f'\nfit metrics === D frame number: {self.Dframe:0.4f}'
+    #         self.showMsg(stats_msg, blankLine=False, bold=True)
+    #
+    #     if self.eventType == 'Ronly' or self.eventType == 'DandR':
+    #         stats_msg = f'\nfit metrics === R frame number: {self.Rframe:0.4f}'
+    #         self.showMsg(stats_msg, blankLine=False, bold=True)
+    #
+    #     if self.eventType == 'Donly' or self.eventType == 'DandR':
+    #         stats_msg = f'\nfit metrics === D time: {self.Dtimestring}'
+    #         self.showMsg(stats_msg, blankLine=False, bold=True)
+    #
+    #     if self.eventType == 'Ronly' or self.eventType == 'DandR':
+    #         stats_msg = f'\nfit metrics === R time: {self.Rtimestring}'
+    #         self.showMsg(stats_msg, blankLine=False, bold=True)
+    #
+    #     self.showMsg("")
+    #
+    #     self.updateFitMetricTxtFile()
 
 
     def finalReport(self, error_bar_plots_available=True):
@@ -7809,31 +7816,35 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         # margin = self.observedDrop - self.maxNoiseInducedDrop
         # false_positive_ratio = margin / self.maxNoiseInducedDrop
 
-        false_positive_metric = self.observedDrop / self.threeSigmaLine - 1.0
+        # false_positive_metric = self.observedDrop / self.threeSigmaLine - 1.0
 
         time_uncertainty = max(abs(self.deltaDhi95), abs(self.deltaDlo95)) * self.timeDelta
 
-        stats_msg = f'\nfit metrics === noise-induced-event metric: {false_positive_metric:0.3f} ' \
-                    f'time error bar: +/- {time_uncertainty:0.4f} seconds' \
-                    f'   DNR: {self.snrB:0.2f}  '
+        stats_msg = f'\nfit metrics === noiseSigmaDistance: {self.noiseSigmaDistance:0.1f}'
+        self.showMsg(stats_msg, blankLine=False, bold=True)
+
+        stats_msg = f'\nfit metrics === time error bar: +/- {time_uncertainty:0.4f} seconds'
+        self.showMsg(stats_msg, blankLine=False, bold=True)
+
+        stats_msg = f'\nfit metrics === DNR: {self.snrB:0.2f}  '
         self.showMsg(stats_msg, blankLine=False, bold=True)
 
         stats_msg = f'fit metrics === B: {self.B:0.2f}  A: {self.A:0.2f} sigmaB: {self.sigmaB:0.2f}  sigmaA: {self.sigmaA:0.2f}'
         self.showMsg(stats_msg, blankLine=False, bold=True)
 
-        margin = self.observedDrop - self.threeSigmaLine
-        if margin > 0:
-            stats_msg = f'fit metrics === from noise-induced-event test (observed drop: ' \
-                        f'{self.observedDrop:0.1f})  (three sigma drop from noise: {self.threeSigmaLine:0.1f}) gives margin: {margin:0.1f}'
-            self.showMsg(stats_msg, blankLine=False, bold=True)
-        else:
-            stats_msg = f'fit metrics === from noise-induced-event test (observed drop: ' \
-                        f'{self.observedDrop:0.1f})  (three sigma drop from noise: {self.threeSigmaLine:0.1f}) gives  margin: {margin:0.1f}'
-            self.showMsg(stats_msg, blankLine=False, bold=True, color='red')
-
-
-        stats_msg = f'fit metrics === observed drop has {self.reportDropProbability()} of being a noise-induced-event'
-        self.showMsg(stats_msg, blankLine=False, bold=True)
+        # margin = self.observedDrop - self.threeSigmaLine
+        # if margin > 0:
+        #     stats_msg = f'fit metrics === from noise-induced-event test (observed drop: ' \
+        #                 f'{self.observedDrop:0.1f})  (three sigma drop from noise: {self.threeSigmaLine:0.1f}) gives margin: {margin:0.1f}'
+        #     self.showMsg(stats_msg, blankLine=False, bold=True)
+        # else:
+        #     stats_msg = f'fit metrics === from noise-induced-event test (observed drop: ' \
+        #                 f'{self.observedDrop:0.1f})  (three sigma drop from noise: {self.threeSigmaLine:0.1f}) gives  margin: {margin:0.1f}'
+        #     self.showMsg(stats_msg, blankLine=False, bold=True, color='red')
+        #
+        #
+        # stats_msg = f'fit metrics === observed drop has {self.reportDropProbability()} of being a noise-induced-event'
+        # self.showMsg(stats_msg, blankLine=False, bold=True)
 
         stats_msg = f'fit metrics === {self.magDropReportStr}'
         self.showMsg(stats_msg, blankLine=False, bold=True)
@@ -8734,6 +8745,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         return self.falsePositiveReport(event_duration, num_trials, observation_size, observed_drop,
                                         posCoefs, sigma, plots_wanted=plots_wanted)
 
+    @staticmethod
+    def centeredGaussian(x, xCenter, sigma):
+        c = np.sqrt(2 * np.pi)
+        return np.exp(-0.5 * ((x - xCenter) / sigma)**2)/sigma/c
+
     def falsePositiveReport(self, event_duration, num_trials, observation_size, observed_drop, posCoefs, sigma, plots_wanted=True):
 
         drops = compute_drops(event_duration=event_duration, observation_size=observation_size,
@@ -8794,7 +8810,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
         if plots_wanted:
 
             # We had to normalize observed_drop to avoid numerical instability during the NIE calculations.
-            # That caused the scale of bibs and the sigma lines to be changed. Here we reverse those
+            # That caused the scale of bins and the sigma lines to be changed. Here we reverse those
             # changes so that the plot remain unchanged.
             observed_drop = observed_drop * self.B
             bins = bins * self.B
@@ -8809,43 +8825,92 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_MainWindow):
             pw.hideButtons()
 
             # Plot drops histogram
-            pw.plot(bins, counts, stepMode=True, fillLevel=0, brush=(0, 0, 255, 150))
+            # pw.plot(bins, counts, stepMode=True, fillLevel=0, brush=(0, 0, 255, 150))
+            pw.plot(bins, counts, stepMode=True, fillLevel=0, pen=pg.mkPen([0,0,255], width=1))
+
+            smoothedCounts = savgol_filter(counts, 15, 3)
+            smoothedBins = []
+            for i in range(len(bins)-1):
+                smoothedBins.append((bins[i]+bins[i+1])/ 2)
+            pw.plot(smoothedBins, smoothedCounts, pen=pg.mkPen([0,0,255], width=2))
+            indices = np.where(smoothedCounts == np.max(smoothedCounts))
+            binsAtPeak = [smoothedBins[i] for i in indices[0]]
+            noisePeakPosition = np.mean(binsAtPeak)
+            pw.plot(x=[noisePeakPosition, noisePeakPosition], y=[0, 1.2 * np.max(smoothedCounts)], pen=pg.mkPen([0, 0, 255], width=2))
+
+
+            # TODO Validate new idea
+            stdBmean = self.sigmaB / np.sqrt(observation_size - event_duration)
+            if self.sigmaA is None:
+                stdAmean = self.sigmaB / np.sqrt(event_duration)
+            else:
+                stdAmean = self.sigmaA / np.sqrt(event_duration)
+            sigmaDrop = np.sqrt(stdBmean ** 2 + stdAmean ** 2)
+            xCenter = observed_drop
+            xG = np.linspace(-5 * sigmaDrop + xCenter, 5 * sigmaDrop + xCenter, 1000)
+            binDelta = bins[1] - bins[0]
+            g = self.centeredGaussian(xG, xCenter, sigmaDrop) * binDelta * num_trials # Ready to plot g versus xG
+            pw.plot(x=xG, y=g, pen=pg.mkPen([0, 255, 0], width=2))
+            # TODO End new idea
 
             # Plot red observed drop line
-            pw.plot(x=[observed_drop, observed_drop], y=[0, 1.5 * np.max(counts)], pen=pg.mkPen([255, 0, 0], width=2))
+            # pw.plot(x=[observed_drop, observed_drop], y=[0, 1.5 * np.max(counts)], pen=pg.mkPen([255, 0, 0], width=2))
+            pw.plot(x=[observed_drop, observed_drop], y=[0, 1.2 * np.max(g)], pen=pg.mkPen([255, 0, 0], width=2))
 
             # Plot black max drop line
             # pw.plot(x=[max_drop, max_drop], y=[0, 0.1 * np.max(counts)], pen=pg.mkPen([0, 0, 0], width=2))
 
-            # Plot green three_sigma_line
-            pw.plot(x=[three_sigma_line, three_sigma_line], y=[0, 0.5 * np.max(counts)], pen=pg.mkPen([0, 255, 0], width=3))
-            pw.plot(x=[four_sigma_line, four_sigma_line], y=[0, 0.3 * np.max(counts)], pen=pg.mkPen([0, 255, 0], width=3))
-            pw.plot(x=[five_sigma_line, five_sigma_line], y=[0, 0.2 * np.max(counts)], pen=pg.mkPen([0, 255, 0], width=3))
+            # Plot green sigma lines
+            # TODO pw.plot(x=[three_sigma_line, three_sigma_line], y=[0, 0.5 * np.max(counts)], pen=pg.mkPen([0, 255, 0], width=3))
+            # TODO pw.plot(x=[four_sigma_line, four_sigma_line], y=[0, 0.3 * np.max(counts)], pen=pg.mkPen([0, 255, 0], width=3))
+            # TODO pw.plot(x=[five_sigma_line, five_sigma_line], y=[0, 0.2 * np.max(counts)], pen=pg.mkPen([0, 255, 0], width=3))
 
             # Undo the x axis values affected by the normalization required to keep the
             # NIE calculations stable.
-            scaled_x_tail = []
-            for value in x_tail:
-                scaled_x_tail.append(value * self.B)
-            pw.plot(scaled_x_tail, tail_count_fraction(x_tail, slope, y0) * num_trials, pen=pg.mkPen([0, 0, 0], width=3),
-                    label='fit to tail')
+            # scaled_x_tail = []
+            # for value in x_tail:
+            #     scaled_x_tail.append(value * self.B)
+            # pw.plot(scaled_x_tail, tail_count_fraction(x_tail, slope, y0) * num_trials, pen=pg.mkPen([0, 0, 0], width=3),
+            #         label='fit to tail')
             # End undo
 
-            # pw.plot(x_tail, tail_count_fraction(x_tail, slope, y0) * num_trials, pen=pg.mkPen([0, 0, 0], width=3),
-            #          label='fit to tail')
+            # tailValue = observed_drop / self.B
+            # gumbelValueAtObservedDrop = None
+            # if tailValue >= x_tail[0]:
+            #     gumbelValueAtObservedDrop = tail_count_fraction(tailValue, slope,y0) * num_trials
+            # else:
+            #     print("Out of range of Gumbel tail fit.")
+            #     for i, value in enumerate(bins):
+            #         if value >= observed_drop:
+            #             gumbelValueAtObservedDrop = counts[i-1]
+            #             break
+
+            # gaussCenterValue = self.centeredGaussian(xCenter, xCenter, sigmaDrop) * binDelta * num_trials
+            sigmaDistance = (xCenter - noisePeakPosition) / sigmaDrop
+            self.noiseSigmaDistance = sigmaDistance
+            # relativeProbability = gaussCenterValue / gumbelValueAtObservedDrop
+            # print(f"relative probability of event versus noise: {relativeProbability:0.1f}")
 
             # Plot a nice 0 line
-            right_edge = max(observed_drop * 1.1, np.max(bins) * 1.1)
-            pw.plot(x=[0, right_edge], y=[0, 0], pen=pg.mkPen([180, 180, 180], width=2))
+            # right_edge = max(observed_drop * 1.1, np.max(bins) * 1.1)
+            right_edge = max(5 * sigmaDrop + xCenter, np.max(bins) * 1.1)
+            left_edge = np.min([-5 * sigmaDrop + xCenter, bins[0], 0.0])
+            pw.plot(x=[left_edge, right_edge], y=[0, 0], pen=pg.mkPen([180, 180, 180], width=2))
 
             pw.addLegend()
-            pw.plot(name=f'red line: the observed drop (B - A) extracted from lightcurve has '
-                         f'a probability {self.drop_nie_probability:0.1e} of being noise induced')
-            pw.plot(name=f'black curve is LSQ fit to drop data using the Gumbel Extreme Value distribution')
-            pw.plot(name=f'green lines are at 3 sigma (99.7%), 4 sigma (99.9938%), and 5 sigma (99.99994%)')
+            # pw.plot(name=f'red line: the observed drop (B - A) extracted from lightcurve has '
+            #              f'a probability {self.drop_nie_probability:0.1e} of being noise induced')
+            pw.plot(name=f'vertical red line: the observed drop (B - A) extracted from lightcurve')
+            pw.plot(name=f'vertical blue line: peak of noise induced drops')
+            # pw.plot(name=f'black curve: LSQ fit to drop data using the Gumbel Extreme Value distribution')
+            pw.plot(name=f'green curve: observed drop distribution')
+            pw.plot(name=f'blue histogram: noise induced drop distribution')
+            # pw.plot(name=f"relative probability of observed drop versus noise induced drop: {relativeProbability:0.1f}")
+            pw.plot(name=f'sigma distance between noisePeak and observed drop: {sigmaDistance:0.1f}')
+            # pw.plot(name=f'green lines are at 3 sigma (99.7%), 4 sigma (99.9938%), and 5 sigma (99.99994%)')
             # pw.plot(name=f'PyOTE reports a "pass" if red line is to the right of the three_sigma_line,')
             # pw.plot(name=f'BUT !!! If red line is left of the 5 sigma line - refer to regional coordinator.')
-            pw.plot(name=f'If the red line is left of the 5 sigma line - refer to regional coordinator.')
+            # pw.plot(name=f'If the red line is left of the 5 sigma line - refer to regional coordinator.')
         else:
             pw = None
             y, x = np.histogram(drops, bins=50)
