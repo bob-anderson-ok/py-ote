@@ -8839,7 +8839,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
             pw.plot(x=[noisePeakPosition, noisePeakPosition], y=[0, 1.2 * np.max(smoothedCounts)], pen=pg.mkPen([0, 0, 255], width=2))
 
 
-            # TODO Validate new idea
             stdBmean = self.sigmaB / np.sqrt(observation_size - event_duration)
             if self.sigmaA is None:
                 stdAmean = self.sigmaB / np.sqrt(event_duration)
@@ -8851,7 +8850,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
             binDelta = bins[1] - bins[0]
             g = self.centeredGaussian(xG, xCenter, sigmaDrop) * binDelta * num_trials # Ready to plot g versus xG
             pw.plot(x=xG, y=g, pen=pg.mkPen([0, 255, 0], width=2))
-            # TODO End new idea
 
             # Plot red observed drop line
             # pw.plot(x=[observed_drop, observed_drop], y=[0, 1.5 * np.max(counts)], pen=pg.mkPen([255, 0, 0], width=2))
@@ -8861,9 +8859,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
             # pw.plot(x=[max_drop, max_drop], y=[0, 0.1 * np.max(counts)], pen=pg.mkPen([0, 0, 0], width=2))
 
             # Plot green sigma lines
-            # TODO pw.plot(x=[three_sigma_line, three_sigma_line], y=[0, 0.5 * np.max(counts)], pen=pg.mkPen([0, 255, 0], width=3))
-            # TODO pw.plot(x=[four_sigma_line, four_sigma_line], y=[0, 0.3 * np.max(counts)], pen=pg.mkPen([0, 255, 0], width=3))
-            # TODO pw.plot(x=[five_sigma_line, five_sigma_line], y=[0, 0.2 * np.max(counts)], pen=pg.mkPen([0, 255, 0], width=3))
+            # pw.plot(x=[three_sigma_line, three_sigma_line], y=[0, 0.5 * np.max(counts)], pen=pg.mkPen([0, 255, 0], width=3))
+            # pw.plot(x=[four_sigma_line, four_sigma_line], y=[0, 0.3 * np.max(counts)], pen=pg.mkPen([0, 255, 0], width=3))
+            # pw.plot(x=[five_sigma_line, five_sigma_line], y=[0, 0.2 * np.max(counts)], pen=pg.mkPen([0, 255, 0], width=3))
 
             # Undo the x axis values affected by the normalization required to keep the
             # NIE calculations stable.
@@ -10461,6 +10459,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
     # noinspection PyUnusedLocal
     def restart(self):
 
+        if self.blockSize != 1:
+            self.showInfo("This lightcurve has been block integrated.\n\nIf you need to undo block integration,\n"
+                          "re-reading the csv is required because\n"
+                          "the Start over function is not able undo \nblock integration.\n\n"
+                          "Further changes to block integration parameters\nare now locked out.")
+
         self.userDeterminedBaselineStats = False
         self.userDeterminedEventStats = False
         self.userTrimInEffect = False
@@ -10475,6 +10479,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
         self.initializeVariablesThatDontDependOnAfile()
         self.flashEdges = savedFlashEdges
         self.disableAllButtons()
+
+        if self.blockSize == 1:
+            self.blockSizeEdit.setEnabled(True)
+            self.doBlockIntegration.setEnabled(True)
+
 
         if self.errBarWin:
             self.errBarWin.close()
