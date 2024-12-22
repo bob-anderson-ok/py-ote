@@ -258,7 +258,7 @@ def manualTimeStampEntry(frame, dialog, flashFrames=None, timeDelta=None):
 
 
     # TODO Remember this change if complaints about manual timestamp occur
-    if timeDelta is not None:
+    if timeDelta is not None and timeDelta != 0.0:  # TODO the and added in 5.6.4
         dialog.radioButtonCustom.setChecked(True)
         dialog.frameDeltaTime.setText(f'{timeDelta:0.6f}')
     else:

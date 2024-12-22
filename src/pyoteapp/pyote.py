@@ -6844,7 +6844,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
         newExtra = [[] for _ in range(len(self.extra))]
 
         # Create a new (local) fullDataDictionary using self.fullDataDictionary as the template if it exists.
-        if self.fullDataDictionary:
+        if self.fullDataDictionary and self.pymovieFileInUse:
             emptyDataDictionary = self.fullDataDictionary.copy()
         else:
             # This is a Tangra or Tangra-like csv, so we have to create the dictionary from scratch.
@@ -6907,7 +6907,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
                 emptyDataDictionary['FrameNum'].insert(0, self.yFrame[p])
                 emptyDataDictionary['timeInfo'].insert(0, self.yTimes[p])
             else:
-                emptyDataDictionary['FrameNum'].insert(0, self.fullDataDictionary['FrameNum'][p])
+                emptyDataDictionary['FrameNum'].insert(0, self.yFrame[p])  # TODO 5.6.4 fix
+                # emptyDataDictionary['FrameNum'].insert(0, self.fullDataDictionary['FrameNum'][p])
                 emptyDataDictionary['timeInfo'].insert(0, self.fullDataDictionary['timeInfo'][p])
 
             p = p - span
@@ -6915,7 +6916,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
         p = p0  # Start working toward the right
         while p < self.dataLen - span:
 
-            if self.fullDataDictionary:
+            if self.fullDataDictionary and self.pymovieFileInUse:  # TODO 5.6.4 fix
                 for key in emptyDataDictionary.keys():
                     if not (key == 'timeInfo' or key == 'FrameNum'):
                         avg = np.mean(self.fullDataDictionary[key][p:(p + span)])
@@ -6953,7 +6954,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
                 emptyDataDictionary['FrameNum'].append(self.yFrame[p])
                 emptyDataDictionary['timeInfo'].append(self.yTimes[p])
             else:
-                emptyDataDictionary['FrameNum'].append(self.fullDataDictionary['FrameNum'][p])
+                emptyDataDictionary['FrameNum'].append(self.yFrame[p])  # TODO 5.6.4 fix
+                # emptyDataDictionary['FrameNum'].append(self.fullDataDictionary['FrameNum'][p])
                 emptyDataDictionary['timeInfo'].append(self.fullDataDictionary['timeInfo'][p])
 
             p = p + span
@@ -7544,7 +7546,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
             self.unvettedMagDrop = 25.0  # Return an exceptionally high (meaningless) magDrop for the fit metric
 
             # A was <= 0, so we can only report a maximum percent drop of 100
-            return f'percentDrop: {percentDrop:0.1f}  (magDrop cannot be calculated because A < 0)'
+            return f'percentDrop: {percentDrop:0.1f}  (magDrop cannot be calculated because A is negative)'
 
     def magdropReport(self, numSigmas):
         Anom = self.A
