@@ -7191,18 +7191,18 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
 
         if not self.firstLightCurveDisplayed:
             self.firstLightCurveDisplayed = True
-            lightCurveInfo = f'Only the first light curve in the csv file will be displayed initially.\n\n' \
-                             f'Below is the list of all light curves available for selection and display:\n\n'
-
-            if len(self.availableLightCurvesForDisplay) > 0:
-                for entry in self.availableLightCurvesForDisplay:
-                    lightCurveInfo += f'{entry}\n'
-            else:
-                lightCurveInfo += 'LC1 to LC4 (input file came from Tangra)\n'
-
-            lightCurveInfo += f'\nSwitch to the Lightcurves tab and use the Add data set drop down selection widget' \
-                              f' to add additional curves to the display.'
-            self.showInfo(lightCurveInfo)
+            # lightCurveInfo = f'Only the first light curve in the csv file will be displayed initially.\n\n' \
+            #                  f'Below is the list of all light curves available for selection and display:\n\n'
+            #
+            # if len(self.availableLightCurvesForDisplay) > 0:
+            #     for entry in self.availableLightCurvesForDisplay:
+            #         lightCurveInfo += f'{entry}\n'
+            # else:
+            #     lightCurveInfo += 'LC1 to LC4 (input file came from Tangra)\n'
+            #
+            # lightCurveInfo += f'\nSwitch to the Lightcurves tab and use the Add data set drop down selection widget' \
+            #                   f' to add additional curves to the display.'
+            # self.showInfo(lightCurveInfo)
 
         if not columnsToDisplay:
             self.yValues = None
@@ -10073,6 +10073,10 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
                                             self.showMsg(f'avi contains {ans["num_frames"]} frames')
                                             # Enable frame view controls
                                             self.enableDisableFrameViewControls(state_to_set=True)
+                                    elif ext == '.ravf':
+                                        self.pathToVideo = None
+                                    elif ext == '.fit':
+                                        self.pathToVideo = None
                                     elif ext == '.ser':
                                         ans = readSerFile(0, self.pathToVideo)
                                         if not ans['success']:
@@ -10136,6 +10140,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
                         vals = [float(item) for item in light_curve]
                         self.extra[i] = np.array(vals[:])
 
+                self.yFrame = []  # 5.6.6 change (erases history - problem reading long file after short file - list index exception
                 self.initializeTableView()
                 self.yOffsetSpinBoxes[0].setEnabled(True)
 
