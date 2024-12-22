@@ -6870,10 +6870,16 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
         p = p0 - span  # Start working toward the left
         while p > 0:
 
-            for key in emptyDataDictionary.keys():
-                if not (key == 'timeInfo' or key == 'FrameNum'):
-                    avg = np.mean(self.fullDataDictionary[key][p:(p + span)])
-                    emptyDataDictionary[key].insert(0, avg)
+            if self.fullDataDictionary and self.pymovieFileInUse:  # TODO 5.6.4 fix
+                for key in emptyDataDictionary.keys():
+                    if not (key == 'timeInfo' or key == 'FrameNum'):
+                        avg = np.mean(self.fullDataDictionary[key][p:(p + span)])
+                        emptyDataDictionary[key].append(avg)
+
+            # for key in emptyDataDictionary.keys():
+            #     if not (key == 'timeInfo' or key == 'FrameNum'):
+            #         avg = np.mean(self.fullDataDictionary[key][p:(p + span)])
+            #         emptyDataDictionary[key].insert(0, avg)
 
             avg = np.mean(self.LC1[p:(p + span)])
             newLC1.insert(0, avg)
