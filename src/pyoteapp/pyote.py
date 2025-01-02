@@ -49,7 +49,7 @@ root, _ = os.path.split(__file__)
 sys.path.insert(0, root)
 
 print( "==========================")
-print("modules will be sourced from ...")
+print("pyoteapp modules will be sourced from ...")
 print(root)
 print( "==========================")
 

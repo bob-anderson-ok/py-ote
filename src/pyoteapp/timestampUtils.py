@@ -66,7 +66,7 @@ def getTimeStepAndOutliers(timestamps, yValues, yStatus, VizieRdict=None):
     # yValue is a numpy array; timestamps and yStatus are lists
 
     time = [convertTimeStringToTime(item) for item in timestamps]
-    deltaTime = np.diff(time)
+    deltaTime = np.diff(time)[:]
 
     # 5.2.0
     for i, delta in enumerate(deltaTime):
@@ -75,8 +75,9 @@ def getTimeStepAndOutliers(timestamps, yValues, yStatus, VizieRdict=None):
             deltaTime[i] = deltaTime[i-1]
 
     # Changed in 5.0.1
-    # timeStep = np.median(deltaTime)
-    timeStep = np.mean(deltaTime)
+    timeStep = np.median(deltaTime)
+    # timeStep = np.mean(deltaTime)  # Changed back to median in 5.6.8
+
     cadence_high = timeStep * 1.3  # Had been 1.2
     cadence_low = timeStep * 0.7   # Had been 0.8
 
