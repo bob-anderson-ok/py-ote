@@ -10059,8 +10059,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
                                     self.pathToVideo = self.pathToVideo.strip('"')
 
                                 if os.path.isfile(self.pathToVideo):
-                                    _, ext = os.path.splitext(self.pathToVideo)
-                                    if ext == '.avi':
+                                    _, self.ext = os.path.splitext(self.pathToVideo)
+                                    if self.ext == '.avi':
                                         ans = readAviFile(0, self.pathToVideo)
                                         if not ans['success']:
                                             self.showMsg(
@@ -10073,11 +10073,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
                                             self.showMsg(f'avi contains {ans["num_frames"]} frames')
                                             # Enable frame view controls
                                             self.enableDisableFrameViewControls(state_to_set=True)
-                                    elif ext == '.ravf':
+                                    elif self.ext == '.ravf':
                                         self.pathToVideo = None
-                                    elif ext == '.fit':
+                                    elif self.ext == '.fit':
                                         self.pathToVideo = None
-                                    elif ext == '.ser':
+                                    elif self.ext == '.ser':
                                         ans = readSerFile(0, self.pathToVideo)
                                         if not ans['success']:
                                             self.showMsg(
@@ -10087,7 +10087,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
                                         else:
                                             # Enable frame view controls
                                             self.enableDisableFrameViewControls(state_to_set=True)
-                                    elif ext == '':
+                                    elif self.ext == '':
                                         ans = readFitsFile(0, self.pathToVideo)
                                         if not ans['success']:
                                             self.showMsg(
@@ -10098,12 +10098,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
                                             # Enable frame view controls
                                             self.showMsg(f'{ans["num_frames"]} .fits files were found in FITS folder')
                                             self.enableDisableFrameViewControls(state_to_set=True)
-                                    elif ext == '.adv':
+                                    elif self.ext == '.adv':
                                         self.fillVizieRtabFromHeaders()  # Added 5.6.9
                                         # For now, we assume that .adv files have embedded timestamps and
                                         # so there is no need to display frames for visual OCR verification
                                         self.pathToVideo = None
-                                    elif ext == '.aav':
+                                    elif self.ext == '.aav':
                                         ans = readAavFile(0, self.pathToVideo)
                                         if not ans['success']:
                                             self.showMsg(
@@ -10114,7 +10114,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
                                             # Enable frame view controls
                                             self.enableDisableFrameViewControls(state_to_set=True)
                                     else:
-                                        self.showMsg(f'Unexpected file type of {ext} found.')
+                                        self.showMsg(f'Unexpected file type of {self.ext} found.')
                                 else:
                                     self.showMsg(f'video source file {self.pathToVideo} could not be found.')
                                     self.pathToVideo = None
@@ -10174,6 +10174,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
                 for item in self.headers:
                     self.showMsg(item, blankLine=False)
                 self.showMsg('=' * 20 + ' end header lines ' + '=' * 20, bold=True)
+
+                if self.ext == ".adv":
+                    self.fillVizieRtabFromHeaders()  # Added 5.6.9
 
                 self.yTimes = time[:]
                 self.yValues = np.array(values)
@@ -10274,59 +10277,65 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
         decimalValue = float(dval)
         deg = int(decimalValue)
         md = abs(decimalValue - deg) * 60
-        min = int(md)
-        sec = (md - min) * 60
+        minutes = int(md)
+        sec = (md - minutes) * 60
 
         # min = int(decimalValue-deg)
         # sec = (decimalValue-deg) * 3600 % 60
-        return f'{deg:d}', f'{min:d}', f'{sec:0.3f}'
+        return f'{deg:d}', f'{minutes:d}', f'{sec:0.3f}'
 
     def fillVizieRtabFromHeaders(self):
-        for header in self.headers:
-            if header.startswith("# date at frame"):
-                parts = header.split(":")
-                parts = parts[1].split("-")
-                self.vzDateYearSpinner.setValue(int(parts[0]))
-                self.vzDateMonthSpinner.setValue(int(parts[1]))
-                self.vzDateDaySpinner.setValue(int(parts[2]))
-                continue
-            if header.startswith("#OBSERVER:"):
-                parts = header.split(":")
-                self.vzObserverNameEdit.setText(parts[1].strip())
-                continue
-            if header.startswith("#LATITUDE:"):
-                parts = header.split(":")
-                deg, min,sec = self.decimalToDMS(parts[1].strip())
-                self.vzSiteLatDegEdit.setText(deg)
-                self.vzSiteLatMinEdit.setText(min)
-                self.vzSiteLatSecsEdit.setText(sec)
-                continue
-            if header.startswith("#LONGITUDE:"):
-                parts = header.split(":")
-                deg, min, sec = self.decimalToDMS(parts[1].strip())
-                self.vzSiteLongDegEdit.setText(deg)
-                self.vzSiteLongMinEdit.setText(min)
-                self.vzSiteLongSecsEdit.setText(sec)
-                continue
-            if header.startswith("#ALTITUDE:"):
-                parts = header.split(":")
-                self.vzSiteAltitudeEdit.setText(parts[1].strip())
-                continue
-            if header.startswith("#OBJNAME:"):
-                parts = header.split(":")
-                parts = parts[1].split("occ.")
-                print(parts)
-                p1 = parts[0].split(")")
-                self.vzAsteroidNameEdit.setText(p1[1].strip())
-                id = p1[0].split("(")
-                self.vzAsteroidNumberEdit.setText(id[1].strip())
-                p2 = parts[1].strip().split(" ")
-                if p2[0] == 'UCAC4':
-                    self.vzStarUCAC4Edit.setText(p2[1])
-                elif p2[0] == "Tycho2":
-                    self.vzStarTycho2Edit.setText(p2[1])
-                elif p2[0] == 'Hipparcos':
-                    self.vzStarHipparcosEdit.setText(p2[1])
+        try:
+            for header in self.headers:
+                if header.startswith("# date at frame"):
+                    parts = header.split(":")
+                    parts = parts[1].split("-")
+                    self.vzDateYearSpinner.setValue(int(parts[0]))
+                    self.vzDateMonthSpinner.setValue(int(parts[1]))
+                    self.vzDateDaySpinner.setValue(int(parts[2]))
+                    continue
+                if header.startswith("#OBSERVER:"):
+                    parts = header.split(":")
+                    self.vzObserverNameEdit.setText(parts[1].strip())
+                    continue
+                if header.startswith("#LATITUDE:"):
+                    parts = header.split(":")
+                    deg, minutes,sec = self.decimalToDMS(parts[1].strip())
+                    self.vzSiteLatDegEdit.setText(deg)
+                    self.vzSiteLatMinEdit.setText(minutes)
+                    self.vzSiteLatSecsEdit.setText(sec)
+                    continue
+                if header.startswith("#LONGITUDE:"):
+                    parts = header.split(":")
+                    deg, minutes, sec = self.decimalToDMS(parts[1].strip())
+                    self.vzSiteLongDegEdit.setText(deg)
+                    self.vzSiteLongMinEdit.setText(minutes)
+                    self.vzSiteLongSecsEdit.setText(sec)
+                    continue
+                if header.startswith("#ALTITUDE:"):
+                    parts = header.split(":")
+                    self.vzSiteAltitudeEdit.setText(parts[1].strip())
+                    continue
+                if header.startswith("#OBJNAME:"):
+                    parts = header.split(":")
+                    parts = parts[1].split("occ.")
+                    print(parts)
+                    p1 = parts[0].split(")")
+                    self.vzAsteroidNameEdit.setText(p1[1].strip())
+                    asteroidId = p1[0].split("(")
+                    self.vzAsteroidNumberEdit.setText(asteroidId[1].strip())
+                    p2 = parts[1].strip().split(" ")
+                    if p2[0] == 'UCAC4':
+                        self.vzStarUCAC4Edit.setText(p2[1])
+                    elif p2[0] == "Tycho2":
+                        self.vzStarTycho2Edit.setText(p2[1])
+                    elif p2[0] == 'Hipparcos':
+                        self.vzStarHipparcosEdit.setText(p2[1])
+                    continue
+
+        except Exception:  # noqa
+            self.showMsg("Failed to parse some item in ADV meta-data.", bold=True, color='red')
+            print("Failed to parse some item in ADV meta-data.")
 
 
     def illustrateTimestampOutliers(self):
