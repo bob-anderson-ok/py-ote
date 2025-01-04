@@ -10099,6 +10099,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
                                             self.showMsg(f'{ans["num_frames"]} .fits files were found in FITS folder')
                                             self.enableDisableFrameViewControls(state_to_set=True)
                                     elif ext == '.adv':
+                                        self.fillVizieRtabFromHeaders()  # Added 5.6.9
                                         # For now, we assume that .adv files have embedded timestamps and
                                         # so there is no need to display frames for visual OCR verification
                                         self.pathToVideo = None
@@ -10266,7 +10267,67 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
                                   "lower left corner or incorporate flash timing data.")
             except Exception as e:
                 self.showMsg(str(e))
-                self.showMsg(f'This error may be because the data column name {columnPrefix} does not exist.')
+                self.showMsg(f'This error may be because the data column name {columnPrefix} does not exist or an unhandled exception.')
+
+    @staticmethod
+    def decimalToDMS(dval):
+        decimalValue = float(dval)
+        deg = int(decimalValue)
+        md = abs(decimalValue - deg) * 60
+        min = int(md)
+        sec = (md - min) * 60
+
+        # min = int(decimalValue-deg)
+        # sec = (decimalValue-deg) * 3600 % 60
+        return f'{deg:d}', f'{min:d}', f'{sec:0.3f}'
+
+    def fillVizieRtabFromHeaders(self):
+        for header in self.headers:
+            if header.startswith("# date at frame"):
+                parts = header.split(":")
+                parts = parts[1].split("-")
+                self.vzDateYearSpinner.setValue(int(parts[0]))
+                self.vzDateMonthSpinner.setValue(int(parts[1]))
+                self.vzDateDaySpinner.setValue(int(parts[2]))
+                continue
+            if header.startswith("#OBSERVER:"):
+                parts = header.split(":")
+                self.vzObserverNameEdit.setText(parts[1].strip())
+                continue
+            if header.startswith("#LATITUDE:"):
+                parts = header.split(":")
+                deg, min,sec = self.decimalToDMS(parts[1].strip())
+                self.vzSiteLatDegEdit.setText(deg)
+                self.vzSiteLatMinEdit.setText(min)
+                self.vzSiteLatSecsEdit.setText(sec)
+                continue
+            if header.startswith("#LONGITUDE:"):
+                parts = header.split(":")
+                deg, min, sec = self.decimalToDMS(parts[1].strip())
+                self.vzSiteLongDegEdit.setText(deg)
+                self.vzSiteLongMinEdit.setText(min)
+                self.vzSiteLongSecsEdit.setText(sec)
+                continue
+            if header.startswith("#ALTITUDE:"):
+                parts = header.split(":")
+                self.vzSiteAltitudeEdit.setText(parts[1].strip())
+                continue
+            if header.startswith("#OBJNAME:"):
+                parts = header.split(":")
+                parts = parts[1].split("occ.")
+                print(parts)
+                p1 = parts[0].split(")")
+                self.vzAsteroidNameEdit.setText(p1[1].strip())
+                id = p1[0].split("(")
+                self.vzAsteroidNumberEdit.setText(id[1].strip())
+                p2 = parts[1].strip().split(" ")
+                if p2[0] == 'UCAC4':
+                    self.vzStarUCAC4Edit.setText(p2[1])
+                elif p2[0] == "Tycho2":
+                    self.vzStarTycho2Edit.setText(p2[1])
+                elif p2[0] == 'Hipparcos':
+                    self.vzStarHipparcosEdit.setText(p2[1])
+
 
     def illustrateTimestampOutliers(self):
         for pos in self.cadenceViolation:
