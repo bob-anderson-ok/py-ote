@@ -278,6 +278,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
     def __init__(self, csv_file):
         super(SimplePlot, self).__init__()
 
+        self.ext = None  # Holds extension of file just read.
+
         self.getListOfVizieRlightcurves()
 
         self.camCorrection = 0.0  # pcs
@@ -10054,12 +10056,15 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
 
                                 if line.startswith('# source:'):  # PyMovie format
                                     self.pathToVideo = line.replace('# source:', '', 1).strip()
+                                    _, self.ext = os.path.splitext(self.pathToVideo)
+
                                 if line.startswith('"FileName :'):  # Limovie format
                                     self.pathToVideo = line.replace('"FileName :', '', 1).strip()
                                     self.pathToVideo = self.pathToVideo.strip('"')
+                                    _, self.ext = os.path.splitext(self.pathToVideo)
 
                                 if os.path.isfile(self.pathToVideo):
-                                    _, self.ext = os.path.splitext(self.pathToVideo)
+                                    # _, self.ext = os.path.splitext(self.pathToVideo)
                                     if self.ext == '.avi':
                                         ans = readAviFile(0, self.pathToVideo)
                                         if not ans['success']:
@@ -10288,49 +10293,67 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
         try:
             for header in self.headers:
                 if header.startswith("# date at frame"):
-                    parts = header.split(":")
-                    parts = parts[1].split("-")
-                    self.vzDateYearSpinner.setValue(int(parts[0]))
-                    self.vzDateMonthSpinner.setValue(int(parts[1]))
-                    self.vzDateDaySpinner.setValue(int(parts[2]))
+                    try:
+                        parts = header.split(":")
+                        parts = parts[1].split("-")
+                        self.vzDateYearSpinner.setValue(int(parts[0]))
+                        self.vzDateMonthSpinner.setValue(int(parts[1]))
+                        self.vzDateDaySpinner.setValue(int(parts[2]))
+                    except Exception:  # noqa
+                        self.showMsg("Failed to parse ADV header: " + header, bold=True, color='red')
                     continue
                 if header.startswith("#OBSERVER:"):
-                    parts = header.split(":")
-                    self.vzObserverNameEdit.setText(parts[1].strip())
+                    try:
+                        parts = header.split(":")
+                        self.vzObserverNameEdit.setText(parts[1].strip())
+                    except Exception:  # noqa
+                        self.showMsg("Failed to parse ADV header: " + header, bold=True, color='red')
                     continue
                 if header.startswith("#LATITUDE:"):
-                    parts = header.split(":")
-                    deg, minutes,sec = self.decimalToDMS(parts[1].strip())
-                    self.vzSiteLatDegEdit.setText(deg)
-                    self.vzSiteLatMinEdit.setText(minutes)
-                    self.vzSiteLatSecsEdit.setText(sec)
+                    try:
+                        parts = header.split(":")
+                        deg, minutes,sec = self.decimalToDMS(parts[1].strip())
+                        self.vzSiteLatDegEdit.setText(deg)
+                        self.vzSiteLatMinEdit.setText(minutes)
+                        self.vzSiteLatSecsEdit.setText(sec)
+                    except Exception:  # noqa
+                        self.showMsg("Failed to parse ADV header: " + header, bold=True, color='red')
                     continue
                 if header.startswith("#LONGITUDE:"):
-                    parts = header.split(":")
-                    deg, minutes, sec = self.decimalToDMS(parts[1].strip())
-                    self.vzSiteLongDegEdit.setText(deg)
-                    self.vzSiteLongMinEdit.setText(minutes)
-                    self.vzSiteLongSecsEdit.setText(sec)
+                    try:
+                        parts = header.split(":")
+                        deg, minutes, sec = self.decimalToDMS(parts[1].strip())
+                        self.vzSiteLongDegEdit.setText(deg)
+                        self.vzSiteLongMinEdit.setText(minutes)
+                        self.vzSiteLongSecsEdit.setText(sec)
+                    except Exception:  # noqa
+                        self.showMsg("Failed to parse ADV header: " + header, bold=True, color='red')
                     continue
                 if header.startswith("#ALTITUDE:"):
-                    parts = header.split(":")
-                    self.vzSiteAltitudeEdit.setText(parts[1].strip())
+                    try:
+                        parts = header.split(":")
+                        self.vzSiteAltitudeEdit.setText(parts[1].strip())
+                    except Exception:  # noqa
+                        self.showMsg("Failed to parse ADV header: " + header, bold=True, color='red')
                     continue
                 if header.startswith("#OBJNAME:"):
-                    parts = header.split(":")
-                    parts = parts[1].split("occ.")
-                    print(parts)
-                    p1 = parts[0].split(")")
-                    self.vzAsteroidNameEdit.setText(p1[1].strip())
-                    asteroidId = p1[0].split("(")
-                    self.vzAsteroidNumberEdit.setText(asteroidId[1].strip())
-                    p2 = parts[1].strip().split(" ")
-                    if p2[0] == 'UCAC4':
-                        self.vzStarUCAC4Edit.setText(p2[1])
-                    elif p2[0] == "Tycho2":
-                        self.vzStarTycho2Edit.setText(p2[1])
-                    elif p2[0] == 'Hipparcos':
-                        self.vzStarHipparcosEdit.setText(p2[1])
+                    try:
+                        parts = header.split(":")
+                        parts = parts[1].split("occ.")
+                        print(parts)
+                        p1 = parts[0].split(")")
+                        self.vzAsteroidNameEdit.setText(p1[1].strip())
+                        asteroidId = p1[0].split("(")
+                        self.vzAsteroidNumberEdit.setText(asteroidId[1].strip())
+                        p2 = parts[1].strip().split(" ")
+                        if p2[0] == 'UCAC4':
+                            self.vzStarUCAC4Edit.setText(p2[1])
+                        elif p2[0] == "Tycho2":
+                            self.vzStarTycho2Edit.setText(p2[1])
+                        elif p2[0] == 'Hipparcos':
+                            self.vzStarHipparcosEdit.setText(p2[1])
+                    except Exception:  # noqa
+                        self.showMsg("Failed to parse ADV header: " + header, bold=True, color='red')
                     continue
 
         except Exception:  # noqa
