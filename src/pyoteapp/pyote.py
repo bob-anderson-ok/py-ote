@@ -10183,6 +10183,9 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
                 if self.ext == ".adv":
                     self.fillVizieRtabFromHeaders()  # Added 5.6.9
 
+                if self.ext == ".ravf":
+                    self.fillVizieRtabFromRavfHeaders()  # Added 5.7.2
+
                 self.yTimes = time[:]
                 self.yValues = np.array(values)
                 self.yValCopy = np.ndarray(shape=(len(self.yValues),))
@@ -10340,11 +10343,90 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
                     try:
                         parts = header.split(":")
                         parts = parts[1].split("occ.")
-                        print(parts)
+                        # print(parts)
                         p1 = parts[0].split(")")
                         self.vzAsteroidNameEdit.setText(p1[1].strip())
                         asteroidId = p1[0].split("(")
                         self.vzAsteroidNumberEdit.setText(asteroidId[1].strip())
+                        p2 = parts[1].strip().split(" ")
+                        if p2[0] == 'UCAC4':
+                            self.vzStarUCAC4Edit.setText(p2[1])
+                        elif p2[0] == "Tycho2":
+                            self.vzStarTycho2Edit.setText(p2[1])
+                        elif p2[0] == 'Hipparcos':
+                            self.vzStarHipparcosEdit.setText(p2[1])
+                    except Exception:  # noqa
+                        self.showMsg("Failed to parse ADV header: " + header, bold=True, color='red')
+                    continue
+
+        except Exception:  # noqa
+            self.showMsg("Failed to parse some item in ADV meta-data.", bold=True, color='red')
+            print("Failed to parse some item in ADV meta-data.")
+
+    def fillVizieRtabFromRavfHeaders(self):
+        try:
+            for header in self.headers:
+                if header.startswith("# date at frame"):
+                    try:
+                        parts = header.split(":")
+                        parts = parts[1].split("-")
+                        self.vzDateYearSpinner.setValue(int(parts[0]))
+                        self.vzDateMonthSpinner.setValue(int(parts[1]))
+                        self.vzDateDaySpinner.setValue(int(parts[2]))
+                    except Exception:  # noqa
+                        self.showMsg("Failed to parse RAVF header: " + header, bold=True, color='red')
+                    continue
+                if header.startswith("#OBSERVER:"):
+                    try:
+                        parts = header.split(":")
+                        self.vzObserverNameEdit.setText(parts[1].strip())
+                    except Exception:  # noqa
+                        self.showMsg("Failed to parse RAVF header: " + header, bold=True, color='red')
+                    continue
+                if header.startswith("#LATITUDE:"):
+                    try:
+                        parts = header.split(":")
+                        deg, minutes,sec = self.decimalToDMS(parts[1].strip())
+                        self.vzSiteLatDegEdit.setText(deg)
+                        self.vzSiteLatMinEdit.setText(minutes)
+                        self.vzSiteLatSecsEdit.setText(sec)
+                    except Exception:  # noqa
+                        self.showMsg("Failed to parse RAVF header: " + header, bold=True, color='red')
+                    continue
+                if header.startswith("#LONGITUDE:"):
+                    try:
+                        parts = header.split(":")
+                        deg, minutes, sec = self.decimalToDMS(parts[1].strip())
+                        self.vzSiteLongDegEdit.setText(deg)
+                        self.vzSiteLongMinEdit.setText(minutes)
+                        self.vzSiteLongSecsEdit.setText(sec)
+                    except Exception:  # noqa
+                        self.showMsg("Failed to parse RAVF header: " + header, bold=True, color='red')
+                    continue
+                if header.startswith("#ALTITUDE:"):
+                    try:
+                        parts = header.split(":")
+                        self.vzSiteAltitudeEdit.setText(parts[1].strip())
+                    except Exception:  # noqa
+                        self.showMsg("Failed to parse RAVF header: " + header, bold=True, color='red')
+                    continue
+                if header.startswith("#OCCULTATION-OBJECT-NUMBER:"):
+                    try:
+                        parts = header.split(":")
+                        self.vzAsteroidNumberEdit.setText(parts[1].strip())
+                    except Exception:  # noqa
+                        self.showMsg("Failed to parse RAVF header: " + header, bold=True, color='red')
+                    continue
+                if header.startswith("#OCCULTATION-OBJECT-NAME:"):
+                    try:
+                        parts = header.split(":")
+                        self.vzAsteroidNameEdit.setText(parts[1].strip())
+                    except Exception:  # noqa
+                        self.showMsg("Failed to parse ADV header: " + header, bold=True, color='red')
+                    continue
+                if header.startswith("#OCCULTATION-STAR"):
+                    try:
+                        parts = header.split(":")
                         p2 = parts[1].strip().split(" ")
                         if p2[0] == 'UCAC4':
                             self.vzStarUCAC4Edit.setText(p2[1])
