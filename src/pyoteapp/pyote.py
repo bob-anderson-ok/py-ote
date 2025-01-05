@@ -10104,7 +10104,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
                                             self.showMsg(f'{ans["num_frames"]} .fits files were found in FITS folder')
                                             self.enableDisableFrameViewControls(state_to_set=True)
                                     elif self.ext == '.adv':
-                                        self.fillVizieRtabFromHeaders()  # Added 5.6.9
+                                        self.fillVizieRtabFromAdvHeaders()  # Added 5.6.9
                                         # For now, we assume that .adv files have embedded timestamps and
                                         # so there is no need to display frames for visual OCR verification
                                         self.pathToVideo = None
@@ -10181,7 +10181,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
                 self.showMsg('=' * 20 + ' end header lines ' + '=' * 20, bold=True)
 
                 if self.ext == ".adv":
-                    self.fillVizieRtabFromHeaders()  # Added 5.6.9
+                    self.fillVizieRtabFromAdvHeaders()  # Added 5.6.9
 
                 if self.ext == ".ravf":
                     self.fillVizieRtabFromRavfHeaders()  # Added 5.7.2
@@ -10292,7 +10292,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
         # sec = (decimalValue-deg) * 3600 % 60
         return f'{deg:d}', f'{minutes:d}', f'{sec:0.3f}'
 
-    def fillVizieRtabFromHeaders(self):
+    def fillVizieRtabFromAdvHeaders(self):
         try:
             for header in self.headers:
                 if header.startswith("# date at frame"):
@@ -10335,7 +10335,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
                 if header.startswith("#ALTITUDE:"):
                     try:
                         parts = header.split(":")
-                        self.vzSiteAltitudeEdit.setText(parts[1].strip())
+                        altitude = round(float(parts[1].strip()), 0)
+                        self.vzSiteAltitudeEdit.setText(f"{altitude:0.0f}")
                     except Exception:  # noqa
                         self.showMsg("Failed to parse ADV header: " + header, bold=True, color='red')
                     continue
@@ -10406,7 +10407,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
                 if header.startswith("#ALTITUDE:"):
                     try:
                         parts = header.split(":")
-                        self.vzSiteAltitudeEdit.setText(parts[1].strip())
+                        altitude = round(float(parts[1].strip()), 0)
+                        self.vzSiteAltitudeEdit.setText(f"{altitude:0.0f}")
                     except Exception:  # noqa
                         self.showMsg("Failed to parse RAVF header: " + header, bold=True, color='red')
                     continue
