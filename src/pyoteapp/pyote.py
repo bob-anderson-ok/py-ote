@@ -10350,11 +10350,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
                         asteroidId = p1[0].split("(")
                         self.vzAsteroidNumberEdit.setText(asteroidId[1].strip())
                         p2 = parts[1].strip().split(" ")
-                        if p2[0] == 'UCAC4':
+                        if p2[0].startswith("U"):
                             self.vzStarUCAC4Edit.setText(p2[1])
-                        elif p2[0] == "Tycho2":
+                        elif p2[0].startswith("T"):
                             self.vzStarTycho2Edit.setText(p2[1])
-                        elif p2[0] == 'Hipparcos':
+                        elif p2[0].startswith("H"):
                             self.vzStarHipparcosEdit.setText(p2[1])
                     except Exception:  # noqa
                         self.showMsg("Failed to parse ADV header: " + header, bold=True, color='red')
@@ -10430,11 +10430,11 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
                     try:
                         parts = header.split(":")
                         p2 = parts[1].strip().split(" ")
-                        if p2[0] == 'UCAC4':
+                        if p2[0].startswith("U"):
                             self.vzStarUCAC4Edit.setText(p2[1])
-                        elif p2[0] == "Tycho2":
+                        elif p2[0].startswith("T"):
                             self.vzStarTycho2Edit.setText(p2[1])
-                        elif p2[0] == 'Hipparcos':
+                        elif p2[0].startswith("H"):
                             self.vzStarHipparcosEdit.setText(p2[1])
                     except Exception:  # noqa
                         self.showMsg("Failed to parse ADV header: " + header, bold=True, color='red')
