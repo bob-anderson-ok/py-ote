@@ -5798,6 +5798,39 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
 
         return super(SimplePlot, self).eventFilter(obj, event)
 
+    def getVizierHeaders(self):
+        hdrs = []
+        try:
+            if self.vzObserverNameEdit.text() == "":
+                return hdrs
+            hdrs.append("#")
+            hdrs.append("# ========== VizieR data ==========")
+            hdrs.append("#")
+
+            hdrs.append(f"# OBSERVER {self.vzObserverNameEdit.text()}")
+
+            obsYear = self.vzDateYearSpinner.value()
+            obsMonth = self.vzDateMonthSpinner.value()
+            obsDay = self.vzDateDaySpinner.value()
+
+            hdrs.append(f"# OBS-DATE (ymd) {obsYear:04d}-{obsMonth:02d}-{obsDay:02d}")
+
+            hdrs.append(f"# AST-NAME {self.vzAsteroidNameEdit.text()}")
+            hdrs.append(f"# AST-NUMBER {self.vzAsteroidNumberEdit.text()}")
+
+            if  not self.vzStarUCAC4Edit.text() == "":
+                hdrs.append(f"# STAR UCAC4 {self.vzStarUCAC4Edit.text()}")
+
+            hdrs.append("#")
+            hdrs.append("# ========== end VizieR data ==========")
+            hdrs.append("#")
+        except Exception:  # noqa
+            hdrs.append("#")
+            hdrs.append("#  !!! exception occurred during VizieR data reading")
+            hdrs.append("#")
+
+        return hdrs
+
     def writeCSVfile(self):
         _, name = os.path.split(self.csvFilePath)
         name = self.removeCsvExtension(name)
@@ -5826,8 +5859,13 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
                 else:
                     fileObject.write('# PyMovie file written by ' + 'PYOTE ' + version.version() + '\n')
 
+                vizierHeaders = self.getVizierHeaders()
+                for hdr in vizierHeaders:
+                    fileObject.write(f'{hdr}\n')  # 5.7.5
+
                 for hdr in self.headers:
-                    fileObject.write(f'#  {hdr}\n')
+                    # fileObject.write(f'#  {hdr}\n')
+                    fileObject.write(f'{hdr}\n')  # 5.7.5
                 if not self.aperture_names:
                     # Handle non-PyMovie csv file
                     columnHeadings = 'FrameNum,timeInfo,primaryData'
