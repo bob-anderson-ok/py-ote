@@ -5821,6 +5821,12 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
             if  not self.vzStarUCAC4Edit.text() == "":
                 hdrs.append(f"# STAR UCAC4 {self.vzStarUCAC4Edit.text()}")
 
+            if  not self.vzStarTycho2Edit.text() == "":
+                hdrs.append(f"# STAR TYC {self.vzStarTycho2Edit.text()}")
+
+            if  not self.vzStarHipparcosEdit.text() == "":
+                hdrs.append(f"# STAR HIP {self.vzStarHipparcosEdit.text()}")
+
             hdrs.append("#")
             hdrs.append("# ========== end VizieR data ==========")
             hdrs.append("#")
