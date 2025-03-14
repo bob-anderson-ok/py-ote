@@ -8342,8 +8342,8 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
 
 
         if plots_wanted:
-            self.errBarWin = pg.GraphicsWindow(
-                title='Solution distributions with containment intervals marked --- Noise Induced Events distribution')
+            self.errBarWin = pg.GraphicsLayoutWidget(
+                title='Solution distributions with containment intervals marked --- Noise Induced Events distribution', show=True)
             self.errBarWin.resize(1200, 1000)
             layout = QtWidgets.QGridLayout()
             self.errBarWin.setLayout(layout)
