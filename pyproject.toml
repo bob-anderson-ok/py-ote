@@ -25,11 +25,13 @@ classifiers = [
     "Topic :: Scientific/Engineering",
 ]
 dependencies = [
-    # GUI stack. PyQt5-Qt5 is Windows-specific (no wheel elsewhere in this
-    # combination); PyQt5 5.15.11 + sip 12.15.0 is what requirements.txt was
-    # generated from.
+    # GUI stack. PyQt5-Qt5 wheel coverage is inconsistent across versions:
+    #   5.15.2  — windows + linux + mac intel (no arm64 mac)
+    #   5.15.11 — windows + mac (both archs) but no linux
+    # No single version covers all four targets, so split by platform.
     "PyQt5==5.15.11",
-    "PyQt5-Qt5==5.15.2;    platform_system == 'Windows'",
+    "PyQt5-Qt5==5.15.11; platform_system == 'Darwin'",
+    "PyQt5-Qt5==5.15.2;  platform_system != 'Darwin'",
     "PyQt5-sip==12.15.0",
     "pyqtgraph==0.12.4",
 
@@ -82,3 +84,15 @@ pyoteapp = [
 
 [tool.setuptools.dynamic]
 version = { attr = "pyoteapp.version.__version__" }
+
+[tool.uv]
+# Ensure `uv lock` / `uv sync` resolve to versions that have wheels for all
+# platforms we ship to, not just the host machine. Without this, running
+# `uv lock` on Windows may pick a version that has no arm64-mac wheel,
+# silently breaking Apple-Silicon installs.
+required-environments = [
+    "sys_platform == 'win32'    and platform_machine == 'AMD64'",
+    "sys_platform == 'darwin'   and platform_machine == 'arm64'",
+    "sys_platform == 'darwin'   and platform_machine == 'x86_64'",
+    "sys_platform == 'linux'    and platform_machine == 'x86_64'",
+]
