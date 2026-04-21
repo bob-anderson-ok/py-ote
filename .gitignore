@@ -21,3 +21,19 @@ src/pyoteapp/helpDialog.txt
 src/pyoteapp/tests/__pycache__/
 src/pyoteapp/version.pyc
 src/simple-ote.ini
+
+# uv / Python runtime
+.venv/
+__pycache__/
+
+# PyApp / Rust build output
+target/
+
+# Extracted sdist (e.g. untar of dist/pyote-X.Y.Z.tar.gz)
+/pyote-*/
+
+# Runtime QSettings state (written by PyQt on each launch)
+pyote.ini
+
+# User-local saved site coordinates
+src/pyoteapp/SiteCoord_*.p

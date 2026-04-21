@@ -76,28 +76,6 @@
          </property>
          <item>
           <layout class="QGridLayout" name="gridLayout">
-           <item row="0" column="0">
-            <widget class="QPushButton" name="infoButton">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Click this button to to open the &lt;span style=&quot; color:#ff0000;&quot;&gt;help.pdf&lt;/span&gt; file that is included in the installation. The file will open in whatever PDF viewer you have assigned as the default viewer for pdf files.&lt;/p&gt;&lt;p&gt;The first part of this file is version info that should be examined every time a new version of PyOTE is installed.&lt;/p&gt;&lt;p&gt;At the bottom of this version info is a brief introduction to PyOTE that should be read by new users.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-             </property>
-             <property name="whatsThis">
-              <string>How does this show up?</string>
-             </property>
-             <property name="text">
-              <string>Info</string>
-             </property>
-             <property name="autoDefault">
-              <bool>false</bool>
-             </property>
-            </widget>
-           </item>
            <item row="0" column="4">
             <widget class="QPushButton" name="plotHelpButton">
              <property name="maximumSize">
@@ -6810,19 +6788,6 @@ Setting this value to zero will force Miss distance optimization to be skipped.<
                  </property>
                 </widget>
                </item>
-               <item row="1" column="1">
-                <widget class="QCheckBox" name="allowNewVersionPopupCheckbox">
-                 <property name="toolTip">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This splash screen can be disabled on the &lt;span style=&quot; font-weight:700; color:#0000ff;&quot;&gt;Settings/Misc.&lt;/span&gt; tab.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;What's new with this version:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;We have changed the initial test used by the 'event finder' that can result in ‘no event found’ . It will now accept more event candidates – this test was extremely conservative and was a hold-over from a time when there was no False-positive test. Now we can rely on the FP test to weed out events that might be due to noise and so we can loosen up the initial test.&lt;/p&gt;&lt;p&gt;There are some improvements in the light curve list manipulations - the entire list can now be cleared.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Previously:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-family:'Arial','sans-serif';&quot;&gt;Changed order of buttons on Noise analysis/Detectability tab to better reflect work flow&lt;br/&gt;&lt;br/&gt;If a minEvent of 1 is entered for the min/max search, it is automatically changed to 2 (with an advisory message to this effect) to ease work flow.&lt;br/&gt;&lt;br/&gt;Added buttons to &lt;/span&gt;&lt;span style=&quot; font-family:'Arial','sans-serif'; font-weight:700; color:#00b0f0;&quot;&gt;Lightcurves&lt;/span&gt;&lt;span style=&quot; font-family:'Arial','sans-serif';&quot;&gt; tab to make it more convenient to calculate and recalculate baseline statistics for multiple light curves.&lt;br/&gt;&lt;br/&gt;Added a block of the most useful metrics for comparing light curve extractions from multiple apertures at the end of the text report window and also in the &lt;/span&gt;&lt;span style=&quot; font-family:'Arial','sans-serif'; font-weight:700; color:#00b0f0;&quot;&gt;.log.txt&lt;/span&gt;&lt;span style=&quot; font-family:'Arial','sans-serif';&quot;&gt; report.&lt;br/&gt;&lt;br/&gt;The metrics for each ‘solution’ are added to a text file (fit_metrics.txt) – this text file can be converted to a .xlsx file which can be used to support the choice of ‘solution’ submitted in a report.&lt;br/&gt;&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-family:'Arial','sans-serif'; font-size:11pt; font-weight:700; color:#ff0000;&quot;&gt;Changed snr to dnr (drop to noise ratio) in the places where that is the actual calculation being performed.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                 </property>
-                 <property name="text">
-                  <string>allow 'new version' information pop-up</string>
-                 </property>
-                 <property name="checked">
-                  <bool>true</bool>
-                 </property>
-                </widget>
-               </item>
                <item row="9" column="1" colspan="2">
                 <widget class="QLabel" name="label_3">
                  <property name="text">
@@ -8172,7 +8137,6 @@ Setting this value to zero will force Miss distance optimization to be skipped.<
  </customwidgets>
  <tabstops>
   <tabstop>plotHelpButton</tabstop>
-  <tabstop>infoButton</tabstop>
   <tabstop>readData</tabstop>
   <tabstop>helpButton</tabstop>
   <tabstop>tutorialButton</tabstop>
@@ -8294,7 +8258,6 @@ Setting this value to zero will force Miss distance optimization to be skipped.<
   <tabstop>pastEventsComboBox</tabstop>
   <tabstop>calcFlashEdge</tabstop>
   <tabstop>manualEntryPushButton</tabstop>
-  <tabstop>allowNewVersionPopupCheckbox</tabstop>
   <tabstop>showTimestampErrors</tabstop>
   <tabstop>showCameraResponseCheckBox</tabstop>
   <tabstop>showUnderlyingLightcurveCheckBox</tabstop>

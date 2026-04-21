@@ -1,0 +1,13 @@
+aperture name,time err +/-secs,DNR,FP metric,magDrop,percent drop,duration (secs),D time,R time,D frame,R frame,B,A,sigmaB,sigmaA,observed drop,FP drop,FP margin
+
+Source file is C:/Users/boban/Dropbox/GitHub-repos/pyote-repo/src/pyoteapp/model-examples/disk_on_disk_annular_shotnoise_1.0_readnoise_20.0.csv
+
+
+Source file is C:/Users/boban/Dropbox/GitHub-repos/pyote-repo/src/pyoteapp/model-examples/disk_on_disk_annular_shotnoise_1.0_readnoise_20.0.csv
+
+
+Source file is C:/Users/boban/Dropbox/GitHub-repos/pyote-repo/src/pyoteapp/model-examples/disk_on_disk_annular_shotnoise_1.0_readnoise_20.0.csv
+
+
+Source file is C:/Users/boban/Dropbox/GitHub-repos/pyote-repo/src/pyoteapp/model-examples/disk_on_disk_annular_shotnoise_1.0_readnoise_20.0.csv
+

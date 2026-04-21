@@ -1,0 +1,369 @@
+
+
+#################### PYOTE 5.4.8  session started: Fri Dec 29 16:03:03 2023  ####################
+
+filename: C:/Users/boban/Dropbox/GitHub-repos/pyote-repo/src/pyoteapp/model-examples/disk_on_disk_annular_shotnoise_1.0_readnoise_20.0.csv
+
+==================== file header lines ====================
+# PyMovie format
+#
+# from file: disk_on_disk_annular_shotnoise_1.0_readnoise_20.0.csv
+#
+# shot noise level: 1
+# read noise sigma: 20
+# 
+# D @ [00:00:3.4500]
+# R @ [00:00:5.3500]
+#
+# lightcurve model: disk-on-disk
+# event category: graze
+#
+# UTC time: 2022-12-25 19:15:13.444516+00:00   Lightcurve modeller version: 2.0 25 December 2022
+#
+# frame_time: 0.04000 sec
+#
+# asteroid_diameter_km:  10.00000 km
+#
+# asteroid_shadow_speed: 5.00000 km/sec
+#
+# asteroid_distance_AU:  3.00000 AU
+#
+# wavelength_nm: 540 nm
+#
+# miss_distance_km: 0.00000
+#
+# baseline intensity: 3000.00000 ADU
+#            magDrop: 2.18500
+# bottom   intensity: 400.97865 ADU
+#
+# D_limb_angle_degrees: 45.0 degrees
+# R_limb_angle_degrees: 45.0 degrees
+#
+# chord_length_sec: 1.90000 sec
+# chord_length_km:  9.50000 km
+#
+# star_diameter_mas: 6.43429 mas
+#
+# fresnel_length: 0.34857 km
+#
+# ===== Alternate units =====
+#
+# star_diameter_km:  14.00000 km
+# star_radius_km:    7.00000 km
+# star_rho:          40.16 fresnel lengths
+#
+# asteroid_diameter_mas: 4.59592 mas
+# asteroid_rho:          14.34 fresnel lengths
+#
+# asteroid_distance_arcsec:  2.92940 arcsec
+#
+# asteroid_speed_sky_motion: 2.29796 mas/sec
+#
+# 
+#
+==================== end header lines ====================
+
+No time step irregularities found.
+
+timeDelta: 0.0400000 seconds per reading
+timestamp error rate: 0.00%
+
+Background region selected: [0, 48]
+
+Background region selected: [171, 220]
+
+signal-target_with_noise is the light curve undergoing baseline noise analysis.
+
+This baseline noise analysis uses 99 baseline points
+
+noise corr coefs: [1.00]  (based on 99 points)  sigmaB: 59.74
+
+mean baseline = 3002.09
+
+baseline snr = 50.25
+
+Background regions cleared.
+
+Fit improvement entered for first time.
+
+Optimized fit found and is being displayed.
+
+D: [00:00:03.4600]
+
+R: [00:00:05.3400]
+
+Maximum improvement has been achieved with metric: 0.91409  
+
+The metric above was calculated using only readings 0 to 220 inclusive.
+
+Lightcurve Model Parameters...
+
+model in use: disk on disk
+baseline intensity: 3002.09 ADU
+baseline noise    : 59.74 ADU
+bottom   intensity: 401.26 ADU
+magDrop: 2.1850
+
+metric_limit_left_ (reading number): 0
+metric_limit_right (reading number): 220
+
+fresnel_length: 0.35 km
+
+wavelength_nm: 540 nm
+star_diameter_mas: 6.43 mas
+star_diameter_km:  14.00 km
+star_radius_km:    7.00 km
+star_rho:          20.08 fresnel lengths
+
+asteroid_diameter_km:  10.00 km
+asteroid_diameter_mas: 4.60 mas
+asteroid_rho:          14.34 fresnel lengths
+
+asteroid_distance_AU:     3.00 AU
+asteroid_distance_arcsec: 2.93 arcsec
+
+shadow_speed: 5.0000 km/sec
+sky_motion:   2.2980 mas/sec
+
+frame_time: 0.0400 sec
+
+chord_length_km:  9.40 km
+chord_length_sec: 1.8800 sec
+
+
+
+
+asteroid_major_axis:  10.0000 km
+
+asteroid_minor_axis:  10.0000 km
+
+ellipse_angle_degrees:  0.0000 degrees
+
+
+
+miss_distance_km: 0.00
+
+
+
+
+
+D: [00:00:03.4600]
+
+R: [00:00:05.3400]
+
+Background regions cleared.
+
+
+
+#################### Session ended: Fri Dec 29 19:32:58 2023  ####################
+
+
+
+#################### PYOTE 5.4.8  session started: Fri Dec 29 21:14:57 2023  ####################
+
+filename: C:/Users/boban/Dropbox/GitHub-repos/pyote-repo/src/pyoteapp/model-examples/disk_on_disk_annular_shotnoise_1.0_readnoise_20.0.csv
+
+==================== file header lines ====================
+# PyMovie format
+#
+# from file: disk_on_disk_annular_shotnoise_1.0_readnoise_20.0.csv
+#
+# shot noise level: 1
+# read noise sigma: 20
+# 
+# D @ [00:00:3.4500]
+# R @ [00:00:5.3500]
+#
+# lightcurve model: disk-on-disk
+# event category: graze
+#
+# UTC time: 2022-12-25 19:15:13.444516+00:00   Lightcurve modeller version: 2.0 25 December 2022
+#
+# frame_time: 0.04000 sec
+#
+# asteroid_diameter_km:  10.00000 km
+#
+# asteroid_shadow_speed: 5.00000 km/sec
+#
+# asteroid_distance_AU:  3.00000 AU
+#
+# wavelength_nm: 540 nm
+#
+# miss_distance_km: 0.00000
+#
+# baseline intensity: 3000.00000 ADU
+#            magDrop: 2.18500
+# bottom   intensity: 400.97865 ADU
+#
+# D_limb_angle_degrees: 45.0 degrees
+# R_limb_angle_degrees: 45.0 degrees
+#
+# chord_length_sec: 1.90000 sec
+# chord_length_km:  9.50000 km
+#
+# star_diameter_mas: 6.43429 mas
+#
+# fresnel_length: 0.34857 km
+#
+# ===== Alternate units =====
+#
+# star_diameter_km:  14.00000 km
+# star_radius_km:    7.00000 km
+# star_rho:          40.16 fresnel lengths
+#
+# asteroid_diameter_mas: 4.59592 mas
+# asteroid_rho:          14.34 fresnel lengths
+#
+# asteroid_distance_arcsec:  2.92940 arcsec
+#
+# asteroid_speed_sky_motion: 2.29796 mas/sec
+#
+# 
+#
+==================== end header lines ====================
+
+No time step irregularities found.
+
+timeDelta: 0.0400000 seconds per reading
+timestamp error rate: 0.00%
+
+
+
+#################### PYOTE 5.4.8  session started: Fri Dec 29 21:23:42 2023  ####################
+
+filename: C:/Users/boban/Dropbox/GitHub-repos/pyote-repo/src/pyoteapp/model-examples/disk_on_disk_annular_shotnoise_1.0_readnoise_20.0.csv
+
+==================== file header lines ====================
+# PyMovie format
+#
+# from file: disk_on_disk_annular_shotnoise_1.0_readnoise_20.0.csv
+#
+# shot noise level: 1
+# read noise sigma: 20
+# 
+# D @ [00:00:3.4500]
+# R @ [00:00:5.3500]
+#
+# lightcurve model: disk-on-disk
+# event category: graze
+#
+# UTC time: 2022-12-25 19:15:13.444516+00:00   Lightcurve modeller version: 2.0 25 December 2022
+#
+# frame_time: 0.04000 sec
+#
+# asteroid_diameter_km:  10.00000 km
+#
+# asteroid_shadow_speed: 5.00000 km/sec
+#
+# asteroid_distance_AU:  3.00000 AU
+#
+# wavelength_nm: 540 nm
+#
+# miss_distance_km: 0.00000
+#
+# baseline intensity: 3000.00000 ADU
+#            magDrop: 2.18500
+# bottom   intensity: 400.97865 ADU
+#
+# D_limb_angle_degrees: 45.0 degrees
+# R_limb_angle_degrees: 45.0 degrees
+#
+# chord_length_sec: 1.90000 sec
+# chord_length_km:  9.50000 km
+#
+# star_diameter_mas: 6.43429 mas
+#
+# fresnel_length: 0.34857 km
+#
+# ===== Alternate units =====
+#
+# star_diameter_km:  14.00000 km
+# star_radius_km:    7.00000 km
+# star_rho:          40.16 fresnel lengths
+#
+# asteroid_diameter_mas: 4.59592 mas
+# asteroid_rho:          14.34 fresnel lengths
+#
+# asteroid_distance_arcsec:  2.92940 arcsec
+#
+# asteroid_speed_sky_motion: 2.29796 mas/sec
+#
+# 
+#
+==================== end header lines ====================
+
+No time step irregularities found.
+
+timeDelta: 0.0400000 seconds per reading
+timestamp error rate: 0.00%
+
+
+
+#################### PYOTE 5.4.9  session started: Sat Dec 30 12:00:08 2023  ####################
+
+filename: C:/Users/boban/Dropbox/GitHub-repos/pyote-repo/src/pyoteapp/model-examples/disk_on_disk_annular_shotnoise_1.0_readnoise_20.0.csv
+
+==================== file header lines ====================
+# PyMovie format
+#
+# from file: disk_on_disk_annular_shotnoise_1.0_readnoise_20.0.csv
+#
+# shot noise level: 1
+# read noise sigma: 20
+# 
+# D @ [00:00:3.4500]
+# R @ [00:00:5.3500]
+#
+# lightcurve model: disk-on-disk
+# event category: graze
+#
+# UTC time: 2022-12-25 19:15:13.444516+00:00   Lightcurve modeller version: 2.0 25 December 2022
+#
+# frame_time: 0.04000 sec
+#
+# asteroid_diameter_km:  10.00000 km
+#
+# asteroid_shadow_speed: 5.00000 km/sec
+#
+# asteroid_distance_AU:  3.00000 AU
+#
+# wavelength_nm: 540 nm
+#
+# miss_distance_km: 0.00000
+#
+# baseline intensity: 3000.00000 ADU
+#            magDrop: 2.18500
+# bottom   intensity: 400.97865 ADU
+#
+# D_limb_angle_degrees: 45.0 degrees
+# R_limb_angle_degrees: 45.0 degrees
+#
+# chord_length_sec: 1.90000 sec
+# chord_length_km:  9.50000 km
+#
+# star_diameter_mas: 6.43429 mas
+#
+# fresnel_length: 0.34857 km
+#
+# ===== Alternate units =====
+#
+# star_diameter_km:  14.00000 km
+# star_radius_km:    7.00000 km
+# star_rho:          40.16 fresnel lengths
+#
+# asteroid_diameter_mas: 4.59592 mas
+# asteroid_rho:          14.34 fresnel lengths
+#
+# asteroid_distance_arcsec:  2.92940 arcsec
+#
+# asteroid_speed_sky_motion: 2.29796 mas/sec
+#
+# 
+#
+==================== end header lines ====================
+
+No time step irregularities found.
+
+timeDelta: 0.0400000 seconds per reading
+timestamp error rate: 0.00%
+

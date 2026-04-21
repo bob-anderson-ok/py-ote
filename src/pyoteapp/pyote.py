@@ -855,10 +855,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
         self.manualEntryPushButton.clicked.connect(self.doManualTimestampEntry)
         self.manualEntryPushButton.installEventFilter(self)
 
-        # Button: Info
-        self.infoButton.clicked.connect(self.openHelpFile)
-        self.infoButton.installEventFilter(self)
-
         # Button: Read light curve
         self.readData.clicked.connect(self.readDataFromFile)
         self.readData.installEventFilter(self)
@@ -1120,14 +1116,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
         showNotes = self.settings.value('showNotes', 'true')
         self.showAnnotationsCheckBox.setChecked(showNotes == 'true')
 
-        allowNewVersionPopup = self.settings.value('allowNewVersionPopup', 'true')
-        if allowNewVersionPopup == 'true':
-            self.allowNewVersionPopupCheckbox.setChecked(True)
-        else:
-            self.allowNewVersionPopupCheckbox.setChecked(False)
-
-        self.allowNewVersionPopupCheckbox.installEventFilter(self)
-
         tabNameList = self.settings.value('tablist', [])
         if tabNameList:
             self.redoTabOrder(tabNameList)
@@ -1254,9 +1242,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
         except FileNotFoundError as e:
             self.showInfo(f'{e}')
 
-
-        if self.allowNewVersionPopupCheckbox.isChecked():
-            self.showHelp(self.allowNewVersionPopupCheckbox)
 
         vizierFilesToSend = self.getListOfVizieRlightcurves()
         count = len(vizierFilesToSend)
@@ -5773,8 +5758,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
         return False
 
     def eventFilter(self, obj, event):
-        if self.allowNewVersionPopupCheckbox.isChecked():
-            self.helperThing.raise_()
         if event.type() == QtCore.QEvent.Type.KeyPress:
             handled = self.processKeystroke(event)
             if handled:
@@ -5967,10 +5950,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
                     readingTime += timeDelta
 
     def copy_modelExamples_to_Documents(self):
-        # Added in 5.0.3  Removed in 5.4.3
-        # if not self.allowNewVersionPopupCheckbox.isChecked():
-        #     return
-
         # The model-examples folder is part of the distribution and should be in the home directory
         source_dir = os.path.join(self.homeDir, 'model-examples')
         if os.path.exists(source_dir):
@@ -6036,16 +6015,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
     #         self.doManualTimestampEntry()
     #     else:
     #         self.manualEntryPushButton.setEnabled(False)
-
-    def openHelpFile(self):
-        helpFilePath = os.path.join(os.path.split(__file__)[0], 'pyote-info.pdf')
-
-        url = QtCore.QUrl.fromLocalFile(helpFilePath)
-        fileOpened = QtGui.QDesktopServices.openUrl(url)
-
-        if not fileOpened:
-            self.showMsg('Failed to open pyote-info.pdf', bold=True, color='red', blankLine=False)
-            self.showMsg('Location of pyote information file: ' + helpFilePath, bold=True, color='blue')
 
     def openModelHelpFile(self):
         helpFilePath = os.path.join(os.path.split(__file__)[0], 'model-help.pdf')
@@ -7267,8 +7236,6 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
         self.settings.setValue('limbAngleFitPrecision', self.limbAnglePrecisionEdit.text())
         self.settings.setValue('missDistanceFitPrecision', self.missDistancePrecisionEdit.text())
 
-        self.settings.setValue('allowNewVersionPopup', self.allowNewVersionPopupCheckbox.isChecked())
-
         self.settings.setValue('lineWidth', self.lineWidthSpinner.value())
         self.settings.setValue('dotSize', self.dotSizeSpinner.value())
 
@@ -7806,8 +7773,14 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
         #     self.showMsg(f"This 'drop' has a zero probability of being an artifact of noise.",
         #                  bold=True, color='green', blankLine=False)
 
-        self.showMsg(f'The observed drop has {self.reportDropProbability()} of being a noise-induced-event',
-                     bold=True, color='blue', blankLine=True)
+        if self.noiseSigmaDistance < 2.0:
+            self.showMsg(
+                f'WARNING The noiseSigmaDistance of {self.noiseSigmaDistance:0.1f} is less than 2.0 '
+                f'so this may be a noise-induced-event',
+                bold=True, color='red', blankLine=True)
+        else:
+            self.showMsg(f'The noiseSigmaDistance is {self.noiseSigmaDistance:0.1f}',
+                         bold=True, color='blue', blankLine=True)
 
         # self.showMsg(f">>>> probability > 0.0000 indicates the 'drop' may be spurious (a noise artifact)."
         #              f" Consult with an IOTA Regional Coordinator.", color='blue', blankLine=False)
@@ -8886,7 +8859,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
             smoothedBins = []
             for i in range(len(bins)-1):
                 smoothedBins.append((bins[i]+bins[i+1])/ 2)
-            pw.plot(smoothedBins, smoothedCounts, pen=pg.mkPen([0,0,255], width=2))
+            pw.plot(smoothedBins, smoothedCounts, pen=pg.mkPen([0,0,255], width=2))  # Blue histogram
             indices = np.where(smoothedCounts == np.max(smoothedCounts))
             binsAtPeak = [smoothedBins[i] for i in indices[0]]
             noisePeakPosition = np.mean(binsAtPeak)
@@ -8903,7 +8876,7 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
             xG = np.linspace(-5 * sigmaDrop + xCenter, 5 * sigmaDrop + xCenter, 1000)
             binDelta = bins[1] - bins[0]
             g = self.centeredGaussian(xG, xCenter, sigmaDrop) * binDelta * num_trials # Ready to plot g versus xG
-            pw.plot(x=xG, y=g, pen=pg.mkPen([0, 255, 0], width=2))
+            pw.plot(x=xG, y=g, pen=pg.mkPen([0, 255, 0], width=2))  # Green gaussian
 
             # Plot red observed drop line
             # pw.plot(x=[observed_drop, observed_drop], y=[0, 1.5 * np.max(counts)], pen=pg.mkPen([255, 0, 0], width=2))
@@ -11525,6 +11498,10 @@ def main(csv_file_path=None):
     os.environ['QT_MAC_WANTS_LAYER'] = '1'  # This line needed when Mac updated to Big Sur
 
     import traceback
+
+    PyQt5.QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
+    PyQt5.QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
+
     app = PyQt5.QtWidgets.QApplication(sys.argv)
 
     print(f'PyOTE Version: {version.version()}')

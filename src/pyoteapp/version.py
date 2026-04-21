@@ -1,2 +1,5 @@
+__version__ = '5.7.12'
+
+
 def version():
-    return '5.7.11'
+    return __version__
