@@ -5,23 +5,23 @@ import cv2
 import SER
 import glob
 import astropy.io.fits as pyfits  # Used for reading/writing FITS files
-from Adv2.Adv2File import Adv2reader
-from Adv2.AdvError import AdvLibException
 
-
-# def readAavFile(frame_to_read=0, full_file_path=None):
-#     try:
-#         rdr = Adv2reader(full_file_path)
-#     except AdvLibException as adverr:
-#         return repr(adverr), None
-#     except IOError as ioerr:
-#         return repr(ioerr), None
-#
-#     rdr.closeFile()
-#     return 'ok', None
+# Adv2 is imported lazily inside readAavFile. Its shipped native library
+# (libAdvCore.dylib) is x86_64-only, so `import Adv2.Adv2File` crashes on
+# Apple Silicon. Deferring the import lets pyote start on arm64 Macs and
+# surface a friendly error only if the user actually opens an .aav/.adv file.
 
 
 def readAavFile(frame_to_read=0, full_file_path=None):
+    try:
+        from Adv2.Adv2File import Adv2reader
+        from Adv2.AdvError import AdvLibException
+    except (ImportError, OSError) as imp_err:
+        return {"success": False, "image": None,
+                "errmsg": f"The Adv2 library is not available on this platform "
+                          f"(no Apple-Silicon build of libAdvCore); .aav/.adv "
+                          f"files cannot be read here. Details: {imp_err}"}
+
     try:
         rdr = Adv2reader(full_file_path)
     except AdvLibException as adverr:
