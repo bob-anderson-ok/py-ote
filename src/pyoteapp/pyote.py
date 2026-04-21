@@ -11539,8 +11539,12 @@ def main(csv_file_path=None):
 
     form = SimplePlot(csv_file_path)
     form.show()
-    app.exec_()
-    sys.exit()
+    # os._exit bypasses Python's interpreter teardown, which would otherwise
+    # GC module globals holding references to Qt C++ objects that Qt already
+    # destroyed during app.exec_() -> pure-virtual-call/SIGSEGV on macOS,
+    # non-zero exit code on Windows. No atexit or aboutToQuit handlers are
+    # registered anywhere in this codebase, so nothing useful is skipped.
+    os._exit(app.exec_())
 
 
 if __name__ == '__main__':
