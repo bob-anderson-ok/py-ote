@@ -11499,8 +11499,8 @@ def main(csv_file_path=None):
 
     import traceback
 
-    PyQt5.QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
-    PyQt5.QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
+    # HiDPI scaling attributes are now set in pyoteapp/__init__.py, which
+    # runs before any module-level import here can create a QCoreApplication.
 
     app = PyQt5.QtWidgets.QApplication(sys.argv)
 
