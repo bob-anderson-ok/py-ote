@@ -8,6 +8,10 @@ src/pyoteapp/.DS_Store
 build/
 dist/
 gui.py
+# gui.py IS needed in the installed package (pyote.py does `import gui`),
+# so un-ignore the package-local copy even though we ignore stray root-level
+# gui.py scratch files.
+!src/pyoteapp/gui.py
 helpDialog.txt
 simple-ote.ini
 src/__init__.pyc
