@@ -103,7 +103,7 @@ import timestampDialog
 import helpDialog
 import exponentialEdgeUtilities as ex
 
-from checkForNewerVersion import getLatestPackageVersion
+from checkForNewerVersion import getLatestReleaseVersion, is_newer
 # from pyoteapp.checkForNewerVersion import upgradePyote
 from csvreader import readLightCurve
 from errorBarUtils import ciBars
@@ -6069,36 +6069,29 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
             return 4 + len(self.extra)
 
     def checkForNewVersion(self):
-        latestVersion = getLatestPackageVersion('pyote')
+        repo = 'bob-anderson-ok/py-ote'
+        latestVersion = getLatestReleaseVersion(repo)
 
-        self.showMsg(f'Query to PyPI returned latest version of PyOTE as: {latestVersion}',
-                     color='blue', bold=True)
-
-        if latestVersion.startswith("none"):  # 'none' is returned when no Internet connection
-            gotVersion = False
-        else:
-            gotVersion = True if len(latestVersion) > 2 else False
-
-        if not gotVersion:
-            self.showMsg(f"Failed to connect to PyPI. Possible Internet connection problem ??",
+        if latestVersion.startswith('Failed'):
+            self.showMsg(f'Could not check for a newer version: {latestVersion}',
                          color='red', bold=True)
             return
 
-        if gotVersion:
-            if latestVersion <= version.version():
-                self.showMsg('You are running the most recent version of PyOTE', color='red', bold=True)
+        self.showMsg(f'Latest GitHub release of PyOTE: {latestVersion}',
+                     color='blue', bold=True)
 
-            else:
-                self.showMsg('Version ' + latestVersion + ' is available.  To get it:',
-                             color='red', bold=True)
-                self.showMsg(
-                    f"==== for pip based installations, in a command window type: pip install pyote=={latestVersion} (note double = symbols)",
-                    color='red', bold=True)
-                # self.showMsg(
-                #     f"==== for pipenv based installations, execute the ChangePyoteVersion.bat file.",
-                #     color='red', bold=True)
+        if is_newer(latestVersion, version.version()):
+            self.showMsg(f'Version {latestVersion} is available.  To get it:',
+                         color='red', bold=True)
+            self.showMsg(f'==== download from https://github.com/{repo}/releases'
+                         f' (if you are on Windows and want the new PyOTE.exe)',
+                         color='red', bold=True)
+            self.showMsg(f'==== go to https://github.com/{repo} and follow'
+                         f' the README instructions (if you are running MacOS)',
+                         color='red', bold=True)
         else:
-            self.showMsg(f'latestVersion found: {latestVersion}')
+            self.showMsg('You are running the most recent version of PyOTE',
+                         color='red', bold=True)
 
     # @staticmethod
     # def queryWhetherNewVersionShouldBeInstalled():
@@ -11492,8 +11485,41 @@ class SimplePlot(PyQt5.QtWidgets.QMainWindow, gui.Ui_mainWindow):  # noqa
         self.mainPlot.autoRange()
 
 
+def _record_exe_location():
+    # Publish a launchable PyOTE entry-point path so sibling apps (PyMovie)
+    # can start us without knowing where the user put PyOTE.exe.
+    #
+    # The user-facing PyOTE.exe (PyApp launcher) only runs at install time and
+    # has exited by the time our code runs, so we can't discover its path at
+    # runtime. Instead we advertise the setuptools gui-script entry point that
+    # lives next to sys.executable in PyApp's managed venv. Running that .exe
+    # calls pyoteapp.pyote:main() directly — same result as PyOTE.exe, but its
+    # location is derivable and deterministic.
+    if not os.environ.get('PYAPP'):
+        return  # source-checkout run; no packaged entry point to advertise
+    try:
+        from platformdirs import user_data_dir
+        entry_name = 'pyote.exe' if sys.platform == 'win32' else 'pyote'
+        entry = Path(sys.executable).parent / entry_name
+        if not entry.exists():
+            return
+        marker_dir = Path(user_data_dir('PyOTE', 'BobAnderson'))
+        marker_dir.mkdir(parents=True, exist_ok=True)
+        (marker_dir / 'exe-path.txt').write_text(str(entry), encoding='utf-8')
+    except Exception:
+        pass
+
+
 def main(csv_file_path=None):
-    # csv_file_path gets filled in by PyMovie
+    # csv_file_path gets filled in by PyMovie. Two callers, two channels:
+    #   - subprocess launch (PyMovie spawns pyote.exe): path arrives via argv;
+    #     setuptools' gui-script entry point calls main() directly with no
+    #     args, bypassing __main__, so we read sys.argv here, not there.
+    #   - in-process call (legacy: PyMovie imports this module): explicit kwarg.
+    if csv_file_path is None and len(sys.argv) > 1:
+        csv_file_path = sys.argv[1]
+
+    _record_exe_location()
 
     os.environ['QT_MAC_WANTS_LAYER'] = '1'  # This line needed when Mac updated to Big Sur
 

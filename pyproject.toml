@@ -59,6 +59,10 @@ dependencies = [
     "XlsxWriter==3.2.0",
 
     "PyYAML==6.0.2",
+
+    # OS-appropriate user data dir; used to publish PyOTE's entry-point path
+    # so sibling apps (PyMovie) can locate this install without env vars.
+    "platformdirs>=4,<5",
 ]
 
 [project.urls]
